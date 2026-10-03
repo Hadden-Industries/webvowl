@@ -1,0 +1,150 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "targets": [
+          "renamed-9"
+        ],
+        "kind": "class-node",
+        "id": "renamed-1"
+      }
+    ],
+    "constructs": [
+      {
+        "annotations": [
+          {
+            "annotations": [],
+            "value": {
+              "datatype": "http://www.w3.org/2001/XMLSchema#string",
+              "lexical": "",
+              "kind": "typed"
+            },
+            "predicate": "https://example.org/o#note"
+          }
+        ],
+        "assertion": {
+          "role": "renamed-9",
+          "kind": "declaration"
+        },
+        "kind": "assertion-anchor",
+        "id": "renamed-2"
+      },
+      {
+        "annotations": [
+          {
+            "annotations": [
+              {
+                "annotations": [],
+                "value": {
+                  "subject": "renamed-10",
+                  "kind": "subject"
+                },
+                "predicate": "https://example.org/o#note"
+              }
+            ],
+            "value": {
+              "datatype": "http://www.w3.org/2001/XMLSchema#string",
+              "lexical": "Exact\nlexeme",
+              "kind": "typed"
+            },
+            "predicate": "https://example.org/o#note"
+          }
+        ],
+        "assertion": {
+          "value": {
+            "language": "en-gb",
+            "lexical": "Colour",
+            "kind": "language"
+          },
+          "predicate": "http://www.w3.org/2000/01/rdf-schema#label",
+          "subject": "renamed-15",
+          "kind": "annotation-assertion"
+        },
+        "kind": "assertion-anchor",
+        "id": "renamed-3"
+      },
+      {
+        "value": {
+          "language": "en-gb",
+          "lexical": "Colour",
+          "kind": "language"
+        },
+        "predicate": "http://www.w3.org/2000/01/rdf-schema#label",
+        "subject": "renamed-15",
+        "kind": "annotation-assertion",
+        "id": "renamed-4"
+      }
+    ],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "renamed-11",
+        "kind": "datatype",
+        "id": "renamed-5"
+      },
+      {
+        "subject": "renamed-12",
+        "kind": "datatype",
+        "id": "renamed-6"
+      },
+      {
+        "subject": "renamed-13",
+        "kind": "annotation-property",
+        "id": "renamed-7"
+      },
+      {
+        "subject": "renamed-14",
+        "kind": "annotation-property",
+        "id": "renamed-8"
+      },
+      {
+        "subject": "renamed-15",
+        "kind": "class",
+        "id": "renamed-9"
+      }
+    ],
+    "subjects": [
+      {
+        "id": "renamed-10"
+      },
+      {
+        "iri": "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString",
+        "id": "renamed-11"
+      },
+      {
+        "iri": "http://www.w3.org/2001/XMLSchema#string",
+        "id": "renamed-12"
+      },
+      {
+        "iri": "https://example.org/o#note",
+        "id": "renamed-13"
+      },
+      {
+        "iri": "http://www.w3.org/2000/01/rdf-schema#label",
+        "id": "renamed-14"
+      },
+      {
+        "iri": "https://example.org/o#A",
+        "id": "renamed-15"
+      }
+    ],
+    "ontology": {
+      "annotations": [
+        {
+          "annotations": [],
+          "value": {
+            "iri": "https://example.org/outside",
+            "kind": "iri"
+          },
+          "predicate": "https://example.org/o#note"
+        }
+      ],
+      "imports": [
+        "urn:example:import:two",
+        "urn:example:import:one"
+      ],
+      "versionIri": "https://example.org/o/version/1",
+      "iri": "https://example.org/o"
+    }
+  }
+}

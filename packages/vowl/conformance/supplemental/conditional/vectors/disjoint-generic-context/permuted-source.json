@@ -1,0 +1,72 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "ends": [
+          "conditional-renamed-2",
+          "conditional-renamed-3"
+        ],
+        "construct": "conditional-renamed-4",
+        "kind": "disjoint-edge",
+        "id": "conditional-renamed-1"
+      },
+      {
+        "context": {
+          "targets": [
+            "conditional-renamed-6"
+          ],
+          "kind": "class"
+        },
+        "targets": [
+          "conditional-renamed-5"
+        ],
+        "kind": "class-node",
+        "id": "conditional-renamed-2"
+      },
+      {
+        "targets": [
+          "conditional-renamed-6"
+        ],
+        "kind": "class-node",
+        "id": "conditional-renamed-3"
+      }
+    ],
+    "constructs": [
+      {
+        "members": [
+          "conditional-renamed-5",
+          "conditional-renamed-6"
+        ],
+        "kind": "disjoint-classes",
+        "id": "conditional-renamed-4"
+      }
+    ],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "conditional-renamed-7",
+        "kind": "rdf-class",
+        "id": "conditional-renamed-5"
+      },
+      {
+        "subject": "conditional-renamed-8",
+        "kind": "class",
+        "id": "conditional-renamed-6"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "http://www.w3.org/2000/01/rdf-schema#Resource",
+        "id": "conditional-renamed-7"
+      },
+      {
+        "iri": "https://example.org/conditional#A",
+        "id": "conditional-renamed-8"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

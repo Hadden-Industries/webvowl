@@ -31,6 +31,17 @@ class NativeProseFormattingTests(unittest.TestCase):
             self.assertEqual(check_documents(selected), 0)
             self.assertEqual(check_documents([bad]), 1)
             self.assertEqual(authored_document_paths(root, []), [])
+            (root / "packages" / "vowl").mkdir(parents=True)
+            package_document = root / "packages" / "vowl" / "README.md"
+            package_document.write_text(
+                "First sentence. Another sentence.\n", encoding="utf8"
+            )
+            self.assertEqual(
+                authored_document_paths(root, ["packages/vowl/README.md"]),
+                [package_document],
+            )
+            self.assertIn(package_document, authored_document_paths(root))
+            self.assertEqual(check_documents([package_document]), 1)
             with self.assertRaises(ValueError):
                 authored_document_paths(root, ["../outside.md"])
 

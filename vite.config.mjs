@@ -221,13 +221,17 @@ function webvowlBuildPlugin(mode) {
  */
 function mtimePreservePlugin() {
   const fileCache = new Map();
+  let outDir;
 
   return {
     name: "mtime-preserve",
 
+    configResolved(configuration) {
+      outDir = configuration.build.outDir;
+    },
+
     buildStart() {
       fileCache.clear();
-      const outDir = resolve(configDir, "deploy");
       if (!existsSync(outDir)) return;
 
       const scan = (dir) => {
@@ -299,6 +303,7 @@ function htmlValidatePlugin(mode) {
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const isProd = mode === "production";
+  const isCanonicalCandidate = mode === "canonical";
 
   return {
     // Relative base path allows deployment under subdirectories (e.g. https://domain.com/webvowl/)
@@ -308,7 +313,12 @@ export default defineConfig(({ mode }) => {
     publicDir: false,
 
     build: {
-      outDir: resolve(configDir, "deploy"),
+      outDir: resolve(
+        configDir,
+        isCanonicalCandidate
+          ? "node_modules/.cache/webvowl-canonical"
+          : "deploy",
+      ),
       emptyOutDir: false,
       target: "es2022",
       minify: isProd,
@@ -375,6 +385,21 @@ export default defineConfig(({ mode }) => {
     },
 
     plugins: [
+      ...(isCanonicalCandidate
+        ? [
+            {
+              name: "webvowl-canonical-candidate-entry",
+              transformIndexHtml: {
+                order: "pre",
+                handler: (html) =>
+                  html.replace(
+                    '<script type="module" src="main.js"></script>',
+                    '<script type="module" src="canonical-main.js"></script>',
+                  ),
+              },
+            },
+          ]
+        : []),
       webvowlGeneratedJavaScriptCleanupPlugin(),
       mtimePreservePlugin(),
       // Replace @@WEBVOWL_VERSION placeholder in JS source files with the package version

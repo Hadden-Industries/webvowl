@@ -190,6 +190,23 @@ describe("generation-scoped graph layout settlement", () => {
     );
   });
 
+  test("a paused graph settles from stable positions even when its force retains energy", async () => {
+    readGraphLayoutSnapshot = () =>
+      layoutSnapshot({ isPaused: true, forceAlpha: 0.9 });
+    const settlementPromise = waitForSettledLayout();
+    let settled = false;
+    settlementPromise.then(() => {
+      settled = true;
+    });
+    await frameScheduler.runFrames(REQUIRED_STABLE_FRAME_COUNT);
+    expect(settled).toBe(false);
+    await frameScheduler.runFrames(1);
+    await expect(settlementPromise).resolves.toMatchObject({
+      status: "settled",
+      reason: "stable-frames",
+    });
+  });
+
   test("does not count a frame whose displacement exceeds the threshold", async () => {
     let observedFrameCount = 0;
     readGraphLayoutSnapshot = () => {

@@ -1,0 +1,124 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "direction": "reverse",
+        "edge": "renamed-3",
+        "kind": "label",
+        "id": "renamed-1"
+      },
+      {
+        "direction": "forward",
+        "edge": "renamed-3",
+        "kind": "label",
+        "id": "renamed-2"
+      },
+      {
+        "to": "renamed-4",
+        "from": "renamed-5",
+        "reverse": [
+          "renamed-11"
+        ],
+        "forward": [
+          "renamed-12"
+        ],
+        "construct": "renamed-6",
+        "kind": "inverse-edge",
+        "id": "renamed-3"
+      },
+      {
+        "targets": [
+          "renamed-13"
+        ],
+        "kind": "class-node",
+        "id": "renamed-4"
+      },
+      {
+        "targets": [
+          "renamed-14"
+        ],
+        "kind": "class-node",
+        "id": "renamed-5"
+      }
+    ],
+    "constructs": [
+      {
+        "members": [
+          "renamed-12",
+          "renamed-11"
+        ],
+        "kind": "inverse-properties",
+        "id": "renamed-6"
+      },
+      {
+        "target": "renamed-14",
+        "property": "renamed-11",
+        "kind": "object-range",
+        "id": "renamed-7"
+      },
+      {
+        "target": "renamed-13",
+        "property": "renamed-11",
+        "kind": "object-domain",
+        "id": "renamed-8"
+      },
+      {
+        "target": "renamed-13",
+        "property": "renamed-12",
+        "kind": "object-range",
+        "id": "renamed-9"
+      },
+      {
+        "target": "renamed-14",
+        "property": "renamed-12",
+        "kind": "object-domain",
+        "id": "renamed-10"
+      }
+    ],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "renamed-15",
+        "kind": "object-property",
+        "id": "renamed-11"
+      },
+      {
+        "subject": "renamed-16",
+        "kind": "object-property",
+        "id": "renamed-12"
+      },
+      {
+        "subject": "renamed-17",
+        "kind": "class",
+        "id": "renamed-13"
+      },
+      {
+        "subject": "renamed-18",
+        "kind": "class",
+        "id": "renamed-14"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "https://example.org/o#q",
+        "id": "renamed-15"
+      },
+      {
+        "iri": "https://example.org/o#p",
+        "id": "renamed-16"
+      },
+      {
+        "iri": "https://example.org/o#B",
+        "id": "renamed-17"
+      },
+      {
+        "iri": "https://example.org/o#A",
+        "id": "renamed-18"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

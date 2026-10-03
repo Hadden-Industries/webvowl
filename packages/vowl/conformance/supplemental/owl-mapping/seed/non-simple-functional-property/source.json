@@ -1,0 +1,81 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s:A",
+        "iri": "https://example.org/owl-seed#A"
+      },
+      {
+        "id": "s:p",
+        "iri": "https://example.org/owl-seed#p"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s:A"
+      },
+      {
+        "id": "p",
+        "kind": "object-property",
+        "subject": "s:p"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "domain",
+        "kind": "object-domain",
+        "property": "p",
+        "target": "A"
+      },
+      {
+        "id": "range",
+        "kind": "object-range",
+        "property": "p",
+        "target": "A"
+      },
+      {
+        "id": "transitive",
+        "kind": "object-characteristic",
+        "property": "p",
+        "characteristic": "transitive"
+      },
+      {
+        "id": "functional",
+        "kind": "object-characteristic",
+        "property": "p",
+        "characteristic": "functional"
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-0",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "edge-0",
+        "kind": "property-edge",
+        "properties": [
+          "p"
+        ],
+        "from": "node-0",
+        "to": "node-0"
+      },
+      {
+        "id": "edge-0-label-single",
+        "kind": "label",
+        "edge": "edge-0",
+        "direction": "single"
+      }
+    ]
+  }
+}

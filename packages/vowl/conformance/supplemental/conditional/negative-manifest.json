@@ -1,0 +1,533 @@
+{
+  "format": "canonical-vowl-negative-manifest/1",
+  "status": "independent-conditional-negatives-pending-review",
+  "specificationRevision": [
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design.md",
+      "sha256": "174535bb8cb43f317631f0799721adebfbbc4ceff4d577595be8fb91dd940fac"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-core-contract.md",
+      "sha256": "711ba30c291cfb0960334328203188600f60a331996e83379267a4a77b87988d"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-projection-contract.md",
+      "sha256": "4c1cf6a7e187f98d40d390e6ff0b5354aca46a8ff195fba5b6badace7eb6078b"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design-decisions.md",
+      "sha256": "f314ec3448f2cf87f73ce6ce8871f3695d4b3b26dee687383b36e36a4fc0a43e"
+    }
+  ],
+  "amendment": {
+    "path": "docs/specs/2026-09-30-canonical-vowl-resource-policy-amendment.md",
+    "sha256": "9f1b7d96229a06f57e29a52f92325a4256e6f826d7532e239848ef99dc0f47c1",
+    "approval": "Owner approved the exact quadratic capped work-policy amendment on 2026-09-30, as communicated by the parent integration task. Approval does not waive independent review."
+  },
+  "sourceArtifacts": [
+    {
+      "path": "oracle/extended-sources.mjs",
+      "sha256": "29a1ca8d3418f17f674bc577b999ba80a68e655d5b1848e04301b41e07e69da0"
+    },
+    {
+      "path": "supplemental/grammar/sources.mjs",
+      "sha256": "7a720f382180a0468f7441437342fef98d40155f511858bb9eece3d3c5a68a31"
+    },
+    {
+      "path": "supplemental/conditional/sources.mjs",
+      "sha256": "ff86b075e2011158220b39a0cc21545bba18a396bfa468cddd1efb9d414df26b"
+    },
+    {
+      "path": "supplemental/conditional/derive-negatives.mjs",
+      "sha256": "c842b63341dae60041ba89deb9a430d7bbecfc5aa5b8b66097fe8562c716e441"
+    }
+  ],
+  "positiveManifest": {
+    "path": "supplemental/conditional/manifest.json",
+    "sha256": "8ad1e7d52d040e27334e847f1366baff4cf9f16d36a5f960302d852e8fca87bb"
+  },
+  "precedence": "IDs/references/semantic record uniqueness precede exact projection; malformed closed shapes precede both. Duplicate semantic occurrence generation keys use RECORD_DUPLICATE under A5/A7.",
+  "vectors": [
+    {
+      "id": "generic-node-missing-context",
+      "sourceFixture": "generic-context-shared",
+      "clauses": [
+        "B23-opposite-class-targets"
+      ],
+      "expectedError": "PROJECTION_INVALID",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "status": "independently-derived-pending-review-and-production-comparison",
+      "input": {
+        "path": "supplemental/conditional/negative/generic-node-missing-context/source.json",
+        "sha256": "17dff7d96357528d7f20f986c97b4e46fbf1956b50337a028b3d4285712645d9",
+        "byteLength": 2299
+      }
+    },
+    {
+      "id": "generic-context-uses-occurrence-id",
+      "sourceFixture": "generic-context-shared",
+      "clauses": [
+        "B1-context-semantic-references"
+      ],
+      "expectedError": "REFERENCE_KIND",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "status": "independently-derived-pending-review-and-production-comparison",
+      "input": {
+        "path": "supplemental/conditional/negative/generic-context-uses-occurrence-id/source.json",
+        "sha256": "6d1ace3125a5497d61f0576a8c252c9ba13cd04f115eaeabaf8f0ce9d9a8e777",
+        "byteLength": 2414
+      }
+    },
+    {
+      "id": "ordinary-class-node-extra-context",
+      "sourceFixture": "generic-context-split",
+      "clauses": [
+        "B23-context-free-ordinary"
+      ],
+      "expectedError": "PROJECTION_INVALID",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "status": "independently-derived-pending-review-and-production-comparison",
+      "input": {
+        "path": "supplemental/conditional/negative/ordinary-class-node-extra-context/source.json",
+        "sha256": "053b1f176b4e5ccf7d9a66e846b9f6c2124d3c307b03a54efa6ac4c18b88750e",
+        "byteLength": 3049
+      }
+    },
+    {
+      "id": "same-generic-key-split-into-two-nodes",
+      "sourceFixture": "generic-context-shared",
+      "clauses": [
+        "B23-reuse-keys"
+      ],
+      "expectedError": "RECORD_DUPLICATE",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "status": "independently-derived-pending-review-and-production-comparison",
+      "input": {
+        "path": "supplemental/conditional/negative/same-generic-key-split-into-two-nodes/source.json",
+        "sha256": "3f58cce14b5733ecd80d9ad21e36efc6118933cf891346d2e05fc72814e5a85d",
+        "byteLength": 2660
+      }
+    },
+    {
+      "id": "different-generic-contexts-collapsed",
+      "sourceFixture": "generic-context-split",
+      "clauses": [
+        "B23-split-contexts"
+      ],
+      "expectedError": "PROJECTION_INVALID",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "status": "independently-derived-pending-review-and-production-comparison",
+      "input": {
+        "path": "supplemental/conditional/negative/different-generic-contexts-collapsed/source.json",
+        "sha256": "568cd190aa7731b677765d31e8f3a1fbb50804fc1227df6d8b821f17b9a8a052",
+        "byteLength": 2706
+      }
+    },
+    {
+      "id": "partition-datatype-context-drops-alias",
+      "sourceFixture": "data-equivalence-transitive",
+      "clauses": [
+        "B23-full-partition-context"
+      ],
+      "expectedError": "PROJECTION_INVALID",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "status": "independently-derived-pending-review-and-production-comparison",
+      "input": {
+        "path": "supplemental/conditional/negative/partition-datatype-context-drops-alias/source.json",
+        "sha256": "494bf36fafb7207796a6701bb0fea687034a703c36bc9a115bcbb9a75eab8158",
+        "byteLength": 3578
+      }
+    },
+    {
+      "id": "generic-datatype-opposite-uses-class-context",
+      "sourceFixture": "data-one-absent-domain",
+      "clauses": [
+        "B23-opposite-datatype-context"
+      ],
+      "expectedError": "PROJECTION_INVALID",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "status": "independently-derived-pending-review-and-production-comparison",
+      "input": {
+        "path": "supplemental/conditional/negative/generic-datatype-opposite-uses-class-context/source.json",
+        "sha256": "75e71104898cd870103cc94d9d47e1bebe995ca7a2eb0e377159ae754a3c1870",
+        "byteLength": 1925
+      }
+    },
+    {
+      "id": "property-edge-reverses-effective-endpoints",
+      "sourceFixture": "object-one-absent-domain",
+      "clauses": [
+        "B24-property-domain-range"
+      ],
+      "expectedError": "PROJECTION_INVALID",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "status": "independently-derived-pending-review-and-production-comparison",
+      "input": {
+        "path": "supplemental/conditional/negative/property-edge-reverses-effective-endpoints/source.json",
+        "sha256": "707324aca0e5c0199435b5a27048ee2c48305ca2bfb32ba1ff3c00b35a8b507f",
+        "byteLength": 1535
+      }
+    },
+    {
+      "id": "equivalence-partition-merges-unequal-terms",
+      "sourceFixture": "object-equivalence-partitioned",
+      "clauses": [
+        "B22-unequal-partitions"
+      ],
+      "expectedError": "PROJECTION_INVALID",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "status": "independently-derived-pending-review-and-production-comparison",
+      "input": {
+        "path": "supplemental/conditional/negative/equivalence-partition-merges-unequal-terms/source.json",
+        "sha256": "fe2c93df43b8b0b1fb0b579747b262223d70c7f458dcefc6136a619f99ef57d4",
+        "byteLength": 3189
+      }
+    },
+    {
+      "id": "same-class-glyphs-do-not-merge-property-terms",
+      "sourceFixture": "generic-context-grouped",
+      "clauses": [
+        "B22-exact-terms-not-glyphs"
+      ],
+      "expectedError": "PROJECTION_INVALID",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "status": "independently-derived-pending-review-and-production-comparison",
+      "input": {
+        "path": "supplemental/conditional/negative/same-class-glyphs-do-not-merge-property-terms/source.json",
+        "sha256": "0068ef6ae3cfadb32b193e54af971954ae9a84aac827ee02a4cc4e265208dc9d",
+        "byteLength": 2620
+      }
+    },
+    {
+      "id": "undrawable-class-expression-invented-node",
+      "sourceFixture": "subclass-either-term-undrawable",
+      "clauses": [
+        "B21-undrawable-expressions"
+      ],
+      "expectedError": "PROJECTION_INVALID",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "status": "independently-derived-pending-review-and-production-comparison",
+      "input": {
+        "path": "supplemental/conditional/negative/undrawable-class-expression-invented-node/source.json",
+        "sha256": "9c5f81b4825c50e8da505dc9a1251556dcecce107449e06e37211d948968fd75",
+        "byteLength": 2021
+      }
+    },
+    {
+      "id": "unattached-generic-invented-node",
+      "sourceFixture": "unattached-generics-and-datatype",
+      "clauses": [
+        "B21-unattached-generic"
+      ],
+      "expectedError": "PROJECTION_INVALID",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "status": "independently-derived-pending-review-and-production-comparison",
+      "input": {
+        "path": "supplemental/conditional/negative/unattached-generic-invented-node/source.json",
+        "sha256": "f6913982feaa2d5ec6ef6172981788aa3a1da38f8378383d9e2d7919f5e09d51",
+        "byteLength": 913
+      }
+    },
+    {
+      "id": "inverse-replacement-retains-ordinary-edge",
+      "sourceFixture": "matched-inverse",
+      "clauses": [
+        "B24-inverse-replacement"
+      ],
+      "expectedError": "PROJECTION_INVALID",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "status": "independently-derived-pending-review-and-production-comparison",
+      "input": {
+        "path": "supplemental/conditional/negative/inverse-replacement-retains-ordinary-edge/source.json",
+        "sha256": "130feca7d9a4cd93763ce080d5c117e341b3e30d1dbea829c69ae22a36f7f7af",
+        "byteLength": 2592
+      }
+    },
+    {
+      "id": "inverse-orientation-chosen-by-role-id",
+      "sourceFixture": "inverse-orientation-opposes-role-rank",
+      "clauses": [
+        "B24-inverse-orientation"
+      ],
+      "expectedError": "PROJECTION_INVALID",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "status": "independently-derived-pending-review-and-production-comparison",
+      "input": {
+        "path": "supplemental/conditional/negative/inverse-orientation-chosen-by-role-id/source.json",
+        "sha256": "27958828cf4dca5603c114bde81e223ef988ff6fc718669f7100cbf23768225a",
+        "byteLength": 2304
+      }
+    },
+    {
+      "id": "inverse-direction-label-missing",
+      "sourceFixture": "matched-inverse",
+      "clauses": [
+        "B24-inverse-labels"
+      ],
+      "expectedError": "PROJECTION_INVALID",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "status": "independently-derived-pending-review-and-production-comparison",
+      "input": {
+        "path": "supplemental/conditional/negative/inverse-direction-label-missing/source.json",
+        "sha256": "5bf225089668d13c624a6a09da0b10dfaac4035179103ebf296490f2868d6d02",
+        "byteLength": 2144
+      }
+    },
+    {
+      "id": "one-of-multiple-inverse-constructs-omitted",
+      "sourceFixture": "multiple-explicit-inverse-pairs",
+      "clauses": [
+        "B24-multiple-inverse-constructs"
+      ],
+      "expectedError": "PROJECTION_INVALID",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "status": "independently-derived-pending-review-and-production-comparison",
+      "input": {
+        "path": "supplemental/conditional/negative/one-of-multiple-inverse-constructs-omitted/source.json",
+        "sha256": "d84a645e56cf158f641e0aac6fa038384e7c31c9ed37f4015d6407bb7b326303",
+        "byteLength": 2960
+      }
+    },
+    {
+      "id": "disjoint-one-drawable-member-invented-loop",
+      "sourceFixture": "disjoint-1-drawable-members",
+      "clauses": [
+        "B24-disjoint-not-false-singleton"
+      ],
+      "expectedError": "PROJECTION_INVALID",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "status": "independently-derived-pending-review-and-production-comparison",
+      "input": {
+        "path": "supplemental/conditional/negative/disjoint-one-drawable-member-invented-loop/source.json",
+        "sha256": "cb3836a61b4021592bc7b9c1aa56b7690f97607fab977f4fd87419666876dc7e",
+        "byteLength": 1958
+      }
+    },
+    {
+      "id": "disjoint-triad-missing-one-pair",
+      "sourceFixture": "disjoint-triad",
+      "clauses": [
+        "B24-disjoint-pairs"
+      ],
+      "expectedError": "PROJECTION_INVALID",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "status": "independently-derived-pending-review-and-production-comparison",
+      "input": {
+        "path": "supplemental/conditional/negative/disjoint-triad-missing-one-pair/source.json",
+        "sha256": "3afd3315dbc946342505690a58fd107ecaf3e531eca77b87ade335c0808791b6",
+        "byteLength": 1599
+      }
+    },
+    {
+      "id": "disjoint-edge-invented-positionable-label",
+      "sourceFixture": "disjoint-triad",
+      "clauses": [
+        "B24-no-operator-disjoint-labels"
+      ],
+      "expectedError": "PROJECTION_INVALID",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "status": "independently-derived-pending-review-and-production-comparison",
+      "input": {
+        "path": "supplemental/conditional/negative/disjoint-edge-invented-positionable-label/source.json",
+        "sha256": "17d6de072c7711213680028dd6df778344d9bb4f0fccc1806395c90519dff4a7",
+        "byteLength": 1911
+      }
+    },
+    {
+      "id": "operator-edge-invented-positionable-label",
+      "sourceFixture": "operator-grouped-operand-dedup",
+      "clauses": [
+        "B24-no-operator-disjoint-labels"
+      ],
+      "expectedError": "PROJECTION_INVALID",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "status": "independently-derived-pending-review-and-production-comparison",
+      "input": {
+        "path": "supplemental/conditional/negative/operator-edge-invented-positionable-label/source.json",
+        "sha256": "d1a3fe8dc3f7364caf0728eda4c851fd7fa61cce1d9093000c0fcf27e74794ed",
+        "byteLength": 2120
+      }
+    },
+    {
+      "id": "operator-connection-duplicated-after-grouping",
+      "sourceFixture": "operator-grouped-operand-dedup",
+      "clauses": [
+        "B24-operator-dedup"
+      ],
+      "expectedError": "RECORD_DUPLICATE",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "status": "independently-derived-pending-review-and-production-comparison",
+      "input": {
+        "path": "supplemental/conditional/negative/operator-connection-duplicated-after-grouping/source.json",
+        "sha256": "d63269b036b04ff0ab6e27bef85d9510da2825afb6d415fd75dc818c53de0547",
+        "byteLength": 2151
+      }
+    },
+    {
+      "id": "operator-node-missing-for-all-undrawable-operands",
+      "sourceFixture": "operator-no-drawable-operands",
+      "clauses": [
+        "B21-operator-singletons",
+        "B24-operator-undrawable"
+      ],
+      "expectedError": "PROJECTION_INVALID",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "status": "independently-derived-pending-review-and-production-comparison",
+      "input": {
+        "path": "supplemental/conditional/negative/operator-node-missing-for-all-undrawable-operands/source.json",
+        "sha256": "ef8f57bff04337a0e90cd2522de062cfe1562e96657b8868e5b4f664d47f30eb",
+        "byteLength": 2022
+      }
+    },
+    {
+      "id": "restriction-context-borrows-global-alias",
+      "sourceFixture": "object-restriction-excludes-global-alias",
+      "clauses": [
+        "B23-restriction-exact-role"
+      ],
+      "expectedError": "PROJECTION_INVALID",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "status": "independently-derived-pending-review-and-production-comparison",
+      "input": {
+        "path": "supplemental/conditional/negative/restriction-context-borrows-global-alias/source.json",
+        "sha256": "100f3aa43dde6a096560f23260b8ef216d9efe55e16cdfed5a6ad9043409efa3",
+        "byteLength": 2750
+      }
+    },
+    {
+      "id": "restriction-context-omits-scope",
+      "sourceFixture": "object-exact-unqualified",
+      "clauses": [
+        "B23-restriction-scope"
+      ],
+      "expectedError": "PROJECTION_INVALID",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "status": "independently-derived-pending-review-and-production-comparison",
+      "input": {
+        "path": "supplemental/conditional/negative/restriction-context-omits-scope/source.json",
+        "sha256": "d1fe66117757ef4f6c5b462b8afb714fe47734cae4ae1670047efc2851cb53c6",
+        "byteLength": 2354
+      }
+    },
+    {
+      "id": "restriction-context-uses-generic-class-context",
+      "sourceFixture": "object-exact-unqualified",
+      "clauses": [
+        "B23-restriction-exact-role"
+      ],
+      "expectedError": "PROJECTION_INVALID",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "status": "independently-derived-pending-review-and-production-comparison",
+      "input": {
+        "path": "supplemental/conditional/negative/restriction-context-uses-generic-class-context/source.json",
+        "sha256": "ba9be2eeb0d7b60aaa8594231fadd10b9d0f8121681ab89fa7218c035e572575",
+        "byteLength": 2348
+      }
+    },
+    {
+      "id": "restriction-label-missing",
+      "sourceFixture": "object-exact-unqualified",
+      "clauses": [
+        "B24-single-labels"
+      ],
+      "expectedError": "PROJECTION_INVALID",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "status": "independently-derived-pending-review-and-production-comparison",
+      "input": {
+        "path": "supplemental/conditional/negative/restriction-label-missing/source.json",
+        "sha256": "578c88504694056a1f84a66a4d3b47266016c5ae302012a8fcf3876e5abd76f7",
+        "byteLength": 2250
+      }
+    },
+    {
+      "id": "inverse-artifact-label-placement-missing",
+      "sourceFixture": "artifact-all-positionable-matched-inverse",
+      "clauses": [
+        "B24-positionable"
+      ],
+      "expectedError": "ARTIFACT_INCOMPLETE",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "status": "independently-derived-pending-review-and-production-comparison",
+      "input": {
+        "path": "supplemental/conditional/negative/inverse-artifact-label-placement-missing/source.json",
+        "sha256": "6c4f7f93697751deb0a21de50224de80efac4878798c94cfcbd50e59e23c0d2a",
+        "byteLength": 3073
+      }
+    },
+    {
+      "id": "restriction-artifact-edge-placement-forbidden",
+      "sourceFixture": "artifact-all-positionable-object-exact-unqualified",
+      "clauses": [
+        "B24-no-edge-placement"
+      ],
+      "expectedError": "ARTIFACT_INCOMPLETE",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "status": "independently-derived-pending-review-and-production-comparison",
+      "input": {
+        "path": "supplemental/conditional/negative/restriction-artifact-edge-placement-forbidden/source.json",
+        "sha256": "72c46f5a56c9e4fc73f0cfc12e985ed9b65322642e7ea60f71f0d94893d9da1c",
+        "byteLength": 3669
+      }
+    },
+    {
+      "id": "unknown-occurrence-token-has-no-default",
+      "sourceFixture": "mixed-class-rdfs-equivalence-group",
+      "clauses": [
+        "B25-no-unknown-kind-default"
+      ],
+      "expectedError": "DOCUMENT_TYPE",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "status": "independently-derived-pending-review-and-production-comparison",
+      "input": {
+        "path": "supplemental/conditional/negative/unknown-occurrence-token-has-no-default/source.json",
+        "sha256": "d5c987e080c41409089b73661567e1b05e7771fd9093febe2c6587b197cf5a03",
+        "byteLength": 837
+      }
+    },
+    {
+      "id": "characteristic-copy-on-occurrence-forbidden",
+      "sourceFixture": "characteristics-principal-and-alias",
+      "clauses": [
+        "B1-no-semantic-copy"
+      ],
+      "expectedError": "DOCUMENT_UNKNOWN_FIELD",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "status": "independently-derived-pending-review-and-production-comparison",
+      "input": {
+        "path": "supplemental/conditional/negative/characteristic-copy-on-occurrence-forbidden/source.json",
+        "sha256": "7b55ddada4c34c268f6acd3b67353e25f82c9f03ff38446c02f3afd77010d83a",
+        "byteLength": 2855
+      }
+    }
+  ]
+}

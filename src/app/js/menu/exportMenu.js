@@ -92,10 +92,51 @@ function createExportMenu({
 } = {}) {
   const exportMenu = {};
 
+  exportMenu.renderOriginalSources = function () {
+    const container = documentObject.querySelector("#originalSourceExport");
+    if (
+      !container ||
+      typeof webVowlController.getOriginalSources !== "function"
+    ) {
+      return;
+    }
+    const select = documentObject.querySelector("#originalSourceDocument");
+    const sources = webVowlController
+      .getOriginalSources()
+      .filter(({ available }) => available);
+    const previous = select.value;
+    select.replaceChildren();
+    for (const source of sources) {
+      const option = documentObject.createElement("option");
+      option.value = source.documentId;
+      option.textContent = source.documentIri;
+      select.append(option);
+    }
+    if (sources.some(({ documentId }) => documentId === previous)) {
+      select.value = previous;
+    }
+    container.hidden = false;
+    const controls = documentObject.querySelector("#originalSourceControls");
+    const unavailable = documentObject.querySelector(
+      "#originalSourceUnavailable",
+    );
+    if (controls) {
+      controls.hidden = sources.length === 0;
+    }
+    if (unavailable) {
+      unavailable.hidden = sources.length > 0;
+    }
+  };
+
   /**
    * Adds the export button to the website.
    */
   exportMenu.setup = function () {
+    documentObject
+      .querySelector("#exportOriginalSource")
+      ?.addEventListener("click", (event) =>
+        exportMenu.exportVisualizationArtifact(event, "original-source"),
+      );
     documentObject
       .querySelector("#exportSvg")
       .addEventListener("click", (event) =>
@@ -216,7 +257,14 @@ function createExportMenu({
     }
 
     try {
-      await webVowlController.exportVisualization({ format });
+      if (format === "original-source") {
+        await webVowlController.exportOriginalSource({
+          documentId: documentObject.querySelector("#originalSourceDocument")
+            .value,
+        });
+      } else {
+        await webVowlController.exportVisualization({ format });
+      }
     } catch (exportError) {
       const failure =
         exportError instanceof WebVowlOperationError
@@ -241,6 +289,7 @@ function createExportMenu({
         "vowl-json": "#exportJson",
         turtle: "#exportTurtle",
         latex: "#exportTex",
+        "original-source": "#exportOriginalSource",
       }[format],
     );
     if (downloadLinkElement?.href) {

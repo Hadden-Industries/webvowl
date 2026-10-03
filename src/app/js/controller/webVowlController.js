@@ -24,6 +24,9 @@ import {
   describeVowlDocumentDeletion,
   applyVowlDocumentDeletion,
   insertVowlDocumentRecords,
+  describeVowlDocumentRecord,
+  readVowlDocumentPrefixes,
+  resolveVowlEditorIri,
 } from "./vowlDocument.js";
 import {
   decodeVowlVisualizationSettings,
@@ -1545,6 +1548,32 @@ export function createWebVowlController(dependencies) {
         loadGeneration: currentOntologyGeneration,
         vowlModel: createVowlDocumentSnapshot(currentVowlModel),
       });
+    },
+
+    getOntologyEditorView(recordTarget) {
+      assertOntologyPresent();
+      const selectedRecord =
+        recordTarget === null || recordTarget === undefined
+          ? undefined
+          : describeVowlDocumentRecord(currentVowlModel, recordTarget);
+      return createVowlDocumentSnapshot({
+        loadGeneration: currentOntologyGeneration,
+        metadata: currentVowlModel.header ?? {},
+        prefixes: readVowlDocumentPrefixes(currentVowlModel),
+        selectedRecord,
+        isProperty: recordTarget?.collection === "property",
+        derivedIriBase:
+          selectedRecord &&
+          selectedRecord.iri ===
+            `${currentVowlModel.header?.iri}${selectedRecord.id}`
+            ? currentVowlModel.header.iri
+            : undefined,
+      });
+    },
+
+    resolveOntologyEditorIri(input) {
+      assertOntologyPresent();
+      return resolveVowlEditorIri(input, currentVowlModel);
     },
 
     async editOntologyRecord(request, { signal } = {}) {

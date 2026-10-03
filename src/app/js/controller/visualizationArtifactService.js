@@ -2,6 +2,8 @@ import { createSvgViewRecipe } from "./svgSerializer.js";
 import { serializeRenderedDrawingAsTikz } from "./tikzSerializer.js";
 import {
   normalizeVisualizationFilename,
+  normalizeCanonicalVowlFilename,
+  normalizeOriginalSourceFilename,
   VISUALIZATION_ARTIFACT_FORMATS,
   WebVowlOperationError,
 } from "./webVowlControllerContracts.js";
@@ -234,7 +236,152 @@ export function createVisualizationArtifactService(dependencies) {
   let nextPageLocalArtifactSequence = 1;
   let currentObjectUrl;
 
+  async function publishSerializedArtifact(
+    serialized,
+    {
+      format,
+      filename,
+      pageLocalArtifactId,
+      provenance,
+      mediaType = VISUALIZATION_ARTIFACT_FORMATS[format]?.mediaType,
+    },
+    options,
+  ) {
+    const blob = createSerializedArtifactBlob(
+      serialized,
+      mediaType,
+      BlobConstructor,
+    );
+    let bytes;
+    try {
+      bytes = await blob.arrayBuffer();
+    } catch (error) {
+      throw createExportFailure("blob-creation", error);
+    }
+    function checkCurrent() {
+      throwIfOperationAborted(options.signal);
+      if (isDisposed) {
+        throw createExportFailure(
+          "artifact-lifecycle",
+          new Error(
+            "The visualization artifact service was disposed during export.",
+          ),
+        );
+      }
+    }
+    checkCurrent();
+    const sha256Hex = await computeSha256Hex(bytes, webCrypto);
+    checkCurrent();
+    const metadata = Object.freeze({
+      format,
+      pageLocalArtifactId,
+      filename,
+      mediaType,
+      byteLength: blob.size,
+      sha256Hex,
+      ...provenance,
+    });
+    const replacementObjectUrl = createPageLocalObjectUrl(blob, objectUrlApi);
+    try {
+      checkCurrent();
+      visualizationArtifactPublicationPort.publishPageLocalArtifact({
+        metadata,
+        objectUrl: replacementObjectUrl,
+      });
+    } catch (error) {
+      revokePageLocalObjectUrl(objectUrlApi, replacementObjectUrl);
+      throw error;
+    }
+    const replacedObjectUrl = currentObjectUrl;
+    currentObjectUrl = replacementObjectUrl;
+    if (replacedObjectUrl !== undefined) {
+      revokePageLocalObjectUrl(objectUrlApi, replacedObjectUrl);
+    }
+    return metadata;
+  }
+
   return Object.freeze({
+    /** Preserve exact package bytes and scope without parsing or re-encoding. */
+    async createSemanticSourceArtifact(request, options = {}) {
+      assertExactFieldNames(
+        request,
+        ["bytes", "filename", "loadGeneration", "source", "scope", "format"],
+        "Semantic source artifact",
+      );
+      assertOperationOptions(options);
+      throwIfOperationAborted(options.signal);
+      if (
+        !(request.bytes instanceof Uint8Array) ||
+        !Number.isSafeInteger(request.loadGeneration) ||
+        request.loadGeneration < 1 ||
+        !["original-source", "turtle"].includes(request.format)
+      ) {
+        throw new TypeError(
+          "Semantic publication requires bytes, a supported format and a load generation.",
+        );
+      }
+      return publishSerializedArtifact(
+        request.bytes.slice(),
+        {
+          format: request.format,
+          // Original inputs are downloads, never active content in a browser tab.
+          mediaType:
+            request.format === "original-source"
+              ? "application/octet-stream"
+              : "text/turtle",
+          filename:
+            request.format === "original-source"
+              ? normalizeOriginalSourceFilename(request.filename)
+              : normalizeVisualizationFilename(request.filename, "turtle"),
+          pageLocalArtifactId: `${request.format}-artifact-${request.loadGeneration}-${nextPageLocalArtifactSequence++}`,
+          provenance: {
+            loadGeneration: request.loadGeneration,
+            source: Object.freeze(structuredClone(request.source)),
+            scope: Object.freeze(structuredClone(request.scope)),
+          },
+        },
+        options,
+      );
+    },
+    /** Publish bytes admitted and encoded by the worker without parsing/re-encoding. */
+    async createCanonicalVowlArtifact(request, options = {}) {
+      assertExactFieldNames(
+        request,
+        ["bytes", "filename", "loadGeneration", "source"],
+        "Canonical VOWL artifact request",
+      );
+      assertOperationOptions(options);
+      throwIfOperationAborted(options.signal);
+      if (
+        !(request.bytes instanceof Uint8Array) ||
+        request.bytes.byteLength === 0 ||
+        !Number.isSafeInteger(request.loadGeneration) ||
+        request.loadGeneration < 1
+      ) {
+        throw new TypeError(
+          "Canonical publication requires encoded bytes and a positive load generation.",
+        );
+      }
+      if (isDisposed) {
+        throw createExportFailure(
+          "artifact-lifecycle",
+          new Error("The visualization artifact service has been disposed."),
+        );
+      }
+      return publishSerializedArtifact(
+        request.bytes.slice(),
+        {
+          format: "vowl-json",
+          filename: normalizeCanonicalVowlFilename(request.filename),
+          pageLocalArtifactId: `vowl-json-artifact-${request.loadGeneration}-${nextPageLocalArtifactSequence++}`,
+          provenance: {
+            loadGeneration: request.loadGeneration,
+            source: Object.freeze(structuredClone(request.source)),
+          },
+        },
+        options,
+      );
+    },
     async createVisualizationArtifact(request, options = {}) {
       const format = request?.format ?? "svg";
       if (!["svg", "vowl-json", "turtle", "latex"].includes(format)) {
@@ -329,71 +476,16 @@ export function createVisualizationArtifactService(dependencies) {
       }
       throwIfOperationAborted(options.signal);
 
-      const serializedArtifactBlob = createSerializedArtifactBlob(
+      return publishSerializedArtifact(
         serializedArtifactText,
-        VISUALIZATION_ARTIFACT_FORMATS[format].mediaType,
-        BlobConstructor,
+        {
+          format,
+          pageLocalArtifactId,
+          filename: normalizeVisualizationFilename(request.filename, format),
+          provenance,
+        },
+        options,
       );
-      let serializedArtifactBytes;
-      try {
-        serializedArtifactBytes = await serializedArtifactBlob.arrayBuffer();
-      } catch (error) {
-        throw createExportFailure("blob-creation", error);
-      }
-      throwIfOperationAborted(options.signal);
-      if (isDisposed) {
-        throw createExportFailure(
-          "artifact-lifecycle",
-          new Error(
-            "The visualization artifact service was disposed during export.",
-          ),
-        );
-      }
-      const sha256Hex = await computeSha256Hex(
-        serializedArtifactBytes,
-        webCrypto,
-      );
-      throwIfOperationAborted(options.signal);
-      if (isDisposed) {
-        throw createExportFailure(
-          "artifact-lifecycle",
-          new Error(
-            "The visualization artifact service was disposed during export.",
-          ),
-        );
-      }
-
-      const metadata = Object.freeze({
-        format,
-        pageLocalArtifactId,
-        filename: normalizeVisualizationFilename(request.filename, format),
-        mediaType: VISUALIZATION_ARTIFACT_FORMATS[format].mediaType,
-        byteLength: serializedArtifactBlob.size,
-        sha256Hex,
-        ...provenance,
-      });
-      const replacementObjectUrl = createPageLocalObjectUrl(
-        serializedArtifactBlob,
-        objectUrlApi,
-      );
-
-      try {
-        throwIfOperationAborted(options.signal);
-        visualizationArtifactPublicationPort.publishPageLocalArtifact({
-          metadata,
-          objectUrl: replacementObjectUrl,
-        });
-      } catch (error) {
-        revokePageLocalObjectUrl(objectUrlApi, replacementObjectUrl);
-        throw error;
-      }
-
-      const replacedObjectUrl = currentObjectUrl;
-      currentObjectUrl = replacementObjectUrl;
-      if (replacedObjectUrl !== undefined) {
-        revokePageLocalObjectUrl(objectUrlApi, replacedObjectUrl);
-      }
-      return metadata;
     },
 
     dispose() {

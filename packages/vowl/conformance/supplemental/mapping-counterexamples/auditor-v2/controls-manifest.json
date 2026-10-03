@@ -1,0 +1,577 @@
+{
+  "format": "canonical-vowl-independent-template-auditor-controls/2",
+  "predecessor": {
+    "auditor": {
+      "path": "supplemental/mapping-counterexamples/template-audit.mjs",
+      "sha256": "38cbb9d88f4262b7a5467cca19e50d14c1f82487f9734e0eb0c454fa47debe87"
+    },
+    "evidence": {
+      "path": "supplemental/mapping-counterexamples/template-audit-evidence.json",
+      "sha256": "798029a6a5ee56759ca3a5cd621d90b441b15ed3fa7fda5f1c062f164ac407d3"
+    },
+    "provenance": {
+      "path": "supplemental/mapping-counterexamples/provenance-index.json",
+      "sha256": "d3faacaded67d017d8f8d590fea87543e684578764d1a2af6889448e6db8f20c"
+    }
+  },
+  "sourceArtifacts": [
+    {
+      "path": "supplemental/mapping-counterexamples/auditor-v2/support.mjs",
+      "sha256": "7158bfb1ed3e59e2f13d1d5bc923782ed16e6706e7056f275f0b7197f747f656",
+      "byteLength": 1954
+    },
+    {
+      "path": "supplemental/mapping-counterexamples/auditor-v2/template-audit.mjs",
+      "sha256": "803ddce894672710e1302506aab9a6fb1df814c8af35f7e79d542f00f6d55160",
+      "byteLength": 11299
+    },
+    {
+      "path": "supplemental/mapping-counterexamples/auditor-v2/derive.mjs",
+      "sha256": "d339c0fad34b041813ab24c2823e679c4e7e8aa7f1e808164200fdc5bc77ca16",
+      "byteLength": 9973
+    }
+  ],
+  "policy": "These invalid RDF/correspondence mutations target the independent proof checker only. ERR_ASSERTION and its exact invariant message are private checker evidence, not public Canonical VOWL rejection codes. No product operation or producer result is used to choose the invalidity.",
+  "vectors": [
+    {
+      "id": "named-embedded-object",
+      "sourceFixture": "empty-structural",
+      "source": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      },
+      "originalIds": {
+        "path": "vectors/empty-structural/ids.json",
+        "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+        "byteLength": 3
+      },
+      "originalNQuads": {
+        "path": "vectors/empty-structural/canonical.nq",
+        "sha256": "db60b276c64f63a0a86a60fb901d4698827101dabcd8679f6362f4dd4168b6ee",
+        "byteLength": 2574
+      },
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "files": {
+        "ids": {
+          "path": "supplemental/mapping-counterexamples/auditor-v2/controls/named-embedded-object/ids.json",
+          "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+          "byteLength": 3
+        },
+        "nquads": {
+          "path": "supplemental/mapping-counterexamples/auditor-v2/controls/named-embedded-object/canonical.nq",
+          "sha256": "c79e960af31adf6774eed825880c4dcb57f8e9ff74a85183fa123aba21bfaca1",
+          "byteLength": 2742
+        }
+      },
+      "change": {
+        "kind": "replace-rdf-term-everywhere",
+        "before": "_:c14n8",
+        "after": "<urn:review:named-auxiliary>",
+        "unchanged": [
+          "source",
+          "ids"
+        ]
+      },
+      "predecessorAccepted": true,
+      "correctedRejected": true,
+      "expectedCheckerError": {
+        "code": "ERR_ASSERTION",
+        "message": "A6 allocation must be a blank node except the fixed root at /structural"
+      }
+    },
+    {
+      "id": "named-set-container",
+      "sourceFixture": "empty-structural",
+      "source": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      },
+      "originalIds": {
+        "path": "vectors/empty-structural/ids.json",
+        "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+        "byteLength": 3
+      },
+      "originalNQuads": {
+        "path": "vectors/empty-structural/canonical.nq",
+        "sha256": "db60b276c64f63a0a86a60fb901d4698827101dabcd8679f6362f4dd4168b6ee",
+        "byteLength": 2574
+      },
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "files": {
+        "ids": {
+          "path": "supplemental/mapping-counterexamples/auditor-v2/controls/named-set-container/ids.json",
+          "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+          "byteLength": 3
+        },
+        "nquads": {
+          "path": "supplemental/mapping-counterexamples/auditor-v2/controls/named-set-container/canonical.nq",
+          "sha256": "44494402eef27d665dfe4a97649807456b99338e7d3c20407f98202c2962554f",
+          "byteLength": 2604
+        }
+      },
+      "change": {
+        "kind": "replace-rdf-term-everywhere",
+        "before": "_:c14n0",
+        "after": "<urn:review:named-set>",
+        "unchanged": [
+          "source",
+          "ids"
+        ]
+      },
+      "predecessorAccepted": true,
+      "correctedRejected": true,
+      "expectedCheckerError": {
+        "code": "ERR_ASSERTION",
+        "message": "A6 allocation must be a blank node except the fixed root at /structural/expressions"
+      }
+    },
+    {
+      "id": "named-sequence-slot",
+      "sourceFixture": "field-construct-property-chain-members-after",
+      "source": {
+        "path": "supplemental/mapping-counterexamples/core/field-construct-property-chain-members-after/source.json",
+        "sha256": "86d4f898b7c6dab21802c76af3b6d9c6f820789dca0e19fc4771c103ec9d77b2",
+        "byteLength": 1749
+      },
+      "originalIds": {
+        "path": "supplemental/mapping-counterexamples/core/field-construct-property-chain-members-after/ids.json",
+        "sha256": "e4aa77f9e3f760233559c4581ff32cd2e81077f4ec3ab2aff338ddc6733d5152",
+        "byteLength": 1865
+      },
+      "originalNQuads": {
+        "path": "supplemental/mapping-counterexamples/core/field-construct-property-chain-members-after/canonical.nq",
+        "sha256": "61e511e6993ba41006a3616aadd113f0988496448e09ca5967ae402d552f5dc5",
+        "byteLength": 11394
+      },
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "files": {
+        "ids": {
+          "path": "supplemental/mapping-counterexamples/auditor-v2/controls/named-sequence-slot/ids.json",
+          "sha256": "e4aa77f9e3f760233559c4581ff32cd2e81077f4ec3ab2aff338ddc6733d5152",
+          "byteLength": 1865
+        },
+        "nquads": {
+          "path": "supplemental/mapping-counterexamples/auditor-v2/controls/named-sequence-slot/canonical.nq",
+          "sha256": "cca3c777c5dd64ae912c6b03f0422cbb5f842a79d4f22c620f87d8083390f874",
+          "byteLength": 11454
+        }
+      },
+      "change": {
+        "kind": "replace-rdf-term-everywhere",
+        "before": "_:c14n16",
+        "after": "<urn:review:named-slot>",
+        "unchanged": [
+          "source",
+          "ids"
+        ]
+      },
+      "predecessorAccepted": true,
+      "correctedRejected": true,
+      "expectedCheckerError": {
+        "code": "ERR_ASSERTION",
+        "message": "A6 allocation must be a blank node except the fixed root at /structural/constructs/0/members/0/@slot"
+      }
+    },
+    {
+      "id": "forged-subjects-category-and-type",
+      "sourceFixture": "named-class-structural",
+      "source": {
+        "path": "vectors/named-class-structural/source.json",
+        "sha256": "5fb3584a228bd2f40a4bd3734154bffdabfccd17a23a2f5cb7d0a148a3a188b2",
+        "byteLength": 535
+      },
+      "originalIds": {
+        "path": "vectors/named-class-structural/ids.json",
+        "sha256": "0dd7bba03e230baeb7382392261f6bfa2e17dac471881565cb0448d7f803a39d",
+        "byteLength": 477
+      },
+      "originalNQuads": {
+        "path": "vectors/named-class-structural/canonical.nq",
+        "sha256": "1f7ab7d12852250d2aa6b0a60c214a5729b2bfcf6965b3310362066345aa7eb6",
+        "byteLength": 4132
+      },
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "files": {
+        "ids": {
+          "path": "supplemental/mapping-counterexamples/auditor-v2/controls/forged-subjects-category-and-type/ids.json",
+          "sha256": "18fc4f4966b4a999262df3e6f4c2965f8e0621f8becaf0e520549afb627366ec",
+          "byteLength": 474
+        },
+        "nquads": {
+          "path": "supplemental/mapping-counterexamples/auditor-v2/controls/forged-subjects-category-and-type/canonical.nq",
+          "sha256": "46708d44ef1f4fff558a59c528cab785972875b0545c630d8832d56ab5e1e41e",
+          "byteLength": 4129
+        }
+      },
+      "change": {
+        "kind": "colluding-correspondence-category-and-rdf-type",
+        "sourcePointer": "/structural/subjects/0",
+        "sourceHandle": "class-subject",
+        "actualSourceCategory": "subjects",
+        "forgedMetadataCategory": "roles",
+        "originalTriple": "_:c14n3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Subject> .",
+        "changedTriple": "_:c14n3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Role> ."
+      },
+      "predecessorAccepted": true,
+      "correctedRejected": true,
+      "expectedCheckerError": {
+        "code": "ERR_ASSERTION",
+        "message": "Primary category metadata disagrees with source collection for class-subject\n+ actual - expected\n\n+ 'roles'\n- 'subjects'\n"
+      }
+    },
+    {
+      "id": "forged-roles-category-and-type",
+      "sourceFixture": "subject-absent-versus-iri-before",
+      "source": {
+        "path": "supplemental/mapping-counterexamples/value-state/subject-absent-versus-iri-before/source.json",
+        "sha256": "4750ed9267f20c68ddf59d13c194660cc1627f287f91d7354567d1d018ee6547",
+        "byteLength": 336
+      },
+      "originalIds": {
+        "path": "supplemental/mapping-counterexamples/value-state/subject-absent-versus-iri-before/ids.json",
+        "sha256": "638d042263a715001b4da81f8d7f0b7b257750e4f6dcf5e31d874a60a7d942e3",
+        "byteLength": 298
+      },
+      "originalNQuads": {
+        "path": "supplemental/mapping-counterexamples/value-state/subject-absent-versus-iri-before/canonical.nq",
+        "sha256": "39267fb0adc1e21f949ab26d464961e1f74601c31f6667ed0bf2872e86103330",
+        "byteLength": 3300
+      },
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "files": {
+        "ids": {
+          "path": "supplemental/mapping-counterexamples/auditor-v2/controls/forged-roles-category-and-type/ids.json",
+          "sha256": "3bf5d84a099c23f2e5337683cc2b6643e8f369eeadfffe522f8d8e2a111279f8",
+          "byteLength": 304
+        },
+        "nquads": {
+          "path": "supplemental/mapping-counterexamples/auditor-v2/controls/forged-roles-category-and-type/canonical.nq",
+          "sha256": "cedcc095e49d6a9050d7d7224dc9e5b879b711d7774f0102a0268f035560fc8f",
+          "byteLength": 3306
+        }
+      },
+      "change": {
+        "kind": "colluding-correspondence-category-and-rdf-type",
+        "sourcePointer": "/structural/roles/0",
+        "sourceHandle": "i",
+        "actualSourceCategory": "roles",
+        "forgedMetadataCategory": "expressions",
+        "originalTriple": "_:c14n5 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Role> .",
+        "changedTriple": "_:c14n5 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Expression> ."
+      },
+      "predecessorAccepted": true,
+      "correctedRejected": true,
+      "expectedCheckerError": {
+        "code": "ERR_ASSERTION",
+        "message": "Primary category metadata disagrees with source collection for i\n+ actual - expected\n\n+ 'expressions'\n- 'roles'\n"
+      }
+    },
+    {
+      "id": "forged-expressions-category-and-type",
+      "sourceFixture": "data-complement",
+      "source": {
+        "path": "supplemental/grammar/vectors/data-complement/source.json",
+        "sha256": "822117726863f04ebb172b5a9170c31d5c5da75105ac5dd2bac754594b1ed8c9",
+        "byteLength": 899
+      },
+      "originalIds": {
+        "path": "supplemental/grammar/vectors/data-complement/ids.json",
+        "sha256": "b82eab6cecf63007987060a717957fa5ff646c85d6ffde880cc1b63beff6804a",
+        "byteLength": 948
+      },
+      "originalNQuads": {
+        "path": "supplemental/grammar/vectors/data-complement/canonical.nq",
+        "sha256": "8609791725085f313ff7af7a13e48151dde844599b16375d66cc162437516638",
+        "byteLength": 5392
+      },
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "files": {
+        "ids": {
+          "path": "supplemental/mapping-counterexamples/auditor-v2/controls/forged-expressions-category-and-type/ids.json",
+          "sha256": "af871c580db960fcba757c8af72fa0b35360074e9cb68cd83cb73a832c4212b1",
+          "byteLength": 947
+        },
+        "nquads": {
+          "path": "supplemental/mapping-counterexamples/auditor-v2/controls/forged-expressions-category-and-type/canonical.nq",
+          "sha256": "4f4776f9ab338f83127159060ebbb1952684a6e3ee6718e4746e09e269e87d04",
+          "byteLength": 5391
+        }
+      },
+      "change": {
+        "kind": "colluding-correspondence-category-and-rdf-type",
+        "sourcePointer": "/structural/expressions/0",
+        "sourceHandle": "expression",
+        "actualSourceCategory": "expressions",
+        "forgedMetadataCategory": "constructs",
+        "originalTriple": "_:c14n3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Expression> .",
+        "changedTriple": "_:c14n3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Construct> ."
+      },
+      "predecessorAccepted": true,
+      "correctedRejected": true,
+      "expectedCheckerError": {
+        "code": "ERR_ASSERTION",
+        "message": "Primary category metadata disagrees with source collection for expression\n+ actual - expected\n\n+ 'constructs'\n- 'expressions'\n"
+      }
+    },
+    {
+      "id": "forged-constructs-category-and-type",
+      "sourceFixture": "annotation-range",
+      "source": {
+        "path": "supplemental/grammar/vectors/annotation-range/source.json",
+        "sha256": "86deb11c654b457c3a515fc8d3924a55d5e676c8f389a7efa303508f73608d00",
+        "byteLength": 555
+      },
+      "originalIds": {
+        "path": "supplemental/grammar/vectors/annotation-range/ids.json",
+        "sha256": "d65c13184f4168d2bd88a2d1bc3978a3f57bfda690d7171eb3c01f1a2c6b2672",
+        "byteLength": 461
+      },
+      "originalNQuads": {
+        "path": "supplemental/grammar/vectors/annotation-range/canonical.nq",
+        "sha256": "1e08ca2ef590028a5c90bb3b5916b3cbc50b3dbc84a6c5bbb4514ea3192e04f2",
+        "byteLength": 4048
+      },
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "files": {
+        "ids": {
+          "path": "supplemental/mapping-counterexamples/auditor-v2/controls/forged-constructs-category-and-type/ids.json",
+          "sha256": "e69101a6959e7087d426ed69bc1b08b6ba94af5afb41350db38b83fe5d8954b7",
+          "byteLength": 462
+        },
+        "nquads": {
+          "path": "supplemental/mapping-counterexamples/auditor-v2/controls/forged-constructs-category-and-type/canonical.nq",
+          "sha256": "37c270728bd7c636171576623037a70a6af14050b049a3283539a252bb3e77db",
+          "byteLength": 4049
+        }
+      },
+      "change": {
+        "kind": "colluding-correspondence-category-and-rdf-type",
+        "sourcePointer": "/structural/constructs/0",
+        "sourceHandle": "relation",
+        "actualSourceCategory": "constructs",
+        "forgedMetadataCategory": "occurrences",
+        "originalTriple": "_:c14n6 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Construct> .",
+        "changedTriple": "_:c14n6 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Occurrence> ."
+      },
+      "predecessorAccepted": true,
+      "correctedRejected": true,
+      "expectedCheckerError": {
+        "code": "ERR_ASSERTION",
+        "message": "Primary category metadata disagrees with source collection for relation\n+ actual - expected\n\n+ 'occurrences'\n- 'constructs'\n"
+      }
+    },
+    {
+      "id": "forged-occurrences-category-and-type",
+      "sourceFixture": "named-class-structural",
+      "source": {
+        "path": "vectors/named-class-structural/source.json",
+        "sha256": "5fb3584a228bd2f40a4bd3734154bffdabfccd17a23a2f5cb7d0a148a3a188b2",
+        "byteLength": 535
+      },
+      "originalIds": {
+        "path": "vectors/named-class-structural/ids.json",
+        "sha256": "0dd7bba03e230baeb7382392261f6bfa2e17dac471881565cb0448d7f803a39d",
+        "byteLength": 477
+      },
+      "originalNQuads": {
+        "path": "vectors/named-class-structural/canonical.nq",
+        "sha256": "1f7ab7d12852250d2aa6b0a60c214a5729b2bfcf6965b3310362066345aa7eb6",
+        "byteLength": 4132
+      },
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "files": {
+        "ids": {
+          "path": "supplemental/mapping-counterexamples/auditor-v2/controls/forged-occurrences-category-and-type/ids.json",
+          "sha256": "19dab227459533d26c987cfc9e216f37c019904160247a119661af513dd98007",
+          "byteLength": 474
+        },
+        "nquads": {
+          "path": "supplemental/mapping-counterexamples/auditor-v2/controls/forged-occurrences-category-and-type/canonical.nq",
+          "sha256": "0edfadb853cf5f016307fd70dcbc581180428706ec93e4d59a6891dbe48e8469",
+          "byteLength": 4129
+        }
+      },
+      "change": {
+        "kind": "colluding-correspondence-category-and-rdf-type",
+        "sourcePointer": "/structural/occurrences/0",
+        "sourceHandle": "class-node",
+        "actualSourceCategory": "occurrences",
+        "forgedMetadataCategory": "subjects",
+        "originalTriple": "_:c14n6 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Occurrence> .",
+        "changedTriple": "_:c14n6 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Subject> ."
+      },
+      "predecessorAccepted": true,
+      "correctedRejected": true,
+      "expectedCheckerError": {
+        "code": "ERR_ASSERTION",
+        "message": "Primary category metadata disagrees with source collection for class-node\n+ actual - expected\n\n+ 'subjects'\n- 'occurrences'\n"
+      }
+    },
+    {
+      "id": "extra-correspondence-handle",
+      "sourceFixture": "named-class-structural",
+      "source": {
+        "path": "vectors/named-class-structural/source.json",
+        "sha256": "5fb3584a228bd2f40a4bd3734154bffdabfccd17a23a2f5cb7d0a148a3a188b2",
+        "byteLength": 535
+      },
+      "originalIds": {
+        "path": "vectors/named-class-structural/ids.json",
+        "sha256": "0dd7bba03e230baeb7382392261f6bfa2e17dac471881565cb0448d7f803a39d",
+        "byteLength": 477
+      },
+      "originalNQuads": {
+        "path": "vectors/named-class-structural/canonical.nq",
+        "sha256": "1f7ab7d12852250d2aa6b0a60c214a5729b2bfcf6965b3310362066345aa7eb6",
+        "byteLength": 4132
+      },
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "files": {
+        "ids": {
+          "path": "supplemental/mapping-counterexamples/auditor-v2/controls/extra-correspondence-handle/ids.json",
+          "sha256": "6d267e22145381ef189e016437d15c12005b9ba2ed1e04f740a4309926e9cab4",
+          "byteLength": 598
+        },
+        "nquads": {
+          "path": "supplemental/mapping-counterexamples/auditor-v2/controls/extra-correspondence-handle/canonical.nq",
+          "sha256": "1f7ab7d12852250d2aa6b0a60c214a5729b2bfcf6965b3310362066345aa7eb6",
+          "byteLength": 4132
+        }
+      },
+      "change": {
+        "kind": "extra-unused-correspondence-record"
+      },
+      "predecessorAccepted": true,
+      "correctedRejected": true,
+      "expectedCheckerError": {
+        "code": "ERR_ASSERTION",
+        "message": "Unknown primary correspondence handle unallocated-review-handle"
+      }
+    },
+    {
+      "id": "missing-correspondence-handle",
+      "sourceFixture": "named-class-structural",
+      "source": {
+        "path": "vectors/named-class-structural/source.json",
+        "sha256": "5fb3584a228bd2f40a4bd3734154bffdabfccd17a23a2f5cb7d0a148a3a188b2",
+        "byteLength": 535
+      },
+      "originalIds": {
+        "path": "vectors/named-class-structural/ids.json",
+        "sha256": "0dd7bba03e230baeb7382392261f6bfa2e17dac471881565cb0448d7f803a39d",
+        "byteLength": 477
+      },
+      "originalNQuads": {
+        "path": "vectors/named-class-structural/canonical.nq",
+        "sha256": "1f7ab7d12852250d2aa6b0a60c214a5729b2bfcf6965b3310362066345aa7eb6",
+        "byteLength": 4132
+      },
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "files": {
+        "ids": {
+          "path": "supplemental/mapping-counterexamples/auditor-v2/controls/missing-correspondence-handle/ids.json",
+          "sha256": "0b72f6a41410e3703efec4eedb174b3b7022174764f31d9c23439f06db8c1bd5",
+          "byteLength": 317
+        },
+        "nquads": {
+          "path": "supplemental/mapping-counterexamples/auditor-v2/controls/missing-correspondence-handle/canonical.nq",
+          "sha256": "1f7ab7d12852250d2aa6b0a60c214a5729b2bfcf6965b3310362066345aa7eb6",
+          "byteLength": 4132
+        }
+      },
+      "change": {
+        "kind": "omit-first-correspondence-record"
+      },
+      "predecessorAccepted": false,
+      "correctedRejected": true,
+      "expectedCheckerError": {
+        "code": "ERR_ASSERTION",
+        "message": "Primary correspondence must cover the exact source handles\n\n2 !== 3\n"
+      }
+    },
+    {
+      "id": "duplicate-correspondence-handle",
+      "sourceFixture": "named-class-structural",
+      "source": {
+        "path": "vectors/named-class-structural/source.json",
+        "sha256": "5fb3584a228bd2f40a4bd3734154bffdabfccd17a23a2f5cb7d0a148a3a188b2",
+        "byteLength": 535
+      },
+      "originalIds": {
+        "path": "vectors/named-class-structural/ids.json",
+        "sha256": "0dd7bba03e230baeb7382392261f6bfa2e17dac471881565cb0448d7f803a39d",
+        "byteLength": 477
+      },
+      "originalNQuads": {
+        "path": "vectors/named-class-structural/canonical.nq",
+        "sha256": "1f7ab7d12852250d2aa6b0a60c214a5729b2bfcf6965b3310362066345aa7eb6",
+        "byteLength": 4132
+      },
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "files": {
+        "ids": {
+          "path": "supplemental/mapping-counterexamples/auditor-v2/controls/duplicate-correspondence-handle/ids.json",
+          "sha256": "a3d6596846d59df3e49e56b98c3c6f9ab84616acd0507374dffa96cf6d682887",
+          "byteLength": 637
+        },
+        "nquads": {
+          "path": "supplemental/mapping-counterexamples/auditor-v2/controls/duplicate-correspondence-handle/canonical.nq",
+          "sha256": "1f7ab7d12852250d2aa6b0a60c214a5729b2bfcf6965b3310362066345aa7eb6",
+          "byteLength": 4132
+        }
+      },
+      "change": {
+        "kind": "repeat-first-correspondence-record"
+      },
+      "predecessorAccepted": false,
+      "correctedRejected": true,
+      "expectedCheckerError": {
+        "code": "ERR_ASSERTION",
+        "message": "Duplicate primary correspondence handle class-subject"
+      }
+    },
+    {
+      "id": "shared-primary-canonical-node",
+      "sourceFixture": "named-class-structural",
+      "source": {
+        "path": "vectors/named-class-structural/source.json",
+        "sha256": "5fb3584a228bd2f40a4bd3734154bffdabfccd17a23a2f5cb7d0a148a3a188b2",
+        "byteLength": 535
+      },
+      "originalIds": {
+        "path": "vectors/named-class-structural/ids.json",
+        "sha256": "0dd7bba03e230baeb7382392261f6bfa2e17dac471881565cb0448d7f803a39d",
+        "byteLength": 477
+      },
+      "originalNQuads": {
+        "path": "vectors/named-class-structural/canonical.nq",
+        "sha256": "1f7ab7d12852250d2aa6b0a60c214a5729b2bfcf6965b3310362066345aa7eb6",
+        "byteLength": 4132
+      },
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "files": {
+        "ids": {
+          "path": "supplemental/mapping-counterexamples/auditor-v2/controls/shared-primary-canonical-node/ids.json",
+          "sha256": "30e64c5ee023fc0702eaea6929488b82e74540e1b82fa92fff9a65842aa31cb1",
+          "byteLength": 477
+        },
+        "nquads": {
+          "path": "supplemental/mapping-counterexamples/auditor-v2/controls/shared-primary-canonical-node/canonical.nq",
+          "sha256": "1f7ab7d12852250d2aa6b0a60c214a5729b2bfcf6965b3310362066345aa7eb6",
+          "byteLength": 4132
+        }
+      },
+      "change": {
+        "kind": "reuse-first-primary-node-for-second-handle"
+      },
+      "predecessorAccepted": false,
+      "correctedRejected": true,
+      "expectedCheckerError": {
+        "code": "ERR_ASSERTION",
+        "message": "Shared primary canonical node c14n3"
+      }
+    }
+  ]
+}

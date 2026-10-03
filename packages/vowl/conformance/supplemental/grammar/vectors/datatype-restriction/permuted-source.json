@@ -1,0 +1,64 @@
+{
+  "structural": {
+    "occurrences": [],
+    "constructs": [
+      {
+        "target": "supplement-renamed-2",
+        "datatype": "supplement-renamed-4",
+        "kind": "datatype-definition",
+        "id": "supplement-renamed-1"
+      }
+    ],
+    "expressions": [
+      {
+        "facets": [
+          {
+            "value": {
+              "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+              "lexical": "2",
+              "kind": "typed"
+            },
+            "facet": "http://www.w3.org/2001/XMLSchema#minInclusive"
+          },
+          {
+            "value": {
+              "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+              "lexical": "01",
+              "kind": "typed"
+            },
+            "facet": "http://www.w3.org/2001/XMLSchema#minInclusive"
+          }
+        ],
+        "datatype": "supplement-renamed-3",
+        "kind": "datatype-restriction",
+        "id": "supplement-renamed-2"
+      }
+    ],
+    "roles": [
+      {
+        "subject": "supplement-renamed-5",
+        "kind": "datatype",
+        "id": "supplement-renamed-3"
+      },
+      {
+        "subject": "supplement-renamed-6",
+        "kind": "datatype",
+        "id": "supplement-renamed-4"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "http://www.w3.org/2001/XMLSchema#integer",
+        "id": "supplement-renamed-5"
+      },
+      {
+        "iri": "https://example.org/supplement#defined",
+        "id": "supplement-renamed-6"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

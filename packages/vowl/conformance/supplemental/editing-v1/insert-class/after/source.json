@@ -1,0 +1,48 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s0",
+        "iri": "urn:mapping-pair:A"
+      },
+      {
+        "id": "new-subject-B",
+        "iri": "urn:editing:inserted-B"
+      }
+    ],
+    "roles": [
+      {
+        "id": "r0",
+        "kind": "class",
+        "subject": "s0"
+      },
+      {
+        "id": "new-role-B",
+        "kind": "class",
+        "subject": "new-subject-B"
+      }
+    ],
+    "expressions": [],
+    "constructs": [],
+    "occurrences": [
+      {
+        "id": "node-0",
+        "kind": "class-node",
+        "targets": [
+          "r0"
+        ]
+      },
+      {
+        "id": "node-1",
+        "kind": "class-node",
+        "targets": [
+          "new-role-B"
+        ]
+      }
+    ]
+  }
+}

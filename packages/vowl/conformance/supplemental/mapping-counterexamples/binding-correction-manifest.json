@@ -1,0 +1,178 @@
+{
+  "format": "canonical-vowl-conformance-manifest/1",
+  "specificationRevision": [
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design.md",
+      "sha256": "174535bb8cb43f317631f0799721adebfbbc4ceff4d577595be8fb91dd940fac"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-core-contract.md",
+      "sha256": "711ba30c291cfb0960334328203188600f60a331996e83379267a4a77b87988d"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-projection-contract.md",
+      "sha256": "4c1cf6a7e187f98d40d390e6ff0b5354aca46a8ff195fba5b6badace7eb6078b"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design-decisions.md",
+      "sha256": "f314ec3448f2cf87f73ce6ce8871f3695d4b3b26dee687383b36e36a4fc0a43e"
+    }
+  ],
+  "amendment": {
+    "path": "docs/specs/2026-09-30-canonical-vowl-resource-policy-amendment.md",
+    "sha256": "9f1b7d96229a06f57e29a52f92325a4256e6f826d7532e239848ef99dc0f47c1",
+    "approval": "Owner approved the exact quadratic capped work-policy amendment on 2026-09-30, as communicated by the parent integration task. Approval does not waive independent review."
+  },
+  "policy": {
+    "formula": "min(totalAllocatedBlankNodes ** 2, rdfDeepIterations)",
+    "defaultRdfDeepIterations": 100000,
+    "upperCallerOverride": 1000000,
+    "defaultDeadlineMs": 10000,
+    "zeroOverrideAllowed": true,
+    "fallbackAllowed": false
+  },
+  "dependencies": {
+    "rdf-canonize": "5.0.0",
+    "canonicalize": "5.1.0"
+  },
+  "comparisonRules": {
+    "mapped.nq": "RDF dataset isomorphism; private labels/order are not contractual.",
+    "canonical.nq": "Exact canonical N-Quads bytes.",
+    "canonical.json": "Exact complete JCS bytes.",
+    "ids.json": "Informative derivation only; symmetric handle correspondences are not contractual."
+  },
+  "sourceArtifacts": [
+    {
+      "path": "supplemental/mapping-counterexamples/support.mjs",
+      "sha256": "0022536ae0e8201a15c8f4e1f9a63361445eebb437396aa7224dd737ccef7866"
+    },
+    {
+      "path": "supplemental/mapping-counterexamples/model.mjs",
+      "sha256": "3a4ebd134c1d209f84cf9c54072988a7e712f12286e95d35edec4d20f600bfc5"
+    },
+    {
+      "path": "supplemental/mapping-counterexamples/derived-field-pairs.mjs",
+      "sha256": "c0edc49c34b986321b1bb38c032da908ea316de06fd683f2f0b5e0161f5c7b65"
+    },
+    {
+      "path": "supplemental/mapping-counterexamples/derive-binding-correction.mjs",
+      "sha256": "7ca9d952c09ac08d9494d624c061f34ff12cec140177efb64f87b24fec8a3431"
+    }
+  ],
+  "pair": {
+    "id": "context-property-scope-binding",
+    "obligation": "mapping/Context:property/scope",
+    "descriptor": "Context:property",
+    "field": "scope",
+    "focusPointer": "/structural/occurrences/4/context/scope",
+    "sourceWitness": {
+      "path": "supplemental/grammar/vectors/two-restrictions-distinct-scopes/source.json",
+      "sha256": "e5370f9ef9b294129534e72ae10e7172e98465beb891ff0229c78b865319c32f",
+      "byteLength": 3252
+    },
+    "evidenceClass": "complete-projection-handle-reassociation-with-distinct-artifact-state",
+    "correction": "The original derived pair changes a class-node Context:property with absent scope into a datatype-node PropertyContext with present scope. It remains a valid complete artifact pair, but does not exercise a present Context:property.scope at that position. This additive pair requires the stated descriptor to carry the scoped field, preserving all historical outputs and metadata."
+  },
+  "vectors": [
+    {
+      "id": "context-property-scope-binding-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "pair": "context-property-scope-binding",
+      "side": "before",
+      "rules": [
+        "D18.1",
+        "B1",
+        "B2.4",
+        "A6"
+      ],
+      "status": "independent-pair-pending-review",
+      "counts": {
+        "primary": 20,
+        "blankNodes": 62,
+        "quads": 221
+      },
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/binding-correction/context-property-scope-binding-before/source.json",
+          "sha256": "08f4887e4f43c8d629c18091e80dad36ae50f33efef55b5afc53d49355a986cc",
+          "byteLength": 4652
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/binding-correction/context-property-scope-binding-before/permuted-source.json",
+          "sha256": "2d43cd0336afd8ed56c71e0f9b4c6d1433c2f5476ff59d312f41182aa24a8f7d",
+          "byteLength": 5281
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/binding-correction/context-property-scope-binding-before/mapped.nq",
+          "sha256": "21505f133b03b0bb5ccb3b469fa7fdbf08f3163395ccf717ea4603d9fe027090",
+          "byteLength": 26771
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/binding-correction/context-property-scope-binding-before/canonical.nq",
+          "sha256": "e1e3fe01f96ba5660b43ceb927053634571202d00de82e25ba3dc570f1491fc2",
+          "byteLength": 27720
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/binding-correction/context-property-scope-binding-before/ids.json",
+          "sha256": "dae98bb60dd5bd1c5bf2720016b1be5d006bb225ae5d9a5cca42088bba1fd843",
+          "byteLength": 3197
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/binding-correction/context-property-scope-binding-before/canonical.json",
+          "sha256": "4d0b60fe33c8e74ee58b6921dc9ee809ebb2e5d685bf67581b7d7472303a335c",
+          "byteLength": 2234
+        }
+      }
+    },
+    {
+      "id": "context-property-scope-binding-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "pair": "context-property-scope-binding",
+      "side": "after",
+      "rules": [
+        "D18.1",
+        "B1",
+        "B2.4",
+        "A6"
+      ],
+      "status": "independent-pair-pending-review",
+      "counts": {
+        "primary": 20,
+        "blankNodes": 62,
+        "quads": 221
+      },
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/binding-correction/context-property-scope-binding-after/source.json",
+          "sha256": "5ae13ade79c96215131bf3ab4b15780c83713428244b0996779be7e91ee1170c",
+          "byteLength": 4652
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/binding-correction/context-property-scope-binding-after/permuted-source.json",
+          "sha256": "8eed0d093eabc738f0b7fe28a57cdc612b439d3005aa203bf5c1241fc57924ae",
+          "byteLength": 5281
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/binding-correction/context-property-scope-binding-after/mapped.nq",
+          "sha256": "7340e1387ffae9553da1ec8376a02ed6e7ebf7eccf02d8b01bb44e69882d6a79",
+          "byteLength": 26771
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/binding-correction/context-property-scope-binding-after/canonical.nq",
+          "sha256": "b7a062e0c54b29ce5c49693fdbbb3df4e0056a4ea82faa2b70078ddb6327a739",
+          "byteLength": 27720
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/binding-correction/context-property-scope-binding-after/ids.json",
+          "sha256": "080efc9b389ae458b92a1630ab9ca85f00057de52619e07dbd78eef3254066de",
+          "byteLength": 3197
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/binding-correction/context-property-scope-binding-after/canonical.json",
+          "sha256": "a4b09ec76694ee39a44c33f469c5b4773395fd76971f0618a59f92e3d85e1bf2",
+          "byteLength": 2234
+        }
+      }
+    }
+  ]
+}

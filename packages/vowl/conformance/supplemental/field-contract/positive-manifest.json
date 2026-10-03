@@ -1,0 +1,1897 @@
+{
+  "format": "canonical-vowl-conformance-manifest/1",
+  "status": "independent-field-contract-anchor-supplement-pending-review",
+  "specificationRevision": [
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design.md",
+      "sha256": "174535bb8cb43f317631f0799721adebfbbc4ceff4d577595be8fb91dd940fac"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-core-contract.md",
+      "sha256": "711ba30c291cfb0960334328203188600f60a331996e83379267a4a77b87988d"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-projection-contract.md",
+      "sha256": "4c1cf6a7e187f98d40d390e6ff0b5354aca46a8ff195fba5b6badace7eb6078b"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design-decisions.md",
+      "sha256": "f314ec3448f2cf87f73ce6ce8871f3695d4b3b26dee687383b36e36a4fc0a43e"
+    }
+  ],
+  "amendment": {
+    "path": "docs/specs/2026-09-30-canonical-vowl-resource-policy-amendment.md",
+    "sha256": "9f1b7d96229a06f57e29a52f92325a4256e6f826d7532e239848ef99dc0f47c1",
+    "approval": "Owner approved the exact quadratic capped work-policy amendment on 2026-09-30, as communicated by the parent integration task. Approval does not waive independent review."
+  },
+  "policy": {
+    "formula": "min(totalAllocatedBlankNodes ** 2, rdfDeepIterations)",
+    "defaultRdfDeepIterations": 100000,
+    "upperCallerOverride": 1000000,
+    "defaultDeadlineMs": 10000,
+    "zeroOverrideAllowed": true,
+    "fallbackAllowed": false
+  },
+  "dependencies": {
+    "rdf-canonize": "5.0.0",
+    "canonicalize": "5.1.0"
+  },
+  "comparisonRules": {
+    "mapped.nq": "RDF dataset isomorphism; private labels/order are not contractual.",
+    "canonical.nq": "Exact canonical N-Quads bytes.",
+    "canonical.json": "Exact complete JCS bytes.",
+    "ids.json": "Informative derivation only; symmetric handle correspondences are not contractual."
+  },
+  "independence": "Existing independently authored source witnesses plus A4's exact supported-anchor rule; unchanged independent A6 producer and standards libraries. No production source/tests/outputs used.",
+  "sourceArtifacts": [
+    {
+      "path": "supplemental/field-contract/contracts.mjs",
+      "sha256": "6f8d018d17edd726c5437d9b9ed7bf677005fe55cb086e84d227b6c089858130"
+    },
+    {
+      "path": "supplemental/field-contract/support.mjs",
+      "sha256": "ac1ffa3cebc2e4156ef693716d54f62cac9ef8fe6d3620e5843a5737262d7bf5"
+    },
+    {
+      "path": "supplemental/field-contract/positives.mjs",
+      "sha256": "7c8731afb57ad69fcf5d7c0f1f2a2f16784b91a6cd62d92b14ede802aec23208"
+    },
+    {
+      "path": "supplemental/field-contract/derive-positives.mjs",
+      "sha256": "9a970b8c96118d6c756881501a6c8c79613603738fd8b6cdba6fd6e7f87133bf"
+    },
+    {
+      "path": "supplemental/amended-policy/producer.mjs",
+      "sha256": "da7936738c98cb853de7c6d6f2ae7528cbd4d47a0c1ccb1258dae7c5f7143321"
+    }
+  ],
+  "vectors": [
+    {
+      "id": "anchor-subclass",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceFixture": "asymmetric-subclass",
+      "sourceWitness": {
+        "path": "vectors/asymmetric-subclass/source.json",
+        "sha256": "b11ece90a57e23455b4c21d392ffd892f3e15a437cdd4c25b13b8c3a53398188",
+        "byteLength": 1195
+      },
+      "newAssertionKind": "subclass",
+      "rules": [
+        "A2",
+        "A4",
+        "A5",
+        "A6",
+        "A10"
+      ],
+      "derivation": "Exact supported base assertion without id; one typed annotation and its annotation-property/datatype signature roles. These roles add no occurrences under B2.",
+      "status": "independently-derived-supported-anchor-pending-review",
+      "counts": {
+        "primary": 14,
+        "blankNodes": 30,
+        "quads": 96
+      },
+      "metamorphic": [
+        "typed-source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal",
+        "sequence-order-preserved"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/positive/anchor-subclass/source.json",
+          "sha256": "5829c5b735a47cfe4ff41471630904c723ac79fd0dfa4e7974b4414999f25378",
+          "byteLength": 2156
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/positive/anchor-subclass/permuted-source.json",
+          "sha256": "7dee489af337f6a345049af8fd2625eaafd3cbd687ba38ab168b27f8d0c269fd",
+          "byteLength": 2497
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/positive/anchor-subclass/mapped.nq",
+          "sha256": "aba17337c6f679b3779e1e82efc1886a9612e92b8e3674fa32d1a63098ac4e57",
+          "byteLength": 11431
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/positive/anchor-subclass/canonical.nq",
+          "sha256": "3b6cb296ba4ccaa9c80cb1ab9dafddc55701a7ec09491e8050db1e5f51591625",
+          "byteLength": 11835
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/positive/anchor-subclass/ids.json",
+          "sha256": "8e90fc9cc3e7a61569dc33a62647cfee93db32d75a7bccf5179fc314798bacdb",
+          "byteLength": 2205
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/positive/anchor-subclass/canonical.json",
+          "sha256": "6a2965d8fe972be1f76c9d63e8d918986ba1b5808b56880e39232fe9aa5ed45e",
+          "byteLength": 1174
+        }
+      }
+    },
+    {
+      "id": "anchor-equivalent-classes",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceFixture": "mixed-class-rdfs-equivalence-group",
+      "sourceWitness": {
+        "path": "supplemental/conditional/vectors/mixed-class-rdfs-equivalence-group/source.json",
+        "sha256": "5cdf562063bbc312b385e970cfa017328f036dfd62a1a70956d29c0eb0885a11",
+        "byteLength": 835
+      },
+      "newAssertionKind": "equivalent-classes",
+      "rules": [
+        "A2",
+        "A4",
+        "A5",
+        "A6",
+        "A10"
+      ],
+      "derivation": "Exact supported base assertion without id; one typed annotation and its annotation-property/datatype signature roles. These roles add no occurrences under B2.",
+      "status": "independently-derived-supported-anchor-pending-review",
+      "counts": {
+        "primary": 11,
+        "blankNodes": 28,
+        "quads": 84
+      },
+      "metamorphic": [
+        "typed-source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal",
+        "sequence-order-preserved"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/positive/anchor-equivalent-classes/source.json",
+          "sha256": "68e91f53aa7365f6a31daa1ca7985f1d7cd04a41333b95ed1c258c2c1a795445",
+          "byteLength": 1839
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/positive/anchor-equivalent-classes/permuted-source.json",
+          "sha256": "8736dd219f3eb5e009098f4cde7a202a057e3a2f8a38020c288ecc98a4132077",
+          "byteLength": 2117
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/positive/anchor-equivalent-classes/mapped.nq",
+          "sha256": "a4f8a4dadb3080b502a5328bda18040fe86a29b98e951fc590895147e7d562f5",
+          "byteLength": 9977
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/positive/anchor-equivalent-classes/canonical.nq",
+          "sha256": "5101ff0abec67a3ffe2759b4a088ead62753141e9ade0ce1e279dcc97b2b9e70",
+          "byteLength": 10328
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/positive/anchor-equivalent-classes/ids.json",
+          "sha256": "ea75897013e0fd7f46a001e366d1e75ac32c77e91b151d205404d7ed9dabbafd",
+          "byteLength": 1707
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/positive/anchor-equivalent-classes/canonical.json",
+          "sha256": "f0a948a9812cf0062d92e44e7b1d5d0daa55d1d11edde1931f67c1f74acd8290",
+          "byteLength": 1046
+        }
+      }
+    },
+    {
+      "id": "anchor-disjoint-classes",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceFixture": "disjoint-singleton",
+      "sourceWitness": {
+        "path": "supplemental/conditional/vectors/disjoint-singleton/source.json",
+        "sha256": "16ff89491f6f6d4ba4b00954eb2cca96cedb4b5f73a97fb095dfb4201556e09f",
+        "byteLength": 789
+      },
+      "newAssertionKind": "disjoint-classes",
+      "rules": [
+        "A2",
+        "A4",
+        "A5",
+        "A6",
+        "A10"
+      ],
+      "derivation": "Exact supported base assertion without id; one typed annotation and its annotation-property/datatype signature roles. These roles add no occurrences under B2.",
+      "status": "independently-derived-supported-anchor-pending-review",
+      "counts": {
+        "primary": 10,
+        "blankNodes": 28,
+        "quads": 81
+      },
+      "metamorphic": [
+        "typed-source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal",
+        "sequence-order-preserved"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/positive/anchor-disjoint-classes/source.json",
+          "sha256": "34f4068e607278ded67fd60284f4042261e02b0b60f442cadd78215bb481ba04",
+          "byteLength": 1772
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/positive/anchor-disjoint-classes/permuted-source.json",
+          "sha256": "42787db3fc4e5a1255451323f41c1d9391aed5f2a03b1ae9f08d0301f6dcf9b1",
+          "byteLength": 1970
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/positive/anchor-disjoint-classes/mapped.nq",
+          "sha256": "fb412f9b8d801d1dcf93939fb9edecb3d5a7d38d7c74948656c598c7f1ec2ced",
+          "byteLength": 9691
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/positive/anchor-disjoint-classes/canonical.nq",
+          "sha256": "dac42a2941518682ac803928ac4c71687b3bdea8c73f9ea6f06401f7d565f813",
+          "byteLength": 10030
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/positive/anchor-disjoint-classes/ids.json",
+          "sha256": "79bb2ac960bbc6397ec6b0ab5975f713e4afb7efda8856a330ce8651a9b479aa",
+          "byteLength": 1580
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/positive/anchor-disjoint-classes/canonical.json",
+          "sha256": "45b70c407801ba19b4975d67ea24738b689ff87e02f51355e93adf8306b0eb14",
+          "byteLength": 991
+        }
+      }
+    },
+    {
+      "id": "anchor-disjoint-union",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceFixture": "disjoint-union",
+      "sourceWitness": {
+        "path": "supplemental/grammar/vectors/disjoint-union/source.json",
+        "sha256": "6b54e23de658e629060436a89a359138579a589e759ac2db21d798cbbd671a85",
+        "byteLength": 1283
+      },
+      "newAssertionKind": "disjoint-union",
+      "rules": [
+        "A2",
+        "A4",
+        "A5",
+        "A6",
+        "A10"
+      ],
+      "derivation": "Exact supported base assertion without id; one typed annotation and its annotation-property/datatype signature roles. These roles add no occurrences under B2.",
+      "status": "independently-derived-supported-anchor-pending-review",
+      "counts": {
+        "primary": 15,
+        "blankNodes": 34,
+        "quads": 104
+      },
+      "metamorphic": [
+        "typed-source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal",
+        "sequence-order-preserved"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/positive/anchor-disjoint-union/source.json",
+          "sha256": "7b67d3360727ed780025b8627ddd42a8e5195a9c8313cf6b2963894d81d0430b",
+          "byteLength": 2305
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/positive/anchor-disjoint-union/permuted-source.json",
+          "sha256": "98962074b79c7d2999206f0505cf1c3f0d5bf70c390e45f5f874705e099ac64e",
+          "byteLength": 2680
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/positive/anchor-disjoint-union/mapped.nq",
+          "sha256": "5da0c160661959542a476d95bc1769e4b55b0b865c4228fb2e21882067794c7b",
+          "byteLength": 12277
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/positive/anchor-disjoint-union/canonical.nq",
+          "sha256": "0be83a2c5067b1e23ade1c614310577451ab9926888ac2293402550f1c662b8b",
+          "byteLength": 12725
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/positive/anchor-disjoint-union/ids.json",
+          "sha256": "27d4341253818b4770a2a457d982ff85f97c281466dac42445392230c2b74d92",
+          "byteLength": 2345
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/positive/anchor-disjoint-union/canonical.json",
+          "sha256": "6250d145a52da7e2e22aedb4372fd7100ab645ed6f88d44db726780a904c588f",
+          "byteLength": 1246
+        }
+      }
+    },
+    {
+      "id": "anchor-sub-object-property",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceFixture": "subproperty-missing-projection-details",
+      "sourceWitness": {
+        "path": "supplemental/conditional/vectors/subproperty-missing-projection-details/source.json",
+        "sha256": "8bb2e97233ea7c619edbe430d8ba9f56237fb29659ccd6354afc935cfa25ef49",
+        "byteLength": 2219
+      },
+      "newAssertionKind": "sub-object-property",
+      "rules": [
+        "A2",
+        "A4",
+        "A5",
+        "A6",
+        "A10"
+      ],
+      "derivation": "Exact supported base assertion without id; one typed annotation and its annotation-property/datatype signature roles. These roles add no occurrences under B2.",
+      "status": "independently-derived-supported-anchor-pending-review",
+      "counts": {
+        "primary": 23,
+        "blankNodes": 40,
+        "quads": 137
+      },
+      "metamorphic": [
+        "typed-source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal",
+        "sequence-order-preserved"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/positive/anchor-sub-object-property/source.json",
+          "sha256": "4d4cac9fb2e60a94a06699dacc999c7745611bd7a982c5d184abe8557d7c4e36",
+          "byteLength": 3202
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/positive/anchor-sub-object-property/permuted-source.json",
+          "sha256": "c042ed65e8c8bf466d537b9244b92f3fba3c9e17e3f2c92f5b1288a7d76a488a",
+          "byteLength": 3918
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/positive/anchor-sub-object-property/mapped.nq",
+          "sha256": "7f613c884fea92fc62d3095bcdf35a1bea8182d96cabb8287f027f01df38e5ef",
+          "byteLength": 16257
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/positive/anchor-sub-object-property/canonical.nq",
+          "sha256": "f26333c7eea305ec792be548f1afd3771f166921930a0c6474cab9afe39f714d",
+          "byteLength": 16850
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/positive/anchor-sub-object-property/ids.json",
+          "sha256": "38cdfc13241d394e36c41a91157b6da2bb39cd339d55818b6069bdc6c4e4c58d",
+          "byteLength": 3583
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/positive/anchor-sub-object-property/canonical.json",
+          "sha256": "13d2afe8db616dbc0418e42d5b7ded57763c8e069d98755e71a386bb30aa53eb",
+          "byteLength": 1762
+        }
+      }
+    },
+    {
+      "id": "anchor-equivalent-object-properties",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceFixture": "equivalent-object-properties",
+      "sourceWitness": {
+        "path": "supplemental/grammar/vectors/equivalent-object-properties/source.json",
+        "sha256": "d45c096e9c225da7ea3fc53d553bdb3935eb5fcc256250b9fd8a6e492bc12879",
+        "byteLength": 2486
+      },
+      "newAssertionKind": "equivalent-object-properties",
+      "rules": [
+        "A2",
+        "A4",
+        "A5",
+        "A6",
+        "A10"
+      ],
+      "derivation": "Exact supported base assertion without id; one typed annotation and its annotation-property/datatype signature roles. These roles add no occurrences under B2.",
+      "status": "independently-derived-supported-anchor-pending-review",
+      "counts": {
+        "primary": 25,
+        "blankNodes": 45,
+        "quads": 150
+      },
+      "metamorphic": [
+        "typed-source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal",
+        "sequence-order-preserved"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/positive/anchor-equivalent-object-properties/source.json",
+          "sha256": "34a6c3df62854eb83403c7aa3f7a3e53a00e83c9546ed226e8e35f1c057d840c",
+          "byteLength": 3510
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/positive/anchor-equivalent-object-properties/permuted-source.json",
+          "sha256": "ea8ee843d133c70d2864b0fae509f1de85b20b42017392b30089cd5c7a56353a",
+          "byteLength": 4218
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/positive/anchor-equivalent-object-properties/mapped.nq",
+          "sha256": "99776e6ef185a8b452e290517c558c23731c5ae7334a3dd6c091e39c3e923a8b",
+          "byteLength": 17732
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/positive/anchor-equivalent-object-properties/canonical.nq",
+          "sha256": "0721471861d24f858ec689bbdc23160c949b464e20f2cd6c6ec6d64bb14d7a00",
+          "byteLength": 18389
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/positive/anchor-equivalent-object-properties/ids.json",
+          "sha256": "804ee548657382a15cec60eb0b213f6f587258e971b6cfa3368b91bc9d4e4844",
+          "byteLength": 3911
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/positive/anchor-equivalent-object-properties/canonical.json",
+          "sha256": "8f66453d5476ae4fa2fc00135b959269adaa682fbef399feab933a705ddc343c",
+          "byteLength": 1868
+        }
+      }
+    },
+    {
+      "id": "anchor-disjoint-object-properties",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceFixture": "disjoint-object-properties",
+      "sourceWitness": {
+        "path": "supplemental/grammar/vectors/disjoint-object-properties/source.json",
+        "sha256": "e6f2989e7483583e239d083c6ebb8ec2ffa6adc11fd45e14e08a2fac1788e61a",
+        "byteLength": 2751
+      },
+      "newAssertionKind": "disjoint-object-properties",
+      "rules": [
+        "A2",
+        "A4",
+        "A5",
+        "A6",
+        "A10"
+      ],
+      "derivation": "Exact supported base assertion without id; one typed annotation and its annotation-property/datatype signature roles. These roles add no occurrences under B2.",
+      "status": "independently-derived-supported-anchor-pending-review",
+      "counts": {
+        "primary": 27,
+        "blankNodes": 48,
+        "quads": 162
+      },
+      "metamorphic": [
+        "typed-source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal",
+        "sequence-order-preserved"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/positive/anchor-disjoint-object-properties/source.json",
+          "sha256": "a45c95887c419ca563a7433ba6697c47055afcc7da3898be7ae56713875c871b",
+          "byteLength": 3771
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/positive/anchor-disjoint-object-properties/permuted-source.json",
+          "sha256": "99a05f3e7c59c1038f4355d77827086918c12a52987908e0af5b1aaf37982d2a",
+          "byteLength": 4558
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/positive/anchor-disjoint-object-properties/mapped.nq",
+          "sha256": "6dd756e45314f9bae053d6e21fbe1bf40009a0ac98f371d7f91c1f17fd856e0f",
+          "byteLength": 19178
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/positive/anchor-disjoint-object-properties/canonical.nq",
+          "sha256": "d74726db6f06eeb5b8b550d6a28aa1d093c93e573b965c87f79313e62990b1ba",
+          "byteLength": 19892
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/positive/anchor-disjoint-object-properties/ids.json",
+          "sha256": "456722c94bf89ac70a07ac3e8bc778877d9cffa69f8cb994fadccd246ef11280",
+          "byteLength": 4219
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/positive/anchor-disjoint-object-properties/canonical.json",
+          "sha256": "86a5373e2d7dec49441747d5c797e0154af7d4dd50991a7239215da08eac9604",
+          "byteLength": 1994
+        }
+      }
+    },
+    {
+      "id": "anchor-inverse-properties",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceFixture": "singleton-inverse-self-loop",
+      "sourceWitness": {
+        "path": "supplemental/grammar/vectors/singleton-inverse-self-loop/source.json",
+        "sha256": "0b30fc0de104d33dad2d56cd7522c9215a2a6f1bd26eb7bbdbc72125167c06a8",
+        "byteLength": 1607
+      },
+      "newAssertionKind": "inverse-properties",
+      "rules": [
+        "A2",
+        "A4",
+        "A5",
+        "A6",
+        "A10"
+      ],
+      "derivation": "Exact supported base assertion without id; one typed annotation and its annotation-property/datatype signature roles. These roles add no occurrences under B2.",
+      "status": "independently-derived-supported-anchor-pending-review",
+      "counts": {
+        "primary": 16,
+        "blankNodes": 35,
+        "quads": 113
+      },
+      "metamorphic": [
+        "typed-source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal",
+        "sequence-order-preserved"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/positive/anchor-inverse-properties/source.json",
+          "sha256": "af5ff9fc4aa43efcf6f97e4a65bfbef766171db3dc03ab981a3fec9e329c5916",
+          "byteLength": 2594
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/positive/anchor-inverse-properties/permuted-source.json",
+          "sha256": "a1129a73d4250940e1566e9785622886e12c69b0d449598beab9c4f7a94735ac",
+          "byteLength": 3006
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/positive/anchor-inverse-properties/mapped.nq",
+          "sha256": "6fd22906397725f07603fe97fdbf4dc399e2ba774eb34483d26249ec8c2905f7",
+          "byteLength": 13478
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/positive/anchor-inverse-properties/canonical.nq",
+          "sha256": "800f732471b4a06c49ed60d38c22d5bc52dd537556faea2152a8161bd43d3356",
+          "byteLength": 13967
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/positive/anchor-inverse-properties/ids.json",
+          "sha256": "b5fb58583fb01afb71053cd72a01e973034f25edd665ad62c71af9645ae98a14",
+          "byteLength": 2533
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/positive/anchor-inverse-properties/canonical.json",
+          "sha256": "fbb81c3ee7b03380aaaccdd32acc16a67d1e7d0f08e5f1c3dbec8ff30153479a",
+          "byteLength": 1393
+        }
+      }
+    },
+    {
+      "id": "anchor-property-chain",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceFixture": "short-chain",
+      "sourceWitness": {
+        "path": "vectors/short-chain/source.json",
+        "sha256": "17ead6309ef1baf9af16da27fba43bae1984b857f3bb85e1463eaf1204a7a6c0",
+        "byteLength": 1775
+      },
+      "newAssertionKind": "property-chain",
+      "rules": [
+        "A2",
+        "A4",
+        "A5",
+        "A6",
+        "A10"
+      ],
+      "derivation": "Exact supported base assertion without id; one typed annotation and its annotation-property/datatype signature roles. These roles add no occurrences under B2.",
+      "status": "independently-derived-supported-anchor-pending-review",
+      "counts": {
+        "primary": 17,
+        "blankNodes": 42,
+        "quads": 136
+      },
+      "metamorphic": [
+        "typed-source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal",
+        "sequence-order-preserved"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/positive/anchor-property-chain/source.json",
+          "sha256": "12d58dff2d7f11fb9bdd089c227b8ae3af5008534bb43a9ccf0c630697d7e9f4",
+          "byteLength": 2795
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/positive/anchor-property-chain/permuted-source.json",
+          "sha256": "1e39b72dae0eaaf44983fc870127e3ba2d252ce97bc6cc855a5972a3c3376225",
+          "byteLength": 3278
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/positive/anchor-property-chain/mapped.nq",
+          "sha256": "1f882968a5de07b26ca29141fba433c0b0c65dd0c73f60904d741aaa81223c13",
+          "byteLength": 16068
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/positive/anchor-property-chain/canonical.nq",
+          "sha256": "48b5447297953cb581023e593fcb1e68d7f9ae1dd2b31011c9635f74e4fca619",
+          "byteLength": 16656
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/positive/anchor-property-chain/ids.json",
+          "sha256": "0136aeaf088d23ae69fe9b3635b7ee75a64a831b0f3af2b27f8fb23744708e84",
+          "byteLength": 2662
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/positive/anchor-property-chain/canonical.json",
+          "sha256": "7081002c3edc08b81ec104ba6a56b0d7b054efedfc1b056c6ab5c0bdb64b7028",
+          "byteLength": 1467
+        }
+      }
+    },
+    {
+      "id": "anchor-object-range",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceFixture": "object-one-absent-domain",
+      "sourceWitness": {
+        "path": "supplemental/conditional/vectors/object-one-absent-domain/source.json",
+        "sha256": "c50fdf116d545e89e45a17c65d257111b068f30e8581d7685369bccbea33785b",
+        "byteLength": 1535
+      },
+      "newAssertionKind": "object-range",
+      "rules": [
+        "A2",
+        "A4",
+        "A5",
+        "A6",
+        "A10"
+      ],
+      "derivation": "Exact supported base assertion without id; one typed annotation and its annotation-property/datatype signature roles. These roles add no occurrences under B2.",
+      "status": "independently-derived-supported-anchor-pending-review",
+      "counts": {
+        "primary": 16,
+        "blankNodes": 35,
+        "quads": 111
+      },
+      "metamorphic": [
+        "typed-source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal",
+        "sequence-order-preserved"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/positive/anchor-object-range/source.json",
+          "sha256": "fff37ab9cccbfb385140091b185950b3d8fddc4547cbd39c840930f210905137",
+          "byteLength": 2510
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/positive/anchor-object-range/permuted-source.json",
+          "sha256": "d5048b915c1761a51620f1f3bb937d4b6dcb86e21ef3dc7a1bfb7ee6355d7f1b",
+          "byteLength": 2934
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/positive/anchor-object-range/mapped.nq",
+          "sha256": "5c1508b9478d0143d6ccd7a83fad862b7845eb95962f15425ce8cb241e600961",
+          "byteLength": 13218
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/positive/anchor-object-range/canonical.nq",
+          "sha256": "d3f1ea431d7288abf19f792a1822ed157603d162efa735092833ff57b6f2a898",
+          "byteLength": 13694
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/positive/anchor-object-range/ids.json",
+          "sha256": "f3579e2c40782c5fe2d2ab2ace1a07419315c2a8edeb3d58c0cd131490726ec8",
+          "byteLength": 2499
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/positive/anchor-object-range/canonical.json",
+          "sha256": "d9c792d01eb16f5adefac24aaf52bc5009c921940e2415d3e3fbbe0c527feaf4",
+          "byteLength": 1373
+        }
+      }
+    },
+    {
+      "id": "anchor-object-characteristic",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceFixture": "object-characteristic-reflexive",
+      "sourceWitness": {
+        "path": "supplemental/grammar/vectors/object-characteristic-reflexive/source.json",
+        "sha256": "540b2152ffbafecc35fe2859ddb4fcf270012964e2202b912e8386b002908307",
+        "byteLength": 1707
+      },
+      "newAssertionKind": "object-characteristic",
+      "rules": [
+        "A2",
+        "A4",
+        "A5",
+        "A6",
+        "A10"
+      ],
+      "derivation": "Exact supported base assertion without id; one typed annotation and its annotation-property/datatype signature roles. These roles add no occurrences under B2.",
+      "status": "independently-derived-supported-anchor-pending-review",
+      "counts": {
+        "primary": 18,
+        "blankNodes": 35,
+        "quads": 115
+      },
+      "metamorphic": [
+        "typed-source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal",
+        "sequence-order-preserved"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/positive/anchor-object-characteristic/source.json",
+          "sha256": "d014520ade7147c74a38f254c5622eb94dc027bff46fd5c4edc31e26fa635bd2",
+          "byteLength": 2716
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/positive/anchor-object-characteristic/permuted-source.json",
+          "sha256": "1ee1be5a38a6a9309880e773a5dc5cb44c5350e90aebb9b7d1df03408e743d97",
+          "byteLength": 3169
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/positive/anchor-object-characteristic/mapped.nq",
+          "sha256": "99743df9e56583bbd73883fa85a7f1b47dcea16b63b922bd795c4950d8fd55cc",
+          "byteLength": 13877
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/positive/anchor-object-characteristic/canonical.nq",
+          "sha256": "919863d531c2120af97222d773f7b84c3ca497114ca0d73e77f51e5a88f3b30c",
+          "byteLength": 14370
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/positive/anchor-object-characteristic/ids.json",
+          "sha256": "d0cde540d60440e185d8386c83734db740bea597fa8d80ea49769ef9bb496aa7",
+          "byteLength": 2822
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/positive/anchor-object-characteristic/canonical.json",
+          "sha256": "61e39dc1e5b4b8ad331fd1d339a9ffa83469d301375bf6990fbcac3901d83bcf",
+          "byteLength": 1510
+        }
+      }
+    },
+    {
+      "id": "anchor-sub-data-property",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceFixture": "data-subproperty-missing-projection-details",
+      "sourceWitness": {
+        "path": "supplemental/conditional/additional/data-subproperty-missing-projection-details/source.json",
+        "sha256": "27a5d8dddf8b410636a1edb045b8c80f680b94c4020cd0facf0a96088ee67e42",
+        "byteLength": 2493
+      },
+      "newAssertionKind": "sub-data-property",
+      "rules": [
+        "A2",
+        "A4",
+        "A5",
+        "A6",
+        "A10"
+      ],
+      "derivation": "Exact supported base assertion without id; one typed annotation and its annotation-property/datatype signature roles. These roles add no occurrences under B2.",
+      "status": "independently-derived-supported-anchor-pending-review",
+      "counts": {
+        "primary": 25,
+        "blankNodes": 44,
+        "quads": 150
+      },
+      "metamorphic": [
+        "typed-source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal",
+        "sequence-order-preserved"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/positive/anchor-sub-data-property/source.json",
+          "sha256": "239cec452163c289a9cc0e8b10c32829bd257b25420b931bcdd7157fa2c4eafe",
+          "byteLength": 3472
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/positive/anchor-sub-data-property/permuted-source.json",
+          "sha256": "180309b7ff07ba241fd4ac960bc6dc702fba7772cc9a1803c4c9ec051e8e8e9a",
+          "byteLength": 4268
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/positive/anchor-sub-data-property/mapped.nq",
+          "sha256": "84bf2ec74a32f86e7b840f50ff45304b23fd30033b63680049fac12faedeb17d",
+          "byteLength": 17766
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/positive/anchor-sub-data-property/canonical.nq",
+          "sha256": "279cae821d8436c1f33b529552ecfec141787dc606fcb8aaf0d2e3574e3df6d1",
+          "byteLength": 18430
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/positive/anchor-sub-data-property/ids.json",
+          "sha256": "eebf90070ceaa68fd97b16ff4561e7230694cfd8adc5f19c6370e552bc845931",
+          "byteLength": 3870
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/positive/anchor-sub-data-property/canonical.json",
+          "sha256": "d87de996e01b57e71892740b1de6e63bf12f980a8bdc9ea371ab0cd4ae6ee84c",
+          "byteLength": 1894
+        }
+      }
+    },
+    {
+      "id": "anchor-equivalent-data-properties",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceFixture": "data-equivalence-undrawable-partition",
+      "sourceWitness": {
+        "path": "supplemental/conditional/completion/data-equivalence-undrawable-partition/source.json",
+        "sha256": "075b871572de211326922a4d4f4d1c4947dbe095e330e4cdcc7b955403b7e03a",
+        "byteLength": 2010
+      },
+      "newAssertionKind": "equivalent-data-properties",
+      "rules": [
+        "A2",
+        "A4",
+        "A5",
+        "A6",
+        "A10"
+      ],
+      "derivation": "Exact supported base assertion without id; one typed annotation and its annotation-property/datatype signature roles. These roles add no occurrences under B2.",
+      "status": "independently-derived-supported-anchor-pending-review",
+      "counts": {
+        "primary": 22,
+        "blankNodes": 40,
+        "quads": 131
+      },
+      "metamorphic": [
+        "typed-source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal",
+        "sequence-order-preserved"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/positive/anchor-equivalent-data-properties/source.json",
+          "sha256": "255b79b1a8c4e3522c7c7844f23f1062f5f6d97eb00ac91110f11c3f48ecfd15",
+          "byteLength": 3030
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/positive/anchor-equivalent-data-properties/permuted-source.json",
+          "sha256": "3b9a6aa9725e12721299ddd5b682efcb5277a661f762f28196fd83087adb0da2",
+          "byteLength": 3691
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/positive/anchor-equivalent-data-properties/mapped.nq",
+          "sha256": "839521ee4f2b9fb7fad2e8f9fa1836af2c97ddadcc0b5b026d6e8fad3cb84349",
+          "byteLength": 15490
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/positive/anchor-equivalent-data-properties/canonical.nq",
+          "sha256": "5b900292371ae9d3c1a6e9154c553cfcdec26c20045acec03651e284d713fb8f",
+          "byteLength": 16067
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/positive/anchor-equivalent-data-properties/ids.json",
+          "sha256": "2d4a0c937c5dbac7b7795b8201ba4001b82eb7c0cd62c77a87e5c6f74d8b9ef0",
+          "byteLength": 3392
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/positive/anchor-equivalent-data-properties/canonical.json",
+          "sha256": "7cb34f59983b23cf4367254a5fd567a1fc66e9d19a22f1d003a0ba9ec792c8f4",
+          "byteLength": 1681
+        }
+      }
+    },
+    {
+      "id": "anchor-disjoint-data-properties",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceFixture": "singleton-disjoint-data-properties",
+      "sourceWitness": {
+        "path": "supplemental/grammar/vectors/singleton-disjoint-data-properties/source.json",
+        "sha256": "4d4236abb2bee8b2e9ef734bc6d765d7a6ae5dec90f52c8de139c57195fbac88",
+        "byteLength": 1793
+      },
+      "newAssertionKind": "disjoint-data-properties",
+      "rules": [
+        "A2",
+        "A4",
+        "A5",
+        "A6",
+        "A10"
+      ],
+      "derivation": "Exact supported base assertion without id; one typed annotation and its annotation-property/datatype signature roles. These roles add no occurrences under B2.",
+      "status": "independently-derived-supported-anchor-pending-review",
+      "counts": {
+        "primary": 18,
+        "blankNodes": 38,
+        "quads": 121
+      },
+      "metamorphic": [
+        "typed-source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal",
+        "sequence-order-preserved"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/positive/anchor-disjoint-data-properties/source.json",
+          "sha256": "7c4eec979a1ffff22a9950e0904e47f8a460a165773ad67acb8713a6f4290a64",
+          "byteLength": 2792
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/positive/anchor-disjoint-data-properties/permuted-source.json",
+          "sha256": "eacf2dba14b31934c8c3e4f45c9d4d3b5958f2c1dc11bccb57892a9299cf10b3",
+          "byteLength": 3256
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/positive/anchor-disjoint-data-properties/mapped.nq",
+          "sha256": "bc5937ccb799778ae0e7793fc2d35dd2141328f527e3f543c0257e06b47de3d7",
+          "byteLength": 14448
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/positive/anchor-disjoint-data-properties/canonical.nq",
+          "sha256": "63aa643c4438fc3e76b39b08b5cd981156bd3475555a96a884f6acc3a8911ccb",
+          "byteLength": 14967
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/positive/anchor-disjoint-data-properties/ids.json",
+          "sha256": "28e34ba31692ed8187c8b15991fb62da0f7c573e16f467d673ab2123eb07d561",
+          "byteLength": 2827
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/positive/anchor-disjoint-data-properties/canonical.json",
+          "sha256": "d88ff93ec1d301d86300f4e3aca78ec69556fd7cf2e441db90c3653817278220",
+          "byteLength": 1510
+        }
+      }
+    },
+    {
+      "id": "anchor-data-domain",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceFixture": "data-compound-range-details",
+      "sourceWitness": {
+        "path": "supplemental/conditional/vectors/data-compound-range-details/source.json",
+        "sha256": "f8722bde7f185f474d8a79ec2e0114c7ee8ea202d79de9b5310613a652e16ccb",
+        "byteLength": 1431
+      },
+      "newAssertionKind": "data-domain",
+      "rules": [
+        "A2",
+        "A4",
+        "A5",
+        "A6",
+        "A10"
+      ],
+      "derivation": "Exact supported base assertion without id; one typed annotation and its annotation-property/datatype signature roles. These roles add no occurrences under B2.",
+      "status": "independently-derived-supported-anchor-pending-review",
+      "counts": {
+        "primary": 17,
+        "blankNodes": 33,
+        "quads": 105
+      },
+      "metamorphic": [
+        "typed-source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal",
+        "sequence-order-preserved"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/positive/anchor-data-domain/source.json",
+          "sha256": "833fc28426b545068092c1b35f243d0638d4249e6d292c730597f7a7aab574a0",
+          "byteLength": 2404
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/positive/anchor-data-domain/permuted-source.json",
+          "sha256": "b66425fc079d7ba57d46f2edd1dd1749797c9a21147f26bbe1c54f6d4bf1218d",
+          "byteLength": 2865
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/positive/anchor-data-domain/mapped.nq",
+          "sha256": "41b90e91f0524fe2eee7447bd0a6ef9bea40b3dfcaa58425a1ec994de6de0385",
+          "byteLength": 12467
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/positive/anchor-data-domain/canonical.nq",
+          "sha256": "a269bb54aa351aba483f47d95d3025e8babfc157ee464b81b15f81b5db3115c3",
+          "byteLength": 12913
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/positive/anchor-data-domain/ids.json",
+          "sha256": "363fb6a73ebcee6365bdfd6c6c5ea8385d66a164d53c9f8bb7646811c6d6d7ea",
+          "byteLength": 2620
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/positive/anchor-data-domain/canonical.json",
+          "sha256": "ccdec95adc93e410dbfba49404d8de6c543886f75350a05b7d537ef0cace6e9e",
+          "byteLength": 1360
+        }
+      }
+    },
+    {
+      "id": "anchor-data-range",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceFixture": "data-compound-range-details",
+      "sourceWitness": {
+        "path": "supplemental/conditional/vectors/data-compound-range-details/source.json",
+        "sha256": "f8722bde7f185f474d8a79ec2e0114c7ee8ea202d79de9b5310613a652e16ccb",
+        "byteLength": 1431
+      },
+      "newAssertionKind": "data-range",
+      "rules": [
+        "A2",
+        "A4",
+        "A5",
+        "A6",
+        "A10"
+      ],
+      "derivation": "Exact supported base assertion without id; one typed annotation and its annotation-property/datatype signature roles. These roles add no occurrences under B2.",
+      "status": "independently-derived-supported-anchor-pending-review",
+      "counts": {
+        "primary": 17,
+        "blankNodes": 33,
+        "quads": 105
+      },
+      "metamorphic": [
+        "typed-source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal",
+        "sequence-order-preserved"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/positive/anchor-data-range/source.json",
+          "sha256": "c5d7d0b3a8633de43ead22fc10a7e56c8990733b82e0f783ededca0445b6a719",
+          "byteLength": 2406
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/positive/anchor-data-range/permuted-source.json",
+          "sha256": "60d827a2176ace99ad1b81e423062d0cf15d450ff642a99c8ad32a96d9d6a56c",
+          "byteLength": 2862
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/positive/anchor-data-range/mapped.nq",
+          "sha256": "b3106e548a6edee67f01331d5ce26d06e365bbe1a806b6218746e0fcd16d7fc7",
+          "byteLength": 12465
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/positive/anchor-data-range/canonical.nq",
+          "sha256": "6702192c6b5c669ee9a8e95cda57ebfcd77c63a9a9a5aec826787e5fec2a5477",
+          "byteLength": 12913
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/positive/anchor-data-range/ids.json",
+          "sha256": "aa80e4d1a8037535d4959f0d16f17e0a13915ec12ed6659ed46d9f727528aca1",
+          "byteLength": 2621
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/positive/anchor-data-range/canonical.json",
+          "sha256": "2818a2dea45989e26dcec92e9fd8a86ea4d405b47b40579369456d8595cfbc12",
+          "byteLength": 1358
+        }
+      }
+    },
+    {
+      "id": "anchor-data-characteristic",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceFixture": "data-characteristic-without-projection-details",
+      "sourceWitness": {
+        "path": "supplemental/conditional/additional/data-characteristic-without-projection-details/source.json",
+        "sha256": "1064ee069cc3808f24c4a73919b716ea67869bd274eabeda86a7d26021248072",
+        "byteLength": 1583
+      },
+      "newAssertionKind": "data-characteristic",
+      "rules": [
+        "A2",
+        "A4",
+        "A5",
+        "A6",
+        "A10"
+      ],
+      "derivation": "Exact supported base assertion without id; one typed annotation and its annotation-property/datatype signature roles. These roles add no occurrences under B2.",
+      "status": "independently-derived-supported-anchor-pending-review",
+      "counts": {
+        "primary": 18,
+        "blankNodes": 34,
+        "quads": 110
+      },
+      "metamorphic": [
+        "typed-source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal",
+        "sequence-order-preserved"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/positive/anchor-data-characteristic/source.json",
+          "sha256": "1a9cff604f0873d6d79bed9e131df12371349b528355ac845aa5276af207c306",
+          "byteLength": 2589
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/positive/anchor-data-characteristic/permuted-source.json",
+          "sha256": "afd7fa10eb2626c3b497641de8c8ebe74a5ac53c588c2cd144bd56e11c4c9e22",
+          "byteLength": 3056
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/positive/anchor-data-characteristic/mapped.nq",
+          "sha256": "a4e3b1500185d67481b560f58e47a2ea85b6e4de1c4374650241dd8b7ae786c8",
+          "byteLength": 13247
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/positive/anchor-data-characteristic/canonical.nq",
+          "sha256": "7baf1a5b0c02ce76d0fe84af3ddddaee651cde72b45a6138357e988df81ff6b2",
+          "byteLength": 13711
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/positive/anchor-data-characteristic/ids.json",
+          "sha256": "dbb88cd7ec850bb98e10ea488388958bd7b6123108d17ebffc549d779b0f0bc3",
+          "byteLength": 2784
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/positive/anchor-data-characteristic/canonical.json",
+          "sha256": "e1a1a79b0083323ae5b573c8719cc79b98181c26827563dfa1447b8229b5fad0",
+          "byteLength": 1479
+        }
+      }
+    },
+    {
+      "id": "anchor-sub-rdf-property",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceFixture": "rdf-subproperty-missing-projection-details",
+      "sourceWitness": {
+        "path": "supplemental/conditional/additional/rdf-subproperty-missing-projection-details/source.json",
+        "sha256": "8ee9cabb710df07ffc310e70404cd9f8d9bee62fcceeb0ff2e90a44e9e21d6d2",
+        "byteLength": 2486
+      },
+      "newAssertionKind": "sub-rdf-property",
+      "rules": [
+        "A2",
+        "A4",
+        "A5",
+        "A6",
+        "A10"
+      ],
+      "derivation": "Exact supported base assertion without id; one typed annotation and its annotation-property/datatype signature roles. These roles add no occurrences under B2.",
+      "status": "independently-derived-supported-anchor-pending-review",
+      "counts": {
+        "primary": 25,
+        "blankNodes": 44,
+        "quads": 150
+      },
+      "metamorphic": [
+        "typed-source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal",
+        "sequence-order-preserved"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/positive/anchor-sub-rdf-property/source.json",
+          "sha256": "28911183f7705a28dfe2a14f798fb46b13d39e5d468039907a7b036b4b7e4417",
+          "byteLength": 3463
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/positive/anchor-sub-rdf-property/permuted-source.json",
+          "sha256": "12e065a94f98a54f9be0659e6bba857327b847acad9f32ae36ee1e45ea65ffaa",
+          "byteLength": 4259
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/positive/anchor-sub-rdf-property/mapped.nq",
+          "sha256": "1679bbe873e2d9542739092b0976e9edc901879690a2aa91f41b6337e8f82498",
+          "byteLength": 17757
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/positive/anchor-sub-rdf-property/canonical.nq",
+          "sha256": "49b1c4dc2ee6ffb5c668658c6a4fc08e26c7195331e4349549fcb53f2283c9ac",
+          "byteLength": 18419
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/positive/anchor-sub-rdf-property/ids.json",
+          "sha256": "ab1700cc0d31ff3e59a2a6a00cab80e69bdf8fa55c1d58825e6c3d5f2b93a892",
+          "byteLength": 3869
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/positive/anchor-sub-rdf-property/canonical.json",
+          "sha256": "2084bdc188e151a0129d6da7335184d7a8ba19d598c87b9253669e5997f69ce6",
+          "byteLength": 1885
+        }
+      }
+    },
+    {
+      "id": "anchor-equivalent-rdf-properties",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceFixture": "rdf-equivalence-undrawable-partition",
+      "sourceWitness": {
+        "path": "supplemental/conditional/completion/rdf-equivalence-undrawable-partition/source.json",
+        "sha256": "d5c8cf4d6fd86fd92bfd828274aa92a75b6fa98fad0df6093be6ae1db94ac14f",
+        "byteLength": 2003
+      },
+      "newAssertionKind": "equivalent-rdf-properties",
+      "rules": [
+        "A2",
+        "A4",
+        "A5",
+        "A6",
+        "A10"
+      ],
+      "derivation": "Exact supported base assertion without id; one typed annotation and its annotation-property/datatype signature roles. These roles add no occurrences under B2.",
+      "status": "independently-derived-supported-anchor-pending-review",
+      "counts": {
+        "primary": 22,
+        "blankNodes": 40,
+        "quads": 131
+      },
+      "metamorphic": [
+        "typed-source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal",
+        "sequence-order-preserved"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/positive/anchor-equivalent-rdf-properties/source.json",
+          "sha256": "991d427d8b3022012055a4a2a1a96819371e1e8022ae2130a50511a123c9f141",
+          "byteLength": 3021
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/positive/anchor-equivalent-rdf-properties/permuted-source.json",
+          "sha256": "3d0fc10a9f4a0ccd68ddcc5057219917b4037c322165b8b8cf9c5c4be3849427",
+          "byteLength": 3682
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/positive/anchor-equivalent-rdf-properties/mapped.nq",
+          "sha256": "6ecdb05157a6e39b1ad2ae2a9620f8f646d3263d677b53a852907d8a0845d7f6",
+          "byteLength": 15481
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/positive/anchor-equivalent-rdf-properties/canonical.nq",
+          "sha256": "b2fe04f9e9cbd1a2ab8161d2eeba15d06d7676542b7f48a5094450ce8ff7bc60",
+          "byteLength": 16058
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/positive/anchor-equivalent-rdf-properties/ids.json",
+          "sha256": "517db157dac391e9962e1becdf518442e18505ed96005a56c0d324ec2d0987c5",
+          "byteLength": 3393
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/positive/anchor-equivalent-rdf-properties/canonical.json",
+          "sha256": "f7f39e9f194b0c692bc72df7eb7aa3448f3033f375cca2ab913c9d431428656e",
+          "byteLength": 1672
+        }
+      }
+    },
+    {
+      "id": "anchor-disjoint-rdf-properties",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceFixture": "disjoint-rdf-properties",
+      "sourceWitness": {
+        "path": "supplemental/grammar/vectors/disjoint-rdf-properties/source.json",
+        "sha256": "9550dca0d5b32352263402d96d1cfc891f09de837efbffde46d0af97aa9db865",
+        "byteLength": 2730
+      },
+      "newAssertionKind": "disjoint-rdf-properties",
+      "rules": [
+        "A2",
+        "A4",
+        "A5",
+        "A6",
+        "A10"
+      ],
+      "derivation": "Exact supported base assertion without id; one typed annotation and its annotation-property/datatype signature roles. These roles add no occurrences under B2.",
+      "status": "independently-derived-supported-anchor-pending-review",
+      "counts": {
+        "primary": 27,
+        "blankNodes": 48,
+        "quads": 162
+      },
+      "metamorphic": [
+        "typed-source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal",
+        "sequence-order-preserved"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/positive/anchor-disjoint-rdf-properties/source.json",
+          "sha256": "cc0e51ceebf19b015aa58d95c5ebcc12333eb24ad95fc0787bae831f55ee746f",
+          "byteLength": 3744
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/positive/anchor-disjoint-rdf-properties/permuted-source.json",
+          "sha256": "c7f150054d449ddb507335d24cf503534d31e6c76fcee1624287afab2c392ed5",
+          "byteLength": 4531
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/positive/anchor-disjoint-rdf-properties/mapped.nq",
+          "sha256": "ad63ecd716e20418b3cba329adfe2446da266c8386eeda8643810a5d25d64038",
+          "byteLength": 19151
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/positive/anchor-disjoint-rdf-properties/canonical.nq",
+          "sha256": "a31a6534900911622f9e76d0de35479a4691238ea6334e98e6bfa1997c072d9b",
+          "byteLength": 19865
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/positive/anchor-disjoint-rdf-properties/ids.json",
+          "sha256": "af803b5153139a5978f3b18a21d553d3b3a4617c1bc87889a4d8a20c4ea548ed",
+          "byteLength": 4220
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/positive/anchor-disjoint-rdf-properties/canonical.json",
+          "sha256": "7dc48fce96eec1acd84699079ab4ccf78dbeca904964408ab8d55f1f9f782260",
+          "byteLength": 1967
+        }
+      }
+    },
+    {
+      "id": "anchor-rdf-domain",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceFixture": "rdf-compound-range-details",
+      "sourceWitness": {
+        "path": "supplemental/conditional/vectors/rdf-compound-range-details/source.json",
+        "sha256": "f47b653adb27d48500d2e1968064d683c863f431c96aa367739c5dcbc87bd40c",
+        "byteLength": 1428
+      },
+      "newAssertionKind": "rdf-domain",
+      "rules": [
+        "A2",
+        "A4",
+        "A5",
+        "A6",
+        "A10"
+      ],
+      "derivation": "Exact supported base assertion without id; one typed annotation and its annotation-property/datatype signature roles. These roles add no occurrences under B2.",
+      "status": "independently-derived-supported-anchor-pending-review",
+      "counts": {
+        "primary": 17,
+        "blankNodes": 33,
+        "quads": 105
+      },
+      "metamorphic": [
+        "typed-source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal",
+        "sequence-order-preserved"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/positive/anchor-rdf-domain/source.json",
+          "sha256": "a5bae20509efdcb4ef3d280dbff146d9881e17d143a8df737b68729e2ba5318d",
+          "byteLength": 2399
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/positive/anchor-rdf-domain/permuted-source.json",
+          "sha256": "1207397839d4e74ebf49880dd3ede49025b7610f711ab0e3b00dca2ac9ad6427",
+          "byteLength": 2860
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/positive/anchor-rdf-domain/mapped.nq",
+          "sha256": "9d5ce6c36c2b83669a1e82866fd9bd2ae6bac176c26dda7b0d96c4421967d685",
+          "byteLength": 12462
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/positive/anchor-rdf-domain/canonical.nq",
+          "sha256": "122069048e1454bd47b9f8dd2cc21c5a1b44a99a05ba1880659a02e3c848a26a",
+          "byteLength": 12908
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/positive/anchor-rdf-domain/ids.json",
+          "sha256": "0e753aa2653af8ededf3c7534c2fee4d961f95607324db5d2d67c2acfcdacbe7",
+          "byteLength": 2621
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/positive/anchor-rdf-domain/canonical.json",
+          "sha256": "ddaa2fc392da984f0c3e2bf671fc79ac3e3998bcd8948b47ef9a1e86a849e3e7",
+          "byteLength": 1355
+        }
+      }
+    },
+    {
+      "id": "anchor-rdf-range",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceFixture": "rdf-compound-range-details",
+      "sourceWitness": {
+        "path": "supplemental/conditional/vectors/rdf-compound-range-details/source.json",
+        "sha256": "f47b653adb27d48500d2e1968064d683c863f431c96aa367739c5dcbc87bd40c",
+        "byteLength": 1428
+      },
+      "newAssertionKind": "rdf-range",
+      "rules": [
+        "A2",
+        "A4",
+        "A5",
+        "A6",
+        "A10"
+      ],
+      "derivation": "Exact supported base assertion without id; one typed annotation and its annotation-property/datatype signature roles. These roles add no occurrences under B2.",
+      "status": "independently-derived-supported-anchor-pending-review",
+      "counts": {
+        "primary": 17,
+        "blankNodes": 33,
+        "quads": 105
+      },
+      "metamorphic": [
+        "typed-source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal",
+        "sequence-order-preserved"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/positive/anchor-rdf-range/source.json",
+          "sha256": "d3af1f5ff0bb7e534e08a786cf73e90fe8b9187efc16e923dec8943f7bddea37",
+          "byteLength": 2401
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/positive/anchor-rdf-range/permuted-source.json",
+          "sha256": "83508cf02963801891862ae26884d2d159e3947c2f9dfdb7229200455b53fbef",
+          "byteLength": 2857
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/positive/anchor-rdf-range/mapped.nq",
+          "sha256": "26037cf20152504b3f74cd13f6523e4a12d42177f92403fc160b744756803931",
+          "byteLength": 12460
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/positive/anchor-rdf-range/canonical.nq",
+          "sha256": "f211d829a4de4e18adf14cfaee3092af6e1ebb484b7fdc9b41105ea274490b7e",
+          "byteLength": 12906
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/positive/anchor-rdf-range/ids.json",
+          "sha256": "3f0b637d2b55e36ddbd08a8b63a4707bdc52950922d5979f88817050aa72b84d",
+          "byteLength": 2622
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/positive/anchor-rdf-range/canonical.json",
+          "sha256": "7b7244b801f63912de6366df5557ab358b938d48552afa5e5022c9d1c51cb760",
+          "byteLength": 1353
+        }
+      }
+    },
+    {
+      "id": "anchor-rdf-characteristic",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceFixture": "rdf-characteristic-without-projection-details",
+      "sourceWitness": {
+        "path": "supplemental/conditional/additional/rdf-characteristic-without-projection-details/source.json",
+        "sha256": "4fcef7a207ed1836e239786316aeea99dd252daf87751b008bb7e441f906652e",
+        "byteLength": 1579
+      },
+      "newAssertionKind": "rdf-characteristic",
+      "rules": [
+        "A2",
+        "A4",
+        "A5",
+        "A6",
+        "A10"
+      ],
+      "derivation": "Exact supported base assertion without id; one typed annotation and its annotation-property/datatype signature roles. These roles add no occurrences under B2.",
+      "status": "independently-derived-supported-anchor-pending-review",
+      "counts": {
+        "primary": 18,
+        "blankNodes": 34,
+        "quads": 110
+      },
+      "metamorphic": [
+        "typed-source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal",
+        "sequence-order-preserved"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/positive/anchor-rdf-characteristic/source.json",
+          "sha256": "f24ae8165b4cd3cf4015dd700effe8ffe03afb62ca1240c2fd16c56b94f0f8a1",
+          "byteLength": 2583
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/positive/anchor-rdf-characteristic/permuted-source.json",
+          "sha256": "84ed0b6fbceaf84a28cf5cc5f05fe7c7c831a3a97ace35b6fe46a7815a385ec2",
+          "byteLength": 3050
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/positive/anchor-rdf-characteristic/mapped.nq",
+          "sha256": "f2b074249cc58eedf4ae282a6a5d1eb34c95649e33047d292bb52662dc3a2c9b",
+          "byteLength": 13241
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/positive/anchor-rdf-characteristic/canonical.nq",
+          "sha256": "28d4cec14169d6ac4b8ae89df5156fe48e39958cfd2c0f5f1641e9ff5782b0d2",
+          "byteLength": 13707
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/positive/anchor-rdf-characteristic/ids.json",
+          "sha256": "e138d298ad13dcfb745ea5f5cf370e2c439efdd2c9b7f4ccb1c0f79f58515bc2",
+          "byteLength": 2785
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/positive/anchor-rdf-characteristic/canonical.json",
+          "sha256": "9d27d2d2510b599134def4d475c863289f932f2b4f4facb6be6186b77ad5ce61",
+          "byteLength": 1473
+        }
+      }
+    },
+    {
+      "id": "anchor-sub-annotation-property",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceFixture": "sub-annotation-property",
+      "sourceWitness": {
+        "path": "supplemental/grammar/vectors/sub-annotation-property/source.json",
+        "sha256": "fc90cc73691fc5664febb5cb7462edd6acb50cfa97e269b9ef849d84b7245af8",
+        "byteLength": 739
+      },
+      "newAssertionKind": "sub-annotation-property",
+      "rules": [
+        "A2",
+        "A4",
+        "A5",
+        "A6",
+        "A10"
+      ],
+      "derivation": "Exact supported base assertion without id; one typed annotation and its annotation-property/datatype signature roles. These roles add no occurrences under B2.",
+      "status": "independently-derived-supported-anchor-pending-review",
+      "counts": {
+        "primary": 10,
+        "blankNodes": 24,
+        "quads": 73
+      },
+      "metamorphic": [
+        "typed-source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal",
+        "sequence-order-preserved"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/positive/anchor-sub-annotation-property/source.json",
+          "sha256": "ca139e12130c799fde13f6c20a505fe92145c663417368415e60efadf8d60773",
+          "byteLength": 1730
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/positive/anchor-sub-annotation-property/permuted-source.json",
+          "sha256": "518a55edf3ed18201ef5cfc742e915a8973f12949ae397dd44db715e2f436aea",
+          "byteLength": 1926
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/positive/anchor-sub-annotation-property/mapped.nq",
+          "sha256": "d11e4541a380d4c15508bc8cbf38ccfdac7ad01847dac667815dbecd4823d2b9",
+          "byteLength": 8798
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/positive/anchor-sub-annotation-property/canonical.nq",
+          "sha256": "923ff83f2775b7906d58e0616d34b791ed232e3d8680093130f6d3ba28c9f623",
+          "byteLength": 9104
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/positive/anchor-sub-annotation-property/ids.json",
+          "sha256": "4ceaa9bcad15ac8e89fe4d14f71998864dc3e56047c64021ea04dccf1521a588",
+          "byteLength": 1570
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/positive/anchor-sub-annotation-property/canonical.json",
+          "sha256": "6e5af52435b98995500a20ad28385942efcc9e22ca0d2abebddf1b7ccb0848a6",
+          "byteLength": 1034
+        }
+      }
+    },
+    {
+      "id": "anchor-annotation-domain",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceFixture": "annotation-domain",
+      "sourceWitness": {
+        "path": "supplemental/grammar/vectors/annotation-domain/source.json",
+        "sha256": "3b502d461d8bd79fb725fdabe2311cf13fc319d9538c7b10b4da5d86339ce702",
+        "byteLength": 556
+      },
+      "newAssertionKind": "annotation-domain",
+      "rules": [
+        "A2",
+        "A4",
+        "A5",
+        "A6",
+        "A10"
+      ],
+      "derivation": "Exact supported base assertion without id; one typed annotation and its annotation-property/datatype signature roles. These roles add no occurrences under B2.",
+      "status": "independently-derived-supported-anchor-pending-review",
+      "counts": {
+        "primary": 8,
+        "blankNodes": 22,
+        "quads": 66
+      },
+      "metamorphic": [
+        "typed-source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal",
+        "sequence-order-preserved"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/positive/anchor-annotation-domain/source.json",
+          "sha256": "4edd8d19b8c922c027bc7c9095d08feaa25430a9a826d583f629585cec9d9c3e",
+          "byteLength": 1558
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/positive/anchor-annotation-domain/permuted-source.json",
+          "sha256": "1e32169e321541cabaa852b0fda4d3305bc78007c7fb81460f68ec4f6460a61f",
+          "byteLength": 1678
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/positive/anchor-annotation-domain/mapped.nq",
+          "sha256": "a1c319e89ec5cf40a23087dceba177c18929b6993556d7edaf13fe886d3f3c7b",
+          "byteLength": 7994
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/positive/anchor-annotation-domain/canonical.nq",
+          "sha256": "46176c66bc9463822ac655532eeb8c93db9da826acd3ba525da20bd269dad9ce",
+          "byteLength": 8265
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/positive/anchor-annotation-domain/ids.json",
+          "sha256": "1b94e37ba20611bd50e8892d1c15b95767daafa38a80f3d9a47a5ff7c193af4e",
+          "byteLength": 1268
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/positive/anchor-annotation-domain/canonical.json",
+          "sha256": "363e444ef0659d2a33d423ac8eea88d787aed5f1c5532dd1ae963ceacfd15ac4",
+          "byteLength": 951
+        }
+      }
+    },
+    {
+      "id": "anchor-annotation-range",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceFixture": "annotation-range",
+      "sourceWitness": {
+        "path": "supplemental/grammar/vectors/annotation-range/source.json",
+        "sha256": "86deb11c654b457c3a515fc8d3924a55d5e676c8f389a7efa303508f73608d00",
+        "byteLength": 555
+      },
+      "newAssertionKind": "annotation-range",
+      "rules": [
+        "A2",
+        "A4",
+        "A5",
+        "A6",
+        "A10"
+      ],
+      "derivation": "Exact supported base assertion without id; one typed annotation and its annotation-property/datatype signature roles. These roles add no occurrences under B2.",
+      "status": "independently-derived-supported-anchor-pending-review",
+      "counts": {
+        "primary": 8,
+        "blankNodes": 22,
+        "quads": 66
+      },
+      "metamorphic": [
+        "typed-source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal",
+        "sequence-order-preserved"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/positive/anchor-annotation-range/source.json",
+          "sha256": "570ac24959db6ee2ec8ffc054e5ec8160130b9619d5b935cbf8282a27e191bf2",
+          "byteLength": 1555
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/positive/anchor-annotation-range/permuted-source.json",
+          "sha256": "9bc2f8efd2eecd9c491653bcca3a0c10590e65e75162d4b9d76d96fec81d897a",
+          "byteLength": 1675
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/positive/anchor-annotation-range/mapped.nq",
+          "sha256": "def55a514ba9a6f524b9634b26d2c8e3ea7e21d776f6a9673a409e133f3131c1",
+          "byteLength": 7991
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/positive/anchor-annotation-range/canonical.nq",
+          "sha256": "f2a566acb6b72df56fdab3369b95c9ad28b4ea2f6fa047a724ec80ae9fd14be0",
+          "byteLength": 8262
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/positive/anchor-annotation-range/ids.json",
+          "sha256": "07f815714ad77191438050c1e7f3ad6ae04884ac43b649be643d25c66664842b",
+          "byteLength": 1268
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/positive/anchor-annotation-range/canonical.json",
+          "sha256": "4e6294b26757d1b82cb686c13cd75e9f29b883b6226ebdc9a7ea113adad41611",
+          "byteLength": 948
+        }
+      }
+    },
+    {
+      "id": "anchor-datatype-definition",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceFixture": "data-complement",
+      "sourceWitness": {
+        "path": "supplemental/grammar/vectors/data-complement/source.json",
+        "sha256": "822117726863f04ebb172b5a9170c31d5c5da75105ac5dd2bac754594b1ed8c9",
+        "byteLength": 899
+      },
+      "newAssertionKind": "datatype-definition",
+      "rules": [
+        "A2",
+        "A4",
+        "A5",
+        "A6",
+        "A10"
+      ],
+      "derivation": "Exact supported base assertion without id; one typed annotation and its annotation-property/datatype signature roles. These roles add no occurrences under B2.",
+      "status": "independently-derived-supported-anchor-pending-review",
+      "counts": {
+        "primary": 11,
+        "blankNodes": 25,
+        "quads": 77
+      },
+      "metamorphic": [
+        "typed-source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal",
+        "sequence-order-preserved"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/positive/anchor-datatype-definition/source.json",
+          "sha256": "481d1504b5f6dd2b4d89da32641a02846741984bec8438dee59238d6023b42ca",
+          "byteLength": 1903
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/positive/anchor-datatype-definition/permuted-source.json",
+          "sha256": "0028931fde5a96a200604b1b8a4045212795b044939236ea952f4d2b2a65a185",
+          "byteLength": 2054
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/positive/anchor-datatype-definition/mapped.nq",
+          "sha256": "2a2b0a408aca98d39bdea66939230382bb442338676dfcafa767d0eef1e8acec",
+          "byteLength": 9281
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/positive/anchor-datatype-definition/canonical.nq",
+          "sha256": "5613bb2668ad60ea88ad1d3e1c988cb2013f7c5246070220704dbd58c468a535",
+          "byteLength": 9602
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/positive/anchor-datatype-definition/ids.json",
+          "sha256": "0c96923122f52b8ecd9c86c2f9032b3d6022045b387ec3d826731f3b526dd573",
+          "byteLength": 1757
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/positive/anchor-datatype-definition/canonical.json",
+          "sha256": "20305a977e8c7b47a754124d0d73246c7b162ec87e8529a606c4ae02be8fd0fd",
+          "byteLength": 1077
+        }
+      }
+    },
+    {
+      "id": "anchor-key",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceFixture": "equivalence-disjoint-loop-empty-key",
+      "sourceWitness": {
+        "path": "vectors/equivalence-disjoint-loop-empty-key/source.json",
+        "sha256": "bfdf431b2bafcd26926bbb1c8dfc5dc07c9db3357ff2ea7054248134934c5dfc",
+        "byteLength": 1596
+      },
+      "newAssertionKind": "key",
+      "rules": [
+        "A2",
+        "A4",
+        "A5",
+        "A6",
+        "A10"
+      ],
+      "derivation": "Exact supported base assertion without id; one typed annotation and its annotation-property/datatype signature roles. These roles add no occurrences under B2.",
+      "status": "independently-derived-supported-anchor-pending-review",
+      "counts": {
+        "primary": 17,
+        "blankNodes": 40,
+        "quads": 123
+      },
+      "metamorphic": [
+        "typed-source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal",
+        "sequence-order-preserved"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/positive/anchor-key/source.json",
+          "sha256": "7723338e262fc73e41935882a05d05e1cff63b2770deb48743db0960d39a6252",
+          "byteLength": 2591
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/positive/anchor-key/permuted-source.json",
+          "sha256": "9db7ee47d2c20e8cc15047765323d54e5dbfa5d0678fa50756f131f36c4cac75",
+          "byteLength": 3111
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/positive/anchor-key/mapped.nq",
+          "sha256": "28cb6838b9de5bae238dc6a81221ccb2610878615f0ca60448275f5827a6443d",
+          "byteLength": 14382
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/positive/anchor-key/canonical.nq",
+          "sha256": "3dde7cda82bb75a5df97df184a4501a21ce4dbffbff90addc52892ef50b48d06",
+          "byteLength": 14919
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/positive/anchor-key/ids.json",
+          "sha256": "1bc227029e26d7d71233ec9ce1cacbbdd97bfef76181392c6e0f2615a972f5b9",
+          "byteLength": 2644
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/positive/anchor-key/canonical.json",
+          "sha256": "4c2b6e1d3885da6016c4b56d278fa5d2b7d9797dc3487fe610ff5bb4fd81ed09",
+          "byteLength": 1389
+        }
+      }
+    },
+    {
+      "id": "anchor-class-membership",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceFixture": "class-membership-and-punning",
+      "sourceWitness": {
+        "path": "supplemental/grammar/vectors/class-membership-and-punning/source.json",
+        "sha256": "806d78715213d224d1129823726b2c4394d64c697aec3a30546216a89b5d5096",
+        "byteLength": 1949
+      },
+      "newAssertionKind": "class-membership",
+      "rules": [
+        "A2",
+        "A4",
+        "A5",
+        "A6",
+        "A10"
+      ],
+      "derivation": "Exact supported base assertion without id; one typed annotation and its annotation-property/datatype signature roles. These roles add no occurrences under B2.",
+      "status": "independently-derived-supported-anchor-pending-review",
+      "counts": {
+        "primary": 20,
+        "blankNodes": 38,
+        "quads": 125
+      },
+      "metamorphic": [
+        "typed-source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal",
+        "sequence-order-preserved"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/positive/anchor-class-membership/source.json",
+          "sha256": "b56d7d4793c781dd204a059bd5b97d6fea8e3b0a62f1ce136e425cf005eea4eb",
+          "byteLength": 2938
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/positive/anchor-class-membership/permuted-source.json",
+          "sha256": "e4b154a72628b8049ec9e006469c7e20165548578ad7c4cd985226f96ef4c465",
+          "byteLength": 3436
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/positive/anchor-class-membership/mapped.nq",
+          "sha256": "9f41de47e2d964ca50e6416792bd0c2f1f566455c36769ae38aa0df2c2a96757",
+          "byteLength": 14766
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/positive/anchor-class-membership/canonical.nq",
+          "sha256": "0c79ba06ed3fa0d7adcd4396909487ea7aa7c200157d60c1a1fcffac32953a21",
+          "byteLength": 15312
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/positive/anchor-class-membership/ids.json",
+          "sha256": "e5bd590fbca2b63178ad7d4204e2b6fa609af60d8a32484933eee6be25cc95ef",
+          "byteLength": 3157
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/positive/anchor-class-membership/canonical.json",
+          "sha256": "03f1661d50b9b7585b3ba11d4a333166eae80ff15394ea6bf458c124a127ce31",
+          "byteLength": 1524
+        }
+      }
+    }
+  ]
+}

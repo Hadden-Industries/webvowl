@@ -1,0 +1,5 @@
+Prefix(:=<https://example.org/owl-seed#>)
+Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)
+Ontology(
+DataPropertyAssertion(:p :i "not-an-integer"^^xsd:integer)
+)

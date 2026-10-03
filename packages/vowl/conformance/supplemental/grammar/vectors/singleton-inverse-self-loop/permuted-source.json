@@ -1,0 +1,86 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "direction": "reverse",
+        "edge": "supplement-renamed-3",
+        "kind": "label",
+        "id": "supplement-renamed-1"
+      },
+      {
+        "direction": "forward",
+        "edge": "supplement-renamed-3",
+        "kind": "label",
+        "id": "supplement-renamed-2"
+      },
+      {
+        "to": "supplement-renamed-4",
+        "from": "supplement-renamed-4",
+        "reverse": [
+          "supplement-renamed-8"
+        ],
+        "forward": [
+          "supplement-renamed-8"
+        ],
+        "construct": "supplement-renamed-5",
+        "kind": "inverse-edge",
+        "id": "supplement-renamed-3"
+      },
+      {
+        "targets": [
+          "supplement-renamed-9"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-4"
+      }
+    ],
+    "constructs": [
+      {
+        "members": [
+          "supplement-renamed-8"
+        ],
+        "kind": "inverse-properties",
+        "id": "supplement-renamed-5"
+      },
+      {
+        "target": "supplement-renamed-9",
+        "property": "supplement-renamed-8",
+        "kind": "object-range",
+        "id": "supplement-renamed-6"
+      },
+      {
+        "target": "supplement-renamed-9",
+        "property": "supplement-renamed-8",
+        "kind": "object-domain",
+        "id": "supplement-renamed-7"
+      }
+    ],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "supplement-renamed-10",
+        "kind": "object-property",
+        "id": "supplement-renamed-8"
+      },
+      {
+        "subject": "supplement-renamed-11",
+        "kind": "class",
+        "id": "supplement-renamed-9"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "https://example.org/supplement#p",
+        "id": "supplement-renamed-10"
+      },
+      {
+        "iri": "https://example.org/supplement#A",
+        "id": "supplement-renamed-11"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

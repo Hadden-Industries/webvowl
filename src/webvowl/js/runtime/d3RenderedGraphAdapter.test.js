@@ -358,6 +358,25 @@ function createAdapterHarness() {
     applyVowlModelRevision: jest.fn(function (vowlModel) {
       this.suppliedVowlModels.push(vowlModel);
     }),
+    applyCanonicalDrawingRevision: jest.fn(function (drawing) {
+      this.canonicalDrawing = structuredClone(drawing);
+    }),
+    readCanonicalDrawingState() {
+      if (!this.canonicalDrawing) {
+        throw new Error("No canonical drawing is mounted.");
+      }
+      return structuredClone({
+        camera: this.canonicalDrawing.camera,
+        placements: [
+          ...this.canonicalDrawing.nodes,
+          ...this.canonicalDrawing.labels,
+        ].map(({ occurrence, position, pinned }) => ({
+          occurrence,
+          position,
+          pinned,
+        })),
+      });
+    },
     pauseStates: [],
     suppliedVowlModels: [],
     options: () => ({
@@ -426,6 +445,8 @@ function createAdapterHarness() {
     },
     load(loadGeneration, initialChoices = {}) {
       renderedGraphInternalsFixture.loadChoices = initialChoices;
+      renderedGraphInternalsFixture.canonicalDrawing =
+        initialChoices.canonicalDrawing;
       if (initialChoices.language !== undefined) {
         renderedGraphInternalsFixture.appliedLanguages.push(
           initialChoices.language,
@@ -434,7 +455,8 @@ function createAdapterHarness() {
       renderedGraphInternalsFixture.callOrder.push("load");
       renderedGraphInternalsFixture.loadCallCount += 1;
       const simulation = rendererSimulationFixture.forceSimulation();
-      const model = renderedGraphInternalsFixture.suppliedVowlModels.at(-1);
+      const model =
+        renderedGraphInternalsFixture.suppliedVowlModels.at(-1) ?? {};
       simulation.nodes([
         ...(model.class ?? []).map(({ id }, index) => ({
           stableLayoutElementKey: `node:${id}`,
@@ -1965,6 +1987,216 @@ describe("D3 rendered graph adapter", () => {
     // drawn node the renderer knows. Highlighting does not move the viewport.
     expect(internals.highlightedElementIds).toEqual([["Person"]]);
     expect(internals.locateRequests).toBe(0);
+  });
+
+  test("canonical endpoint gestures carry exact semantic targets and their revision", async () => {
+    const harness = createAdapterHarness();
+    const runtime = harness.renderedGraphRuntime;
+    const events = [];
+    runtime.subscribeToRenderedGraphEvents((event) => events.push(event));
+    const target = (recordToken) => ({ loadGeneration: 2, recordToken });
+    const drawing = {
+      nodes: [{ occurrence: "node" }],
+      edges: [],
+      labels: [{ occurrence: "label" }],
+      camera: { center: { x: 0, y: 0 }, zoom: 1 },
+      applicationBindings: ["node", "label"].map((occurrence, index) => ({
+        occurrence,
+        positionable: true,
+        runtimeReference: {
+          loadGeneration: 2,
+          occurrenceId: `occurrence-${index + 1}`,
+        },
+        semanticReferences: [],
+        recordTargets: [target(index + 1)],
+      })),
+    };
+    const mounting = runtime.replaceCanonicalDrawing({
+      loadGeneration: 2,
+      documentRevision: 3,
+      drawing,
+      layout: "pause",
+    });
+    harness.renderedGraphTestHarness.completeInitialPaint(2);
+    await mounting;
+    const port = harness.renderedGraphInternalsFixture.installedEventPort;
+    port.publishRecordEndpointEdit("label", "range", "node", {
+      xPx: 0,
+      yPx: 20,
+    });
+    expect(events.at(-1)).toEqual({
+      kind: "record-endpoint-edit-requested",
+      loadGeneration: 2,
+      payload: {
+        recordTarget: target(2),
+        nodeTarget: target(1),
+        endpoint: "range",
+        documentRevision: 3,
+        labelPosition: { xPx: 0, yPx: 20 },
+      },
+    });
+    port.publishRecordEndpointEdit("label", "range", "missing", {
+      xPx: 0,
+      yPx: 20,
+    });
+    expect(events.at(-1).payload.warningCode).toBe("EDITOR_TARGET_AMBIGUOUS");
+    port.publishRecordLabelEdit("node", "Renamed", true);
+    expect(events.at(-1)).toMatchObject({
+      kind: "record-label-edit-requested",
+      payload: {
+        recordTarget: target(1),
+        text: "Renamed",
+        deriveIriFromLabel: true,
+        documentRevision: 3,
+      },
+    });
+    port.publishRecordDeletion("node");
+    expect(events.at(-1)).toMatchObject({
+      kind: "record-deletion-requested",
+      payload: { recordTarget: target(1), documentRevision: 3 },
+    });
+    port.publishSemanticCreation({
+      type: "owl:datatypeProperty",
+      from: "node",
+      datatype: "owl:real",
+      position: { x: 5, y: 6 },
+    });
+    expect(events.at(-1)).toEqual({
+      kind: "semantic-creation-requested",
+      loadGeneration: 2,
+      payload: {
+        type: "owl:datatypeProperty",
+        fromTarget: target(1),
+        toTarget: null,
+        datatype: "owl:real",
+        position: { x: 5, y: 6 },
+        documentRevision: 3,
+      },
+    });
+    port.publishSemanticCreation({
+      type: "owl:datatypeProperty",
+      from: "missing",
+      datatype: "owl:real",
+      position: { x: 5, y: 6 },
+    });
+    expect(events.at(-1).kind).toBe("render-warning-raised");
+    runtime.dispose();
+  });
+
+  test("canonical mounts and revisions retain exact document context and reject stale updates", async () => {
+    const harness = createAdapterHarness();
+    const {
+      renderedGraphRuntime: runtime,
+      renderedGraphInternalsFixture: native,
+    } = harness;
+    jest.spyOn(native, "load");
+    const drawing = {
+      nodes: [],
+      edges: [],
+      labels: [],
+      camera: { center: { x: 0, y: 0 }, zoom: 1 },
+      labelSelection: { mode: "language", range: "de" },
+    };
+    const mounting = runtime.replaceCanonicalDrawing({
+      loadGeneration: 2,
+      documentRevision: 0,
+      drawing,
+      layout: "pause",
+    });
+    expect(() => runtime.readCanonicalDrawingState()).toThrow();
+    drawing.nodes.push({ occurrence: "caller-mutation" });
+    harness.renderedGraphTestHarness.completeInitialPaint(2);
+    await mounting;
+    expect(native.load).toHaveBeenCalledWith(
+      2,
+      expect.objectContaining({
+        canonicalDrawing: expect.objectContaining({ nodes: [] }),
+        isPaused: true,
+      }),
+    );
+    expect(runtime.readCanonicalDrawingState()).toMatchObject({
+      loadGeneration: 2,
+      documentRevision: 0,
+    });
+    expect(runtime.readVisualizationView().language).toBe("de");
+    drawing.labelSelection = { mode: "iri" };
+    expect(() =>
+      runtime.applyCanonicalDrawingRevision({
+        loadGeneration: 2,
+        baseRevision: 1,
+        documentRevision: 2,
+        drawing,
+      }),
+    ).toThrow();
+    expect(native.applyCanonicalDrawingRevision).not.toHaveBeenCalled();
+    native.applyCanonicalDrawingRevision.mockImplementationOnce(() => {
+      throw new Error("invalid drawing");
+    });
+    expect(() =>
+      runtime.applyCanonicalDrawingRevision({
+        loadGeneration: 2,
+        baseRevision: 0,
+        documentRevision: 1,
+        drawing,
+      }),
+    ).toThrow("invalid drawing");
+    expect(runtime.readCanonicalDrawingState().documentRevision).toBe(0);
+    expect(runtime.readVisualizationView().language).toBe("de");
+    runtime.applyCanonicalDrawingRevision({
+      loadGeneration: 2,
+      baseRevision: 0,
+      documentRevision: 1,
+      drawing,
+    });
+    expect(runtime.readCanonicalDrawingState().documentRevision).toBe(1);
+    expect(runtime.readVisualizationView().language).toBe("IRI-based");
+    native.applyCanonicalDrawingRevision.mockImplementationOnce(() => {
+      const error = new Error("drawing recovery failed");
+      error.code = "CANONICAL_DRAWING_RECOVERY_FAILED";
+      throw error;
+    });
+    expect(() =>
+      runtime.applyCanonicalDrawingRevision({
+        loadGeneration: 2,
+        baseRevision: 1,
+        documentRevision: 2,
+        drawing,
+      }),
+    ).toThrow("drawing recovery failed");
+    expect(() => runtime.readCanonicalDrawingState()).toThrow();
+    runtime.clearRenderedGraph();
+    expect(() => runtime.readCanonicalDrawingState()).toThrow();
+    runtime.dispose();
+  });
+
+  test("focus distinguishes a class and property sharing an IRI", async () => {
+    const harness = createAdapterHarness();
+    const iri = "urn:punned";
+    const replacing = harness.renderedGraphRuntime.replaceVowlModel({
+      loadGeneration: 1,
+      vowlModel: {
+        header: {},
+        class: [{ id: "class", type: "owl:Class" }],
+        classAttribute: [{ id: "class", iri }],
+        property: [{ id: "property", type: "owl:ObjectProperty" }],
+        propertyAttribute: [
+          { id: "property", iri, domain: "class", range: "class" },
+        ],
+      },
+    });
+    harness.renderedGraphTestHarness.completeInitialPaint(1);
+    await replacing;
+    for (const kind of ["class", "property"]) {
+      const applying = harness.renderedGraphRuntime.applyVisualizationView({
+        loadGeneration: 1,
+        focus: [{ kind, iri }],
+      });
+      harness.renderedGraphTestHarness.completeVisualizationViewApplication(1);
+      await applying;
+      expect([
+        ...harness.renderedGraphInternalsFixture.currentHighlightIds,
+      ]).toEqual([kind]);
+    }
   });
 
   test("replaces focus membership and reapplies retained focus after a language redraw", async () => {

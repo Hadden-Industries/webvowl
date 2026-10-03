@@ -1,0 +1,120 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s:A",
+        "iri": "https://example.org/owl-seed#A"
+      },
+      {
+        "id": "s:p",
+        "iri": "https://example.org/owl-seed#p"
+      },
+      {
+        "id": "s:Thing",
+        "iri": "http://www.w3.org/2002/07/owl#Thing"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s:A"
+      },
+      {
+        "id": "p",
+        "kind": "object-property",
+        "subject": "s:p"
+      },
+      {
+        "id": "Thing",
+        "kind": "class",
+        "subject": "s:Thing"
+      }
+    ],
+    "expressions": [
+      {
+        "id": "large-min",
+        "kind": "object-min-cardinality",
+        "property": "p",
+        "cardinality": "9007199254740993",
+        "filler": "Thing"
+      }
+    ],
+    "constructs": [
+      {
+        "id": "sub",
+        "kind": "subclass",
+        "sub": "A",
+        "super": "large-min"
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-0",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "node-1",
+        "kind": "class-node",
+        "targets": [
+          "Thing"
+        ],
+        "context": {
+          "kind": "class",
+          "targets": [
+            "Thing"
+          ]
+        }
+      },
+      {
+        "id": "edge-0",
+        "kind": "property-edge",
+        "properties": [
+          "p"
+        ],
+        "from": "node-1",
+        "to": "node-1"
+      },
+      {
+        "id": "edge-0-label-single",
+        "kind": "label",
+        "edge": "edge-0",
+        "direction": "single"
+      },
+      {
+        "id": "node-2",
+        "kind": "class-node",
+        "targets": [
+          "Thing"
+        ],
+        "context": {
+          "kind": "property",
+          "properties": [
+            "p"
+          ],
+          "scope": "sub"
+        }
+      },
+      {
+        "id": "edge-1",
+        "kind": "restriction-edge",
+        "construct": "sub",
+        "from": "node-0",
+        "to": "node-2"
+      },
+      {
+        "id": "edge-1-label-single",
+        "kind": "label",
+        "edge": "edge-1",
+        "direction": "single"
+      }
+    ]
+  }
+}

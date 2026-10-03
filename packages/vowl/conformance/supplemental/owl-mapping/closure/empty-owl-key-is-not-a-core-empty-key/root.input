@@ -1,0 +1,6 @@
+Prefix(:=<https://example.org/owl-seed#>)
+Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)
+Ontology(
+Declaration(Class(:A))
+HasKey(:A () ())
+)

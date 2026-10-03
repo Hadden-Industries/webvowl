@@ -1,0 +1,1288 @@
+{
+  "format": "canonical-vowl-negative-and-boundary-manifest/1",
+  "status": "supplemental-independent-errors-pending-review",
+  "independence": "Inputs and errors derived from contract rules; no production execution or code used to choose outcomes.",
+  "sourceArtifacts": [
+    {
+      "path": "oracle/seed-sources.mjs",
+      "sha256": "fba52f7fbea6e50cede4be537e50a0f9d9bfc6047d25ec86f85d92b3dbef2704"
+    },
+    {
+      "path": "oracle/extended-sources.mjs",
+      "sha256": "29a1ca8d3418f17f674bc577b999ba80a68e655d5b1848e04301b41e07e69da0"
+    },
+    {
+      "path": "supplemental/grammar/sources.mjs",
+      "sha256": "7a720f382180a0468f7441437342fef98d40155f511858bb9eece3d3c5a68a31"
+    },
+    {
+      "path": "supplemental/negative/derive.mjs",
+      "sha256": "66ae3ef2fcbee28867633691a4224b3932e4d234b855388425868dd763924bac"
+    }
+  ],
+  "notes": [
+    "Original disputed negatives remain unchanged. Duplicate-ID fixture here changes IRI to avoid identical-record/set overlap.",
+    "Isolated surrogate fixture uses an otherwise valid admitted-envelope shape and literal slot. It establishes the Unicode failure without deciding A7/D19 precedence against an invalid envelope.",
+    "Options are operation options; supply the manifest profile separately to canonicalize. Null expectedError means success and exact expectedCanonical bytes.",
+    "Resource errors are policy tests, not RDF validity judgments. Timing and runtime object-safety controls require separate executable harness cases."
+  ],
+  "vectors": [
+    {
+      "id": "duplicate-id-distinct-subject-iri",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {},
+      "expectedError": "ID_DUPLICATE",
+      "rules": [
+        "A2",
+        "A5",
+        "A7"
+      ],
+      "sourceFixture": "named-class-structural",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/duplicate-id-distinct-subject-iri/source.json",
+        "sha256": "59843a0b1ed88ee749e75f68ee71c150a696fe21db0beb4fa57fd19741df2532",
+        "byteLength": 629
+      }
+    },
+    {
+      "id": "nested-intersection-descendant-anchor",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {},
+      "expectedError": "ASSERTION_UNSUPPORTED",
+      "rules": [
+        "A4",
+        "A7"
+      ],
+      "sourceFixture": "aggregate-anchor-outer",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/nested-intersection-descendant-anchor/source.json",
+        "sha256": "5741686c8f70c4456db8687cbac41047c8dc5ef0cbe7539dfef426a9933bd926",
+        "byteLength": 4033
+      }
+    },
+    {
+      "id": "signature-missing-annotation-role",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {},
+      "expectedError": "NORMALIZATION_INVALID",
+      "rules": [
+        "A2",
+        "A5",
+        "A7"
+      ],
+      "sourceFixture": "typed-integer-lexical-01",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/signature-missing-annotation-role/source.json",
+        "sha256": "8c80ade0591b7b4bcc344003817800ea2cbb645ac74ad9aa9e771ebf9b34ae18",
+        "byteLength": 1058
+      }
+    },
+    {
+      "id": "signature-missing-literal-datatype",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {},
+      "expectedError": "NORMALIZATION_INVALID",
+      "rules": [
+        "A2",
+        "A5",
+        "A7"
+      ],
+      "sourceFixture": "typed-integer-lexical-01",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/signature-missing-literal-datatype/source.json",
+        "sha256": "c807d96f468d72087a04775429c059fed81aec8720b990a9fd54090a9ec92a74",
+        "byteLength": 1055
+      }
+    },
+    {
+      "id": "signature-missing-language-datatype",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {},
+      "expectedError": "NORMALIZATION_INVALID",
+      "rules": [
+        "A2",
+        "A5",
+        "A7"
+      ],
+      "sourceFixture": "language-i-klingon",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/signature-missing-language-datatype/source.json",
+        "sha256": "c621d58a7dda9be961f563f1d6cb2fabc639fa119f36aa0d3eb9b412e308f7ac",
+        "byteLength": 1036
+      }
+    },
+    {
+      "id": "class-and-generic-rdf-class-role",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {},
+      "expectedError": "NORMALIZATION_INVALID",
+      "rules": [
+        "A2",
+        "A7"
+      ],
+      "sourceFixture": "named-class-structural",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/class-and-generic-rdf-class-role/source.json",
+        "sha256": "1ac0e59fb3c177923e1a1d9dbab9a3baa43a7b6388dd6e9dc3618896e4fae3f3",
+        "byteLength": 646
+      }
+    },
+    {
+      "id": "specific-and-generic-rdf-property-role",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {},
+      "expectedError": "NORMALIZATION_INVALID",
+      "rules": [
+        "A2",
+        "A7"
+      ],
+      "sourceFixture": "matched-inverse",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/specific-and-generic-rdf-property-role/source.json",
+        "sha256": "1e5b5b2b742b3ca09f03016b00725323ac43a17d41c177c024f9151906fab323",
+        "byteLength": 2381
+      }
+    },
+    {
+      "id": "unaggregated-distinct-domain-targets",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {},
+      "expectedError": "NORMALIZATION_INVALID",
+      "rules": [
+        "A5",
+        "A7"
+      ],
+      "sourceFixture": "matched-inverse",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/unaggregated-distinct-domain-targets/source.json",
+        "sha256": "579b968c35009913e3825a9847dc96c9899a0ff3ccd31a7a9ba19d5b2b915352",
+        "byteLength": 2409
+      }
+    },
+    {
+      "id": "duplicate-expression-typed-payload",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {},
+      "expectedError": "RECORD_DUPLICATE",
+      "rules": [
+        "A3",
+        "A5",
+        "A7"
+      ],
+      "sourceFixture": "aggregate-anchor-outer",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/duplicate-expression-typed-payload/source.json",
+        "sha256": "a24a5d0d4747fdb6853417ac60fe925adb90f0026a1783cfe62585b8f19d6284",
+        "byteLength": 4214
+      }
+    },
+    {
+      "id": "duplicate-construct-typed-payload",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {},
+      "expectedError": "RECORD_DUPLICATE",
+      "rules": [
+        "A4",
+        "A5",
+        "A7"
+      ],
+      "sourceFixture": "matched-inverse",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/duplicate-construct-typed-payload/source.json",
+        "sha256": "485a89e7a611d53f5c340bc301e54e2ee4235bcab0e2782e79012b8464684248",
+        "byteLength": 2411
+      }
+    },
+    {
+      "id": "wrong-expression-reference-sort",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {},
+      "expectedError": "REFERENCE_KIND",
+      "rules": [
+        "A1",
+        "A3",
+        "A7"
+      ],
+      "sourceFixture": "data-complement",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/wrong-expression-reference-sort/source.json",
+        "sha256": "5ac6a9ba680b722997e86d15c0803415cf7a6073c331214f6dc574bd54ff57f2",
+        "byteLength": 896
+      }
+    },
+    {
+      "id": "anonymous-property-subject",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {},
+      "expectedError": "NORMALIZATION_INVALID",
+      "rules": [
+        "A2",
+        "A7"
+      ],
+      "sourceFixture": "matched-inverse",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/anonymous-property-subject/source.json",
+        "sha256": "b313bbfa5238abfe161cac134d10bbdea8e11d2f8097f56de03d0d9a5b0a79a6",
+        "byteLength": 2238
+      }
+    },
+    {
+      "id": "anonymous-annotation-value-target-is-named",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {},
+      "expectedError": "NORMALIZATION_INVALID",
+      "rules": [
+        "A2",
+        "A7"
+      ],
+      "sourceFixture": "iri-value-equals-source-handle",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/anonymous-annotation-value-target-is-named/source.json",
+        "sha256": "33d5d5ad4b057724fa63d6588e338302d5750882d6fa4b4c644dd9be4275d1b6",
+        "byteLength": 1062
+      }
+    },
+    {
+      "id": "duplicate-language-value-after-ascii-fold",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {},
+      "expectedError": "RECORD_DUPLICATE",
+      "rules": [
+        "A2",
+        "A5",
+        "A7"
+      ],
+      "sourceFixture": "language-i-klingon",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/duplicate-language-value-after-ascii-fold/source.json",
+        "sha256": "9c17215444842cd3fd68bb3eec0658b842a750d5084239818002502ae5fe247c",
+        "byteLength": 1580
+      }
+    },
+    {
+      "id": "language-duplicate-variant",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {},
+      "expectedError": "LANGUAGE_TAG_INVALID",
+      "rules": [
+        "A2",
+        "A7"
+      ],
+      "sourceFixture": "language-i-klingon",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/language-duplicate-variant/source.json",
+        "sha256": "2a9a26d41a5ccb5d95ec489fe2eb6c4934cde13751b2ded3fb5e391c17d0c9a2",
+        "byteLength": 1272
+      }
+    },
+    {
+      "id": "language-duplicate-singleton",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {},
+      "expectedError": "LANGUAGE_TAG_INVALID",
+      "rules": [
+        "A2",
+        "A7"
+      ],
+      "sourceFixture": "language-i-klingon",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/language-duplicate-singleton/source.json",
+        "sha256": "1a8b74b8471956ae53036deb3cb588c24f386712bacde73d7ab97aa921d4497b",
+        "byteLength": 1272
+      }
+    },
+    {
+      "id": "language-non-ascii-subtag",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {},
+      "expectedError": "LANGUAGE_TAG_INVALID",
+      "rules": [
+        "A2",
+        "A7"
+      ],
+      "sourceFixture": "language-i-klingon",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/language-non-ascii-subtag/source.json",
+        "sha256": "0061f9fe4c8cba923a8d5014d4288482d5210cb3f2294878f9b48dfacdf2f556",
+        "byteLength": 1264
+      }
+    },
+    {
+      "id": "language-empty-private-use",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {},
+      "expectedError": "LANGUAGE_TAG_INVALID",
+      "rules": [
+        "A2",
+        "A7"
+      ],
+      "sourceFixture": "language-i-klingon",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/language-empty-private-use/source.json",
+        "sha256": "85864ab385fc1b0bd75b6dea167a1d8befbecb872eb5d7afb3e1c60d7e24a227",
+        "byteLength": 1262
+      }
+    },
+    {
+      "id": "iri-bad-percent",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {},
+      "expectedError": "IRI_INVALID",
+      "rules": [
+        "A1",
+        "A7"
+      ],
+      "sourceFixture": "named-class-structural",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/iri-bad-percent/source.json",
+        "sha256": "752aeeeec5df41fe2293eb8c5e02953514ee7bbbbacc8597f7127f17c66f9380",
+        "byteLength": 527
+      }
+    },
+    {
+      "id": "iri-space",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {},
+      "expectedError": "IRI_INVALID",
+      "rules": [
+        "A1",
+        "A7"
+      ],
+      "sourceFixture": "named-class-structural",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/iri-space/source.json",
+        "sha256": "c27d53bad3276ecb3dc6e4e525a347c91c8dd13d06685cc03e28f4665e58a8fc",
+        "byteLength": 533
+      }
+    },
+    {
+      "id": "iri-unescaped-bracket",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {},
+      "expectedError": "IRI_INVALID",
+      "rules": [
+        "A1",
+        "A7"
+      ],
+      "sourceFixture": "named-class-structural",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/iri-unescaped-bracket/source.json",
+        "sha256": "0f76da5ff78f019a5c64411f438e705cc7efe503628d76fb6a41243b177f411f",
+        "byteLength": 529
+      }
+    },
+    {
+      "id": "hidden-node-without-edge-closure",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "options": {},
+      "expectedError": "ARTIFACT_INCOMPLETE",
+      "rules": [
+        "B3",
+        "A7"
+      ],
+      "sourceFixture": "artifact-hidden-node-closure",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/hidden-node-without-edge-closure/source.json",
+        "sha256": "6ab78f64c3ad24cc5c39c36522c52d058c18b17305649ec855ff72f517859163",
+        "byteLength": 2041
+      }
+    },
+    {
+      "id": "hidden-edge-without-label-closure",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "options": {},
+      "expectedError": "ARTIFACT_INCOMPLETE",
+      "rules": [
+        "B3",
+        "A7"
+      ],
+      "sourceFixture": "artifact-hidden-edge-closure",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/hidden-edge-without-label-closure/source.json",
+        "sha256": "caae465170a1a0fcb1854573db155803683b76c6a2cca33078c3f78d71b2dca7",
+        "byteLength": 2019
+      }
+    },
+    {
+      "id": "hidden-label-still-needs-placement",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "options": {},
+      "expectedError": "ARTIFACT_INCOMPLETE",
+      "rules": [
+        "B3",
+        "A7"
+      ],
+      "sourceFixture": "artifact-hidden-label-closure",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/hidden-label-still-needs-placement/source.json",
+        "sha256": "014138f979ef592c8ffe69662934e2dc17792132199210a9d6bcc0b102eb102f",
+        "byteLength": 1870
+      }
+    },
+    {
+      "id": "edge-must-not-have-placement",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "options": {},
+      "expectedError": "ARTIFACT_INCOMPLETE",
+      "rules": [
+        "B1",
+        "B3",
+        "A7"
+      ],
+      "sourceFixture": "artifact-hidden-edge-closure",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/edge-must-not-have-placement/source.json",
+        "sha256": "f0935f828c82db84d39172e0360263a20d9b172186b91c68f11c9131b9502f09",
+        "byteLength": 2196
+      }
+    },
+    {
+      "id": "duplicate-placement-distinct-state",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "options": {},
+      "expectedError": "ARTIFACT_INCOMPLETE",
+      "rules": [
+        "B3",
+        "A7"
+      ],
+      "sourceFixture": "artifact-hidden-label-closure",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/duplicate-placement-distinct-state/source.json",
+        "sha256": "8aa17ab3efa308d024819ac3fa3e391570250c1a7a8cfb8b7c2da0adaf85a8cf",
+        "byteLength": 2179
+      }
+    },
+    {
+      "id": "hidden-reference-dangling",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "options": {},
+      "expectedError": "REFERENCE_DANGLING",
+      "rules": [
+        "A1",
+        "A7",
+        "B3"
+      ],
+      "sourceFixture": "artifact-hidden-label-closure",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/hidden-reference-dangling/source.json",
+        "sha256": "4188934695780673f6de353f162a399d5867dc33fb6db07c23014e9fae73b134",
+        "byteLength": 2012
+      }
+    },
+    {
+      "id": "hidden-reference-wrong-category",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "options": {},
+      "expectedError": "REFERENCE_KIND",
+      "rules": [
+        "A1",
+        "A7",
+        "B3"
+      ],
+      "sourceFixture": "artifact-hidden-label-closure",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/hidden-reference-wrong-category/source.json",
+        "sha256": "9ec59c820101b27becaa76d7c48a8cfbaf976c75e7c95e7e7b40a5fe17a42e17",
+        "byteLength": 2007
+      }
+    },
+    {
+      "id": "iri-mode-forbids-language-range",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "options": {},
+      "expectedError": "DOCUMENT_UNKNOWN_FIELD",
+      "rules": [
+        "A1",
+        "A7",
+        "B4"
+      ],
+      "sourceFixture": "artifact-hidden-label-closure",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/iri-mode-forbids-language-range/source.json",
+        "sha256": "4a94e39873776e73f151f7a2006a97fa81cc972241802bfa0697cc9ba0d9f3a3",
+        "byteLength": 2046
+      }
+    },
+    {
+      "id": "boolean-is-not-truthy-string",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "options": {},
+      "expectedError": "DOCUMENT_TYPE",
+      "rules": [
+        "A1",
+        "A7",
+        "B3"
+      ],
+      "sourceFixture": "artifact-hidden-label-closure",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/boolean-is-not-truthy-string/source.json",
+        "sha256": "9900327741830bc0c5d74ae91ef8f0dfafd4f2cf700830100ddda0e8bd460761",
+        "byteLength": 2027
+      }
+    },
+    {
+      "id": "cardinality-retains-decimal-domain",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {},
+      "expectedError": "DOCUMENT_TYPE",
+      "rules": [
+        "A1",
+        "A3",
+        "A7"
+      ],
+      "sourceFixture": "object-exact-unqualified",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/cardinality-retains-decimal-domain/source.json",
+        "sha256": "d3fb058612112e95b2a867dab1bbb78ad3b2992956c98e8e1eef28e03606671b",
+        "byteLength": 2371
+      }
+    },
+    {
+      "id": "lone-surrogate-in-valid-envelope-and-literal",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "UNICODE_INVALID",
+      "rules": [
+        "A2",
+        "A7",
+        "D19"
+      ],
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/lone-surrogate-in-valid-envelope-and-literal/input.bin",
+        "sha256": "fba411065a2eef800c0266d668a1a31a07e344c0f062564f6a818378b7ba8af8",
+        "byteLength": 1996
+      }
+    },
+    {
+      "id": "input-byte-limit-one-short",
+      "operation": "decode",
+      "options": {
+        "limits": {
+          "inputBytes": 229
+        }
+      },
+      "expectedError": "INPUT_RESOURCE_LIMIT",
+      "rules": [
+        "A7",
+        "A8"
+      ],
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/input-byte-limit-one-short/input.bin",
+        "sha256": "d20d292b5553f3af1316ec929445b959da5ac829d86751580f80219363b71aae",
+        "byteLength": 230
+      }
+    },
+    {
+      "id": "input-byte-limit-exact",
+      "operation": "decode",
+      "options": {
+        "limits": {
+          "inputBytes": 230
+        }
+      },
+      "expectedError": null,
+      "rules": [
+        "A7",
+        "A8"
+      ],
+      "expectedCanonical": {
+        "path": "vectors/empty-structural/canonical.json",
+        "sha256": "d20d292b5553f3af1316ec929445b959da5ac829d86751580f80219363b71aae"
+      },
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/input-byte-limit-exact/input.bin",
+        "sha256": "d20d292b5553f3af1316ec929445b959da5ac829d86751580f80219363b71aae",
+        "byteLength": 230
+      }
+    },
+    {
+      "id": "primaryRecords-insufficient",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "primaryRecords": 2
+        }
+      },
+      "expectedError": "MODEL_RESOURCE_LIMIT",
+      "rules": [
+        "A7",
+        "A8"
+      ],
+      "sourceFixture": "named-class-structural",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/primaryRecords-insufficient/source.json",
+        "sha256": "5fb3584a228bd2f40a4bd3734154bffdabfccd17a23a2f5cb7d0a148a3a188b2",
+        "byteLength": 535
+      }
+    },
+    {
+      "id": "embeddedValues-insufficient",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "embeddedValues": 1
+        }
+      },
+      "expectedError": "MODEL_RESOURCE_LIMIT",
+      "rules": [
+        "A7",
+        "A8"
+      ],
+      "sourceFixture": "named-class-structural",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/embeddedValues-insufficient/source.json",
+        "sha256": "5fb3584a228bd2f40a4bd3734154bffdabfccd17a23a2f5cb7d0a148a3a188b2",
+        "byteLength": 535
+      }
+    },
+    {
+      "id": "depth-insufficient",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "depth": 1
+        }
+      },
+      "expectedError": "MODEL_RESOURCE_LIMIT",
+      "rules": [
+        "A7",
+        "A8"
+      ],
+      "sourceFixture": "named-class-structural",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/depth-insufficient/source.json",
+        "sha256": "5fb3584a228bd2f40a4bd3734154bffdabfccd17a23a2f5cb7d0a148a3a188b2",
+        "byteLength": 535
+      }
+    },
+    {
+      "id": "stringBytes-insufficient",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "stringBytes": 1
+        }
+      },
+      "expectedError": "MODEL_RESOURCE_LIMIT",
+      "rules": [
+        "A7",
+        "A8"
+      ],
+      "sourceFixture": "named-class-structural",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/stringBytes-insufficient/source.json",
+        "sha256": "5fb3584a228bd2f40a4bd3734154bffdabfccd17a23a2f5cb7d0a148a3a188b2",
+        "byteLength": 535
+      }
+    },
+    {
+      "id": "totalStringBytes-insufficient",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "totalStringBytes": 1
+        }
+      },
+      "expectedError": "MODEL_RESOURCE_LIMIT",
+      "rules": [
+        "A7",
+        "A8"
+      ],
+      "sourceFixture": "named-class-structural",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/totalStringBytes-insufficient/source.json",
+        "sha256": "5fb3584a228bd2f40a4bd3734154bffdabfccd17a23a2f5cb7d0a148a3a188b2",
+        "byteLength": 535
+      }
+    },
+    {
+      "id": "primary-record-limit-exact",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "primaryRecords": 3
+        }
+      },
+      "expectedError": null,
+      "rules": [
+        "A7",
+        "A8"
+      ],
+      "sourceFixture": "named-class-structural",
+      "expectedCanonical": {
+        "path": "vectors/named-class-structural/canonical.json",
+        "sha256": "a0ae73e8261941a08c576d3fbd0be8871081e4bfa57f76790bfeea5e7c52e8f1"
+      },
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/primary-record-limit-exact/source.json",
+        "sha256": "5fb3584a228bd2f40a4bd3734154bffdabfccd17a23a2f5cb7d0a148a3a188b2",
+        "byteLength": 535
+      }
+    },
+    {
+      "id": "rdf-quad-limit-one-short",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "rdfQuads": 19
+        }
+      },
+      "expectedError": "RDF_RESOURCE_LIMIT",
+      "rules": [
+        "A7",
+        "A8"
+      ],
+      "sourceFixture": "empty-structural",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/rdf-quad-limit-one-short/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "rdf-quad-limit-exact",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "rdfQuads": 20
+        }
+      },
+      "expectedError": null,
+      "rules": [
+        "A7",
+        "A8"
+      ],
+      "sourceFixture": "empty-structural",
+      "expectedCanonical": {
+        "path": "vectors/empty-structural/canonical.json",
+        "sha256": "d20d292b5553f3af1316ec929445b959da5ac829d86751580f80219363b71aae"
+      },
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/rdf-quad-limit-exact/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "rdf-deep-zero",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "rdfDeepIterations": 0
+        }
+      },
+      "expectedError": "RDFC_RESOURCE_LIMIT",
+      "rules": [
+        "A7",
+        "A8"
+      ],
+      "sourceFixture": "symmetric-anonymous-classes",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/rdf-deep-zero/source.json",
+        "sha256": "3f84ee3e06f02fab9c0e796c0bab435841d827fe18e8022700a88bff1da38908",
+        "byteLength": 690
+      }
+    },
+    {
+      "id": "option-inputBytes-above-ceiling",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "inputBytes": 268435457
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "rules": [
+        "A7",
+        "A8"
+      ],
+      "sourceFixture": "empty-structural",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/option-inputBytes-above-ceiling/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-inputBytes-zero",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "inputBytes": 0
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "rules": [
+        "A7",
+        "A8"
+      ],
+      "sourceFixture": "empty-structural",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/option-inputBytes-zero/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-primaryRecords-above-ceiling",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "primaryRecords": 1000001
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "rules": [
+        "A7",
+        "A8"
+      ],
+      "sourceFixture": "empty-structural",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/option-primaryRecords-above-ceiling/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-primaryRecords-zero",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "primaryRecords": 0
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "rules": [
+        "A7",
+        "A8"
+      ],
+      "sourceFixture": "empty-structural",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/option-primaryRecords-zero/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-embeddedValues-above-ceiling",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "embeddedValues": 4000001
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "rules": [
+        "A7",
+        "A8"
+      ],
+      "sourceFixture": "empty-structural",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/option-embeddedValues-above-ceiling/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-embeddedValues-zero",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "embeddedValues": 0
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "rules": [
+        "A7",
+        "A8"
+      ],
+      "sourceFixture": "empty-structural",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/option-embeddedValues-zero/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-depth-above-ceiling",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "depth": 513
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "rules": [
+        "A7",
+        "A8"
+      ],
+      "sourceFixture": "empty-structural",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/option-depth-above-ceiling/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-depth-zero",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "depth": 0
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "rules": [
+        "A7",
+        "A8"
+      ],
+      "sourceFixture": "empty-structural",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/option-depth-zero/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-stringBytes-above-ceiling",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "stringBytes": 16777217
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "rules": [
+        "A7",
+        "A8"
+      ],
+      "sourceFixture": "empty-structural",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/option-stringBytes-above-ceiling/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-stringBytes-zero",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "stringBytes": 0
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "rules": [
+        "A7",
+        "A8"
+      ],
+      "sourceFixture": "empty-structural",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/option-stringBytes-zero/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-totalStringBytes-above-ceiling",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "totalStringBytes": 134217729
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "rules": [
+        "A7",
+        "A8"
+      ],
+      "sourceFixture": "empty-structural",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/option-totalStringBytes-above-ceiling/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-totalStringBytes-zero",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "totalStringBytes": 0
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "rules": [
+        "A7",
+        "A8"
+      ],
+      "sourceFixture": "empty-structural",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/option-totalStringBytes-zero/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-rdfQuads-above-ceiling",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "rdfQuads": 8000001
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "rules": [
+        "A7",
+        "A8"
+      ],
+      "sourceFixture": "empty-structural",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/option-rdfQuads-above-ceiling/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-rdfQuads-zero",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "rdfQuads": 0
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "rules": [
+        "A7",
+        "A8"
+      ],
+      "sourceFixture": "empty-structural",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/option-rdfQuads-zero/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-rdfDeepIterations-above-ceiling",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "rdfDeepIterations": 1000001
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "rules": [
+        "A7",
+        "A8"
+      ],
+      "sourceFixture": "empty-structural",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/option-rdfDeepIterations-above-ceiling/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-deadlineMs-above-ceiling",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "deadlineMs": 300001
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "rules": [
+        "A7",
+        "A8"
+      ],
+      "sourceFixture": "empty-structural",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/option-deadlineMs-above-ceiling/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-deadlineMs-zero",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "deadlineMs": 0
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "rules": [
+        "A7",
+        "A8"
+      ],
+      "sourceFixture": "empty-structural",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/option-deadlineMs-zero/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-rdfDeepIterations-negative",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "rdfDeepIterations": -1
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "rules": [
+        "A7",
+        "A8"
+      ],
+      "sourceFixture": "empty-structural",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/option-rdfDeepIterations-negative/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-unknown-limit",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "unbounded": true
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "rules": [
+        "A7",
+        "A8"
+      ],
+      "sourceFixture": "empty-structural",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/negative/vectors/option-unknown-limit/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    }
+  ]
+}

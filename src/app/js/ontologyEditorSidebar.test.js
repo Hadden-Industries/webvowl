@@ -7,6 +7,9 @@ import {
   jest,
   test,
 } from "@jest/globals";
+import { createCanonicalVowlDocumentSession } from "./controller/canonicalVowlDocumentSession.js";
+import { runCanonicalVowlOperation } from "./controller/canonicalVowlWorkerOperations.js";
+import { applyCanonicalEditorCommand } from "./controller/canonicalVowlEditorCommands.js";
 
 let createOntologyEditorSidebar;
 let documentOperations;
@@ -167,10 +170,29 @@ describe("ontology editor sidebar through application document operations", () =
     };
     controller = {
       getState: () => state,
-      getOntologyDocument: () => ({
-        loadGeneration: state.loadGeneration,
-        vowlModel: documentOperations.createVowlDocumentSnapshot(model),
-      }),
+      getOntologyEditorView: (recordTarget) => {
+        const selectedRecord =
+          recordTarget === null || recordTarget === undefined
+            ? undefined
+            : documentOperations.describeVowlDocumentRecord(
+                model,
+                recordTarget,
+              );
+        return documentOperations.createVowlDocumentSnapshot({
+          loadGeneration: state.loadGeneration,
+          metadata: model.header ?? {},
+          prefixes: documentOperations.readVowlDocumentPrefixes(model),
+          selectedRecord,
+          isProperty: recordTarget?.collection === "property",
+          derivedIriBase:
+            selectedRecord &&
+            selectedRecord.iri === `${model.header?.iri}${selectedRecord.id}`
+              ? model.header.iri
+              : undefined,
+        });
+      },
+      resolveOntologyEditorIri: (input) =>
+        documentOperations.resolveVowlEditorIri(input, model),
       subscribeToState: (listener) => {
         subscribers.add(listener);
         return () => subscribers.delete(listener);
@@ -214,6 +236,101 @@ describe("ontology editor sidebar through application document operations", () =
     });
   });
   afterEach(() => sidebar?.dispose());
+
+  test("the existing label control edits canonical semantic records and retains annotation provenance", async () => {
+    const session = createCanonicalVowlDocumentSession({
+      workerClient: {
+        async run(request, context) {
+          const received = JSON.parse(
+            JSON.stringify({ ...request, bytes: undefined }),
+          );
+          if (request.bytes) {
+            received.bytes = new Uint8Array(request.bytes);
+          }
+          if (request.checkpoint?.source) {
+            received.checkpoint.source.sources =
+              request.checkpoint.source.sources.map(({ document, bytes }) => ({
+                document,
+                bytes: new Uint8Array(bytes),
+              }));
+          }
+          const result = await runCanonicalVowlOperation(
+            received,
+            undefined,
+            context,
+          );
+          return {
+            ...result,
+            loadGeneration: context.loadGeneration,
+            baseRevision: context.baseRevision,
+          };
+        },
+        dispose() {},
+      },
+    });
+    try {
+      const loaded = await session.load({
+        operation: "open-owl-model",
+        documentIri: "urn:root",
+        mediaType: "text/owl-functional",
+        bytes: new TextEncoder()
+          .encode(`Ontology(<urn:root> Declaration(Class(<urn:A>))
+        AnnotationAssertion(Annotation(<urn:note> "provenance") <http://www.w3.org/2000/01/rdf-schema#label> <urn:A> "Old"@en)
+        AnnotationAssertion(<http://www.w3.org/2000/01/rdf-schema#label> <urn:A> "Alt"@de))`),
+      });
+      const subject = loaded.inspection.records.subjects.find(
+        ({ iri }) => iri === "urn:A",
+      );
+      const role = loaded.inspection.records.roles.find(
+        (entry) => entry.subject === subject.id,
+      );
+      const selected = session.target(role.id);
+      state = {
+        ...state,
+        selectedDocumentRecord: selected,
+        documentRevision: loaded.documentRevision,
+        loadGeneration: loaded.loadGeneration,
+      };
+      controller.getOntologyEditorView = (target) =>
+        session.inspectEditor(target);
+      let completed;
+      controller.editOntologyRecord = (request) => {
+        completed = applyCanonicalEditorCommand(session, {
+          kind: "record",
+          documentRevision: state.documentRevision,
+          target: request.recordTarget,
+          changes: request.changes,
+        }).then((result) => {
+          state = { ...state, documentRevision: result.documentRevision };
+          subscribers.forEach((listener) =>
+            listener(state, ["documentRevision"]),
+          );
+          return result;
+        });
+        return completed;
+      };
+      sidebar.setup();
+      const label = document.getElementById("element_labelEditor");
+      expect(label.value).toBe("Old");
+      label.value = "Updated through the sidebar";
+      label.dispatchEvent(new Event("change"));
+      await completed;
+      const after = session.snapshot();
+      const anchor = after.inspection.records.constructs.find(
+        ({ kind }) => kind === "assertion-anchor",
+      );
+      expect(anchor.assertion.value.lexical).toBe(
+        "Updated through the sidebar",
+      );
+      expect(anchor.annotations[0].value.lexical).toBe("provenance");
+      expect(session.inspectEditor(selected).selectedRecord.label.de).toBe(
+        "Alt",
+      );
+      expect(warning).not.toHaveBeenCalled();
+    } finally {
+      session.dispose();
+    }
+  });
 
   test("restores control availability after a failed load of the same document", () => {
     sidebar.setup();

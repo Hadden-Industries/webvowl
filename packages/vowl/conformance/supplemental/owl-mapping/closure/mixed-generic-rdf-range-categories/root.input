@@ -1,0 +1,6 @@
+@prefix : <https://example.org/owl-seed#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+:A a rdfs:Class .
+:D a rdfs:Datatype .
+:p a rdf:Property ; rdfs:range :A, :D .

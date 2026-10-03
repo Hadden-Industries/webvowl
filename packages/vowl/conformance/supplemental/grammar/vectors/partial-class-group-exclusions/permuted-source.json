@@ -1,0 +1,140 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "to": "supplement-renamed-6",
+        "from": "supplement-renamed-3",
+        "expression": "supplement-renamed-9",
+        "kind": "operator-edge",
+        "id": "supplement-renamed-1"
+      },
+      {
+        "to": "supplement-renamed-7",
+        "from": "supplement-renamed-3",
+        "expression": "supplement-renamed-9",
+        "kind": "operator-edge",
+        "id": "supplement-renamed-2"
+      },
+      {
+        "targets": [
+          "supplement-renamed-9"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-3"
+      },
+      {
+        "targets": [
+          "supplement-renamed-11"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-4"
+      },
+      {
+        "targets": [
+          "supplement-renamed-14",
+          "supplement-renamed-15"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-5"
+      },
+      {
+        "targets": [
+          "supplement-renamed-12"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-6"
+      },
+      {
+        "targets": [
+          "supplement-renamed-13"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-7"
+      }
+    ],
+    "constructs": [
+      {
+        "members": [
+          "supplement-renamed-9",
+          "supplement-renamed-11",
+          "supplement-renamed-10",
+          "supplement-renamed-14",
+          "supplement-renamed-15"
+        ],
+        "kind": "equivalent-classes",
+        "id": "supplement-renamed-8"
+      }
+    ],
+    "expressions": [
+      {
+        "members": [
+          "supplement-renamed-12",
+          "supplement-renamed-13"
+        ],
+        "kind": "class-union",
+        "id": "supplement-renamed-9"
+      }
+    ],
+    "roles": [
+      {
+        "subject": "supplement-renamed-16",
+        "kind": "class",
+        "id": "supplement-renamed-10"
+      },
+      {
+        "subject": "supplement-renamed-17",
+        "kind": "class",
+        "id": "supplement-renamed-11"
+      },
+      {
+        "subject": "supplement-renamed-18",
+        "kind": "class",
+        "id": "supplement-renamed-12"
+      },
+      {
+        "subject": "supplement-renamed-19",
+        "kind": "class",
+        "id": "supplement-renamed-13"
+      },
+      {
+        "subject": "supplement-renamed-20",
+        "kind": "class",
+        "id": "supplement-renamed-14"
+      },
+      {
+        "subject": "supplement-renamed-21",
+        "kind": "class",
+        "id": "supplement-renamed-15"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "http://www.w3.org/2002/07/owl#Thing",
+        "id": "supplement-renamed-16"
+      },
+      {
+        "id": "supplement-renamed-17"
+      },
+      {
+        "iri": "https://example.org/supplement#D",
+        "id": "supplement-renamed-18"
+      },
+      {
+        "iri": "https://example.org/supplement#C",
+        "id": "supplement-renamed-19"
+      },
+      {
+        "iri": "https://example.org/supplement#B",
+        "id": "supplement-renamed-20"
+      },
+      {
+        "iri": "https://example.org/supplement#A",
+        "id": "supplement-renamed-21"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

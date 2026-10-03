@@ -1,0 +1,44 @@
+[
+  {
+    "category": "subjects",
+    "sourceHandle": "s-Thing",
+    "primaryBlankNode": "ps0",
+    "rdfcIdentifier": "c14n0",
+    "canonicalId": "s0"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s-D",
+    "primaryBlankNode": "ps2",
+    "rdfcIdentifier": "c14n6",
+    "canonicalId": "s1"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s-Resource",
+    "primaryBlankNode": "ps1",
+    "rdfcIdentifier": "c14n12",
+    "canonicalId": "s2"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "Thing",
+    "primaryBlankNode": "pr0",
+    "rdfcIdentifier": "c14n4",
+    "canonicalId": "r0"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "Resource",
+    "primaryBlankNode": "pr1",
+    "rdfcIdentifier": "c14n7",
+    "canonicalId": "r1"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "D",
+    "primaryBlankNode": "pr2",
+    "rdfcIdentifier": "c14n10",
+    "canonicalId": "r2"
+  }
+]

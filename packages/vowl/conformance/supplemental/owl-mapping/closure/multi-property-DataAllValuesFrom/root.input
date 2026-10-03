@@ -1,0 +1,11 @@
+Prefix(:=<https://example.org/owl-seed#>)
+Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)
+Ontology(
+Declaration(Class(:A))
+Declaration(Class(:B))
+Declaration(DataProperty(:p))
+Declaration(DataProperty(:q))
+Declaration(Datatype(xsd:string))
+Declaration(AnnotationProperty(:note))
+SubClassOf(Annotation(:note "omit with owning axiom") :A ObjectIntersectionOf(:B DataAllValuesFrom(:p :q xsd:string)))
+)

@@ -50,15 +50,18 @@ afterEach(() => {
   rmSync(root, { recursive: true, force: true });
 });
 
-test("docs-only changes select surviving literal names", () => {
-  const base = commit();
-  put("docs/space [literal] ü.md");
-  const head = commit();
-  expect(selectChecks({ root, base, head })).toEqual({
-    full: false,
-    documents: ["docs/space [literal] ü.md"],
-  });
-});
+test.each(["docs/space [literal] ü.md", "packages/vowl/README.md"])(
+  "docs-only changes select surviving literal names: %s",
+  (path) => {
+    const base = commit();
+    put(path);
+    const head = commit();
+    expect(selectChecks({ root, base, head })).toEqual({
+      full: false,
+      documents: [path],
+    });
+  },
+);
 test.each([
   "src/code.js",
   "AGENTS.md",

@@ -163,15 +163,6 @@ function referencesByVowlElementId(mergedRecords, kind, loadGeneration) {
   );
 }
 
-// One ontology entity may be drawn several times, so a reference key groups
-// every occurrence of the same entity. FOAF draws owl:Thing six times and
-// rdfs:Literal twenty-one times under one IRI each.
-export function ontologyElementReferenceKey(ontologyElementReference) {
-  return typeof ontologyElementReference.iri === "string"
-    ? `iri:${ontologyElementReference.iri}`
-    : `localId:${ontologyElementReference.localId}`;
-}
-
 // The renderer identifies a drawn element by its VOWL id, so this is the one
 // translation between renderer identity and ontology identity. It is derived
 // from the model rather than from anything the renderer holds.

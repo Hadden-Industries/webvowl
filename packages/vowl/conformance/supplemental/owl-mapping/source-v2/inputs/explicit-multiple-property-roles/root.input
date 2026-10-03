@@ -1,0 +1,10 @@
+Prefix(:=<https://example.org/owl-seed#>)
+Ontology(
+Declaration(Class(:A))
+Declaration(ObjectProperty(:p))
+Declaration(DataProperty(:p))
+ObjectPropertyDomain(:p :A)
+ObjectPropertyRange(:p :A)
+DataPropertyDomain(:p :A)
+DataPropertyRange(:p xsd:string)
+)

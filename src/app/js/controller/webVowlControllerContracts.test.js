@@ -7,9 +7,12 @@ let WEB_VOWL_OPERATION_LIMITS;
 let WebVowlOperationError;
 let assertCurrentOntologyElementReference;
 let createOntologyElementReference;
+let resolveOntologyElementReference;
+let ontologyElementReferenceKey;
 let createWebVowlControllerState;
 let freezeWebVowlControllerState;
 let normalizeVisualizationFilename;
+let normalizeCanonicalVowlFilename;
 let toPublicWebVowlError;
 let truncateOntologyDerivedText;
 let truncateResultCollection;
@@ -30,13 +33,25 @@ beforeAll(async () => {
     WebVowlOperationError,
     assertCurrentOntologyElementReference,
     createOntologyElementReference,
+    resolveOntologyElementReference,
+    ontologyElementReferenceKey,
     createWebVowlControllerState,
     freezeWebVowlControllerState,
     normalizeVisualizationFilename,
+    normalizeCanonicalVowlFilename,
     toPublicWebVowlError,
     truncateOntologyDerivedText,
     truncateResultCollection,
   } = webVowlControllerContracts);
+});
+
+test("canonical filenames replace the JSON suffix and remain bounded and portable", () => {
+  for (const filename of ["Saved", "Saved.json", "Saved.vowl.json"]) {
+    expect(normalizeCanonicalVowlFilename(filename)).toBe("Saved.vowl.json");
+  }
+  expect(normalizeCanonicalVowlFilename("a".repeat(200))).toHaveLength(128);
+  expect(normalizeCanonicalVowlFilename("../CON.json")).not.toMatch(/^CON\./iu);
+  expect(() => normalizeCanonicalVowlFilename(17)).toThrow();
 });
 
 const APPROVED_WEB_VOWL_OPERATION_ERROR_CODES = Object.freeze([
@@ -49,9 +64,47 @@ const APPROVED_WEB_VOWL_OPERATION_ERROR_CODES = Object.freeze([
   "IMPORT_FAILED",
   "VIEW_REJECTED",
   "ELEMENT_NOT_FOUND",
+  "ELEMENT_AMBIGUOUS",
   "LAYOUT_TIMEOUT",
   "EXPORT_FAILED",
 ]);
+
+test("semantic role references distinguish punning and reject ambiguous coarse selection", () => {
+  const object = createOntologyElementReference({
+    kind: "property",
+    roleKind: "object-property",
+    iri: "urn:p",
+  });
+  const data = createOntologyElementReference({
+    kind: "property",
+    roleKind: "data-property",
+    iri: "urn:p",
+  });
+  expect(ontologyElementReferenceKey(object)).not.toBe(
+    ontologyElementReferenceKey(data),
+  );
+  expect(assertCurrentOntologyElementReference(object, 1)).toEqual(object);
+  expect(
+    resolveOntologyElementReference({ kind: "property", iri: "urn:p" }, [
+      object,
+      object,
+    ]),
+  ).toEqual(object);
+  expect(() =>
+    resolveOntologyElementReference({ kind: "property", iri: "urn:p" }, [
+      object,
+      data,
+    ]),
+  ).toThrow(expect.objectContaining({ code: "ELEMENT_AMBIGUOUS" }));
+  expect(resolveOntologyElementReference(data, [object, data])).toEqual(data);
+  expect(() =>
+    createOntologyElementReference({
+      kind: "class",
+      roleKind: "data-property",
+      iri: "urn:p",
+    }),
+  ).toThrow();
+});
 
 const ONTOLOGY_ELEMENT_KINDS = Object.freeze([
   "class",

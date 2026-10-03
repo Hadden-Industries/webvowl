@@ -1,0 +1,169 @@
+{
+  "format": "canonical-vowl-conformance-manifest/1",
+  "specificationRevision": [
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design.md",
+      "sha256": "174535bb8cb43f317631f0799721adebfbbc4ceff4d577595be8fb91dd940fac"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-core-contract.md",
+      "sha256": "711ba30c291cfb0960334328203188600f60a331996e83379267a4a77b87988d"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-projection-contract.md",
+      "sha256": "4c1cf6a7e187f98d40d390e6ff0b5354aca46a8ff195fba5b6badace7eb6078b"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design-decisions.md",
+      "sha256": "f314ec3448f2cf87f73ce6ce8871f3695d4b3b26dee687383b36e36a4fc0a43e"
+    }
+  ],
+  "amendment": {
+    "path": "docs/specs/2026-09-30-canonical-vowl-resource-policy-amendment.md",
+    "sha256": "9f1b7d96229a06f57e29a52f92325a4256e6f826d7532e239848ef99dc0f47c1",
+    "approval": "Owner approved the exact quadratic capped work-policy amendment on 2026-09-30, as communicated by the parent integration task. Approval does not waive independent review."
+  },
+  "policy": {
+    "formula": "min(totalAllocatedBlankNodes ** 2, rdfDeepIterations)",
+    "defaultRdfDeepIterations": 100000,
+    "upperCallerOverride": 1000000,
+    "defaultDeadlineMs": 10000,
+    "zeroOverrideAllowed": true,
+    "fallbackAllowed": false
+  },
+  "dependencies": {
+    "rdf-canonize": "5.0.0",
+    "canonicalize": "5.1.0"
+  },
+  "comparisonRules": {
+    "mapped.nq": "RDF dataset isomorphism; private labels/order are not contractual.",
+    "canonical.nq": "Exact canonical N-Quads bytes.",
+    "canonical.json": "Exact complete JCS bytes.",
+    "ids.json": "Informative derivation only; symmetric handle correspondences are not contractual."
+  },
+  "sourceArtifacts": [
+    {
+      "path": "supplemental/mapping-counterexamples/support.mjs",
+      "sha256": "0022536ae0e8201a15c8f4e1f9a63361445eebb437396aa7224dd737ccef7866"
+    },
+    {
+      "path": "supplemental/mapping-counterexamples/model.mjs",
+      "sha256": "3a4ebd134c1d209f84cf9c54072988a7e712f12286e95d35edec4d20f600bfc5"
+    },
+    {
+      "path": "supplemental/mapping-counterexamples/derive-distinction.mjs",
+      "sha256": "d35277316f7893e3801b87ce8c05fbf09b3c100aeedbb01f65fdbea3631b14e4"
+    }
+  ],
+  "pair": {
+    "id": "set-versus-sequence",
+    "evidenceClass": "cross-variant-required-shape-reference-projection-companions",
+    "sourceMembers": [
+      "p",
+      "q"
+    ],
+    "qualification": "The same two source references occupy a Set in an equivalent-properties record and a Sequence in a property-chain record. Kind, the chain's required super field, and the resulting grouped-property projection necessarily change. This pair establishes complete distinct valid results, while exact A6 container/slot traces establish the distinct mapping templates; it is not an isolated necessity proof."
+  },
+  "vectors": [
+    {
+      "id": "set-versus-sequence-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "set-versus-sequence",
+      "side": "before",
+      "rules": [
+        "D18.1",
+        "A4",
+        "A6.3",
+        "B2"
+      ],
+      "status": "independent-pair-pending-review",
+      "counts": {
+        "primary": 10,
+        "blankNodes": 24,
+        "quads": 74
+      },
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/distinction/set-versus-sequence-before/source.json",
+          "sha256": "e1e414e8b291c37b7657ecb3b2901fd3de927c095eba66f298c35f1e860aa0f7",
+          "byteLength": 1449
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/distinction/set-versus-sequence-before/permuted-source.json",
+          "sha256": "2557b8b043e5ca1a8a00d486ac5419ab71ab1216ececfa76166130f03a8635e8",
+          "byteLength": 1768
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/distinction/set-versus-sequence-before/mapped.nq",
+          "sha256": "349bb7745fc18ff7af5029e665cb6667ff939305da60a60dcb7a97dd3e17ce14",
+          "byteLength": 8753
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/distinction/set-versus-sequence-before/canonical.nq",
+          "sha256": "45dc725e43d24b05a71a29276b789304b49996a681f623d00df5855646425e3b",
+          "byteLength": 9069
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/distinction/set-versus-sequence-before/ids.json",
+          "sha256": "95b2a41e15e6c350629da8a9b1c2c352cc8cda7fb41cfc7dff52b43f2bf23ea0",
+          "byteLength": 1537
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/distinction/set-versus-sequence-before/canonical.json",
+          "sha256": "832cb1edb9f5d39bc933450ab983d7a3fb37dd0ad23ee169f289a9f551c7a1b2",
+          "byteLength": 813
+        }
+      }
+    },
+    {
+      "id": "set-versus-sequence-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "set-versus-sequence",
+      "side": "after",
+      "rules": [
+        "D18.1",
+        "A4",
+        "A6.3",
+        "B2"
+      ],
+      "status": "independent-pair-pending-review",
+      "counts": {
+        "primary": 12,
+        "blankNodes": 29,
+        "quads": 93
+      },
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/distinction/set-versus-sequence-after/source.json",
+          "sha256": "86d4f898b7c6dab21802c76af3b6d9c6f820789dca0e19fc4771c103ec9d77b2",
+          "byteLength": 1749
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/distinction/set-versus-sequence-after/permuted-source.json",
+          "sha256": "bdb96f5be1fbfb7727baf2d10b159b6068faeea8c9dbf9641ba99940ad6a2dc3",
+          "byteLength": 2142
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/distinction/set-versus-sequence-after/mapped.nq",
+          "sha256": "8a278a0390cf8544adbdc7193618ed2fe18240478026edc198cd728adf66c75d",
+          "byteLength": 10990
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/distinction/set-versus-sequence-after/canonical.nq",
+          "sha256": "61e511e6993ba41006a3616aadd113f0988496448e09ca5967ae402d552f5dc5",
+          "byteLength": 11394
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/distinction/set-versus-sequence-after/ids.json",
+          "sha256": "e4aa77f9e3f760233559c4581ff32cd2e81077f4ec3ab2aff338ddc6733d5152",
+          "byteLength": 1865
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/distinction/set-versus-sequence-after/canonical.json",
+          "sha256": "195074542d821dff497a2660730e8f872089c808ee52379f7593ecfbf755f138",
+          "byteLength": 944
+        }
+      }
+    }
+  ]
+}

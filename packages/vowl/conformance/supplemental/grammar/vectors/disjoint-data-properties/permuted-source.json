@@ -1,0 +1,185 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "direction": "single",
+        "edge": "supplement-renamed-2",
+        "kind": "label",
+        "id": "supplement-renamed-1"
+      },
+      {
+        "to": "supplement-renamed-3",
+        "from": "supplement-renamed-8",
+        "properties": [
+          "supplement-renamed-15"
+        ],
+        "kind": "property-edge",
+        "id": "supplement-renamed-2"
+      },
+      {
+        "context": {
+          "properties": [
+            "supplement-renamed-15"
+          ],
+          "kind": "property"
+        },
+        "target": "supplement-renamed-17",
+        "kind": "datatype-node",
+        "id": "supplement-renamed-3"
+      },
+      {
+        "direction": "single",
+        "edge": "supplement-renamed-5",
+        "kind": "label",
+        "id": "supplement-renamed-4"
+      },
+      {
+        "to": "supplement-renamed-6",
+        "from": "supplement-renamed-9",
+        "properties": [
+          "supplement-renamed-16"
+        ],
+        "kind": "property-edge",
+        "id": "supplement-renamed-5"
+      },
+      {
+        "context": {
+          "properties": [
+            "supplement-renamed-16"
+          ],
+          "kind": "property"
+        },
+        "target": "supplement-renamed-18",
+        "kind": "datatype-node",
+        "id": "supplement-renamed-6"
+      },
+      {
+        "targets": [
+          "supplement-renamed-19"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-7"
+      },
+      {
+        "targets": [
+          "supplement-renamed-20"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-8"
+      },
+      {
+        "targets": [
+          "supplement-renamed-21"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-9"
+      }
+    ],
+    "constructs": [
+      {
+        "members": [
+          "supplement-renamed-16",
+          "supplement-renamed-15"
+        ],
+        "kind": "disjoint-data-properties",
+        "id": "supplement-renamed-10"
+      },
+      {
+        "target": "supplement-renamed-17",
+        "property": "supplement-renamed-15",
+        "kind": "data-range",
+        "id": "supplement-renamed-11"
+      },
+      {
+        "target": "supplement-renamed-20",
+        "property": "supplement-renamed-15",
+        "kind": "data-domain",
+        "id": "supplement-renamed-12"
+      },
+      {
+        "target": "supplement-renamed-18",
+        "property": "supplement-renamed-16",
+        "kind": "data-range",
+        "id": "supplement-renamed-13"
+      },
+      {
+        "target": "supplement-renamed-21",
+        "property": "supplement-renamed-16",
+        "kind": "data-domain",
+        "id": "supplement-renamed-14"
+      }
+    ],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "supplement-renamed-22",
+        "kind": "data-property",
+        "id": "supplement-renamed-15"
+      },
+      {
+        "subject": "supplement-renamed-23",
+        "kind": "data-property",
+        "id": "supplement-renamed-16"
+      },
+      {
+        "subject": "supplement-renamed-24",
+        "kind": "datatype",
+        "id": "supplement-renamed-17"
+      },
+      {
+        "subject": "supplement-renamed-25",
+        "kind": "datatype",
+        "id": "supplement-renamed-18"
+      },
+      {
+        "subject": "supplement-renamed-26",
+        "kind": "class",
+        "id": "supplement-renamed-19"
+      },
+      {
+        "subject": "supplement-renamed-27",
+        "kind": "class",
+        "id": "supplement-renamed-20"
+      },
+      {
+        "subject": "supplement-renamed-28",
+        "kind": "class",
+        "id": "supplement-renamed-21"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "https://example.org/supplement#q",
+        "id": "supplement-renamed-22"
+      },
+      {
+        "iri": "https://example.org/supplement#p",
+        "id": "supplement-renamed-23"
+      },
+      {
+        "iri": "https://example.org/supplement#E",
+        "id": "supplement-renamed-24"
+      },
+      {
+        "iri": "https://example.org/supplement#D",
+        "id": "supplement-renamed-25"
+      },
+      {
+        "iri": "https://example.org/supplement#C",
+        "id": "supplement-renamed-26"
+      },
+      {
+        "iri": "https://example.org/supplement#B",
+        "id": "supplement-renamed-27"
+      },
+      {
+        "iri": "https://example.org/supplement#A",
+        "id": "supplement-renamed-28"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

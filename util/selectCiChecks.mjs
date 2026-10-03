@@ -7,7 +7,10 @@ const repositoryRoot = fileURLToPath(new URL("../", import.meta.url));
 const fullChecks = () => ({ full: true, documents: null });
 
 export function isDocumentation(path) {
-  return path !== "AGENTS.md" && /^(?:[^/]+|docs\/.+)\.md$/u.test(path);
+  return (
+    path !== "AGENTS.md" &&
+    /^(?:[^/]+|docs\/.+|packages\/vowl\/.+)\.md$/u.test(path)
+  );
 }
 
 function git(root, args) {

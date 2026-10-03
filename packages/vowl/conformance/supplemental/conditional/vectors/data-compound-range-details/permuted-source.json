@@ -1,0 +1,81 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "targets": [
+          "conditional-renamed-8"
+        ],
+        "kind": "class-node",
+        "id": "conditional-renamed-1"
+      }
+    ],
+    "constructs": [
+      {
+        "target": "conditional-renamed-4",
+        "property": "conditional-renamed-5",
+        "kind": "data-range",
+        "id": "conditional-renamed-2"
+      },
+      {
+        "target": "conditional-renamed-8",
+        "property": "conditional-renamed-5",
+        "kind": "data-domain",
+        "id": "conditional-renamed-3"
+      }
+    ],
+    "expressions": [
+      {
+        "members": [
+          "conditional-renamed-6",
+          "conditional-renamed-7"
+        ],
+        "kind": "data-intersection",
+        "id": "conditional-renamed-4"
+      }
+    ],
+    "roles": [
+      {
+        "subject": "conditional-renamed-9",
+        "kind": "data-property",
+        "id": "conditional-renamed-5"
+      },
+      {
+        "subject": "conditional-renamed-10",
+        "kind": "datatype",
+        "id": "conditional-renamed-6"
+      },
+      {
+        "subject": "conditional-renamed-11",
+        "kind": "datatype",
+        "id": "conditional-renamed-7"
+      },
+      {
+        "subject": "conditional-renamed-12",
+        "kind": "class",
+        "id": "conditional-renamed-8"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "https://example.org/conditional#p",
+        "id": "conditional-renamed-9"
+      },
+      {
+        "iri": "https://example.org/conditional#E",
+        "id": "conditional-renamed-10"
+      },
+      {
+        "iri": "https://example.org/conditional#D",
+        "id": "conditional-renamed-11"
+      },
+      {
+        "iri": "https://example.org/conditional#A",
+        "id": "conditional-renamed-12"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

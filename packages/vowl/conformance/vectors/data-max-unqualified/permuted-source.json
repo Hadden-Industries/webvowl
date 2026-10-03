@@ -1,0 +1,138 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "direction": "single",
+        "edge": "renamed-2",
+        "kind": "label",
+        "id": "renamed-1"
+      },
+      {
+        "to": "renamed-3",
+        "from": "renamed-8",
+        "construct": "renamed-9",
+        "kind": "restriction-edge",
+        "id": "renamed-2"
+      },
+      {
+        "context": {
+          "scope": "renamed-9",
+          "properties": [
+            "renamed-12"
+          ],
+          "kind": "property"
+        },
+        "target": "renamed-11",
+        "kind": "datatype-node",
+        "id": "renamed-3"
+      },
+      {
+        "direction": "single",
+        "edge": "renamed-5",
+        "kind": "label",
+        "id": "renamed-4"
+      },
+      {
+        "to": "renamed-6",
+        "from": "renamed-7",
+        "properties": [
+          "renamed-12"
+        ],
+        "kind": "property-edge",
+        "id": "renamed-5"
+      },
+      {
+        "context": {
+          "properties": [
+            "renamed-12"
+          ],
+          "kind": "property"
+        },
+        "target": "renamed-11",
+        "kind": "datatype-node",
+        "id": "renamed-6"
+      },
+      {
+        "context": {
+          "properties": [
+            "renamed-12"
+          ],
+          "kind": "property"
+        },
+        "targets": [
+          "renamed-13"
+        ],
+        "kind": "class-node",
+        "id": "renamed-7"
+      },
+      {
+        "targets": [
+          "renamed-14"
+        ],
+        "kind": "class-node",
+        "id": "renamed-8"
+      }
+    ],
+    "constructs": [
+      {
+        "super": "renamed-10",
+        "sub": "renamed-14",
+        "kind": "subclass",
+        "id": "renamed-9"
+      }
+    ],
+    "expressions": [
+      {
+        "filler": "renamed-11",
+        "cardinality": "90071992547409931234567890",
+        "property": "renamed-12",
+        "kind": "data-max-cardinality",
+        "id": "renamed-10"
+      }
+    ],
+    "roles": [
+      {
+        "subject": "renamed-15",
+        "kind": "datatype",
+        "id": "renamed-11"
+      },
+      {
+        "subject": "renamed-16",
+        "kind": "data-property",
+        "id": "renamed-12"
+      },
+      {
+        "subject": "renamed-17",
+        "kind": "class",
+        "id": "renamed-13"
+      },
+      {
+        "subject": "renamed-18",
+        "kind": "class",
+        "id": "renamed-14"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "http://www.w3.org/2000/01/rdf-schema#Literal",
+        "id": "renamed-15"
+      },
+      {
+        "iri": "https://example.org/o#p",
+        "id": "renamed-16"
+      },
+      {
+        "iri": "http://www.w3.org/2002/07/owl#Thing",
+        "id": "renamed-17"
+      },
+      {
+        "iri": "https://example.org/o#A",
+        "id": "renamed-18"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

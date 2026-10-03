@@ -1,0 +1,37 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "class-subject",
+        "iri": "https://example.org/o#A"
+      }
+    ],
+    "roles": [
+      {
+        "id": "class-role",
+        "kind": "class",
+        "subject": "class-subject"
+      },
+      {
+        "id": "generic-role",
+        "kind": "rdf-class",
+        "subject": "class-subject"
+      }
+    ],
+    "expressions": [],
+    "constructs": [],
+    "occurrences": [
+      {
+        "id": "class-node",
+        "kind": "class-node",
+        "targets": [
+          "class-role"
+        ]
+      }
+    ]
+  }
+}

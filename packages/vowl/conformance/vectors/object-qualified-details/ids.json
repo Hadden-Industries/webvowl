@@ -1,0 +1,107 @@
+[
+  {
+    "category": "subjects",
+    "sourceHandle": "s-Thing",
+    "primaryBlankNode": "ps1",
+    "rdfcIdentifier": "c14n1",
+    "canonicalId": "s0"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s-Filler",
+    "primaryBlankNode": "ps3",
+    "rdfcIdentifier": "c14n2",
+    "canonicalId": "s1"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s-A",
+    "primaryBlankNode": "ps0",
+    "rdfcIdentifier": "c14n3",
+    "canonicalId": "s2"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s-p",
+    "primaryBlankNode": "ps2",
+    "rdfcIdentifier": "c14n4",
+    "canonicalId": "s3"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "Thing",
+    "primaryBlankNode": "pr1",
+    "rdfcIdentifier": "c14n5",
+    "canonicalId": "r0"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "p",
+    "primaryBlankNode": "pr2",
+    "rdfcIdentifier": "c14n14",
+    "canonicalId": "r1"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "Filler",
+    "primaryBlankNode": "pr3",
+    "rdfcIdentifier": "c14n18",
+    "canonicalId": "r2"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "A",
+    "primaryBlankNode": "pr0",
+    "rdfcIdentifier": "c14n21",
+    "canonicalId": "r3"
+  },
+  {
+    "category": "expressions",
+    "sourceHandle": "restriction",
+    "primaryBlankNode": "px0",
+    "rdfcIdentifier": "c14n6",
+    "canonicalId": "x0"
+  },
+  {
+    "category": "constructs",
+    "sourceHandle": "restriction-assertion",
+    "primaryBlankNode": "pc0",
+    "rdfcIdentifier": "c14n19",
+    "canonicalId": "c0"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "global-domain",
+    "primaryBlankNode": "po1",
+    "rdfcIdentifier": "c14n9",
+    "canonicalId": "o0"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "global-edge",
+    "primaryBlankNode": "po2",
+    "rdfcIdentifier": "c14n11",
+    "canonicalId": "o1"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "label-global-edge",
+    "primaryBlankNode": "po3",
+    "rdfcIdentifier": "c14n23",
+    "canonicalId": "o2"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "node-A",
+    "primaryBlankNode": "po0",
+    "rdfcIdentifier": "c14n24",
+    "canonicalId": "o3"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "node-Filler",
+    "primaryBlankNode": "po4",
+    "rdfcIdentifier": "c14n26",
+    "canonicalId": "o4"
+  }
+]

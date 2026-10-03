@@ -1,0 +1,449 @@
+{
+  "format": "canonical-vowl-editing-conformance-manifest/1",
+  "status": "bounded-independent-editing-expectations-pending-review",
+  "specificationRevision": [
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design.md",
+      "sha256": "174535bb8cb43f317631f0799721adebfbbc4ceff4d577595be8fb91dd940fac"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-core-contract.md",
+      "sha256": "711ba30c291cfb0960334328203188600f60a331996e83379267a4a77b87988d"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-projection-contract.md",
+      "sha256": "4c1cf6a7e187f98d40d390e6ff0b5354aca46a8ff195fba5b6badace7eb6078b"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design-decisions.md",
+      "sha256": "f314ec3448f2cf87f73ce6ce8871f3695d4b3b26dee687383b36e36a4fc0a43e"
+    }
+  ],
+  "resourceAmendment": {
+    "path": "docs/specs/2026-09-30-canonical-vowl-resource-policy-amendment.md",
+    "sha256": "9f1b7d96229a06f57e29a52f92325a4256e6f826d7532e239848ef99dc0f47c1",
+    "approval": "Owner approved the exact quadratic capped work-policy amendment on 2026-09-30, as communicated by the parent integration task. Approval does not waive independent review."
+  },
+  "editingAmendment": {
+    "path": "docs/specs/2026-09-30-canonical-vowl-editing-amendment.md",
+    "sha256": "75b47ac91ee1d0f219b69f38fb69ca354536c1e763fe32ef202cc9b04ad6b846"
+  },
+  "sourceArtifacts": [
+    {
+      "path": "supplemental/editing-v1/derive.mjs",
+      "sha256": "b1e8ab20520be03c40adabbc17681475a829ad3385fe5c71eb1c5a8ed055b395"
+    },
+    {
+      "path": "supplemental/mapping-counterexamples/model.mjs",
+      "sha256": "3a4ebd134c1d209f84cf9c54072988a7e712f12286e95d35edec4d20f600bfc5"
+    }
+  ],
+  "scope": "Three explicitly requested fresh-handle request rejections, class insertion/deletion, and exact supported annotated-domain retargeting. No claim of every normalization/merge/edit combination or complete operation validation.",
+  "vectors": [
+    {
+      "id": "insert-class",
+      "operation": "edit",
+      "outcome": "success",
+      "before": {
+        "source.json": {
+          "path": "supplemental/editing-v1/insert-class/before/source.json",
+          "sha256": "2d79704c311cb96d1ccbca4a11cc0f3736a8f4df84d1a75421f1e35ebb2b7ef5",
+          "byteLength": 488
+        },
+        "permuted-source.json": {
+          "path": "supplemental/editing-v1/insert-class/before/permuted-source.json",
+          "sha256": "f5869da2964da4cd4385aabc99df701b380c7aa2c37c29ed86a1841219ad8d47",
+          "byteLength": 569
+        },
+        "mapped.nq": {
+          "path": "supplemental/editing-v1/insert-class/before/mapped.nq",
+          "sha256": "334b4f98ddb5398c302b3ce49ab18c03d6876425cda11ddb55098e89ac24298c",
+          "byteLength": 3992
+        },
+        "canonical.nq": {
+          "path": "supplemental/editing-v1/insert-class/before/canonical.nq",
+          "sha256": "e54a9c1670bc2cf99d65c52edd0e83298230892f4379317ad445e6addefa62af",
+          "byteLength": 4127
+        },
+        "ids.json": {
+          "path": "supplemental/editing-v1/insert-class/before/ids.json",
+          "sha256": "ac7a0015e4d5e3c90dddbdb767a1b14fe64695547f6f06629c61d90db3008b72",
+          "byteLength": 454
+        },
+        "canonical.json": {
+          "path": "supplemental/editing-v1/insert-class/before/canonical.json",
+          "sha256": "a2d9e49fc29728a76577342dc82aa4428a2d5e49c1311ff4ec7b123efea31474",
+          "byteLength": 357
+        }
+      },
+      "changes": {
+        "path": "supplemental/editing-v1/insert-class/changes.json",
+        "sha256": "009412a34551cc60ad42acf300599245d6d0be78a5a3b1b7b5f1f931096ee2f5",
+        "byteLength": 315
+      },
+      "after": {
+        "source.json": {
+          "path": "supplemental/editing-v1/insert-class/after/source.json",
+          "sha256": "568a489689b8c4fa1fd02926305b62685bfbb1466aa0425a9a200b3ea0710c01",
+          "byteLength": 806
+        },
+        "permuted-source.json": {
+          "path": "supplemental/editing-v1/insert-class/after/permuted-source.json",
+          "sha256": "d9799b777de9ea61e0ef2532c5ad78b593adb11802ff47342ae9b31c203147c9",
+          "byteLength": 930
+        },
+        "mapped.nq": {
+          "path": "supplemental/editing-v1/insert-class/after/mapped.nq",
+          "sha256": "4d1094c41020a44d7a6ea2819eb4a442dd66f8bbcb991be2b3a4188b7dbb0787",
+          "byteLength": 5496
+        },
+        "canonical.nq": {
+          "path": "supplemental/editing-v1/insert-class/after/canonical.nq",
+          "sha256": "c8d069040b8f47a49e026457c7ed9e02a6dc5c8f8ed4e809eef1c72623a026d0",
+          "byteLength": 5690
+        },
+        "ids.json": {
+          "path": "supplemental/editing-v1/insert-class/after/ids.json",
+          "sha256": "1323005db059c29d64e42d045961189b45d8dad67e24a3df81d66f3d1fd78b5a",
+          "byteLength": 928
+        },
+        "canonical.json": {
+          "path": "supplemental/editing-v1/insert-class/after/canonical.json",
+          "sha256": "779744954385a6764def65e64698338dbbae8f4046b4d8f802a4e47863a81720",
+          "byteLength": 491
+        }
+      },
+      "expectedCorrespondence": {
+        "path": "supplemental/editing-v1/insert-class/correspondence.json",
+        "sha256": "0bfe3bcf444614005efcf0352e4dc301c3443a82519344ecab49201f902c0bdf",
+        "byteLength": 489
+      },
+      "rules": [
+        "editing/public-boundary",
+        "editing/annotation-normalization-ownership",
+        "editing/result-correspondence",
+        "B1",
+        "A6"
+      ],
+      "independence": "Normalized after-source is manually constructed from the accepted change semantics; the independent A6 producer supplies full output bytes, and B1 generation keys supply occurrence correspondence. No product edit execution was used."
+    },
+    {
+      "id": "delete-class",
+      "operation": "edit",
+      "outcome": "success",
+      "before": {
+        "source.json": {
+          "path": "supplemental/editing-v1/delete-class/before/source.json",
+          "sha256": "4cfa1f22c59f5484000a283278333bc02278150802e873e55e75ae6e55b6ff85",
+          "byteLength": 764
+        },
+        "permuted-source.json": {
+          "path": "supplemental/editing-v1/delete-class/before/permuted-source.json",
+          "sha256": "f0fc6e242e401738cc4d5fb7352c6f6a515122bb8e5dd2701905c61e9dc46fd4",
+          "byteLength": 926
+        },
+        "mapped.nq": {
+          "path": "supplemental/editing-v1/delete-class/before/mapped.nq",
+          "sha256": "66ae1a1afaed5b8e271e507f81f18023e0a1e8be34522d2ebe83e6577b699a68",
+          "byteLength": 5492
+        },
+        "canonical.nq": {
+          "path": "supplemental/editing-v1/delete-class/before/canonical.nq",
+          "sha256": "676dd7dbef1fd331819c08159c3a24fae074b33570ae7e49bc7d9e507a831e6d",
+          "byteLength": 5686
+        },
+        "ids.json": {
+          "path": "supplemental/editing-v1/delete-class/before/ids.json",
+          "sha256": "0f4b43678af4aa4802547f135a7011bd6366f815e887303d422fe9393c82d960",
+          "byteLength": 909
+        },
+        "canonical.json": {
+          "path": "supplemental/editing-v1/delete-class/before/canonical.json",
+          "sha256": "0f24430631e514a9ed76b64d4c1759a2a48225401882e59394d5f48d1ab3f337",
+          "byteLength": 487
+        }
+      },
+      "changes": {
+        "path": "supplemental/editing-v1/delete-class/changes.json",
+        "sha256": "9a1dcf494868e34ae346eb01f514341a9803876c63fd3c56654d481601ee1b41",
+        "byteLength": 95
+      },
+      "after": {
+        "source.json": {
+          "path": "supplemental/editing-v1/delete-class/after/source.json",
+          "sha256": "93420b26d62f2e487bd63909d2761280ce39675489c2749298d9e5ebb74f2704",
+          "byteLength": 488
+        },
+        "permuted-source.json": {
+          "path": "supplemental/editing-v1/delete-class/after/permuted-source.json",
+          "sha256": "f5869da2964da4cd4385aabc99df701b380c7aa2c37c29ed86a1841219ad8d47",
+          "byteLength": 569
+        },
+        "mapped.nq": {
+          "path": "supplemental/editing-v1/delete-class/after/mapped.nq",
+          "sha256": "334b4f98ddb5398c302b3ce49ab18c03d6876425cda11ddb55098e89ac24298c",
+          "byteLength": 3992
+        },
+        "canonical.nq": {
+          "path": "supplemental/editing-v1/delete-class/after/canonical.nq",
+          "sha256": "e54a9c1670bc2cf99d65c52edd0e83298230892f4379317ad445e6addefa62af",
+          "byteLength": 4127
+        },
+        "ids.json": {
+          "path": "supplemental/editing-v1/delete-class/after/ids.json",
+          "sha256": "6a8ee4743999bddada4e49d331d9c520b35233358a7ed3bbda3d15a165770746",
+          "byteLength": 454
+        },
+        "canonical.json": {
+          "path": "supplemental/editing-v1/delete-class/after/canonical.json",
+          "sha256": "a2d9e49fc29728a76577342dc82aa4428a2d5e49c1311ff4ec7b123efea31474",
+          "byteLength": 357
+        }
+      },
+      "expectedCorrespondence": {
+        "path": "supplemental/editing-v1/delete-class/correspondence.json",
+        "sha256": "40d8907e34bd8461c3f70939fdc2a8c0133c89cc3ec18936e49b8f90b5fb6638",
+        "byteLength": 634
+      },
+      "rules": [
+        "editing/public-boundary",
+        "editing/annotation-normalization-ownership",
+        "editing/result-correspondence",
+        "B1",
+        "A6"
+      ],
+      "independence": "Normalized after-source is manually constructed from the accepted change semantics; the independent A6 producer supplies full output bytes, and B1 generation keys supply occurrence correspondence. No product edit execution was used."
+    },
+    {
+      "id": "retarget-annotated-domain",
+      "operation": "edit",
+      "outcome": "success",
+      "before": {
+        "source.json": {
+          "path": "supplemental/editing-v1/retarget-annotated-domain/before/source.json",
+          "sha256": "d567261f18a762284249091f597f61985096e09542937b93dfe841043bd29e4a",
+          "byteLength": 2685
+        },
+        "permuted-source.json": {
+          "path": "supplemental/editing-v1/retarget-annotated-domain/before/permuted-source.json",
+          "sha256": "2f86bc5ca60d4769ecddf8276bfc6246e81af85cde8680f7b731f8e6c6756b4f",
+          "byteLength": 3281
+        },
+        "mapped.nq": {
+          "path": "supplemental/editing-v1/retarget-annotated-domain/before/mapped.nq",
+          "sha256": "664902ad0a4ab83f50c233fd7c517e793fcc978b50e0a965d2e72aa18cee7b68",
+          "byteLength": 14539
+        },
+        "canonical.nq": {
+          "path": "supplemental/editing-v1/retarget-annotated-domain/before/canonical.nq",
+          "sha256": "5b230d93665be7a352604332d49d90d5260c1812528fd2ac40406b8e22ebb2b9",
+          "byteLength": 15066
+        },
+        "ids.json": {
+          "path": "supplemental/editing-v1/retarget-annotated-domain/before/ids.json",
+          "sha256": "45b7ce9b8fde867df37a3932da697fe027bc2beebc37d1cf0c4d66f8b8fd485b",
+          "byteLength": 3074
+        },
+        "canonical.json": {
+          "path": "supplemental/editing-v1/retarget-annotated-domain/before/canonical.json",
+          "sha256": "9cd124ec230348539603ec26b3ecd80afc289109a14a261a3de7303c65ac571f",
+          "byteLength": 1462
+        }
+      },
+      "changes": {
+        "path": "supplemental/editing-v1/retarget-annotated-domain/changes.json",
+        "sha256": "02d5c5372debdb1af3c723818207c6a4d41a3015d133ae565eae29cb5740190c",
+        "byteLength": 82
+      },
+      "after": {
+        "source.json": {
+          "path": "supplemental/editing-v1/retarget-annotated-domain/after/source.json",
+          "sha256": "ffb6eb16c6d1b3ef2efa2a0dc7ec0b3b18e9df2da93c19dd4723a0e36983880c",
+          "byteLength": 2636
+        },
+        "permuted-source.json": {
+          "path": "supplemental/editing-v1/retarget-annotated-domain/after/permuted-source.json",
+          "sha256": "85cff733b12c2fe30e918407a5e7d12b02ae4890ede2453c9513e96a5285432e",
+          "byteLength": 3281
+        },
+        "mapped.nq": {
+          "path": "supplemental/editing-v1/retarget-annotated-domain/after/mapped.nq",
+          "sha256": "279e705f96bd523aee99441e3179d705417d316212a5d455fdb3e8e1a2078801",
+          "byteLength": 14539
+        },
+        "canonical.nq": {
+          "path": "supplemental/editing-v1/retarget-annotated-domain/after/canonical.nq",
+          "sha256": "966cd34b83a5207036cf26d0aad55134116d572c33c65ed721b6f292080fd47d",
+          "byteLength": 15066
+        },
+        "ids.json": {
+          "path": "supplemental/editing-v1/retarget-annotated-domain/after/ids.json",
+          "sha256": "4b26d240c1c75257cd0454a72371570b184496426ef2bf7c9947a97c9af70883",
+          "byteLength": 3035
+        },
+        "canonical.json": {
+          "path": "supplemental/editing-v1/retarget-annotated-domain/after/canonical.json",
+          "sha256": "4236a8bde80d6115971dddadac1fa3a1d68db674ded9fbce76ea85d83c87440b",
+          "byteLength": 1462
+        }
+      },
+      "expectedCorrespondence": {
+        "path": "supplemental/editing-v1/retarget-annotated-domain/correspondence.json",
+        "sha256": "53f68a4036dea8e4061fbd58216ffc57315e540e8dbccc9323df69ed7e2aedfa",
+        "byteLength": 1482
+      },
+      "rules": [
+        "editing/public-boundary",
+        "editing/annotation-normalization-ownership",
+        "editing/result-correspondence",
+        "B1",
+        "A6"
+      ],
+      "independence": "Normalized after-source is manually constructed from the accepted change semantics; the independent A6 producer supplies full output bytes, and B1 generation keys supply occurrence correspondence. No product edit execution was used."
+    },
+    {
+      "id": "removed-handles-cannot-be-reinserted",
+      "operation": "edit",
+      "outcome": "error",
+      "expectedError": "EDIT_INVALID",
+      "before": {
+        "source.json": {
+          "path": "supplemental/editing-v1/insert-class/before/source.json",
+          "sha256": "2d79704c311cb96d1ccbca4a11cc0f3736a8f4df84d1a75421f1e35ebb2b7ef5",
+          "byteLength": 488
+        },
+        "permuted-source.json": {
+          "path": "supplemental/editing-v1/insert-class/before/permuted-source.json",
+          "sha256": "f5869da2964da4cd4385aabc99df701b380c7aa2c37c29ed86a1841219ad8d47",
+          "byteLength": 569
+        },
+        "mapped.nq": {
+          "path": "supplemental/editing-v1/insert-class/before/mapped.nq",
+          "sha256": "334b4f98ddb5398c302b3ce49ab18c03d6876425cda11ddb55098e89ac24298c",
+          "byteLength": 3992
+        },
+        "canonical.nq": {
+          "path": "supplemental/editing-v1/insert-class/before/canonical.nq",
+          "sha256": "e54a9c1670bc2cf99d65c52edd0e83298230892f4379317ad445e6addefa62af",
+          "byteLength": 4127
+        },
+        "ids.json": {
+          "path": "supplemental/editing-v1/insert-class/before/ids.json",
+          "sha256": "ac7a0015e4d5e3c90dddbdb767a1b14fe64695547f6f06629c61d90db3008b72",
+          "byteLength": 454
+        },
+        "canonical.json": {
+          "path": "supplemental/editing-v1/insert-class/before/canonical.json",
+          "sha256": "a2d9e49fc29728a76577342dc82aa4428a2d5e49c1311ff4ec7b123efea31474",
+          "byteLength": 357
+        }
+      },
+      "changes": {
+        "path": "supplemental/editing-v1/removed-handles-cannot-be-reinserted/changes.json",
+        "sha256": "91dab73c21aa41f805eebd9e7b0e137fc9ccefea1ce3dcbc9b3e96c8dd1d4690",
+        "byteLength": 376
+      },
+      "rules": [
+        "editing/insert-fresh-handle",
+        "editing/conflicting-handles"
+      ],
+      "reason": "An insert handle must be fresh for the atomic request, not merely absent after an earlier remove."
+    },
+    {
+      "id": "removed-handles-cannot-swap-categories",
+      "operation": "edit",
+      "outcome": "error",
+      "expectedError": "EDIT_INVALID",
+      "before": {
+        "source.json": {
+          "path": "supplemental/editing-v1/insert-class/before/source.json",
+          "sha256": "2d79704c311cb96d1ccbca4a11cc0f3736a8f4df84d1a75421f1e35ebb2b7ef5",
+          "byteLength": 488
+        },
+        "permuted-source.json": {
+          "path": "supplemental/editing-v1/insert-class/before/permuted-source.json",
+          "sha256": "f5869da2964da4cd4385aabc99df701b380c7aa2c37c29ed86a1841219ad8d47",
+          "byteLength": 569
+        },
+        "mapped.nq": {
+          "path": "supplemental/editing-v1/insert-class/before/mapped.nq",
+          "sha256": "334b4f98ddb5398c302b3ce49ab18c03d6876425cda11ddb55098e89ac24298c",
+          "byteLength": 3992
+        },
+        "canonical.nq": {
+          "path": "supplemental/editing-v1/insert-class/before/canonical.nq",
+          "sha256": "e54a9c1670bc2cf99d65c52edd0e83298230892f4379317ad445e6addefa62af",
+          "byteLength": 4127
+        },
+        "ids.json": {
+          "path": "supplemental/editing-v1/insert-class/before/ids.json",
+          "sha256": "ac7a0015e4d5e3c90dddbdb767a1b14fe64695547f6f06629c61d90db3008b72",
+          "byteLength": 454
+        },
+        "canonical.json": {
+          "path": "supplemental/editing-v1/insert-class/before/canonical.json",
+          "sha256": "a2d9e49fc29728a76577342dc82aa4428a2d5e49c1311ff4ec7b123efea31474",
+          "byteLength": 357
+        }
+      },
+      "changes": {
+        "path": "supplemental/editing-v1/removed-handles-cannot-swap-categories/changes.json",
+        "sha256": "797bf52b00c8faefea06df5ced83ba7c30f4095cf973354ad6f405c0b54d8a39",
+        "byteLength": 376
+      },
+      "rules": [
+        "editing/insert-fresh-handle",
+        "editing/conflicting-handles"
+      ],
+      "reason": "Fresh-handle identity spans all primary categories; removing two old handles does not permit reusing them with exchanged categories."
+    },
+    {
+      "id": "insert-cannot-use-existing-occurrence-handle",
+      "operation": "edit",
+      "outcome": "error",
+      "expectedError": "EDIT_INVALID",
+      "before": {
+        "source.json": {
+          "path": "supplemental/editing-v1/insert-class/before/source.json",
+          "sha256": "2d79704c311cb96d1ccbca4a11cc0f3736a8f4df84d1a75421f1e35ebb2b7ef5",
+          "byteLength": 488
+        },
+        "permuted-source.json": {
+          "path": "supplemental/editing-v1/insert-class/before/permuted-source.json",
+          "sha256": "f5869da2964da4cd4385aabc99df701b380c7aa2c37c29ed86a1841219ad8d47",
+          "byteLength": 569
+        },
+        "mapped.nq": {
+          "path": "supplemental/editing-v1/insert-class/before/mapped.nq",
+          "sha256": "334b4f98ddb5398c302b3ce49ab18c03d6876425cda11ddb55098e89ac24298c",
+          "byteLength": 3992
+        },
+        "canonical.nq": {
+          "path": "supplemental/editing-v1/insert-class/before/canonical.nq",
+          "sha256": "e54a9c1670bc2cf99d65c52edd0e83298230892f4379317ad445e6addefa62af",
+          "byteLength": 4127
+        },
+        "ids.json": {
+          "path": "supplemental/editing-v1/insert-class/before/ids.json",
+          "sha256": "ac7a0015e4d5e3c90dddbdb767a1b14fe64695547f6f06629c61d90db3008b72",
+          "byteLength": 454
+        },
+        "canonical.json": {
+          "path": "supplemental/editing-v1/insert-class/before/canonical.json",
+          "sha256": "a2d9e49fc29728a76577342dc82aa4428a2d5e49c1311ff4ec7b123efea31474",
+          "byteLength": 357
+        }
+      },
+      "changes": {
+        "path": "supplemental/editing-v1/insert-cannot-use-existing-occurrence-handle/changes.json",
+        "sha256": "6458fd79a4f238e287241825b7a2cde62f50a1389cc9429e61b9598b57c0f103",
+        "byteLength": 141
+      },
+      "rules": [
+        "editing/insert-fresh-handle",
+        "editing/conflicting-handles"
+      ],
+      "reason": "Occurrence handles are existing primary handles even though occurrence edits are not public operations; conflicting insert handles fail request validation."
+    }
+  ]
+}

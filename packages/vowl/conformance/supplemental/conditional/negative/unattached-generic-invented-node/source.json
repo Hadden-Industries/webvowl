@@ -1,0 +1,50 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s-Thing",
+        "iri": "http://www.w3.org/2002/07/owl#Thing"
+      },
+      {
+        "id": "s-Resource",
+        "iri": "http://www.w3.org/2000/01/rdf-schema#Resource"
+      },
+      {
+        "id": "s-D",
+        "iri": "https://example.org/conditional#D"
+      }
+    ],
+    "roles": [
+      {
+        "id": "Thing",
+        "kind": "class",
+        "subject": "s-Thing"
+      },
+      {
+        "id": "Resource",
+        "kind": "rdf-class",
+        "subject": "s-Resource"
+      },
+      {
+        "id": "D",
+        "kind": "datatype",
+        "subject": "s-D"
+      }
+    ],
+    "expressions": [],
+    "constructs": [],
+    "occurrences": [
+      {
+        "id": "invented",
+        "kind": "class-node",
+        "targets": [
+          "Thing"
+        ]
+      }
+    ]
+  }
+}

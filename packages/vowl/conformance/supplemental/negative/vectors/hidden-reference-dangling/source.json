@@ -1,0 +1,115 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s-A",
+        "iri": "https://example.org/o#A"
+      },
+      {
+        "id": "s-B",
+        "iri": "https://example.org/o#B"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s-A"
+      },
+      {
+        "id": "B",
+        "kind": "class",
+        "subject": "s-B"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "subclass",
+        "kind": "subclass",
+        "sub": "A",
+        "super": "B"
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "node-B",
+        "kind": "class-node",
+        "targets": [
+          "B"
+        ]
+      },
+      {
+        "id": "subclass-edge",
+        "kind": "subclass-edge",
+        "construct": "subclass",
+        "from": "node-A",
+        "to": "node-B"
+      },
+      {
+        "id": "label-subclass-edge",
+        "kind": "label",
+        "edge": "subclass-edge",
+        "direction": "single"
+      }
+    ]
+  },
+  "visualization": {
+    "placements": [
+      {
+        "occurrence": "node-A",
+        "position": {
+          "x": 0,
+          "y": 0
+        },
+        "pinned": true
+      },
+      {
+        "occurrence": "node-B",
+        "position": {
+          "x": 100,
+          "y": 50
+        },
+        "pinned": false
+      },
+      {
+        "occurrence": "label-subclass-edge",
+        "position": {
+          "x": 50,
+          "y": 25
+        },
+        "pinned": true
+      }
+    ],
+    "camera": {
+      "center": {
+        "x": 50,
+        "y": 25
+      },
+      "zoom": 2
+    },
+    "hidden": [
+      "absent"
+    ],
+    "labelSelection": {
+      "mode": "iri"
+    },
+    "prefixes": [],
+    "display": {
+      "compactNotation": false,
+      "nodeScaling": "uniform",
+      "externalColoring": true
+    }
+  }
+}

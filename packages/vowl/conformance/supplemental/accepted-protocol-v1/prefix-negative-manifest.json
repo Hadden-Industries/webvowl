@@ -1,0 +1,81 @@
+{
+  "format": "canonical-vowl-negative-manifest/1",
+  "specificationRevision": [
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design.md",
+      "sha256": "174535bb8cb43f317631f0799721adebfbbc4ceff4d577595be8fb91dd940fac"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-core-contract.md",
+      "sha256": "711ba30c291cfb0960334328203188600f60a331996e83379267a4a77b87988d"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-projection-contract.md",
+      "sha256": "4c1cf6a7e187f98d40d390e6ff0b5354aca46a8ff195fba5b6badace7eb6078b"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design-decisions.md",
+      "sha256": "f314ec3448f2cf87f73ce6ce8871f3695d4b3b26dee687383b36e36a4fc0a43e"
+    }
+  ],
+  "sourceArtifacts": [
+    {
+      "path": "supplemental/accepted-protocol-v1/derive-prefix.mjs",
+      "sha256": "947cbcb8ce12d2baeb13609f1eaf1a1000f937a3b4dfd4865a74d48375b7a79d"
+    }
+  ],
+  "vectors": [
+    {
+      "id": "prefix-forbidden-colon",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "expectedError": "DOCUMENT_TYPE",
+      "obligation": "scalar-domain/PrefixBinding/prefix/prefix-forbidden-colon",
+      "input": {
+        "path": "supplemental/accepted-protocol-v1/prefix/prefix-forbidden-colon/source.json",
+        "sha256": "763144844a09dedc18fa5cb2b6d4833c06a0e0d3b6f416b31afff00f04e831d9",
+        "byteLength": 1538
+      },
+      "sourceFixture": "symmetric-anonymous-artifact",
+      "sourceManifest": "supplemental/amended-policy/manifest.json",
+      "sourceWitness": {
+        "path": "vectors/symmetric-anonymous-artifact/source.json",
+        "sha256": "d97f016546fe815c18082da8364f6b394dc3efd2430f51c0c117f5b17089f2ef",
+        "byteLength": 1539
+      },
+      "sourcePointer": "/visualization/prefixes/0",
+      "rules": [
+        "B4-prefix-name-pattern",
+        "A7-stage-4-field-scalar-domains",
+        "A7-DOCUMENT_TYPE-closed-grammar"
+      ],
+      "rationale": "B4 permits the empty name or [A-Za-z][A-Za-z0-9_-]*. This nonempty string violates that lexical grammar. A7 places field-specific scalar domains at stage4; DOCUMENT_TYPE is the existing closed-grammar code. This is the recorded independent protocol interpretation, not a new code or a production-derived expectation."
+    },
+    {
+      "id": "prefix-initial-digit",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "expectedError": "DOCUMENT_TYPE",
+      "obligation": "scalar-domain/PrefixBinding/prefix/prefix-initial-digit",
+      "input": {
+        "path": "supplemental/accepted-protocol-v1/prefix/prefix-initial-digit/source.json",
+        "sha256": "e1681cc1e9f58adf1c6450de3008447953a764780749fb01b14621a9167e3ba1",
+        "byteLength": 1541
+      },
+      "sourceFixture": "symmetric-anonymous-artifact",
+      "sourceManifest": "supplemental/amended-policy/manifest.json",
+      "sourceWitness": {
+        "path": "vectors/symmetric-anonymous-artifact/source.json",
+        "sha256": "d97f016546fe815c18082da8364f6b394dc3efd2430f51c0c117f5b17089f2ef",
+        "byteLength": 1539
+      },
+      "sourcePointer": "/visualization/prefixes/0",
+      "rules": [
+        "B4-prefix-name-pattern",
+        "A7-stage-4-field-scalar-domains",
+        "A7-DOCUMENT_TYPE-closed-grammar"
+      ],
+      "rationale": "B4 permits the empty name or [A-Za-z][A-Za-z0-9_-]*. This nonempty string violates that lexical grammar. A7 places field-specific scalar domains at stage4; DOCUMENT_TYPE is the existing closed-grammar code. This is the recorded independent protocol interpretation, not a new code or a production-derived expectation."
+    }
+  ]
+}

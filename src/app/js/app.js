@@ -33,7 +33,18 @@ import { createLoadingModule } from "./loadingModule.js";
 import { createSidebar } from "./sidebar.js";
 import { createWarningModule } from "./warningModule.js";
 
-export function createWebVowlApplication() {
+export function createWebVowlApplication({
+  createController = (dependencies) =>
+    createWebVowlController({
+      ...dependencies,
+      ontologySourceLoader: createOntologySourceLoader(),
+      vowlModelInspectionProjector,
+    }),
+  selectLocalSource,
+  createOntologySource,
+  createFactsPresentation,
+  resolvePresetSource,
+} = {}) {
   const app = {};
   const GRAPH_SELECTOR = "#graph";
   const languageTools = createLanguageTools();
@@ -50,6 +61,7 @@ export function createWebVowlApplication() {
   let leftSidebar;
   let loadingModule;
   let sidebar;
+  let factsPresentation;
   let warningModule;
 
   // Agent-neutral controller. Embedding hosts and WebMCP reach WebVOWL through
@@ -73,12 +85,10 @@ export function createWebVowlApplication() {
   });
 
   let unsubscribeFromControllerState;
-  const webVowlController = createWebVowlController({
+  const webVowlController = createController({
     requestOntologyDeletionConfirmation: (proposal, options) =>
       warningModule.confirmOntologyDeletion(proposal, options),
     applicationUrl: globalThis.location.href,
-    ontologySourceLoader: createOntologySourceLoader(),
-    vowlModelInspectionProjector,
     renderedGraphRuntime,
     ontologyInspector: createOntologyInspector(),
     graphLayoutSettler: createGraphLayoutSettler({
@@ -189,6 +199,9 @@ export function createWebVowlApplication() {
     viewControlsLifecycleController.abort();
     degreeFilterControl.dispose();
     ontologyEditorSidebar?.dispose();
+    directInputModule?.dispose();
+    loadingModule?.dispose();
+    factsPresentation?.dispose();
     debugMenu.dispose();
     graphResizeObserver?.disconnect();
     graphResizeObserver = undefined;
@@ -351,6 +364,9 @@ export function createWebVowlApplication() {
   function initializeNativeApplicationUiModules() {
     directInputModule = createDirectInputModule({
       webVowlController,
+      selectLocalSource: selectLocalSource
+        ? (request) => loadingModule.selectPastedSource(request)
+        : undefined,
     });
     ontologyEditorSidebar = createOntologyEditorSidebar({
       webVowlController,
@@ -372,6 +388,9 @@ export function createWebVowlApplication() {
     });
     loadingModule = createLoadingModule({
       webVowlController,
+      selectLocalSource,
+      createOntologySource,
+      resolvePresetSource,
       ontologyMenu,
       hideNavigationMenus: () => navigationMenu.hideAllMenus(),
       onGraphControlAvailabilityChanged: (enabled) => {
@@ -418,6 +437,9 @@ export function createWebVowlApplication() {
     pauseMenu.setup();
     sidebar.setup();
     loadingModule.setup();
+    factsPresentation = createFactsPresentation?.({
+      controller: webVowlController,
+    });
     // Presentation modules render controller state rather than being called
     // from inside the renderer, and each runs only when its own slice changed.
     const controllerStatePresenter = createControllerStatePresenter({
@@ -453,6 +475,9 @@ export function createWebVowlApplication() {
         controllerStatePresenter.present(controllerState, changedFieldNames);
         if (changedFieldNames.includes("loadGeneration")) {
           searchMenu.clearText();
+          if (controllerState.status === "ready") {
+            exportMenu.renderOriginalSources();
+          }
         }
         if (
           changedFieldNames.some((fieldName) =>
@@ -530,7 +555,9 @@ export function createWebVowlApplication() {
 
     const directTextInput = document.querySelector("#direct-text-input");
     if (directTextInput) {
+      directTextInput.hidden = !selectLocalSource;
       directTextInput.addEventListener("click", function () {
+        navigationMenu.hideAllMenus();
         directInputModule.setDirectInputMode();
       });
     }

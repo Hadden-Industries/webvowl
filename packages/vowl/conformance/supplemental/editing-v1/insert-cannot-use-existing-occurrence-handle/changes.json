@@ -1,0 +1,10 @@
+[
+  {
+    "kind": "insert",
+    "collection": "subjects",
+    "record": {
+      "id": "o0",
+      "iri": "urn:editing:unrelated"
+    }
+  }
+]

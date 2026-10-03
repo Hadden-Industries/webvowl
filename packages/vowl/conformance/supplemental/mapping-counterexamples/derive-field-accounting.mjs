@@ -1,0 +1,425 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Additive D18 accounting. Frozen historical inventories retain their claims.
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
+import { produce } from "../amended-policy/producer.mjs";
+import { definitions, select } from "../field-contract/contracts.mjs";
+import { profiles } from "../field-contract/support.mjs";
+import { auditedCorpus } from "./audited-corpus.mjs";
+import { mapping } from "./template-audit.mjs";
+import { bundle, hash, json, pin, sourcePins } from "./support.mjs";
+const { vectors, header } = await auditedCorpus();
+const bySource = new Map(
+  vectors.map((item) => [item.files["source.json"].path, item]),
+);
+const byId = new Map(vectors.map((item) => [item.id, item]));
+assert.equal(byId.size, vectors.length);
+async function readInventory(path) {
+  const bytes = await readFile(resolve(bundle, path));
+  return {
+    value: JSON.parse(bytes),
+    pin: { path, sha256: hash(bytes), byteLength: bytes.length },
+  };
+}
+const historical = await readInventory(
+  "supplemental/field-contract/mapping-injectivity-inventory.json",
+);
+const inventories = {};
+for (const name of ["core", "value-state", "derived", "branch"])
+  inventories[name] = await readInventory(
+    `supplemental/mapping-counterexamples/${name}-pair-inventory.json`,
+  );
+function components(path) {
+  return path
+    ? path
+        .slice(1)
+        .split("/")
+        .map((part) => part.replaceAll("~1", "/").replaceAll("~0", "~"))
+    : [];
+}
+function normalized(source, fieldPointer) {
+  const mask = components(fieldPointer);
+  function value(input, type, path = []) {
+    if (
+      path.length === mask.length &&
+      path.every((part, index) => part === mask[index])
+    )
+      return { independentMappingFieldMask: true };
+    if (type.type === "record") {
+      const descriptor = select(type.record, input),
+        names = new Set(Object.keys(input));
+      if (
+        mask.length === path.length + 1 &&
+        path.every((part, index) => part === mask[index])
+      )
+        names.add(mask.at(-1));
+      return Object.fromEntries(
+        [...names]
+          .sort()
+          .map((field) => [
+            field,
+            value(input[field], descriptor.fields[field], [...path, field]),
+          ]),
+      );
+    }
+    if (type.type === "collection") {
+      const members = input.map((item, index) =>
+        value(item, type.item, [...path, String(index)]),
+      );
+      return type.sequence
+        ? members
+        : members.sort((left, right) =>
+            JSON.stringify(left) < JSON.stringify(right)
+              ? -1
+              : JSON.stringify(left) > JSON.stringify(right)
+                ? 1
+                : 0,
+          );
+    }
+    return input;
+  }
+  return JSON.stringify(
+    value(source, {
+      type: "record",
+      record: source.visualization ? "SourceArtifact" : "SourceStructural",
+    }),
+  );
+}
+function fullTrace(vector, path, field) {
+  path ||= "/";
+  const record = vector.audit.records.find((item) => item.pointer === path);
+  assert(record, `${vector.id}: missing record ${path}`);
+  return {
+    fixture: vector.id,
+    manifest: vector.manifest,
+    source: vector.files["source.json"],
+    canonicalNQuads: vector.files["canonical.nq"],
+    canonicalBytes: vector.files["canonical.json"],
+    owner: {
+      descriptor: record.descriptor,
+      pointer: path,
+      rdfNode: record.node,
+      typeTriples: record.typeTriples,
+    },
+    field: record.fields[field] ?? {
+      present: false,
+      predicate: `<${mapping}field/${field}>`,
+      triples: [],
+      note: "This field is absent in the different closed branch at this owning position.",
+    },
+  };
+}
+const evidence = new Map(
+  historical.value.obligations.map((item) => [item.id, []]),
+);
+const rejectedHistoricalBindings = [];
+function register(
+  obligation,
+  pairId,
+  inventoryPin,
+  before,
+  after,
+  beforePointer,
+  afterPointer,
+  qualification,
+) {
+  const cell = historical.value.obligations.find(
+    (item) => item.id === obligation,
+  );
+  assert(cell, obligation);
+  assert.notEqual(
+    before.files["canonical.nq"].sha256,
+    after.files["canonical.nq"].sha256,
+  );
+  assert.notEqual(
+    before.files["canonical.json"].sha256,
+    after.files["canonical.json"].sha256,
+  );
+  const isolated =
+    before.profile === after.profile &&
+    normalized(before.source, beforePointer) ===
+      normalized(after.source, afterPointer);
+  const beforeOwner = beforePointer.slice(0, beforePointer.lastIndexOf("/"));
+  const afterOwner = afterPointer.slice(0, afterPointer.lastIndexOf("/"));
+  const sides = {
+    before: fullTrace(before, beforeOwner, cell.field),
+    after: fullTrace(after, afterOwner, cell.field),
+  };
+  if (
+    !Object.values(sides).some(
+      (side) => side.owner.descriptor === cell.descriptor && side.field.present,
+    )
+  ) {
+    rejectedHistoricalBindings.push({
+      obligation,
+      pairId,
+      inventory: inventoryPin,
+      reason:
+        "At the focus pointer this optional field is absent in the stated descriptor; the present after field belongs to a different narrowed descriptor. Preserve the complete valid outputs, but this pair does not bind the stated descriptor/field position.",
+      sides,
+    });
+    return;
+  }
+  evidence.get(obligation).push({
+    pairId,
+    inventory: inventoryPin,
+    exactOneField: isolated,
+    qualification,
+    sides,
+  });
+}
+for (const cell of historical.value.obligations)
+  if (cell.pair) {
+    const pair = cell.pair;
+    register(
+      cell.id,
+      `historical/${cell.descriptor}/${cell.field}`,
+      historical.pin,
+      byId.get(pair.before.fixture),
+      byId.get(pair.after.fixture),
+      pair.before.pointer,
+      pair.after.pointer,
+      "Historical isolated-source pair, rechecked against its explicitly pinned whole dataset and the separate A6 template audit.",
+    );
+  }
+function vectorFor(pair, side, family) {
+  if (family === "core") return byId.get(pair.sides[side].fixture);
+  return bySource.get((pair.sides?.[side] ?? pair[side])["source.json"].path);
+}
+for (const [family, inventory] of Object.entries(inventories))
+  for (const pair of inventory.value.pairs) {
+    const before = vectorFor(pair, "before", family),
+      after = vectorFor(pair, "after", family);
+    for (const obligation of [
+      pair.obligation,
+      ...(pair.additionalObligations ?? []),
+    ]) {
+      const cell = historical.value.obligations.find(
+        (item) => item.id === obligation,
+      );
+      assert(cell, obligation);
+      let focus = pair.focusPointer;
+      if (
+        cell.field !== pair.field &&
+        ["Ontology", "Visualization"].includes(cell.descriptor)
+      ) {
+        const record = before.audit.records.find(
+          (item) =>
+            item.descriptor === cell.descriptor &&
+            (focus === item.pointer || focus.startsWith(`${item.pointer}/`)),
+        );
+        assert(record);
+        focus = `${record.pointer}/${cell.field}`;
+      } else if (cell.descriptor === "Structural")
+        focus = `/structural/${cell.field}`;
+      else focus = `${focus.slice(0, focus.lastIndexOf("/"))}/${cell.field}`;
+      register(
+        obligation,
+        pair.id,
+        inventory.pin,
+        before,
+        after,
+        focus,
+        focus,
+        family === "derived"
+          ? "Complete projection payloads exchange occurrence handles and structural references while portable state associations differ. Structural-only outputs are isomorphic; this is a coupled artifact witness, not a valid isolated B1 edit."
+          : (pair.reason ??
+              pair.sourceContract ??
+              inventory.value.policy ??
+              inventory.value.qualification),
+      );
+    }
+  }
+// In a node reassociation pair visualization is unchanged and the entire
+// occurrence set is the sole source field changed. Child fields remain coupled.
+for (const pair of inventories.derived.value.pairs) {
+  const before = vectorFor(pair, "before", "derived"),
+    after = vectorFor(pair, "after", "derived");
+  if (
+    normalized(before.source, "/structural/occurrences") ===
+    normalized(after.source, "/structural/occurrences")
+  ) {
+    register(
+      "mapping/Structural/occurrences",
+      pair.id,
+      inventories.derived.pin,
+      before,
+      after,
+      "/structural/occurrences",
+      "/structural/occurrences",
+      "The complete occurrence collection changes while all source outside that owning field is identical. Its constituent generated fields are not thereby isolated independently; their state reassociation evidence stays classified separately.",
+    );
+    break;
+  }
+}
+const structuralInvariance = [];
+const correction = await readInventory(
+  "supplemental/mapping-counterexamples/binding-correction-manifest.json",
+);
+const correctedBefore = byId.get("context-property-scope-binding-before"),
+  correctedAfter = byId.get("context-property-scope-binding-after");
+register(
+  correction.value.pair.obligation,
+  correction.value.pair.id,
+  correction.pin,
+  correctedBefore,
+  correctedAfter,
+  correction.value.pair.focusPointer,
+  correction.value.pair.focusPointer,
+  correction.value.pair.correction,
+);
+for (const pair of inventories.derived.value.pairs) {
+  const before = vectorFor(pair, "before", "derived"),
+    after = vectorFor(pair, "after", "derived");
+  const left = await produce(
+      { structural: before.source.structural },
+      profiles.structural,
+    ),
+    right = await produce(
+      { structural: after.source.structural },
+      profiles.structural,
+    );
+  assert.deepEqual(
+    left.bytes,
+    right.bytes,
+    `${pair.id}: a claimed handle bijection changed structural bytes`,
+  );
+  assert.equal(left.canonicalNQuads, right.canonicalNQuads);
+  structuralInvariance.push({
+    pairId: pair.id,
+    canonicalStructuralSha256: hash(left.bytes),
+    canonicalStructuralNQuadsSha256: hash(left.canonicalNQuads),
+    sameStructuralBytesAndRdf: true,
+  });
+}
+const entries = historical.value.obligations.map((cell) => {
+  const type = definitions[cell.descriptor].fields[cell.field],
+    options = evidence.get(cell.id);
+  options.sort(
+    (left, right) => Number(right.exactOneField) - Number(left.exactOneField),
+  );
+  const selected = options[0];
+  assert(selected, `Unclosed field ${cell.id}`);
+  return {
+    id: cell.id,
+    descriptor: cell.descriptor,
+    field: cell.field,
+    citations: cell.citation,
+    declaredType: type,
+    fixedWithinThisClosedDescriptor:
+      type.type === "enum" && type.values.length === 1,
+    status: selected.exactOneField
+      ? "isolated-field-pair-and-complete-template-traces"
+      : "coupled-pair-and-complete-template-traces",
+    qualification: selected.exactOneField
+      ? "The selected profile and every other source field agree after sorting only declared sets. This owning field changes the whole RDF dataset and canonical bytes."
+      : "Valid variation requires the stated branch, normalization, projection, or artifact-state companions. This proves a complete distinct valid result and exact field-template presence; it does not independently prove necessity of this single field.",
+    selected,
+    alternatives: options.slice(1).map((item) => ({
+      pairId: item.pairId,
+      inventory: item.inventory,
+      exactOneField: item.exactOneField,
+    })),
+  };
+});
+const beforeProfile = byId.get("empty-structural"),
+  afterProfile = byId.get("empty-artifact");
+assert(beforeProfile && afterProfile);
+assert.deepEqual(
+  beforeProfile.source.structural,
+  afterProfile.source.structural,
+);
+assert.notEqual(
+  beforeProfile.files["canonical.nq"].sha256,
+  afterProfile.files["canonical.nq"].sha256,
+);
+const templateAudit = await pin(
+  "template-audit-evidence.json",
+  json({
+    format: "canonical-vowl-complete-template-audit/1",
+    policy:
+      "A separately written inverse/template auditor checks the trusted source fixtures against every triple of the independently derived expected canonical RDF datasets. It checks primary reference resolution, exact scalar datatype/lexical content, each field edge, absence, container kind, membership, sequence index/value, fresh ownership and no unexplained triples. It is not a public validator, a product test, or an external review. Source primary handles are used only via each frozen ids.json correspondence.",
+    sourceArtifacts: await sourcePins([
+      "template-audit.mjs",
+      "audited-corpus.mjs",
+      "audit-corpus-templates.mjs",
+    ]),
+    counts: {
+      positiveModels: vectors.length,
+      quads: vectors.reduce((sum, item) => sum + item.audit.quads, 0),
+    },
+    vectors: vectors.map((item) => ({
+      fixture: item.id,
+      manifest: item.manifest,
+      source: item.files["source.json"],
+      ids: item.files["ids.json"],
+      canonicalNQuads: item.files["canonical.nq"],
+      quads: item.audit.quads,
+      primaryNodes: item.audit.primaryNodes,
+      allocatedNodes: item.audit.allocatedNodes,
+      completeTemplateMatch: true,
+    })),
+  }),
+);
+await pin(
+  "field-accounting.json",
+  json({
+    format: "canonical-vowl-retained-field-evidence/2",
+    status:
+      "independently-derived-finite-evidence-pending-review-not-a-profile-freeze",
+    specificationRevision: header.specificationRevision,
+    amendment: header.amendment,
+    sourceArtifacts: await sourcePins([
+      "support.mjs",
+      "template-audit.mjs",
+      "audited-corpus.mjs",
+      "derive-field-accounting.mjs",
+    ]),
+    historicalInventory: historical.pin,
+    pairInventories: Object.values(inventories).map((item) => item.pin),
+    templateAudit,
+    denominator: {
+      ...historical.value.denominator,
+      pairedDifferenceWitnessed: undefined,
+      unclosed: undefined,
+      independentlyReproducedPairFixtures: undefined,
+      retainedFieldPositionsAccounted: entries.length,
+      isolatedFieldPairs: entries.filter((item) => item.selected.exactOneField)
+        .length,
+      coupledFieldPairs: entries.filter((item) => !item.selected.exactOneField)
+        .length,
+      unboundFields: entries.filter((item) => !item.selected).length,
+    },
+    qualification:
+      "Every retained source-field position has a specific complete positive pair and exact independently checked owning-field RDF traces. Fixed discriminants, removed branch fields and unavoidable companions are explicit. Coupled witnesses are not claimed as isolated field-necessity proofs. The implementation must still compare actual complete RDF datasets, canonical results and metamorphic variants, and independent review remains required. This finite evidence does not establish mathematical injectivity by itself.",
+    entries,
+    rejectedHistoricalBindings,
+    additiveBindingCorrection: correction.pin,
+    derivedStructuralInvariance: structuralInvariance,
+    profileFraming: {
+      status: "coupled-selected-profile-and-required-state-pair",
+      reason:
+        "Both profiles have identical empty structural source. Selecting artifact requires complete visualization state, so changing the immutable root profile IRI alone is not a valid input. Both profile facts are independently checked as named IRIs and full datasets/results differ.",
+      before: {
+        fixture: beforeProfile.id,
+        files: beforeProfile.files,
+        profileFact: beforeProfile.audit.profileFact,
+      },
+      after: {
+        fixture: afterProfile.id,
+        files: afterProfile.files,
+        profileFact: afterProfile.audit.profileFact,
+      },
+    },
+  }),
+);
+console.log(
+  JSON.stringify({
+    positiveModelsAudited: vectors.length,
+    retainedFields: entries.length,
+    isolated: entries.filter((item) => item.selected.exactOneField).length,
+    coupled: entries.filter((item) => !item.selected.exactOneField).length,
+    structurallyInvariantDerivedPairs: structuralInvariance.length,
+  }),
+);

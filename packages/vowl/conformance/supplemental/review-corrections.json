@@ -1,0 +1,113 @@
+{
+  "status": "explicit-follow-up-review-metadata-corrections-pending-supplement-review",
+  "frozenArtifactsChanged": false,
+  "interpretationChecks": [
+    {
+      "rule": "B1/B2.3/B2.4",
+      "interpretation": "Object and data restriction filler nodes use the exact named-property PropertyContext plus originating subclass scope.",
+      "status": "Specific B2.4 interpretation confirmed by Claude first and follow-up reviews."
+    },
+    {
+      "rule": "B2.4",
+      "interpretation": "Inverse-edge from/to follows the forward partition effective domain/range; it does not follow canonical ID order.",
+      "status": "Explicit oracle interpretation recorded for protocol acceptance.",
+      "fixtures": [
+        "matched-inverse",
+        "inverse-orientation-opposes-role-rank",
+        "singleton-inverse-self-loop"
+      ]
+    },
+    {
+      "rule": "B1/B2.4",
+      "interpretation": "Operator-edge from is the operator node and to is the operand occurrence.",
+      "status": "Explicit oracle interpretation recorded for protocol acceptance.",
+      "fixtures": [
+        "class-intersection",
+        "class-complement",
+        "partial-union-projection"
+      ]
+    },
+    {
+      "rule": "B5",
+      "interpretation": "For anonymous-root-local, every subject is treated as local when root ontology IRI is absent.",
+      "status": "Follow-up reviewer identified wording ambiguity; retained catalog expectation is not silently promoted to an unambiguous normative rule.",
+      "fixture": "display-vectors.json anonymous-root-local"
+    },
+    {
+      "rule": "A2/A5/B2.2",
+      "interpretation": "Absent-endpoint builtin roles are required only if the relation is drawable; an explicit undrawable opposite endpoint leaves the relation details-only and does not require an otherwise-unused default role.",
+      "status": "Independent reading supplied to integration task; protocol acceptance pending.",
+      "fixtures": [
+        "undrawable-range-no-default-role",
+        "undrawable-range-declared-thing"
+      ]
+    }
+  ],
+  "comparisonRules": {
+    "mapped.nq": "RDF dataset isomorphism; private labels/order are not contractual.",
+    "canonical.nq": "Exact canonical N-Quads bytes.",
+    "canonical.json": "Exact complete JCS bytes.",
+    "ids.json": "Informative derivation only; symmetric handle correspondences are not contractual."
+  },
+  "ruleTagSupplements": [
+    {
+      "fixtures": [
+        "matched-inverse",
+        "unmatched-inverse"
+      ],
+      "add": [
+        "B1",
+        "B2.2",
+        "B2.4"
+      ]
+    },
+    {
+      "fixtures": [
+        "object-min-unqualified",
+        "object-max-unqualified",
+        "object-exact-unqualified",
+        "data-min-unqualified",
+        "data-max-unqualified",
+        "data-exact-unqualified",
+        "object-qualified-details",
+        "data-qualified-details"
+      ],
+      "add": [
+        "B1",
+        "B2.3",
+        "B2.4"
+      ]
+    }
+  ],
+  "precedenceQuestions": [
+    {
+      "rules": "A7/D19",
+      "original": "negative/lone-surrogate/input.bin",
+      "issue": "A7 puts envelope required/known-profile checks before scalar domains; D19 describes rejecting surrogate values during decode construction. Original input also lacks structural and has unknown profile.",
+      "isolatedCase": "supplemental/negative/vectors/lone-surrogate-in-valid-envelope-and-literal/input.bin",
+      "status": "Original bytes/error preserved. Isolated case does not choose the cross-failure precedence. Parent reports production lexical Unicode rejection, which is execution evidence rather than a spec resolution."
+    },
+    {
+      "rules": "A5/A7",
+      "original": "negative/duplicate-primary-id/source.json",
+      "issue": "Exact copied record overlaps ID, set-member and named-IRI uniqueness checks.",
+      "isolatedCase": "supplemental/negative/vectors/duplicate-id-distinct-subject-iri/source.json",
+      "status": "Original bytes/error preserved; isolated case avoids same-payload and same-IRI duplication."
+    }
+  ],
+  "producerGuardCorrection": {
+    "source": "supplemental/check-producer-reasons.mjs",
+    "exactMessageCases": 12,
+    "getterInvocations": 0,
+    "originalGuardScriptPreserved": true
+  },
+  "historicalBudgetEvidence": {
+    "originalProducer": "0e3f988211f5e80b817d8867e6f026ebfeda38f98c88791b7913556f6f8851d3",
+    "originalProbe": "experiments/rdfc-budget-probe/result.json",
+    "currentProducerRerun": "supplemental/budget/raw/original-per-property-datatype-current-producer/result.json",
+    "currentProducer": "5097d9726c839afc7b4240dcb5527bd5089f5f847d788e9b32b6d3dd67699fd1",
+    "sameMinimumPassingBudget": 72,
+    "originalAndRerunGraphBytesUnchanged": true,
+    "oldRejections": "Pinned library operational evidence under superseded linear policy; never language-neutral RDF invalidity."
+  }
+}

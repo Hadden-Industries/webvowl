@@ -1,0 +1,109 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "targets": [
+          "renamed-8"
+        ],
+        "kind": "class-node",
+        "id": "renamed-1"
+      },
+      {
+        "direction": "single",
+        "edge": "renamed-3",
+        "kind": "label",
+        "id": "renamed-2"
+      },
+      {
+        "to": "renamed-4",
+        "from": "renamed-4",
+        "properties": [
+          "renamed-9"
+        ],
+        "kind": "property-edge",
+        "id": "renamed-3"
+      },
+      {
+        "context": {
+          "targets": [
+            "renamed-10"
+          ],
+          "kind": "class"
+        },
+        "targets": [
+          "renamed-10"
+        ],
+        "kind": "class-node",
+        "id": "renamed-4"
+      },
+      {
+        "targets": [
+          "renamed-11"
+        ],
+        "kind": "class-node",
+        "id": "renamed-5"
+      }
+    ],
+    "constructs": [
+      {
+        "super": "renamed-7",
+        "sub": "renamed-11",
+        "kind": "subclass",
+        "id": "renamed-6"
+      }
+    ],
+    "expressions": [
+      {
+        "filler": "renamed-8",
+        "cardinality": "90071992547409931234567890",
+        "property": "renamed-9",
+        "kind": "object-exact-cardinality",
+        "id": "renamed-7"
+      }
+    ],
+    "roles": [
+      {
+        "subject": "renamed-12",
+        "kind": "class",
+        "id": "renamed-8"
+      },
+      {
+        "subject": "renamed-13",
+        "kind": "object-property",
+        "id": "renamed-9"
+      },
+      {
+        "subject": "renamed-14",
+        "kind": "class",
+        "id": "renamed-10"
+      },
+      {
+        "subject": "renamed-15",
+        "kind": "class",
+        "id": "renamed-11"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "https://example.org/o#Filler",
+        "id": "renamed-12"
+      },
+      {
+        "iri": "https://example.org/o#p",
+        "id": "renamed-13"
+      },
+      {
+        "iri": "http://www.w3.org/2002/07/owl#Thing",
+        "id": "renamed-14"
+      },
+      {
+        "iri": "https://example.org/o#A",
+        "id": "renamed-15"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

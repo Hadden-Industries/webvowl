@@ -1,0 +1,8 @@
+Prefix(:=<https://example.org/owl-seed#>)
+Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)
+Ontology(
+Declaration(Class(:A))
+Declaration(AnnotationProperty(:note))
+Declaration(Datatype(:CustomDatatype))
+AnnotationAssertion(:note :A "opaque"^^<https://example.org/owl-seed#CustomDatatype>)
+)

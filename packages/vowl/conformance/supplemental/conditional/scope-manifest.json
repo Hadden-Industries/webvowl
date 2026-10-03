@@ -1,0 +1,141 @@
+{
+  "format": "canonical-vowl-conformance-manifest/1",
+  "status": "independent-conditional-supplement-pending-review",
+  "specificationRevision": [
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design.md",
+      "sha256": "174535bb8cb43f317631f0799721adebfbbc4ceff4d577595be8fb91dd940fac"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-core-contract.md",
+      "sha256": "711ba30c291cfb0960334328203188600f60a331996e83379267a4a77b87988d"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-projection-contract.md",
+      "sha256": "4c1cf6a7e187f98d40d390e6ff0b5354aca46a8ff195fba5b6badace7eb6078b"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design-decisions.md",
+      "sha256": "f314ec3448f2cf87f73ce6ce8871f3695d4b3b26dee687383b36e36a4fc0a43e"
+    }
+  ],
+  "amendment": {
+    "path": "docs/specs/2026-09-30-canonical-vowl-resource-policy-amendment.md",
+    "sha256": "9f1b7d96229a06f57e29a52f92325a4256e6f826d7532e239848ef99dc0f47c1",
+    "approval": "Owner approved the exact quadratic capped work-policy amendment on 2026-09-30, as communicated by the parent integration task. Approval does not waive independent review."
+  },
+  "policy": {
+    "formula": "min(totalAllocatedBlankNodes ** 2, rdfDeepIterations)",
+    "defaultRdfDeepIterations": 100000,
+    "upperCallerOverride": 1000000,
+    "defaultDeadlineMs": 10000,
+    "zeroOverrideAllowed": true,
+    "fallbackAllowed": false
+  },
+  "dependencies": {
+    "rdf-canonize": "5.0.0",
+    "canonicalize": "5.1.0"
+  },
+  "comparisonRules": {
+    "mapped.nq": "RDF dataset isomorphism; private labels/order are not contractual.",
+    "canonical.nq": "Exact canonical N-Quads bytes.",
+    "canonical.json": "Exact complete JCS bytes.",
+    "ids.json": "Informative derivation only; symmetric handle correspondences are not contractual."
+  },
+  "priorCorpus": {
+    "path": "supplemental/amended-policy/manifest.json",
+    "sha256": "90f3754316f683a76ad9eecb8341d29a738b3f77b61c13362034de07cee92156",
+    "positiveCount": 95,
+    "modified": false
+  },
+  "independence": "Hand-selected normalized sources and complete topology from B2 clauses; only the separate amended oracle and standards libraries derive canonical bytes. No production code, tests or outputs select expectations.",
+  "sourceArtifacts": [
+    {
+      "path": "oracle/extended-sources.mjs",
+      "sha256": "29a1ca8d3418f17f674bc577b999ba80a68e655d5b1848e04301b41e07e69da0"
+    },
+    {
+      "path": "supplemental/grammar/sources.mjs",
+      "sha256": "7a720f382180a0468f7441437342fef98d40155f511858bb9eece3d3c5a68a31"
+    },
+    {
+      "path": "supplemental/amended-policy/producer.mjs",
+      "sha256": "da7936738c98cb853de7c6d6f2ae7528cbd4d47a0c1ccb1258dae7c5f7143321"
+    },
+    {
+      "path": "supplemental/conditional/sources.mjs",
+      "sha256": "ff86b075e2011158220b39a0cc21545bba18a396bfa468cddd1efb9d414df26b"
+    },
+    {
+      "path": "supplemental/conditional/derive.mjs",
+      "sha256": "55b72c24b95db53cb4949271b91993aea2dab0239be5ea7f4d681292bd5460b5"
+    },
+    {
+      "path": "supplemental/conditional/scope-source.mjs",
+      "sha256": "901e0dcefad300dc8dc2293abf9d50591a9deb680f7c66e0d5c43170479f3b5a"
+    },
+    {
+      "path": "supplemental/conditional/derive-scope.mjs",
+      "sha256": "a304141572dbcec8b62a241d3c60e8973cb1ff7aaaab7fe021fdda7c5291183e"
+    }
+  ],
+  "vectors": [
+    {
+      "id": "all-six-cardinalities-outside-subclass-context",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B24-restriction-subclass-context",
+        "B21-excluded-equivalence-details"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 25,
+        "blankNodes": 46,
+        "quads": 169,
+        "occurrenceKinds": {
+          "class-node": 3,
+          "datatype-node": 1,
+          "label": 2,
+          "property-edge": 2
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/scope/all-six-cardinalities-outside-subclass-context/source.json",
+          "sha256": "8bfe8e7a7744c977d2f1c13a3457a34b95fb3702c2630a08453229f83fac6ef4",
+          "byteLength": 3860
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/scope/all-six-cardinalities-outside-subclass-context/permuted-source.json",
+          "sha256": "40318cbbf1a612d8ce4e71c1eb2ee4bea3dc186828784745fd12c237a4221e39",
+          "byteLength": 4837
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/scope/all-six-cardinalities-outside-subclass-context/mapped.nq",
+          "sha256": "0b75f4387fc3c646b10be0d58f2e83f50dcb43a0515b6a15eaba80c3c753f024",
+          "byteLength": 19695
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/scope/all-six-cardinalities-outside-subclass-context/canonical.nq",
+          "sha256": "0fe60c3489f948dc03739b32b676f40d806d4d829bc204ea07807676ebddc4ef",
+          "byteLength": 20442
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/scope/all-six-cardinalities-outside-subclass-context/ids.json",
+          "sha256": "40d86fd817c36dc5957de421e094fb84fccc4825f416e6a9e2a897a878ed44c4",
+          "byteLength": 3923
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/scope/all-six-cardinalities-outside-subclass-context/canonical.json",
+          "sha256": "942392ff6b1c88a9d75cfa860517588f1a691083641eefc228e28806aa892a78",
+          "byteLength": 1960
+        }
+      }
+    }
+  ]
+}

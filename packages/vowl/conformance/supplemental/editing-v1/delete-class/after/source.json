@@ -1,0 +1,32 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s0",
+        "iri": "urn:mapping-pair:A"
+      }
+    ],
+    "roles": [
+      {
+        "id": "r1",
+        "kind": "class",
+        "subject": "s0"
+      }
+    ],
+    "expressions": [],
+    "constructs": [],
+    "occurrences": [
+      {
+        "id": "node-0",
+        "kind": "class-node",
+        "targets": [
+          "r1"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "targets": [
+          "renamed-3"
+        ],
+        "kind": "class-node",
+        "id": "renamed-1"
+      },
+      {
+        "targets": [
+          "renamed-4"
+        ],
+        "kind": "class-node",
+        "id": "renamed-2"
+      }
+    ],
+    "constructs": [],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "renamed-5",
+        "kind": "class",
+        "id": "renamed-3"
+      },
+      {
+        "subject": "renamed-6",
+        "kind": "class",
+        "id": "renamed-4"
+      }
+    ],
+    "subjects": [
+      {
+        "id": "renamed-5"
+      },
+      {
+        "id": "renamed-6"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

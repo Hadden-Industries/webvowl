@@ -1,0 +1,29 @@
+{
+  "format": "canonical-vowl-pre-handoff-format-correction/1",
+  "scope": "Routine formatting repair to the newly authored read-only checkpoint before review handoff; historical corpora and all golden outputs are unchanged.",
+  "change": "Prettier changes only layout of two chained get(...).push({...}) statements. The source text diff was inspected. The current provenance index changes only this script's SHA-256 and byte length.",
+  "previous": {
+    "script": {
+      "path": "supplemental/mapping-counterexamples/history/analyze-pair-coverage.initial.mjs.txt",
+      "sha256": "a28d58b237ed8a2ae4512af6f77b08a79d812389418a5cc131c57c20404fe44c",
+      "byteLength": 1711
+    },
+    "index": {
+      "path": "supplemental/mapping-counterexamples/history/provenance-index.initial.json",
+      "sha256": "f978c1dbbf13c8574f86f4a8bbaea01ee9b51ccb6f2f2857feb6dc2b9abcb70b"
+    }
+  },
+  "current": {
+    "script": {
+      "path": "supplemental/mapping-counterexamples/analyze-pair-coverage.mjs",
+      "sha256": "2a2bc05b8090a3262ac01c1ae5d935887b5f6eb32094f5681e2e88f2a795c5ea",
+      "byteLength": 1665
+    },
+    "index": {
+      "path": "supplemental/mapping-counterexamples/provenance-index.json",
+      "sha256": "d3faacaded67d017d8f8d590fea87543e684578764d1a2af6889448e6db8f20c"
+    }
+  },
+  "goldenChanges": 0,
+  "note": "This receipt and the two preserved predecessors are pinned by the final handoff separately from the bounded index, which deliberately does not discover later files. The index still verifies its same 4661 explicit current artifacts."
+}

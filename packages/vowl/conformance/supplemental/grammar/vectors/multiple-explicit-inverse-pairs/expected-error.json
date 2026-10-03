@@ -1,0 +1,7 @@
+{
+  "code": "RDFC_RESOURCE_LIMIT",
+  "rule": "A8",
+  "dependency": "rdf-canonize@5.0.0",
+  "maxDeepIterations": 43,
+  "note": "Operational rejection of this pinned library under current A8, not a universal language-neutral validity rejection. No canonical result is authorized."
+}

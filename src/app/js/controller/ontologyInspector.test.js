@@ -310,29 +310,35 @@ describe("ontology summary projection", () => {
     );
     expect(page.totalMatchCount).toBe(4);
   });
-  test("distinguishes datatype properties from datatype nodes in the shared statistics", () => {
-    const request = createSummaryRequest();
-    const snapshot = structuredClone(request.ontologyInspectionSnapshot);
-    snapshot.propertyRecords[0].elementTypeName = "owl:objectProperty";
-    snapshot.propertyRecords[1].elementTypeName = "owl:DatatypeProperty";
-    snapshot.datatypeRecords.push({
-      ...snapshot.datatypeRecords[0],
-      ontologyElementReference: {
-        kind: "datatype",
-        iri: "https://example.test/OtherDatatype",
-      },
-    });
-    const summary = createOntologyInspector().getOntologySummary({
-      ...request,
-      ontologyInspectionSnapshot: snapshot,
-    });
-    expect(summary.elementCounts).toMatchObject({
-      objectPropertyCount: 1,
-      datatypePropertyCount: 1,
-      datatypeCount: 2,
-      propertyCount: 2,
-    });
-  });
+  test.each([
+    ["owl:objectProperty", "owl:DatatypeProperty"],
+    ["object-property", "data-property"],
+  ])(
+    "distinguishes %s and %s from datatype nodes in the shared statistics",
+    (objectType, dataType) => {
+      const request = createSummaryRequest();
+      const snapshot = structuredClone(request.ontologyInspectionSnapshot);
+      snapshot.propertyRecords[0].elementTypeName = objectType;
+      snapshot.propertyRecords[1].elementTypeName = dataType;
+      snapshot.datatypeRecords.push({
+        ...snapshot.datatypeRecords[0],
+        ontologyElementReference: {
+          kind: "datatype",
+          iri: "https://example.test/OtherDatatype",
+        },
+      });
+      const summary = createOntologyInspector().getOntologySummary({
+        ...request,
+        ontologyInspectionSnapshot: snapshot,
+      });
+      expect(summary.elementCounts).toMatchObject({
+        objectPropertyCount: 1,
+        datatypePropertyCount: 1,
+        datatypeCount: 2,
+        propertyCount: 2,
+      });
+    },
+  );
   test("reports element counts, vocabulary, view, source, and warnings", () => {
     const summary = createOntologyInspector().getOntologySummary(
       createSummaryRequest(),

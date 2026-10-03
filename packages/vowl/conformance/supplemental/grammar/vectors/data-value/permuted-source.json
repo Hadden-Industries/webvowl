@@ -1,0 +1,122 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "direction": "single",
+        "edge": "supplement-renamed-2",
+        "kind": "label",
+        "id": "supplement-renamed-1"
+      },
+      {
+        "to": "supplement-renamed-3",
+        "from": "supplement-renamed-5",
+        "properties": [
+          "supplement-renamed-10"
+        ],
+        "kind": "property-edge",
+        "id": "supplement-renamed-2"
+      },
+      {
+        "context": {
+          "properties": [
+            "supplement-renamed-10"
+          ],
+          "kind": "property"
+        },
+        "target": "supplement-renamed-11",
+        "kind": "datatype-node",
+        "id": "supplement-renamed-3"
+      },
+      {
+        "targets": [
+          "supplement-renamed-12"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-4"
+      },
+      {
+        "targets": [
+          "supplement-renamed-13"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-5"
+      }
+    ],
+    "constructs": [
+      {
+        "super": "supplement-renamed-9",
+        "sub": "supplement-renamed-13",
+        "kind": "subclass",
+        "id": "supplement-renamed-6"
+      },
+      {
+        "target": "supplement-renamed-11",
+        "property": "supplement-renamed-10",
+        "kind": "data-range",
+        "id": "supplement-renamed-7"
+      },
+      {
+        "target": "supplement-renamed-13",
+        "property": "supplement-renamed-10",
+        "kind": "data-domain",
+        "id": "supplement-renamed-8"
+      }
+    ],
+    "expressions": [
+      {
+        "value": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+          "lexical": "01",
+          "kind": "typed"
+        },
+        "property": "supplement-renamed-10",
+        "kind": "data-value",
+        "id": "supplement-renamed-9"
+      }
+    ],
+    "roles": [
+      {
+        "subject": "supplement-renamed-14",
+        "kind": "data-property",
+        "id": "supplement-renamed-10"
+      },
+      {
+        "subject": "supplement-renamed-15",
+        "kind": "datatype",
+        "id": "supplement-renamed-11"
+      },
+      {
+        "subject": "supplement-renamed-16",
+        "kind": "class",
+        "id": "supplement-renamed-12"
+      },
+      {
+        "subject": "supplement-renamed-17",
+        "kind": "class",
+        "id": "supplement-renamed-13"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "https://example.org/supplement#p",
+        "id": "supplement-renamed-14"
+      },
+      {
+        "iri": "http://www.w3.org/2001/XMLSchema#integer",
+        "id": "supplement-renamed-15"
+      },
+      {
+        "iri": "https://example.org/supplement#B",
+        "id": "supplement-renamed-16"
+      },
+      {
+        "iri": "https://example.org/supplement#A",
+        "id": "supplement-renamed-17"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

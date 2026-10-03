@@ -1,0 +1,1727 @@
+{
+  "status": "experimental-nonconforming-A8-budget-growth-probe",
+  "normativePolicyChanged": false,
+  "command": "node packages/vowl/conformance/supplemental/budget/probe-growth.mjs",
+  "node": "v24.21.0",
+  "platform": "win32",
+  "arch": "x64",
+  "dependency": "rdf-canonize@5.0.0",
+  "frozenProducerSha256": "5097d9726c839afc7b4240dcb5527bd5089f5f847d788e9b32b6d3dd67699fd1",
+  "probeSourceSha256": "f6ed30ebb4ba0c0df4e7224d41adc6b934e72cbb126796dcdc855f5637912bac",
+  "transformedProducerSha256": "aba1473352b6bc3bbea5b96f9b0ebf56ff4cbbd260fac9daaaea94ca0d7f2e6c",
+  "grammarRecipeSha256": "7a720f382180a0468f7441437342fef98d40155f511858bb9eece3d3c5a68a31",
+  "extendedRecipeSha256": "29a1ca8d3418f17f674bc577b999ba80a68e655d5b1848e04301b41e07e69da0",
+  "proposedPolicy": "min(totalAllocatedBlankNodes ** 2, rdfDeepIterations); default rdfDeepIterations 100000; caller upper bound remains 1000000; experimental only",
+  "cases": [
+    {
+      "id": "original-per-property-datatype-current-producer",
+      "status": "measured",
+      "sourceSha256": "753f08701f085f6c4dc58827b41a102bef46ee7702f3e035c99a8bef6e3f532f",
+      "normativeBudget": 37,
+      "normativeSuccess": false,
+      "proposedBudget": 1369,
+      "proposedSuccess": true,
+      "smallestSuccessfulBudget": 72,
+      "absoluteProbeCeiling": 100000,
+      "perCallDeadlineMs": 10000,
+      "confirmationPairs": 3,
+      "blankNodes": 37,
+      "quads": 118,
+      "mappedNQuadsSha256": "30e3e9f4cafb95ba9f323466160fdfef477a71492b89fc457a84f2e680b097cc",
+      "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4",
+      "attempts": [
+        {
+          "budget": 37,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (37).",
+          "elapsedMs": 6.29
+        },
+        {
+          "budget": 1369,
+          "outcome": "success",
+          "elapsedMs": 5.004,
+          "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4"
+        },
+        {
+          "budget": 100000,
+          "outcome": "success",
+          "elapsedMs": 3.704,
+          "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4"
+        },
+        {
+          "budget": 49999,
+          "outcome": "success",
+          "elapsedMs": 2.621,
+          "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4"
+        },
+        {
+          "budget": 24999,
+          "outcome": "success",
+          "elapsedMs": 2.375,
+          "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4"
+        },
+        {
+          "budget": 12499,
+          "outcome": "success",
+          "elapsedMs": 1.803,
+          "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4"
+        },
+        {
+          "budget": 6249,
+          "outcome": "success",
+          "elapsedMs": 2.207,
+          "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4"
+        },
+        {
+          "budget": 3124,
+          "outcome": "success",
+          "elapsedMs": 2.411,
+          "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4"
+        },
+        {
+          "budget": 1561,
+          "outcome": "success",
+          "elapsedMs": 2.135,
+          "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4"
+        },
+        {
+          "budget": 780,
+          "outcome": "success",
+          "elapsedMs": 2.72,
+          "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4"
+        },
+        {
+          "budget": 389,
+          "outcome": "success",
+          "elapsedMs": 1.561,
+          "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4"
+        },
+        {
+          "budget": 194,
+          "outcome": "success",
+          "elapsedMs": 2.617,
+          "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4"
+        },
+        {
+          "budget": 96,
+          "outcome": "success",
+          "elapsedMs": 2.416,
+          "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4"
+        },
+        {
+          "budget": 47,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (47).",
+          "elapsedMs": 1.217
+        },
+        {
+          "budget": 71,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (71).",
+          "elapsedMs": 1.819
+        },
+        {
+          "budget": 83,
+          "outcome": "success",
+          "elapsedMs": 1.642,
+          "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4"
+        },
+        {
+          "budget": 77,
+          "outcome": "success",
+          "elapsedMs": 2.531,
+          "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4"
+        },
+        {
+          "budget": 74,
+          "outcome": "success",
+          "elapsedMs": 2.472,
+          "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4"
+        },
+        {
+          "budget": 72,
+          "outcome": "success",
+          "elapsedMs": 1.785,
+          "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4"
+        },
+        {
+          "budget": 71,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (71).",
+          "elapsedMs": 2.48
+        },
+        {
+          "budget": 72,
+          "outcome": "success",
+          "elapsedMs": 2.434,
+          "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4"
+        },
+        {
+          "budget": 71,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (71).",
+          "elapsedMs": 2.6
+        },
+        {
+          "budget": 72,
+          "outcome": "success",
+          "elapsedMs": 3.166,
+          "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4"
+        },
+        {
+          "budget": 71,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (71).",
+          "elapsedMs": 1.579
+        },
+        {
+          "budget": 72,
+          "outcome": "success",
+          "elapsedMs": 2.453,
+          "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4"
+        }
+      ]
+    },
+    {
+      "id": "disjoint-data-properties",
+      "status": "measured",
+      "sourceSha256": "e997016bca39c516a2182d6c9cfc9d3da1885bc12a432320d85ea750861087a6",
+      "normativeBudget": 47,
+      "normativeSuccess": false,
+      "proposedBudget": 2209,
+      "proposedSuccess": true,
+      "smallestSuccessfulBudget": 50,
+      "absoluteProbeCeiling": 100000,
+      "perCallDeadlineMs": 10000,
+      "confirmationPairs": 3,
+      "blankNodes": 47,
+      "quads": 160,
+      "mappedNQuadsSha256": "d2edab672fed7803aee5842cdb2953fae0b7b8d7ad0bf4235720327a44f5bcfa",
+      "canonicalNQuadsSha256": "65e517c1c7be6f4359f27633cfd3532d14939435aab28dd6fc6b12e2ae0b1d9a",
+      "attempts": [
+        {
+          "budget": 47,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (47).",
+          "elapsedMs": 1.746
+        },
+        {
+          "budget": 2209,
+          "outcome": "success",
+          "elapsedMs": 2.404,
+          "canonicalNQuadsSha256": "65e517c1c7be6f4359f27633cfd3532d14939435aab28dd6fc6b12e2ae0b1d9a"
+        },
+        {
+          "budget": 100000,
+          "outcome": "success",
+          "elapsedMs": 1.779,
+          "canonicalNQuadsSha256": "65e517c1c7be6f4359f27633cfd3532d14939435aab28dd6fc6b12e2ae0b1d9a"
+        },
+        {
+          "budget": 49999,
+          "outcome": "success",
+          "elapsedMs": 2.797,
+          "canonicalNQuadsSha256": "65e517c1c7be6f4359f27633cfd3532d14939435aab28dd6fc6b12e2ae0b1d9a"
+        },
+        {
+          "budget": 24999,
+          "outcome": "success",
+          "elapsedMs": 2.096,
+          "canonicalNQuadsSha256": "65e517c1c7be6f4359f27633cfd3532d14939435aab28dd6fc6b12e2ae0b1d9a"
+        },
+        {
+          "budget": 12499,
+          "outcome": "success",
+          "elapsedMs": 2.536,
+          "canonicalNQuadsSha256": "65e517c1c7be6f4359f27633cfd3532d14939435aab28dd6fc6b12e2ae0b1d9a"
+        },
+        {
+          "budget": 6249,
+          "outcome": "success",
+          "elapsedMs": 2.617,
+          "canonicalNQuadsSha256": "65e517c1c7be6f4359f27633cfd3532d14939435aab28dd6fc6b12e2ae0b1d9a"
+        },
+        {
+          "budget": 3124,
+          "outcome": "success",
+          "elapsedMs": 2.622,
+          "canonicalNQuadsSha256": "65e517c1c7be6f4359f27633cfd3532d14939435aab28dd6fc6b12e2ae0b1d9a"
+        },
+        {
+          "budget": 1561,
+          "outcome": "success",
+          "elapsedMs": 2.035,
+          "canonicalNQuadsSha256": "65e517c1c7be6f4359f27633cfd3532d14939435aab28dd6fc6b12e2ae0b1d9a"
+        },
+        {
+          "budget": 780,
+          "outcome": "success",
+          "elapsedMs": 2.368,
+          "canonicalNQuadsSha256": "65e517c1c7be6f4359f27633cfd3532d14939435aab28dd6fc6b12e2ae0b1d9a"
+        },
+        {
+          "budget": 389,
+          "outcome": "success",
+          "elapsedMs": 2.489,
+          "canonicalNQuadsSha256": "65e517c1c7be6f4359f27633cfd3532d14939435aab28dd6fc6b12e2ae0b1d9a"
+        },
+        {
+          "budget": 194,
+          "outcome": "success",
+          "elapsedMs": 2.625,
+          "canonicalNQuadsSha256": "65e517c1c7be6f4359f27633cfd3532d14939435aab28dd6fc6b12e2ae0b1d9a"
+        },
+        {
+          "budget": 96,
+          "outcome": "success",
+          "elapsedMs": 2.466,
+          "canonicalNQuadsSha256": "65e517c1c7be6f4359f27633cfd3532d14939435aab28dd6fc6b12e2ae0b1d9a"
+        },
+        {
+          "budget": 47,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (47).",
+          "elapsedMs": 1.584
+        },
+        {
+          "budget": 71,
+          "outcome": "success",
+          "elapsedMs": 2.046,
+          "canonicalNQuadsSha256": "65e517c1c7be6f4359f27633cfd3532d14939435aab28dd6fc6b12e2ae0b1d9a"
+        },
+        {
+          "budget": 59,
+          "outcome": "success",
+          "elapsedMs": 1.9,
+          "canonicalNQuadsSha256": "65e517c1c7be6f4359f27633cfd3532d14939435aab28dd6fc6b12e2ae0b1d9a"
+        },
+        {
+          "budget": 53,
+          "outcome": "success",
+          "elapsedMs": 2.156,
+          "canonicalNQuadsSha256": "65e517c1c7be6f4359f27633cfd3532d14939435aab28dd6fc6b12e2ae0b1d9a"
+        },
+        {
+          "budget": 50,
+          "outcome": "success",
+          "elapsedMs": 2.165,
+          "canonicalNQuadsSha256": "65e517c1c7be6f4359f27633cfd3532d14939435aab28dd6fc6b12e2ae0b1d9a"
+        },
+        {
+          "budget": 48,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (48).",
+          "elapsedMs": 1.722
+        },
+        {
+          "budget": 49,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (49).",
+          "elapsedMs": 1.566
+        },
+        {
+          "budget": 49,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (49).",
+          "elapsedMs": 1.951
+        },
+        {
+          "budget": 50,
+          "outcome": "success",
+          "elapsedMs": 1.964,
+          "canonicalNQuadsSha256": "65e517c1c7be6f4359f27633cfd3532d14939435aab28dd6fc6b12e2ae0b1d9a"
+        },
+        {
+          "budget": 49,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (49).",
+          "elapsedMs": 1.958
+        },
+        {
+          "budget": 50,
+          "outcome": "success",
+          "elapsedMs": 2.049,
+          "canonicalNQuadsSha256": "65e517c1c7be6f4359f27633cfd3532d14939435aab28dd6fc6b12e2ae0b1d9a"
+        },
+        {
+          "budget": 49,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (49).",
+          "elapsedMs": 2.189
+        },
+        {
+          "budget": 50,
+          "outcome": "success",
+          "elapsedMs": 2.201,
+          "canonicalNQuadsSha256": "65e517c1c7be6f4359f27633cfd3532d14939435aab28dd6fc6b12e2ae0b1d9a"
+        }
+      ]
+    },
+    {
+      "id": "multiple-explicit-inverse-pairs",
+      "status": "measured",
+      "sourceSha256": "f718864881a6ff4ba6f393e386aff5bc50f3da3b3461ef0186ae790117672363",
+      "normativeBudget": 43,
+      "normativeSuccess": false,
+      "proposedBudget": 1849,
+      "proposedSuccess": true,
+      "smallestSuccessfulBudget": 52,
+      "absoluteProbeCeiling": 100000,
+      "perCallDeadlineMs": 10000,
+      "confirmationPairs": 3,
+      "blankNodes": 43,
+      "quads": 155,
+      "mappedNQuadsSha256": "2091024c3d0faedfd4b319bb0a74593a82fe1bbb81067e9f18c744b0e84cf9e2",
+      "canonicalNQuadsSha256": "6f6f7f64b19de364f04c65f4f15223cb61e53727140659b27e9ef6eb1efdf7bd",
+      "attempts": [
+        {
+          "budget": 43,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (43).",
+          "elapsedMs": 1.398
+        },
+        {
+          "budget": 1849,
+          "outcome": "success",
+          "elapsedMs": 2.929,
+          "canonicalNQuadsSha256": "6f6f7f64b19de364f04c65f4f15223cb61e53727140659b27e9ef6eb1efdf7bd"
+        },
+        {
+          "budget": 100000,
+          "outcome": "success",
+          "elapsedMs": 2.159,
+          "canonicalNQuadsSha256": "6f6f7f64b19de364f04c65f4f15223cb61e53727140659b27e9ef6eb1efdf7bd"
+        },
+        {
+          "budget": 49999,
+          "outcome": "success",
+          "elapsedMs": 2.505,
+          "canonicalNQuadsSha256": "6f6f7f64b19de364f04c65f4f15223cb61e53727140659b27e9ef6eb1efdf7bd"
+        },
+        {
+          "budget": 24999,
+          "outcome": "success",
+          "elapsedMs": 1.843,
+          "canonicalNQuadsSha256": "6f6f7f64b19de364f04c65f4f15223cb61e53727140659b27e9ef6eb1efdf7bd"
+        },
+        {
+          "budget": 12499,
+          "outcome": "success",
+          "elapsedMs": 2.241,
+          "canonicalNQuadsSha256": "6f6f7f64b19de364f04c65f4f15223cb61e53727140659b27e9ef6eb1efdf7bd"
+        },
+        {
+          "budget": 6249,
+          "outcome": "success",
+          "elapsedMs": 2.569,
+          "canonicalNQuadsSha256": "6f6f7f64b19de364f04c65f4f15223cb61e53727140659b27e9ef6eb1efdf7bd"
+        },
+        {
+          "budget": 3124,
+          "outcome": "success",
+          "elapsedMs": 2.184,
+          "canonicalNQuadsSha256": "6f6f7f64b19de364f04c65f4f15223cb61e53727140659b27e9ef6eb1efdf7bd"
+        },
+        {
+          "budget": 1561,
+          "outcome": "success",
+          "elapsedMs": 2.412,
+          "canonicalNQuadsSha256": "6f6f7f64b19de364f04c65f4f15223cb61e53727140659b27e9ef6eb1efdf7bd"
+        },
+        {
+          "budget": 780,
+          "outcome": "success",
+          "elapsedMs": 2.651,
+          "canonicalNQuadsSha256": "6f6f7f64b19de364f04c65f4f15223cb61e53727140659b27e9ef6eb1efdf7bd"
+        },
+        {
+          "budget": 389,
+          "outcome": "success",
+          "elapsedMs": 2.79,
+          "canonicalNQuadsSha256": "6f6f7f64b19de364f04c65f4f15223cb61e53727140659b27e9ef6eb1efdf7bd"
+        },
+        {
+          "budget": 194,
+          "outcome": "success",
+          "elapsedMs": 2.686,
+          "canonicalNQuadsSha256": "6f6f7f64b19de364f04c65f4f15223cb61e53727140659b27e9ef6eb1efdf7bd"
+        },
+        {
+          "budget": 96,
+          "outcome": "success",
+          "elapsedMs": 2.984,
+          "canonicalNQuadsSha256": "6f6f7f64b19de364f04c65f4f15223cb61e53727140659b27e9ef6eb1efdf7bd"
+        },
+        {
+          "budget": 47,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (47).",
+          "elapsedMs": 1.552
+        },
+        {
+          "budget": 71,
+          "outcome": "success",
+          "elapsedMs": 2.297,
+          "canonicalNQuadsSha256": "6f6f7f64b19de364f04c65f4f15223cb61e53727140659b27e9ef6eb1efdf7bd"
+        },
+        {
+          "budget": 59,
+          "outcome": "success",
+          "elapsedMs": 2.809,
+          "canonicalNQuadsSha256": "6f6f7f64b19de364f04c65f4f15223cb61e53727140659b27e9ef6eb1efdf7bd"
+        },
+        {
+          "budget": 53,
+          "outcome": "success",
+          "elapsedMs": 2.582,
+          "canonicalNQuadsSha256": "6f6f7f64b19de364f04c65f4f15223cb61e53727140659b27e9ef6eb1efdf7bd"
+        },
+        {
+          "budget": 50,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (50).",
+          "elapsedMs": 1.087
+        },
+        {
+          "budget": 51,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (51).",
+          "elapsedMs": 1.612
+        },
+        {
+          "budget": 52,
+          "outcome": "success",
+          "elapsedMs": 1.58,
+          "canonicalNQuadsSha256": "6f6f7f64b19de364f04c65f4f15223cb61e53727140659b27e9ef6eb1efdf7bd"
+        },
+        {
+          "budget": 51,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (51).",
+          "elapsedMs": 1.897
+        },
+        {
+          "budget": 52,
+          "outcome": "success",
+          "elapsedMs": 2.298,
+          "canonicalNQuadsSha256": "6f6f7f64b19de364f04c65f4f15223cb61e53727140659b27e9ef6eb1efdf7bd"
+        },
+        {
+          "budget": 51,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (51).",
+          "elapsedMs": 1.666
+        },
+        {
+          "budget": 52,
+          "outcome": "success",
+          "elapsedMs": 2.723,
+          "canonicalNQuadsSha256": "6f6f7f64b19de364f04c65f4f15223cb61e53727140659b27e9ef6eb1efdf7bd"
+        },
+        {
+          "budget": 51,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (51).",
+          "elapsedMs": 1.928
+        },
+        {
+          "budget": 52,
+          "outcome": "success",
+          "elapsedMs": 2.312,
+          "canonicalNQuadsSha256": "6f6f7f64b19de364f04c65f4f15223cb61e53727140659b27e9ef6eb1efdf7bd"
+        }
+      ]
+    },
+    {
+      "id": "defaulted-data-properties-1",
+      "status": "measured",
+      "sourceSha256": "86ddfe44716a6f02d2b94c7089f9d9c6ee9361aa979180f21e6f24b80a0394fd",
+      "normativeBudget": 25,
+      "normativeSuccess": true,
+      "proposedBudget": 625,
+      "proposedSuccess": true,
+      "smallestSuccessfulBudget": 5,
+      "absoluteProbeCeiling": 100000,
+      "perCallDeadlineMs": 10000,
+      "confirmationPairs": 1,
+      "blankNodes": 25,
+      "quads": 76,
+      "mappedNQuadsSha256": "e4c8e3f370e84a38c6ca67161c7631700e9998f99dacfa2b547dec50347280bb",
+      "canonicalNQuadsSha256": "a4a29e90047ca68de43c5b42c21509abcc2a0deeaac275df9371ecee017adc47",
+      "attempts": [
+        {
+          "budget": 25,
+          "outcome": "success",
+          "elapsedMs": 0.718,
+          "canonicalNQuadsSha256": "a4a29e90047ca68de43c5b42c21509abcc2a0deeaac275df9371ecee017adc47"
+        },
+        {
+          "budget": 625,
+          "outcome": "success",
+          "elapsedMs": 0.534,
+          "canonicalNQuadsSha256": "a4a29e90047ca68de43c5b42c21509abcc2a0deeaac275df9371ecee017adc47"
+        },
+        {
+          "budget": 100000,
+          "outcome": "success",
+          "elapsedMs": 0.377,
+          "canonicalNQuadsSha256": "a4a29e90047ca68de43c5b42c21509abcc2a0deeaac275df9371ecee017adc47"
+        },
+        {
+          "budget": 49999,
+          "outcome": "success",
+          "elapsedMs": 0.351,
+          "canonicalNQuadsSha256": "a4a29e90047ca68de43c5b42c21509abcc2a0deeaac275df9371ecee017adc47"
+        },
+        {
+          "budget": 24999,
+          "outcome": "success",
+          "elapsedMs": 0.628,
+          "canonicalNQuadsSha256": "a4a29e90047ca68de43c5b42c21509abcc2a0deeaac275df9371ecee017adc47"
+        },
+        {
+          "budget": 12499,
+          "outcome": "success",
+          "elapsedMs": 0.794,
+          "canonicalNQuadsSha256": "a4a29e90047ca68de43c5b42c21509abcc2a0deeaac275df9371ecee017adc47"
+        },
+        {
+          "budget": 6249,
+          "outcome": "success",
+          "elapsedMs": 0.795,
+          "canonicalNQuadsSha256": "a4a29e90047ca68de43c5b42c21509abcc2a0deeaac275df9371ecee017adc47"
+        },
+        {
+          "budget": 3124,
+          "outcome": "success",
+          "elapsedMs": 0.648,
+          "canonicalNQuadsSha256": "a4a29e90047ca68de43c5b42c21509abcc2a0deeaac275df9371ecee017adc47"
+        },
+        {
+          "budget": 1561,
+          "outcome": "success",
+          "elapsedMs": 0.518,
+          "canonicalNQuadsSha256": "a4a29e90047ca68de43c5b42c21509abcc2a0deeaac275df9371ecee017adc47"
+        },
+        {
+          "budget": 780,
+          "outcome": "success",
+          "elapsedMs": 0.591,
+          "canonicalNQuadsSha256": "a4a29e90047ca68de43c5b42c21509abcc2a0deeaac275df9371ecee017adc47"
+        },
+        {
+          "budget": 389,
+          "outcome": "success",
+          "elapsedMs": 0.645,
+          "canonicalNQuadsSha256": "a4a29e90047ca68de43c5b42c21509abcc2a0deeaac275df9371ecee017adc47"
+        },
+        {
+          "budget": 194,
+          "outcome": "success",
+          "elapsedMs": 0.583,
+          "canonicalNQuadsSha256": "a4a29e90047ca68de43c5b42c21509abcc2a0deeaac275df9371ecee017adc47"
+        },
+        {
+          "budget": 96,
+          "outcome": "success",
+          "elapsedMs": 1.085,
+          "canonicalNQuadsSha256": "a4a29e90047ca68de43c5b42c21509abcc2a0deeaac275df9371ecee017adc47"
+        },
+        {
+          "budget": 47,
+          "outcome": "success",
+          "elapsedMs": 0.634,
+          "canonicalNQuadsSha256": "a4a29e90047ca68de43c5b42c21509abcc2a0deeaac275df9371ecee017adc47"
+        },
+        {
+          "budget": 23,
+          "outcome": "success",
+          "elapsedMs": 0.86,
+          "canonicalNQuadsSha256": "a4a29e90047ca68de43c5b42c21509abcc2a0deeaac275df9371ecee017adc47"
+        },
+        {
+          "budget": 11,
+          "outcome": "success",
+          "elapsedMs": 0.63,
+          "canonicalNQuadsSha256": "a4a29e90047ca68de43c5b42c21509abcc2a0deeaac275df9371ecee017adc47"
+        },
+        {
+          "budget": 5,
+          "outcome": "success",
+          "elapsedMs": 0.612,
+          "canonicalNQuadsSha256": "a4a29e90047ca68de43c5b42c21509abcc2a0deeaac275df9371ecee017adc47"
+        },
+        {
+          "budget": 2,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (2).",
+          "elapsedMs": 0.358
+        },
+        {
+          "budget": 3,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (3).",
+          "elapsedMs": 0.253
+        },
+        {
+          "budget": 4,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (4).",
+          "elapsedMs": 0.403
+        },
+        {
+          "budget": 4,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (4).",
+          "elapsedMs": 0.328
+        },
+        {
+          "budget": 5,
+          "outcome": "success",
+          "elapsedMs": 0.915,
+          "canonicalNQuadsSha256": "a4a29e90047ca68de43c5b42c21509abcc2a0deeaac275df9371ecee017adc47"
+        }
+      ]
+    },
+    {
+      "id": "defaulted-data-properties-2",
+      "status": "measured",
+      "sourceSha256": "0def19da8cfb31276db9f0ac136cdfd69276c93dfaecca30f8137f074c0c61d7",
+      "normativeBudget": 37,
+      "normativeSuccess": false,
+      "proposedBudget": 1369,
+      "proposedSuccess": true,
+      "smallestSuccessfulBudget": 76,
+      "absoluteProbeCeiling": 100000,
+      "perCallDeadlineMs": 10000,
+      "confirmationPairs": 1,
+      "blankNodes": 37,
+      "quads": 118,
+      "mappedNQuadsSha256": "f8146861a7efaa73249ffa1c8eabe07d7730d07d82dac987a92ca9e8f9505059",
+      "canonicalNQuadsSha256": "269b72fbaea074658d8d22418f6e5ca193e54413e683504ae3a5e5abb71dc317",
+      "attempts": [
+        {
+          "budget": 37,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (37).",
+          "elapsedMs": 1.12
+        },
+        {
+          "budget": 1369,
+          "outcome": "success",
+          "elapsedMs": 2.383,
+          "canonicalNQuadsSha256": "269b72fbaea074658d8d22418f6e5ca193e54413e683504ae3a5e5abb71dc317"
+        },
+        {
+          "budget": 100000,
+          "outcome": "success",
+          "elapsedMs": 1.767,
+          "canonicalNQuadsSha256": "269b72fbaea074658d8d22418f6e5ca193e54413e683504ae3a5e5abb71dc317"
+        },
+        {
+          "budget": 49999,
+          "outcome": "success",
+          "elapsedMs": 3.032,
+          "canonicalNQuadsSha256": "269b72fbaea074658d8d22418f6e5ca193e54413e683504ae3a5e5abb71dc317"
+        },
+        {
+          "budget": 24999,
+          "outcome": "success",
+          "elapsedMs": 1.69,
+          "canonicalNQuadsSha256": "269b72fbaea074658d8d22418f6e5ca193e54413e683504ae3a5e5abb71dc317"
+        },
+        {
+          "budget": 12499,
+          "outcome": "success",
+          "elapsedMs": 1.778,
+          "canonicalNQuadsSha256": "269b72fbaea074658d8d22418f6e5ca193e54413e683504ae3a5e5abb71dc317"
+        },
+        {
+          "budget": 6249,
+          "outcome": "success",
+          "elapsedMs": 3.025,
+          "canonicalNQuadsSha256": "269b72fbaea074658d8d22418f6e5ca193e54413e683504ae3a5e5abb71dc317"
+        },
+        {
+          "budget": 3124,
+          "outcome": "success",
+          "elapsedMs": 2.032,
+          "canonicalNQuadsSha256": "269b72fbaea074658d8d22418f6e5ca193e54413e683504ae3a5e5abb71dc317"
+        },
+        {
+          "budget": 1561,
+          "outcome": "success",
+          "elapsedMs": 2.536,
+          "canonicalNQuadsSha256": "269b72fbaea074658d8d22418f6e5ca193e54413e683504ae3a5e5abb71dc317"
+        },
+        {
+          "budget": 780,
+          "outcome": "success",
+          "elapsedMs": 3.424,
+          "canonicalNQuadsSha256": "269b72fbaea074658d8d22418f6e5ca193e54413e683504ae3a5e5abb71dc317"
+        },
+        {
+          "budget": 389,
+          "outcome": "success",
+          "elapsedMs": 2.202,
+          "canonicalNQuadsSha256": "269b72fbaea074658d8d22418f6e5ca193e54413e683504ae3a5e5abb71dc317"
+        },
+        {
+          "budget": 194,
+          "outcome": "success",
+          "elapsedMs": 2.348,
+          "canonicalNQuadsSha256": "269b72fbaea074658d8d22418f6e5ca193e54413e683504ae3a5e5abb71dc317"
+        },
+        {
+          "budget": 96,
+          "outcome": "success",
+          "elapsedMs": 2.559,
+          "canonicalNQuadsSha256": "269b72fbaea074658d8d22418f6e5ca193e54413e683504ae3a5e5abb71dc317"
+        },
+        {
+          "budget": 47,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (47).",
+          "elapsedMs": 1.228
+        },
+        {
+          "budget": 71,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (71).",
+          "elapsedMs": 1.194
+        },
+        {
+          "budget": 83,
+          "outcome": "success",
+          "elapsedMs": 1.93,
+          "canonicalNQuadsSha256": "269b72fbaea074658d8d22418f6e5ca193e54413e683504ae3a5e5abb71dc317"
+        },
+        {
+          "budget": 77,
+          "outcome": "success",
+          "elapsedMs": 2.507,
+          "canonicalNQuadsSha256": "269b72fbaea074658d8d22418f6e5ca193e54413e683504ae3a5e5abb71dc317"
+        },
+        {
+          "budget": 74,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (74).",
+          "elapsedMs": 1.317
+        },
+        {
+          "budget": 75,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (75).",
+          "elapsedMs": 1.59
+        },
+        {
+          "budget": 76,
+          "outcome": "success",
+          "elapsedMs": 2.428,
+          "canonicalNQuadsSha256": "269b72fbaea074658d8d22418f6e5ca193e54413e683504ae3a5e5abb71dc317"
+        },
+        {
+          "budget": 75,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (75).",
+          "elapsedMs": 2.134
+        },
+        {
+          "budget": 76,
+          "outcome": "success",
+          "elapsedMs": 2.166,
+          "canonicalNQuadsSha256": "269b72fbaea074658d8d22418f6e5ca193e54413e683504ae3a5e5abb71dc317"
+        }
+      ]
+    },
+    {
+      "id": "defaulted-data-properties-3",
+      "status": "measured",
+      "sourceSha256": "416bbdd7cd85bcaeef40ec89d76982cf31ff8d94eb504709909ae0970b4fd060",
+      "normativeBudget": 49,
+      "normativeSuccess": false,
+      "proposedBudget": 2401,
+      "proposedSuccess": true,
+      "smallestSuccessfulBudget": 111,
+      "absoluteProbeCeiling": 100000,
+      "perCallDeadlineMs": 10000,
+      "confirmationPairs": 1,
+      "blankNodes": 49,
+      "quads": 160,
+      "mappedNQuadsSha256": "2404b38c7098659376d69b33c276afefee51708c26f81ffc44478bf5f84c0066",
+      "canonicalNQuadsSha256": "910849b0599e877e39e71f019e44c6eecd0f46be1c91be070ef08f1c02f3bd18",
+      "attempts": [
+        {
+          "budget": 49,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (49).",
+          "elapsedMs": 1.626
+        },
+        {
+          "budget": 2401,
+          "outcome": "success",
+          "elapsedMs": 2.492,
+          "canonicalNQuadsSha256": "910849b0599e877e39e71f019e44c6eecd0f46be1c91be070ef08f1c02f3bd18"
+        },
+        {
+          "budget": 100000,
+          "outcome": "success",
+          "elapsedMs": 3.682,
+          "canonicalNQuadsSha256": "910849b0599e877e39e71f019e44c6eecd0f46be1c91be070ef08f1c02f3bd18"
+        },
+        {
+          "budget": 49999,
+          "outcome": "success",
+          "elapsedMs": 2.793,
+          "canonicalNQuadsSha256": "910849b0599e877e39e71f019e44c6eecd0f46be1c91be070ef08f1c02f3bd18"
+        },
+        {
+          "budget": 24999,
+          "outcome": "success",
+          "elapsedMs": 3.468,
+          "canonicalNQuadsSha256": "910849b0599e877e39e71f019e44c6eecd0f46be1c91be070ef08f1c02f3bd18"
+        },
+        {
+          "budget": 12499,
+          "outcome": "success",
+          "elapsedMs": 3.033,
+          "canonicalNQuadsSha256": "910849b0599e877e39e71f019e44c6eecd0f46be1c91be070ef08f1c02f3bd18"
+        },
+        {
+          "budget": 6249,
+          "outcome": "success",
+          "elapsedMs": 2.243,
+          "canonicalNQuadsSha256": "910849b0599e877e39e71f019e44c6eecd0f46be1c91be070ef08f1c02f3bd18"
+        },
+        {
+          "budget": 3124,
+          "outcome": "success",
+          "elapsedMs": 2.497,
+          "canonicalNQuadsSha256": "910849b0599e877e39e71f019e44c6eecd0f46be1c91be070ef08f1c02f3bd18"
+        },
+        {
+          "budget": 1561,
+          "outcome": "success",
+          "elapsedMs": 2.37,
+          "canonicalNQuadsSha256": "910849b0599e877e39e71f019e44c6eecd0f46be1c91be070ef08f1c02f3bd18"
+        },
+        {
+          "budget": 780,
+          "outcome": "success",
+          "elapsedMs": 3.384,
+          "canonicalNQuadsSha256": "910849b0599e877e39e71f019e44c6eecd0f46be1c91be070ef08f1c02f3bd18"
+        },
+        {
+          "budget": 389,
+          "outcome": "success",
+          "elapsedMs": 2.618,
+          "canonicalNQuadsSha256": "910849b0599e877e39e71f019e44c6eecd0f46be1c91be070ef08f1c02f3bd18"
+        },
+        {
+          "budget": 194,
+          "outcome": "success",
+          "elapsedMs": 2.842,
+          "canonicalNQuadsSha256": "910849b0599e877e39e71f019e44c6eecd0f46be1c91be070ef08f1c02f3bd18"
+        },
+        {
+          "budget": 96,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (96).",
+          "elapsedMs": 2.06
+        },
+        {
+          "budget": 145,
+          "outcome": "success",
+          "elapsedMs": 2.762,
+          "canonicalNQuadsSha256": "910849b0599e877e39e71f019e44c6eecd0f46be1c91be070ef08f1c02f3bd18"
+        },
+        {
+          "budget": 120,
+          "outcome": "success",
+          "elapsedMs": 2.279,
+          "canonicalNQuadsSha256": "910849b0599e877e39e71f019e44c6eecd0f46be1c91be070ef08f1c02f3bd18"
+        },
+        {
+          "budget": 108,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (108).",
+          "elapsedMs": 2.459
+        },
+        {
+          "budget": 114,
+          "outcome": "success",
+          "elapsedMs": 3.271,
+          "canonicalNQuadsSha256": "910849b0599e877e39e71f019e44c6eecd0f46be1c91be070ef08f1c02f3bd18"
+        },
+        {
+          "budget": 111,
+          "outcome": "success",
+          "elapsedMs": 2.253,
+          "canonicalNQuadsSha256": "910849b0599e877e39e71f019e44c6eecd0f46be1c91be070ef08f1c02f3bd18"
+        },
+        {
+          "budget": 109,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (109).",
+          "elapsedMs": 2.212
+        },
+        {
+          "budget": 110,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (110).",
+          "elapsedMs": 2.225
+        },
+        {
+          "budget": 110,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (110).",
+          "elapsedMs": 2.015
+        },
+        {
+          "budget": 111,
+          "outcome": "success",
+          "elapsedMs": 3.097,
+          "canonicalNQuadsSha256": "910849b0599e877e39e71f019e44c6eecd0f46be1c91be070ef08f1c02f3bd18"
+        }
+      ]
+    },
+    {
+      "id": "defaulted-data-properties-4",
+      "status": "measured",
+      "sourceSha256": "2677195a2b9ffa51a402b06a5c09e8960e054177b49f02f279a821d933caad9c",
+      "normativeBudget": 61,
+      "normativeSuccess": false,
+      "proposedBudget": 3721,
+      "proposedSuccess": true,
+      "smallestSuccessfulBudget": 144,
+      "absoluteProbeCeiling": 100000,
+      "perCallDeadlineMs": 10000,
+      "confirmationPairs": 1,
+      "blankNodes": 61,
+      "quads": 202,
+      "mappedNQuadsSha256": "0387b8f6f7d19e697f428cffaba3647a76af15d2a2c83b6a769ef9a3d9802f58",
+      "canonicalNQuadsSha256": "d17cbb99811364bd648c43379e439a455180ee95045e289dc7d231834a3fd850",
+      "attempts": [
+        {
+          "budget": 61,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (61).",
+          "elapsedMs": 1.46
+        },
+        {
+          "budget": 3721,
+          "outcome": "success",
+          "elapsedMs": 3.662,
+          "canonicalNQuadsSha256": "d17cbb99811364bd648c43379e439a455180ee95045e289dc7d231834a3fd850"
+        },
+        {
+          "budget": 100000,
+          "outcome": "success",
+          "elapsedMs": 3.315,
+          "canonicalNQuadsSha256": "d17cbb99811364bd648c43379e439a455180ee95045e289dc7d231834a3fd850"
+        },
+        {
+          "budget": 49999,
+          "outcome": "success",
+          "elapsedMs": 3.569,
+          "canonicalNQuadsSha256": "d17cbb99811364bd648c43379e439a455180ee95045e289dc7d231834a3fd850"
+        },
+        {
+          "budget": 24999,
+          "outcome": "success",
+          "elapsedMs": 4.789,
+          "canonicalNQuadsSha256": "d17cbb99811364bd648c43379e439a455180ee95045e289dc7d231834a3fd850"
+        },
+        {
+          "budget": 12499,
+          "outcome": "success",
+          "elapsedMs": 3.976,
+          "canonicalNQuadsSha256": "d17cbb99811364bd648c43379e439a455180ee95045e289dc7d231834a3fd850"
+        },
+        {
+          "budget": 6249,
+          "outcome": "success",
+          "elapsedMs": 3.591,
+          "canonicalNQuadsSha256": "d17cbb99811364bd648c43379e439a455180ee95045e289dc7d231834a3fd850"
+        },
+        {
+          "budget": 3124,
+          "outcome": "success",
+          "elapsedMs": 3.237,
+          "canonicalNQuadsSha256": "d17cbb99811364bd648c43379e439a455180ee95045e289dc7d231834a3fd850"
+        },
+        {
+          "budget": 1561,
+          "outcome": "success",
+          "elapsedMs": 3.739,
+          "canonicalNQuadsSha256": "d17cbb99811364bd648c43379e439a455180ee95045e289dc7d231834a3fd850"
+        },
+        {
+          "budget": 780,
+          "outcome": "success",
+          "elapsedMs": 3.611,
+          "canonicalNQuadsSha256": "d17cbb99811364bd648c43379e439a455180ee95045e289dc7d231834a3fd850"
+        },
+        {
+          "budget": 389,
+          "outcome": "success",
+          "elapsedMs": 3.629,
+          "canonicalNQuadsSha256": "d17cbb99811364bd648c43379e439a455180ee95045e289dc7d231834a3fd850"
+        },
+        {
+          "budget": 194,
+          "outcome": "success",
+          "elapsedMs": 3.982,
+          "canonicalNQuadsSha256": "d17cbb99811364bd648c43379e439a455180ee95045e289dc7d231834a3fd850"
+        },
+        {
+          "budget": 96,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (96).",
+          "elapsedMs": 1.988
+        },
+        {
+          "budget": 145,
+          "outcome": "success",
+          "elapsedMs": 2.86,
+          "canonicalNQuadsSha256": "d17cbb99811364bd648c43379e439a455180ee95045e289dc7d231834a3fd850"
+        },
+        {
+          "budget": 120,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (120).",
+          "elapsedMs": 1.808
+        },
+        {
+          "budget": 132,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (132).",
+          "elapsedMs": 2.472
+        },
+        {
+          "budget": 138,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (138).",
+          "elapsedMs": 2.112
+        },
+        {
+          "budget": 141,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (141).",
+          "elapsedMs": 2.356
+        },
+        {
+          "budget": 143,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (143).",
+          "elapsedMs": 2.328
+        },
+        {
+          "budget": 144,
+          "outcome": "success",
+          "elapsedMs": 2.877,
+          "canonicalNQuadsSha256": "d17cbb99811364bd648c43379e439a455180ee95045e289dc7d231834a3fd850"
+        },
+        {
+          "budget": 143,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (143).",
+          "elapsedMs": 2.021
+        },
+        {
+          "budget": 144,
+          "outcome": "success",
+          "elapsedMs": 3.166,
+          "canonicalNQuadsSha256": "d17cbb99811364bd648c43379e439a455180ee95045e289dc7d231834a3fd850"
+        }
+      ]
+    },
+    {
+      "id": "defaulted-data-properties-5",
+      "status": "measured",
+      "sourceSha256": "627f5542c262cad53ab2115d1ad0472ad16fe1bd66e4ed4996fa2283d7a96409",
+      "normativeBudget": 73,
+      "normativeSuccess": false,
+      "proposedBudget": 5329,
+      "proposedSuccess": true,
+      "smallestSuccessfulBudget": 185,
+      "absoluteProbeCeiling": 100000,
+      "perCallDeadlineMs": 10000,
+      "confirmationPairs": 1,
+      "blankNodes": 73,
+      "quads": 244,
+      "mappedNQuadsSha256": "b4882e76b0bf84e4342fbdf33d9f4ce1ce49d42e86e852d80341339f020762a9",
+      "canonicalNQuadsSha256": "b072857784e6a485f7c9898bbbd8256d607871bfd709face066d3e9cc713b6b3",
+      "attempts": [
+        {
+          "budget": 73,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (73).",
+          "elapsedMs": 1.665
+        },
+        {
+          "budget": 5329,
+          "outcome": "success",
+          "elapsedMs": 4.429,
+          "canonicalNQuadsSha256": "b072857784e6a485f7c9898bbbd8256d607871bfd709face066d3e9cc713b6b3"
+        },
+        {
+          "budget": 100000,
+          "outcome": "success",
+          "elapsedMs": 3.607,
+          "canonicalNQuadsSha256": "b072857784e6a485f7c9898bbbd8256d607871bfd709face066d3e9cc713b6b3"
+        },
+        {
+          "budget": 49999,
+          "outcome": "success",
+          "elapsedMs": 3.689,
+          "canonicalNQuadsSha256": "b072857784e6a485f7c9898bbbd8256d607871bfd709face066d3e9cc713b6b3"
+        },
+        {
+          "budget": 24999,
+          "outcome": "success",
+          "elapsedMs": 4.716,
+          "canonicalNQuadsSha256": "b072857784e6a485f7c9898bbbd8256d607871bfd709face066d3e9cc713b6b3"
+        },
+        {
+          "budget": 12499,
+          "outcome": "success",
+          "elapsedMs": 5.247,
+          "canonicalNQuadsSha256": "b072857784e6a485f7c9898bbbd8256d607871bfd709face066d3e9cc713b6b3"
+        },
+        {
+          "budget": 6249,
+          "outcome": "success",
+          "elapsedMs": 5.032,
+          "canonicalNQuadsSha256": "b072857784e6a485f7c9898bbbd8256d607871bfd709face066d3e9cc713b6b3"
+        },
+        {
+          "budget": 3124,
+          "outcome": "success",
+          "elapsedMs": 3.758,
+          "canonicalNQuadsSha256": "b072857784e6a485f7c9898bbbd8256d607871bfd709face066d3e9cc713b6b3"
+        },
+        {
+          "budget": 1561,
+          "outcome": "success",
+          "elapsedMs": 3.604,
+          "canonicalNQuadsSha256": "b072857784e6a485f7c9898bbbd8256d607871bfd709face066d3e9cc713b6b3"
+        },
+        {
+          "budget": 780,
+          "outcome": "success",
+          "elapsedMs": 3.221,
+          "canonicalNQuadsSha256": "b072857784e6a485f7c9898bbbd8256d607871bfd709face066d3e9cc713b6b3"
+        },
+        {
+          "budget": 389,
+          "outcome": "success",
+          "elapsedMs": 3.316,
+          "canonicalNQuadsSha256": "b072857784e6a485f7c9898bbbd8256d607871bfd709face066d3e9cc713b6b3"
+        },
+        {
+          "budget": 194,
+          "outcome": "success",
+          "elapsedMs": 3.674,
+          "canonicalNQuadsSha256": "b072857784e6a485f7c9898bbbd8256d607871bfd709face066d3e9cc713b6b3"
+        },
+        {
+          "budget": 96,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (96).",
+          "elapsedMs": 2.718
+        },
+        {
+          "budget": 145,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (145).",
+          "elapsedMs": 2.572
+        },
+        {
+          "budget": 169,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (169).",
+          "elapsedMs": 3.64
+        },
+        {
+          "budget": 181,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (181).",
+          "elapsedMs": 3.2
+        },
+        {
+          "budget": 187,
+          "outcome": "success",
+          "elapsedMs": 5.015,
+          "canonicalNQuadsSha256": "b072857784e6a485f7c9898bbbd8256d607871bfd709face066d3e9cc713b6b3"
+        },
+        {
+          "budget": 184,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (184).",
+          "elapsedMs": 4.285
+        },
+        {
+          "budget": 185,
+          "outcome": "success",
+          "elapsedMs": 4.604,
+          "canonicalNQuadsSha256": "b072857784e6a485f7c9898bbbd8256d607871bfd709face066d3e9cc713b6b3"
+        },
+        {
+          "budget": 184,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (184).",
+          "elapsedMs": 3.778
+        },
+        {
+          "budget": 185,
+          "outcome": "success",
+          "elapsedMs": 4.436,
+          "canonicalNQuadsSha256": "b072857784e6a485f7c9898bbbd8256d607871bfd709face066d3e9cc713b6b3"
+        }
+      ]
+    },
+    {
+      "id": "defaulted-data-properties-6",
+      "status": "measured",
+      "sourceSha256": "747f24ebbbe6ac9268e73dfbc0e43a3abf33533e1a9fec2741173e7e1b03c050",
+      "normativeBudget": 85,
+      "normativeSuccess": false,
+      "proposedBudget": 7225,
+      "proposedSuccess": true,
+      "smallestSuccessfulBudget": 222,
+      "absoluteProbeCeiling": 100000,
+      "perCallDeadlineMs": 10000,
+      "confirmationPairs": 1,
+      "blankNodes": 85,
+      "quads": 286,
+      "mappedNQuadsSha256": "5a32926fc5b239ea324e4492da8eaa293ca7f2dd8a79edb9f45f2f39f84fada1",
+      "canonicalNQuadsSha256": "27e7b7d6ee5bece77f0910bd406051322b5b6d9cbddd4b2622aa13a6fe2f6330",
+      "attempts": [
+        {
+          "budget": 85,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (85).",
+          "elapsedMs": 2.246
+        },
+        {
+          "budget": 7225,
+          "outcome": "success",
+          "elapsedMs": 5.195,
+          "canonicalNQuadsSha256": "27e7b7d6ee5bece77f0910bd406051322b5b6d9cbddd4b2622aa13a6fe2f6330"
+        },
+        {
+          "budget": 100000,
+          "outcome": "success",
+          "elapsedMs": 5.039,
+          "canonicalNQuadsSha256": "27e7b7d6ee5bece77f0910bd406051322b5b6d9cbddd4b2622aa13a6fe2f6330"
+        },
+        {
+          "budget": 49999,
+          "outcome": "success",
+          "elapsedMs": 4.244,
+          "canonicalNQuadsSha256": "27e7b7d6ee5bece77f0910bd406051322b5b6d9cbddd4b2622aa13a6fe2f6330"
+        },
+        {
+          "budget": 24999,
+          "outcome": "success",
+          "elapsedMs": 4.277,
+          "canonicalNQuadsSha256": "27e7b7d6ee5bece77f0910bd406051322b5b6d9cbddd4b2622aa13a6fe2f6330"
+        },
+        {
+          "budget": 12499,
+          "outcome": "success",
+          "elapsedMs": 4.426,
+          "canonicalNQuadsSha256": "27e7b7d6ee5bece77f0910bd406051322b5b6d9cbddd4b2622aa13a6fe2f6330"
+        },
+        {
+          "budget": 6249,
+          "outcome": "success",
+          "elapsedMs": 5.124,
+          "canonicalNQuadsSha256": "27e7b7d6ee5bece77f0910bd406051322b5b6d9cbddd4b2622aa13a6fe2f6330"
+        },
+        {
+          "budget": 3124,
+          "outcome": "success",
+          "elapsedMs": 3.932,
+          "canonicalNQuadsSha256": "27e7b7d6ee5bece77f0910bd406051322b5b6d9cbddd4b2622aa13a6fe2f6330"
+        },
+        {
+          "budget": 1561,
+          "outcome": "success",
+          "elapsedMs": 3.783,
+          "canonicalNQuadsSha256": "27e7b7d6ee5bece77f0910bd406051322b5b6d9cbddd4b2622aa13a6fe2f6330"
+        },
+        {
+          "budget": 780,
+          "outcome": "success",
+          "elapsedMs": 3.579,
+          "canonicalNQuadsSha256": "27e7b7d6ee5bece77f0910bd406051322b5b6d9cbddd4b2622aa13a6fe2f6330"
+        },
+        {
+          "budget": 389,
+          "outcome": "success",
+          "elapsedMs": 6.116,
+          "canonicalNQuadsSha256": "27e7b7d6ee5bece77f0910bd406051322b5b6d9cbddd4b2622aa13a6fe2f6330"
+        },
+        {
+          "budget": 194,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (194).",
+          "elapsedMs": 4.314
+        },
+        {
+          "budget": 291,
+          "outcome": "success",
+          "elapsedMs": 6.623,
+          "canonicalNQuadsSha256": "27e7b7d6ee5bece77f0910bd406051322b5b6d9cbddd4b2622aa13a6fe2f6330"
+        },
+        {
+          "budget": 242,
+          "outcome": "success",
+          "elapsedMs": 5.375,
+          "canonicalNQuadsSha256": "27e7b7d6ee5bece77f0910bd406051322b5b6d9cbddd4b2622aa13a6fe2f6330"
+        },
+        {
+          "budget": 218,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (218).",
+          "elapsedMs": 4.044
+        },
+        {
+          "budget": 230,
+          "outcome": "success",
+          "elapsedMs": 5.88,
+          "canonicalNQuadsSha256": "27e7b7d6ee5bece77f0910bd406051322b5b6d9cbddd4b2622aa13a6fe2f6330"
+        },
+        {
+          "budget": 224,
+          "outcome": "success",
+          "elapsedMs": 6.117,
+          "canonicalNQuadsSha256": "27e7b7d6ee5bece77f0910bd406051322b5b6d9cbddd4b2622aa13a6fe2f6330"
+        },
+        {
+          "budget": 221,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (221).",
+          "elapsedMs": 4.527
+        },
+        {
+          "budget": 222,
+          "outcome": "success",
+          "elapsedMs": 6.767,
+          "canonicalNQuadsSha256": "27e7b7d6ee5bece77f0910bd406051322b5b6d9cbddd4b2622aa13a6fe2f6330"
+        },
+        {
+          "budget": 221,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (221).",
+          "elapsedMs": 5.28
+        },
+        {
+          "budget": 222,
+          "outcome": "success",
+          "elapsedMs": 6.972,
+          "canonicalNQuadsSha256": "27e7b7d6ee5bece77f0910bd406051322b5b6d9cbddd4b2622aa13a6fe2f6330"
+        }
+      ]
+    },
+    {
+      "id": "defaulted-data-properties-7",
+      "status": "measured",
+      "sourceSha256": "3309c3d2923d5fba801dedd6b964753a6ecf84ee4cbf81b688e91043c8e82380",
+      "normativeBudget": 97,
+      "normativeSuccess": false,
+      "proposedBudget": 9409,
+      "proposedSuccess": true,
+      "smallestSuccessfulBudget": 259,
+      "absoluteProbeCeiling": 100000,
+      "perCallDeadlineMs": 10000,
+      "confirmationPairs": 1,
+      "blankNodes": 97,
+      "quads": 328,
+      "mappedNQuadsSha256": "de0a9339f292e96c0e4585b267a9a3ac01552dabe796835e25b0f68f6575b8d6",
+      "canonicalNQuadsSha256": "8cc9d495c72a87d835267198f416cfde33b55c73c4f4d4d3490a4cc7dd5a5caa",
+      "attempts": [
+        {
+          "budget": 97,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (97).",
+          "elapsedMs": 1.789
+        },
+        {
+          "budget": 9409,
+          "outcome": "success",
+          "elapsedMs": 5.511,
+          "canonicalNQuadsSha256": "8cc9d495c72a87d835267198f416cfde33b55c73c4f4d4d3490a4cc7dd5a5caa"
+        },
+        {
+          "budget": 100000,
+          "outcome": "success",
+          "elapsedMs": 6.249,
+          "canonicalNQuadsSha256": "8cc9d495c72a87d835267198f416cfde33b55c73c4f4d4d3490a4cc7dd5a5caa"
+        },
+        {
+          "budget": 49999,
+          "outcome": "success",
+          "elapsedMs": 6.062,
+          "canonicalNQuadsSha256": "8cc9d495c72a87d835267198f416cfde33b55c73c4f4d4d3490a4cc7dd5a5caa"
+        },
+        {
+          "budget": 24999,
+          "outcome": "success",
+          "elapsedMs": 7.095,
+          "canonicalNQuadsSha256": "8cc9d495c72a87d835267198f416cfde33b55c73c4f4d4d3490a4cc7dd5a5caa"
+        },
+        {
+          "budget": 12499,
+          "outcome": "success",
+          "elapsedMs": 7.268,
+          "canonicalNQuadsSha256": "8cc9d495c72a87d835267198f416cfde33b55c73c4f4d4d3490a4cc7dd5a5caa"
+        },
+        {
+          "budget": 6249,
+          "outcome": "success",
+          "elapsedMs": 5.847,
+          "canonicalNQuadsSha256": "8cc9d495c72a87d835267198f416cfde33b55c73c4f4d4d3490a4cc7dd5a5caa"
+        },
+        {
+          "budget": 3124,
+          "outcome": "success",
+          "elapsedMs": 4.266,
+          "canonicalNQuadsSha256": "8cc9d495c72a87d835267198f416cfde33b55c73c4f4d4d3490a4cc7dd5a5caa"
+        },
+        {
+          "budget": 1561,
+          "outcome": "success",
+          "elapsedMs": 6.066,
+          "canonicalNQuadsSha256": "8cc9d495c72a87d835267198f416cfde33b55c73c4f4d4d3490a4cc7dd5a5caa"
+        },
+        {
+          "budget": 780,
+          "outcome": "success",
+          "elapsedMs": 6.34,
+          "canonicalNQuadsSha256": "8cc9d495c72a87d835267198f416cfde33b55c73c4f4d4d3490a4cc7dd5a5caa"
+        },
+        {
+          "budget": 389,
+          "outcome": "success",
+          "elapsedMs": 6.988,
+          "canonicalNQuadsSha256": "8cc9d495c72a87d835267198f416cfde33b55c73c4f4d4d3490a4cc7dd5a5caa"
+        },
+        {
+          "budget": 194,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (194).",
+          "elapsedMs": 3.521
+        },
+        {
+          "budget": 291,
+          "outcome": "success",
+          "elapsedMs": 7.451,
+          "canonicalNQuadsSha256": "8cc9d495c72a87d835267198f416cfde33b55c73c4f4d4d3490a4cc7dd5a5caa"
+        },
+        {
+          "budget": 242,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (242).",
+          "elapsedMs": 4.501
+        },
+        {
+          "budget": 266,
+          "outcome": "success",
+          "elapsedMs": 7.258,
+          "canonicalNQuadsSha256": "8cc9d495c72a87d835267198f416cfde33b55c73c4f4d4d3490a4cc7dd5a5caa"
+        },
+        {
+          "budget": 254,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (254).",
+          "elapsedMs": 4.101
+        },
+        {
+          "budget": 260,
+          "outcome": "success",
+          "elapsedMs": 5.629,
+          "canonicalNQuadsSha256": "8cc9d495c72a87d835267198f416cfde33b55c73c4f4d4d3490a4cc7dd5a5caa"
+        },
+        {
+          "budget": 257,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (257).",
+          "elapsedMs": 3.135
+        },
+        {
+          "budget": 258,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (258).",
+          "elapsedMs": 3.99
+        },
+        {
+          "budget": 259,
+          "outcome": "success",
+          "elapsedMs": 4.07,
+          "canonicalNQuadsSha256": "8cc9d495c72a87d835267198f416cfde33b55c73c4f4d4d3490a4cc7dd5a5caa"
+        },
+        {
+          "budget": 258,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (258).",
+          "elapsedMs": 5.157
+        },
+        {
+          "budget": 259,
+          "outcome": "success",
+          "elapsedMs": 6.426,
+          "canonicalNQuadsSha256": "8cc9d495c72a87d835267198f416cfde33b55c73c4f4d4d3490a4cc7dd5a5caa"
+        }
+      ]
+    },
+    {
+      "id": "defaulted-data-properties-8",
+      "status": "measured",
+      "sourceSha256": "364ac6e59a10f192c1f6c3f0ef195d09c0cb3e40f57001aea40f788831380e69",
+      "normativeBudget": 109,
+      "normativeSuccess": false,
+      "proposedBudget": 11881,
+      "proposedSuccess": true,
+      "smallestSuccessfulBudget": 304,
+      "absoluteProbeCeiling": 100000,
+      "perCallDeadlineMs": 10000,
+      "confirmationPairs": 1,
+      "blankNodes": 109,
+      "quads": 370,
+      "mappedNQuadsSha256": "cb15022f150a46ee8de84508a2654c2a32928946e3adf44a8f7c5f0aa3645e16",
+      "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43",
+      "attempts": [
+        {
+          "budget": 109,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (109).",
+          "elapsedMs": 2.624
+        },
+        {
+          "budget": 11881,
+          "outcome": "success",
+          "elapsedMs": 8.371,
+          "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+        },
+        {
+          "budget": 100000,
+          "outcome": "success",
+          "elapsedMs": 10.807,
+          "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+        },
+        {
+          "budget": 49999,
+          "outcome": "success",
+          "elapsedMs": 9.152,
+          "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+        },
+        {
+          "budget": 24999,
+          "outcome": "success",
+          "elapsedMs": 6.936,
+          "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+        },
+        {
+          "budget": 12499,
+          "outcome": "success",
+          "elapsedMs": 4.843,
+          "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+        },
+        {
+          "budget": 6249,
+          "outcome": "success",
+          "elapsedMs": 6.026,
+          "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+        },
+        {
+          "budget": 3124,
+          "outcome": "success",
+          "elapsedMs": 6.524,
+          "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+        },
+        {
+          "budget": 1561,
+          "outcome": "success",
+          "elapsedMs": 4.746,
+          "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+        },
+        {
+          "budget": 780,
+          "outcome": "success",
+          "elapsedMs": 5.714,
+          "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+        },
+        {
+          "budget": 389,
+          "outcome": "success",
+          "elapsedMs": 6.111,
+          "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+        },
+        {
+          "budget": 194,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (194).",
+          "elapsedMs": 3.724
+        },
+        {
+          "budget": 291,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (291).",
+          "elapsedMs": 4.837
+        },
+        {
+          "budget": 340,
+          "outcome": "success",
+          "elapsedMs": 7.752,
+          "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+        },
+        {
+          "budget": 315,
+          "outcome": "success",
+          "elapsedMs": 7.821,
+          "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+        },
+        {
+          "budget": 303,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (303).",
+          "elapsedMs": 6.029
+        },
+        {
+          "budget": 309,
+          "outcome": "success",
+          "elapsedMs": 7.481,
+          "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+        },
+        {
+          "budget": 306,
+          "outcome": "success",
+          "elapsedMs": 7.632,
+          "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+        },
+        {
+          "budget": 304,
+          "outcome": "success",
+          "elapsedMs": 7.675,
+          "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+        },
+        {
+          "budget": 303,
+          "outcome": "resource-limit",
+          "rawMessage": "Maximum deep iterations exceeded (303).",
+          "elapsedMs": 6.805
+        },
+        {
+          "budget": 304,
+          "outcome": "success",
+          "elapsedMs": 6.07,
+          "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+        }
+      ]
+    }
+  ],
+  "limitation": "These exploratory success thresholds do not admit inputs under current A8 or authorize a policy change. Only exact supplied graphs and this library/runtime are measured."
+}

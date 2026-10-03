@@ -1,0 +1,107 @@
+[
+  {
+    "category": "subjects",
+    "sourceHandle": "s-Thing",
+    "primaryBlankNode": "ps1",
+    "rdfcIdentifier": "c14n1",
+    "canonicalId": "s0"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s-A",
+    "primaryBlankNode": "ps0",
+    "rdfcIdentifier": "c14n4",
+    "canonicalId": "s1"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s-p",
+    "primaryBlankNode": "ps2",
+    "rdfcIdentifier": "c14n5",
+    "canonicalId": "s2"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "p",
+    "primaryBlankNode": "pr2",
+    "rdfcIdentifier": "c14n15",
+    "canonicalId": "r0"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "A",
+    "primaryBlankNode": "pr0",
+    "rdfcIdentifier": "c14n18",
+    "canonicalId": "r1"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "Thing",
+    "primaryBlankNode": "pr1",
+    "rdfcIdentifier": "c14n20",
+    "canonicalId": "r2"
+  },
+  {
+    "category": "expressions",
+    "sourceHandle": "restriction",
+    "primaryBlankNode": "px0",
+    "rdfcIdentifier": "c14n6",
+    "canonicalId": "x0"
+  },
+  {
+    "category": "expressions",
+    "sourceHandle": "operator",
+    "primaryBlankNode": "px1",
+    "rdfcIdentifier": "c14n12",
+    "canonicalId": "x1"
+  },
+  {
+    "category": "constructs",
+    "sourceHandle": "restriction-assertion",
+    "primaryBlankNode": "pc0",
+    "rdfcIdentifier": "c14n21",
+    "canonicalId": "c0"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "global-domain",
+    "primaryBlankNode": "po1",
+    "rdfcIdentifier": "c14n8",
+    "canonicalId": "o0"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "global-edge",
+    "primaryBlankNode": "po2",
+    "rdfcIdentifier": "c14n9",
+    "canonicalId": "o1"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "node-A",
+    "primaryBlankNode": "po0",
+    "rdfcIdentifier": "c14n13",
+    "canonicalId": "o2"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "operator-node",
+    "primaryBlankNode": "po4",
+    "rdfcIdentifier": "c14n14",
+    "canonicalId": "o3"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "operator-edge",
+    "primaryBlankNode": "po5",
+    "rdfcIdentifier": "c14n19",
+    "canonicalId": "o4"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "label-global-edge",
+    "primaryBlankNode": "po3",
+    "rdfcIdentifier": "c14n25",
+    "canonicalId": "o5"
+  }
+]

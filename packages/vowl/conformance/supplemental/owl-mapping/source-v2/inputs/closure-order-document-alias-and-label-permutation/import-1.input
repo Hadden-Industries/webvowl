@@ -1,0 +1,5 @@
+Prefix(:=<https://example.org/owl-seed#>)
+Ontology(<urn:owl-seed:right-ontology>
+Annotation(:title "imported-right-header-is-not-root")
+ClassAssertion(:A _:rightRenamed)
+)

@@ -1,0 +1,3548 @@
+{
+  "format": "canonical-vowl-conformance-manifest/1",
+  "status": "independent-conditional-supplement-pending-review",
+  "specificationRevision": [
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design.md",
+      "sha256": "174535bb8cb43f317631f0799721adebfbbc4ceff4d577595be8fb91dd940fac"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-core-contract.md",
+      "sha256": "711ba30c291cfb0960334328203188600f60a331996e83379267a4a77b87988d"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-projection-contract.md",
+      "sha256": "4c1cf6a7e187f98d40d390e6ff0b5354aca46a8ff195fba5b6badace7eb6078b"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design-decisions.md",
+      "sha256": "f314ec3448f2cf87f73ce6ce8871f3695d4b3b26dee687383b36e36a4fc0a43e"
+    }
+  ],
+  "amendment": {
+    "path": "docs/specs/2026-09-30-canonical-vowl-resource-policy-amendment.md",
+    "sha256": "9f1b7d96229a06f57e29a52f92325a4256e6f826d7532e239848ef99dc0f47c1",
+    "approval": "Owner approved the exact quadratic capped work-policy amendment on 2026-09-30, as communicated by the parent integration task. Approval does not waive independent review."
+  },
+  "policy": {
+    "formula": "min(totalAllocatedBlankNodes ** 2, rdfDeepIterations)",
+    "defaultRdfDeepIterations": 100000,
+    "upperCallerOverride": 1000000,
+    "defaultDeadlineMs": 10000,
+    "zeroOverrideAllowed": true,
+    "fallbackAllowed": false
+  },
+  "dependencies": {
+    "rdf-canonize": "5.0.0",
+    "canonicalize": "5.1.0"
+  },
+  "comparisonRules": {
+    "mapped.nq": "RDF dataset isomorphism; private labels/order are not contractual.",
+    "canonical.nq": "Exact canonical N-Quads bytes.",
+    "canonical.json": "Exact complete JCS bytes.",
+    "ids.json": "Informative derivation only; symmetric handle correspondences are not contractual."
+  },
+  "priorCorpus": {
+    "path": "supplemental/amended-policy/manifest.json",
+    "sha256": "90f3754316f683a76ad9eecb8341d29a738b3f77b61c13362034de07cee92156",
+    "positiveCount": 95,
+    "modified": false
+  },
+  "independence": "Hand-selected normalized sources and complete topology from B2 clauses; only the separate amended oracle and standards libraries derive canonical bytes. No production code, tests or outputs select expectations.",
+  "sourceArtifacts": [
+    {
+      "path": "oracle/extended-sources.mjs",
+      "sha256": "29a1ca8d3418f17f674bc577b999ba80a68e655d5b1848e04301b41e07e69da0"
+    },
+    {
+      "path": "supplemental/grammar/sources.mjs",
+      "sha256": "7a720f382180a0468f7441437342fef98d40155f511858bb9eece3d3c5a68a31"
+    },
+    {
+      "path": "supplemental/amended-policy/producer.mjs",
+      "sha256": "da7936738c98cb853de7c6d6f2ae7528cbd4d47a0c1ccb1258dae7c5f7143321"
+    },
+    {
+      "path": "supplemental/conditional/sources.mjs",
+      "sha256": "ff86b075e2011158220b39a0cc21545bba18a396bfa468cddd1efb9d414df26b"
+    },
+    {
+      "path": "supplemental/conditional/derive.mjs",
+      "sha256": "55b72c24b95db53cb4949271b91993aea2dab0239be5ea7f4d681292bd5460b5"
+    }
+  ],
+  "vectors": [
+    {
+      "id": "rdfs-named-and-anonymous-singletons",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B21-role-drawability",
+        "B21-anonymous-singletons"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 6,
+        "blankNodes": 17,
+        "quads": 45,
+        "occurrenceKinds": {
+          "class-node": 2
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/rdfs-named-and-anonymous-singletons/source.json",
+          "sha256": "69accf099b567e646943cbca687e255f58fd7be7442fb428bebba91b3c7d22ca",
+          "byteLength": 814
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/rdfs-named-and-anonymous-singletons/permuted-source.json",
+          "sha256": "abf91534e0ce9608449b56f3bc0ae5190426ba68c5a11fdc65ee79d46bf9f81c",
+          "byteLength": 936
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/rdfs-named-and-anonymous-singletons/mapped.nq",
+          "sha256": "71481c0e881e43662bed243ed4d2cd05c1cb674858bd4717d78706556c99d3a7",
+          "byteLength": 5414
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/rdfs-named-and-anonymous-singletons/canonical.nq",
+          "sha256": "4ba4d7f6c03334f2a3ac16f1ae8d86192d87ca28e576c1ed2feea9722b3b9927",
+          "byteLength": 5606
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/rdfs-named-and-anonymous-singletons/ids.json",
+          "sha256": "55526fed74cc10e5f2fd559f84952988c650a7c01d874b8eddb2444226616449",
+          "byteLength": 945
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/rdfs-named-and-anonymous-singletons/canonical.json",
+          "sha256": "cc2a200fc712db9b61bd655c0a3fad1bd6102396ca4ad2f116d65e24d7b8a833",
+          "byteLength": 487
+        }
+      }
+    },
+    {
+      "id": "mixed-class-rdfs-equivalence-group",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B21-named-components"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 6,
+        "blankNodes": 17,
+        "quads": 48,
+        "occurrenceKinds": {
+          "class-node": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/mixed-class-rdfs-equivalence-group/source.json",
+          "sha256": "5cdf562063bbc312b385e970cfa017328f036dfd62a1a70956d29c0eb0885a11",
+          "byteLength": 835
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/mixed-class-rdfs-equivalence-group/permuted-source.json",
+          "sha256": "ef299f9ad34eb2361a049d4d5606131b94dff63e411b4f3a20fdba196222ce85",
+          "byteLength": 1062
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/mixed-class-rdfs-equivalence-group/mapped.nq",
+          "sha256": "c7911cb16b06fb9c3286fb766a17edb4979d7cbf3b0bb514298a295c803339c5",
+          "byteLength": 5705
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/mixed-class-rdfs-equivalence-group/canonical.nq",
+          "sha256": "6d305ac87c3040c71572773875aecea896f40804ac3c776e4424da6e2fd43832",
+          "byteLength": 5907
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/mixed-class-rdfs-equivalence-group/ids.json",
+          "sha256": "b3bc2d27821e47a7bc19c0119163c1f36797ea3ae174c04122e01e3e4b28551c",
+          "byteLength": 899
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/mixed-class-rdfs-equivalence-group/canonical.json",
+          "sha256": "c3ba7f9c70b94f2a7ac66781064dc42c0078c69d66f46c46b41780cc717f5dcf",
+          "byteLength": 538
+        }
+      }
+    },
+    {
+      "id": "unattached-generics-and-datatype",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B21-unattached-generic",
+        "B21-unattached-datatype"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 6,
+        "blankNodes": 15,
+        "quads": 41,
+        "occurrenceKinds": {}
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/unattached-generics-and-datatype/source.json",
+          "sha256": "7f1814dce047705720152c3d6857cd8fd4fb0c46b94802264e06c531a4d36866",
+          "byteLength": 787
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/unattached-generics-and-datatype/permuted-source.json",
+          "sha256": "d193bc51ea7d38cc6de713b6218413038ee084ae92f315a5ca5c4be42d0608f5",
+          "byteLength": 922
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/unattached-generics-and-datatype/mapped.nq",
+          "sha256": "4f2730e4227911f5b109fa00b8286e9e34ef85d3b07f2549912cc2d3f3d3cd9c",
+          "byteLength": 4956
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/unattached-generics-and-datatype/canonical.nq",
+          "sha256": "7b89a11268d66a6f9748709bf0179a2296b96f6125c449ec403558ffa6efc0a4",
+          "byteLength": 5120
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/unattached-generics-and-datatype/ids.json",
+          "sha256": "6ad9e86443fef677d83b0a1944c05fb96276dca7c3663eda306cbf1eab2e1834",
+          "byteLength": 912
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/unattached-generics-and-datatype/canonical.json",
+          "sha256": "bddbc7430cb0e1acea20cc34dbcf62bc887c41356341e1b3ce43067474c8e204",
+          "byteLength": 537
+        }
+      }
+    },
+    {
+      "id": "generic-context-grouped",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B23-opposite-class-targets",
+        "B23-reuse-keys",
+        "B22-exact-terms-not-glyphs"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 22,
+        "blankNodes": 39,
+        "quads": 135,
+        "occurrenceKinds": {
+          "class-node": 2,
+          "label": 2,
+          "property-edge": 2
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/generic-context-grouped/source.json",
+          "sha256": "79e364ae7a5dd1b73b24568bbdcd196d978e49a30eb72acc1dd8145c6cf99ea7",
+          "byteLength": 2912
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/generic-context-grouped/permuted-source.json",
+          "sha256": "b1be1795c41754ec8a2ba9b579a3902cd2dd5ca87b2f06b4959b46fcf3c3371e",
+          "byteLength": 3812
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/generic-context-grouped/mapped.nq",
+          "sha256": "d98b8fa60d053afcb6831731bdb9c8e56f205fe3a15ce67a0b02e059c8d34bda",
+          "byteLength": 15858
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/generic-context-grouped/canonical.nq",
+          "sha256": "56cc62c099a0e8fc73d1421488efa907b4508501930a07195674b287210e852c",
+          "byteLength": 16473
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/generic-context-grouped/ids.json",
+          "sha256": "6ca30e5557c34e7f336033b64839c674df3f22a27fbd3ef63e8e5fc701f316ac",
+          "byteLength": 3411
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/generic-context-grouped/canonical.json",
+          "sha256": "122218d38cbb03dafb740cf5232abd5666b86476181c7ac481c1741a2e1c3071",
+          "byteLength": 1546
+        }
+      }
+    },
+    {
+      "id": "generic-context-shared",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B23-opposite-class-targets",
+        "B23-reuse-keys"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 18,
+        "blankNodes": 33,
+        "quads": 112,
+        "occurrenceKinds": {
+          "class-node": 2,
+          "label": 2,
+          "property-edge": 2
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/generic-context-shared/source.json",
+          "sha256": "79447e95bc10915e88d001b687aa078341263ad14c0a1f63e0f64c366898130f",
+          "byteLength": 2409
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/generic-context-shared/permuted-source.json",
+          "sha256": "46cae0870f19ffea6ee774f4895cec471e318966f1b284679bf08eaaa62ebe8a",
+          "byteLength": 3100
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/generic-context-shared/mapped.nq",
+          "sha256": "83febc1a1d6d4fbf27072b5ca69aa6574c3e49fe12e20f49aa3b9a95d5bf446f",
+          "byteLength": 13273
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/generic-context-shared/canonical.nq",
+          "sha256": "d3e4aed9555499317427b46c88a4fdca379a09c330dd89223ebb54f043be1558",
+          "byteLength": 13765
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/generic-context-shared/ids.json",
+          "sha256": "40e437f504f44d164e745026e3aefb79080b0921fe7fada0195d82fcf1f856bb",
+          "byteLength": 2793
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/generic-context-shared/canonical.json",
+          "sha256": "6171d90b6200c8bc99f8b8bf536e7e132a38bf2a201c2e40a93aa9e19f0a48bd",
+          "byteLength": 1306
+        }
+      }
+    },
+    {
+      "id": "generic-context-split",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B23-opposite-class-targets",
+        "B23-split-contexts"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 22,
+        "blankNodes": 41,
+        "quads": 137,
+        "occurrenceKinds": {
+          "class-node": 4,
+          "label": 2,
+          "property-edge": 2
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/generic-context-split/source.json",
+          "sha256": "b518aa8e349fffd1325d939311bbdb19b47d3e5dd844e5e0d11c1c0e93f2eb9c",
+          "byteLength": 2939
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/generic-context-split/permuted-source.json",
+          "sha256": "ebe7c2fffb2068a1a2167a93f247298aead634c7d1e35bfd03a216838a62f03a",
+          "byteLength": 3771
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/generic-context-split/mapped.nq",
+          "sha256": "d694e72a93b27c83705e5cb6b8de7ef5a2adae8674af0cd2a0f2eb64db85a93d",
+          "byteLength": 16190
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/generic-context-split/canonical.nq",
+          "sha256": "decffcdd1197f1849282e3202e3e417f492a8883f5a62a797bad82514757eb2f",
+          "byteLength": 16791
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/generic-context-split/ids.json",
+          "sha256": "4018c0c1f4eb35bc74dbc2d76bfc4dc2ff160778d9c07ed6d2bc8aec92d1d978",
+          "byteLength": 3408
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/generic-context-split/canonical.json",
+          "sha256": "0ccb76e7bddc89f9086c063f75c191da3bfaad7ece4bc3a3c611f395863b4e9f",
+          "byteLength": 1544
+        }
+      }
+    },
+    {
+      "id": "object-one-absent-domain",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B22-object-defaults",
+        "B22-defaults-not-facts",
+        "B23-opposite-class-targets"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 11,
+        "blankNodes": 25,
+        "quads": 77,
+        "occurrenceKinds": {
+          "class-node": 2,
+          "label": 1,
+          "property-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/object-one-absent-domain/source.json",
+          "sha256": "c50fdf116d545e89e45a17c65d257111b068f30e8581d7685369bccbea33785b",
+          "byteLength": 1535
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/object-one-absent-domain/permuted-source.json",
+          "sha256": "c36cc5092d652df1dfa1066c4928c22cec5505e07f8ef7f8abef952dfbd19e98",
+          "byteLength": 1921
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/object-one-absent-domain/mapped.nq",
+          "sha256": "56e881599cea35222cf5fe31e8d9b7b85dc4b4411bed54472aad794d105cfefe",
+          "byteLength": 9165
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/object-one-absent-domain/canonical.nq",
+          "sha256": "9599c5c914892b8444fdcd18fddd00cbdfae2618311fe2274ba8ebf681f1a0b4",
+          "byteLength": 9491
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/object-one-absent-domain/ids.json",
+          "sha256": "e3d4c5b06bd4e4bc8db85fc422f5ccfbda3946ca8b8a0d45d60e2446e94ba752",
+          "byteLength": 1693
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/object-one-absent-domain/canonical.json",
+          "sha256": "80c842e64e9c34e6f4bdaa7e09c1d54bd87165c7276538e13903d77bf4ff4880",
+          "byteLength": 869
+        }
+      }
+    },
+    {
+      "id": "object-one-absent-range",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B22-object-defaults",
+        "B22-defaults-not-facts",
+        "B23-opposite-class-targets"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 11,
+        "blankNodes": 25,
+        "quads": 77,
+        "occurrenceKinds": {
+          "class-node": 2,
+          "label": 1,
+          "property-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/object-one-absent-range/source.json",
+          "sha256": "df73a67fac72136b05bc202ad69bda8561abf27e6ab134933ae066cb24205830",
+          "byteLength": 1537
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/object-one-absent-range/permuted-source.json",
+          "sha256": "79ee5cc7b0f411a09a2d9563815372f5159e514534e008aaea6e8d245e96a0cd",
+          "byteLength": 1922
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/object-one-absent-range/mapped.nq",
+          "sha256": "5aa74b0b32b35f0099b68eae36752bcf0576ac851a3ef35e70f8860df749f972",
+          "byteLength": 9166
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/object-one-absent-range/canonical.nq",
+          "sha256": "db34b3d10e3acc19ed65320e5154f2753a1187c02ab630f8f0be41c1d922e4c0",
+          "byteLength": 9492
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/object-one-absent-range/ids.json",
+          "sha256": "8ed5f1f99e61238cc58302375ea96824b5285e389cda24418d6f0fb3b941179c",
+          "byteLength": 1694
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/object-one-absent-range/canonical.json",
+          "sha256": "e19a3aee174a3eee6fcb3d09a4ceb42da2e5f06d204da36ae6abd348cdfa0769",
+          "byteLength": 870
+        }
+      }
+    },
+    {
+      "id": "data-one-absent-domain",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B22-data-defaults",
+        "B22-defaults-not-facts",
+        "B23-opposite-datatype-context"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 14,
+        "blankNodes": 30,
+        "quads": 94,
+        "occurrenceKinds": {
+          "class-node": 2,
+          "datatype-node": 1,
+          "label": 1,
+          "property-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/data-one-absent-domain/source.json",
+          "sha256": "28e320ececd3ec553c7f932ba6e0f354eaa1f1898b2c886200b49fb826088808",
+          "byteLength": 1931
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/data-one-absent-domain/permuted-source.json",
+          "sha256": "5e5d1469d8b51e42d36e329cda35fb53ef036f815dbe730c943bf40303eee62a",
+          "byteLength": 2430
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/data-one-absent-domain/mapped.nq",
+          "sha256": "907b534afbedab478e398b04c8fe58e71b3d53148258326bae4d76cfb26fece3",
+          "byteLength": 11179
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/data-one-absent-domain/canonical.nq",
+          "sha256": "c6dcb40aee7b034f39008fc66e4dda9a38c94aa3f218f7e98d94498eea22b712",
+          "byteLength": 11580
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/data-one-absent-domain/ids.json",
+          "sha256": "fbbea93035b759f5d4b180913cd5c3775876e01472a22766fa43f16f1e592bc3",
+          "byteLength": 2147
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/data-one-absent-domain/canonical.json",
+          "sha256": "5fe55c0f083c2784bd350b45e9b6a76dab0520ae01a7d86f1fbb2720a797bf6c",
+          "byteLength": 1069
+        }
+      }
+    },
+    {
+      "id": "data-one-absent-range",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B22-data-defaults",
+        "B22-defaults-not-facts",
+        "B23-opposite-datatype-context"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 11,
+        "blankNodes": 24,
+        "quads": 75,
+        "occurrenceKinds": {
+          "class-node": 1,
+          "datatype-node": 1,
+          "label": 1,
+          "property-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/data-one-absent-range/source.json",
+          "sha256": "75d99fc9e10c684b65039dff59500946fcd500522b053d69340b6d62b12c6143",
+          "byteLength": 1541
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/data-one-absent-range/permuted-source.json",
+          "sha256": "d583a955f255ff4de06bf7511c67a87c266f0b96cbdd5e0d4637da38b7d1304a",
+          "byteLength": 1916
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/data-one-absent-range/mapped.nq",
+          "sha256": "0ceccf9997150249f8e6ed225851f8c461b27e96c1ed733673b393c6787e9752",
+          "byteLength": 8968
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/data-one-absent-range/canonical.nq",
+          "sha256": "5a239acb0681623adf9f2529f1471de4de88bc6b7e1f938cf97349761d995905",
+          "byteLength": 9284
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/data-one-absent-range/ids.json",
+          "sha256": "3f62e37998a2e14f5419605194845d5da4eadcf0c2304c1b1a7cc9fe9e749448",
+          "byteLength": 1700
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/data-one-absent-range/canonical.json",
+          "sha256": "d8f93f1f3e735c849da21b6e17d92411bd1fde46b1a87675e6b8facbeff61458",
+          "byteLength": 884
+        }
+      }
+    },
+    {
+      "id": "rdf-one-absent-domain",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B22-rdf-defaults",
+        "B22-defaults-not-facts",
+        "B23-opposite-class-targets"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 11,
+        "blankNodes": 25,
+        "quads": 77,
+        "occurrenceKinds": {
+          "class-node": 2,
+          "label": 1,
+          "property-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/rdf-one-absent-domain/source.json",
+          "sha256": "bcbc8f2801c49af0e6fdf80ebc3824c90e75bb52509b7196d530636c0f7d8415",
+          "byteLength": 1555
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/rdf-one-absent-domain/permuted-source.json",
+          "sha256": "af1cb66614898d92fcf2431990f4eb190841f8d2df0b25130b2342f29264e43a",
+          "byteLength": 1929
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/rdf-one-absent-domain/mapped.nq",
+          "sha256": "33e3565ab30048a6ef68d82f8e6083fbb337c2c0e936ce2df27097dad72f57d3",
+          "byteLength": 9173
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/rdf-one-absent-domain/canonical.nq",
+          "sha256": "0bcdb5fdd1aac6b6ee7dfcf6b06ef469d176e3f0c76551bed1d15ea7a35d7a1e",
+          "byteLength": 9502
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/rdf-one-absent-domain/ids.json",
+          "sha256": "6dd4873c81c823057228b93894ef2798a4870968978039728efa412aae79940d",
+          "byteLength": 1700
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/rdf-one-absent-domain/canonical.json",
+          "sha256": "6daef980610cff2cf1d900cf6fbaf366855866d3b5724a722ab5d9f4a6a07d58",
+          "byteLength": 877
+        }
+      }
+    },
+    {
+      "id": "rdf-one-absent-range",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B22-rdf-defaults",
+        "B22-defaults-not-facts",
+        "B23-opposite-class-targets"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 11,
+        "blankNodes": 25,
+        "quads": 77,
+        "occurrenceKinds": {
+          "class-node": 2,
+          "label": 1,
+          "property-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/rdf-one-absent-range/source.json",
+          "sha256": "a2d0d958fdef27971f741c10ba759e6bc4443320c70a42ff1b7e8093a46d8994",
+          "byteLength": 1557
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/rdf-one-absent-range/permuted-source.json",
+          "sha256": "c7e53689c4427cb7211f8b84ef9d549ce81ee3315fa184212a05cda339b13031",
+          "byteLength": 1930
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/rdf-one-absent-range/mapped.nq",
+          "sha256": "7e74f3a2298996d26b74f8b6ce77d99c5206e7189e09e7692cf856d6e9e857a5",
+          "byteLength": 9174
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/rdf-one-absent-range/canonical.nq",
+          "sha256": "ae0a5d31af69906aad419ff76bef2afabb3f4a75e2bb64d2d4b1e93ac43888ec",
+          "byteLength": 9503
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/rdf-one-absent-range/ids.json",
+          "sha256": "aceb633651cdab32f1e39d8ce69ec1a8b51edd525126648537c53d17dccdbbb6",
+          "byteLength": 1701
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/rdf-one-absent-range/canonical.json",
+          "sha256": "7cbcdba20b949f93ab6124ecc99b5301935f6d93004115c9de8b33796087f00d",
+          "byteLength": 878
+        }
+      }
+    },
+    {
+      "id": "rdf-named-datatype-range",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B22-rdf-datatype-range",
+        "B23-opposite-datatype-context"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 11,
+        "blankNodes": 26,
+        "quads": 81,
+        "occurrenceKinds": {
+          "class-node": 1,
+          "datatype-node": 1,
+          "label": 1,
+          "property-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/rdf-named-datatype-range/source.json",
+          "sha256": "c119104e1e4f1c0f5b8331be5cd9a2283351855df70cc952f92b6e6e61c065ec",
+          "byteLength": 1664
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/rdf-named-datatype-range/permuted-source.json",
+          "sha256": "56846d0523836a2da0033ed8f063c4c22efda668e646f6e77531a89eb84ebcf0",
+          "byteLength": 2054
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/rdf-named-datatype-range/mapped.nq",
+          "sha256": "46966ba1d98a3fcda54e95f9633d2651608ab0b2cad2fadd56755b0799a37cf3",
+          "byteLength": 9675
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/rdf-named-datatype-range/canonical.nq",
+          "sha256": "42e5d1c4bbda9d28f3db45ecb41cafab05e1771efd1a53e31b93a45e370c9db4",
+          "byteLength": 10023
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/rdf-named-datatype-range/ids.json",
+          "sha256": "eed1707991c6159e8839b6a6ee07739da827e37d3bdd99f9284d38a987f159f3",
+          "byteLength": 1702
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/rdf-named-datatype-range/canonical.json",
+          "sha256": "16b0418b9b6046a4f1ecd691c6bbb4d09e6fa0eaee4cb7b8c346a1288668bf4f",
+          "byteLength": 936
+        }
+      }
+    },
+    {
+      "id": "data-compound-range-details",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B22-compound-data-details",
+        "B25-data-property-details"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 12,
+        "blankNodes": 23,
+        "quads": 71,
+        "occurrenceKinds": {
+          "class-node": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/data-compound-range-details/source.json",
+          "sha256": "f8722bde7f185f474d8a79ec2e0114c7ee8ea202d79de9b5310613a652e16ccb",
+          "byteLength": 1431
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/data-compound-range-details/permuted-source.json",
+          "sha256": "79e8530d722ec89418a8a669107289afdc75c05ebc81eef08b982c7596b33d12",
+          "byteLength": 1855
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/data-compound-range-details/mapped.nq",
+          "sha256": "1dfa15b716d62346163c9e78b545214481e82f23fde616b0ead89d5bd48761fb",
+          "byteLength": 8416
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/data-compound-range-details/canonical.nq",
+          "sha256": "ddf978706abce174b29430291d409c5dfe6fd6172ccfc1b4ed85bdb103076d89",
+          "byteLength": 8716
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/data-compound-range-details/ids.json",
+          "sha256": "e9ba9d99ff708dba17e72adc3904648fa306f740b7a8de2a7c7815747745835b",
+          "byteLength": 1812
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/data-compound-range-details/canonical.json",
+          "sha256": "6433931152dd9cf0bab3e89b3fc40e6d2f2e696f3414de84be3df31aaf7c60aa",
+          "byteLength": 858
+        }
+      }
+    },
+    {
+      "id": "rdf-compound-range-details",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B22-compound-data-details",
+        "B25-rdf-property-details"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 12,
+        "blankNodes": 23,
+        "quads": 71,
+        "occurrenceKinds": {
+          "class-node": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/rdf-compound-range-details/source.json",
+          "sha256": "f47b653adb27d48500d2e1968064d683c863f431c96aa367739c5dcbc87bd40c",
+          "byteLength": 1428
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/rdf-compound-range-details/permuted-source.json",
+          "sha256": "346b1d990ec7ca0b75ecff6eccc72a0f3dfa27286a11f6e57f2d84f1cf6d734d",
+          "byteLength": 1852
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/rdf-compound-range-details/mapped.nq",
+          "sha256": "3fa7ac0441172b78681f4864f22b964a3a9bc278129278014bd54e3a8a976706",
+          "byteLength": 8413
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/rdf-compound-range-details/canonical.nq",
+          "sha256": "1691c32683cca4eccdd0a6a61fe52eab587f790635216ca055d6fb2fca30b320",
+          "byteLength": 8712
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/rdf-compound-range-details/ids.json",
+          "sha256": "e7639f9bab3153bfb3dbb945be159462566ec305301f2e8e092f18c0b21403b0",
+          "byteLength": 1812
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/rdf-compound-range-details/canonical.json",
+          "sha256": "b7c49cc98c63f29b7a946dedc73fd941611e8bf86f13039cc521b40a370bed57",
+          "byteLength": 855
+        }
+      }
+    },
+    {
+      "id": "object-undrawable-domain-details",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B22-undrawable-domain",
+        "B25-object-property-details"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 17,
+        "blankNodes": 29,
+        "quads": 98,
+        "occurrenceKinds": {
+          "class-node": 2,
+          "label": 1,
+          "property-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/object-undrawable-domain-details/source.json",
+          "sha256": "8fc528a6a02943ce587dfb09576f7d1b3115d7f9c7945c654e642fd42190dd55",
+          "byteLength": 2093
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/object-undrawable-domain-details/permuted-source.json",
+          "sha256": "65bac9dd56aa8eadd777bbfe20239da5c2ef3cd9e7e40c39ec755c7327b86eae",
+          "byteLength": 2755
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/object-undrawable-domain-details/mapped.nq",
+          "sha256": "9cdc056d3d0530c104dc77465e25ced797a1e644c99c7c99877f8c908c2a5e50",
+          "byteLength": 11617
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/object-undrawable-domain-details/canonical.nq",
+          "sha256": "d6482e40864e1c8c168756865d048cfdf90dfe1e5769ae8016ab0ecd9e37a981",
+          "byteLength": 12035
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/object-undrawable-domain-details/ids.json",
+          "sha256": "f9b709b32162a1102f942cc5697aa05cd90e86ea2299419eded54bd5827dc236",
+          "byteLength": 2614
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/object-undrawable-domain-details/canonical.json",
+          "sha256": "460215352f4d595272866f41fb0a439aae42934925082579dec1778204c68121",
+          "byteLength": 1185
+        }
+      }
+    },
+    {
+      "id": "data-undrawable-domain-details",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B22-undrawable-domain",
+        "B25-data-property-details"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 19,
+        "blankNodes": 31,
+        "quads": 105,
+        "occurrenceKinds": {
+          "class-node": 2,
+          "label": 1,
+          "property-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/data-undrawable-domain-details/source.json",
+          "sha256": "fd067859d4df40f287801c8af763f70d2a60c51ae98032525ea8f102c6f210aa",
+          "byteLength": 2265
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/data-undrawable-domain-details/permuted-source.json",
+          "sha256": "b340378f9ea3e90a00caafe572e536c36819d33b6989fc692ea51f11efa62b95",
+          "byteLength": 2986
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/data-undrawable-domain-details/mapped.nq",
+          "sha256": "ae8a2e8eaa38bc50ccc3ae8614ae80a4b3166eeca5b5079e36fb40bbf4ec84d5",
+          "byteLength": 12429
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/data-undrawable-domain-details/canonical.nq",
+          "sha256": "9342eb690f9ccd63b7b71c788fc0a0010531db385e3fa74bc74e9bc0efb4cb42",
+          "byteLength": 12882
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/data-undrawable-domain-details/ids.json",
+          "sha256": "072cd4d419eba7bb4643b309b1fa16ed9a1caa168f7ff621fd4e4b313e05d374",
+          "byteLength": 2910
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/data-undrawable-domain-details/canonical.json",
+          "sha256": "c7ffad91a65292f225638845958baca1fa6b727237f76141694d4e289f10c28a",
+          "byteLength": 1278
+        }
+      }
+    },
+    {
+      "id": "rdf-undrawable-domain-details",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B22-undrawable-domain",
+        "B25-rdf-property-details"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 17,
+        "blankNodes": 29,
+        "quads": 98,
+        "occurrenceKinds": {
+          "class-node": 2,
+          "label": 1,
+          "property-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/rdf-undrawable-domain-details/source.json",
+          "sha256": "dbb62c00d9c99fe48a8afaa9660ac9f9c74d0abfb08dad34c836ff02b6b0f706",
+          "byteLength": 2084
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/rdf-undrawable-domain-details/permuted-source.json",
+          "sha256": "39ccf2e3f3c1174d9c479c27f3ab71822d4476e1899e9bffbc9dc1393ec82312",
+          "byteLength": 2746
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/rdf-undrawable-domain-details/mapped.nq",
+          "sha256": "10959bee7721d24299baee62d6fe3e9adff9e5042340c2edda619a5881e23aa7",
+          "byteLength": 11608
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/rdf-undrawable-domain-details/canonical.nq",
+          "sha256": "d77dfdd4da0956be65ea00305932a6d0b1142da9130c2268312d83a6f61df2ae",
+          "byteLength": 12026
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/rdf-undrawable-domain-details/ids.json",
+          "sha256": "2d52b75f53a0f91dfb60015b1bad5ba4f52f50e5ce3f03874a7c2c4abe6c4ef7",
+          "byteLength": 2614
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/rdf-undrawable-domain-details/canonical.json",
+          "sha256": "2bffdce4301192ec033f2c7cdc521e89def909382cfa49cf54de85b1ba70c30e",
+          "byteLength": 1176
+        }
+      }
+    },
+    {
+      "id": "inverse-endpoints-not-propagated",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B22-inverse-expression-endpoint-facts"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 16,
+        "blankNodes": 31,
+        "quads": 99,
+        "occurrenceKinds": {
+          "class-node": 3,
+          "label": 1,
+          "property-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/inverse-endpoints-not-propagated/source.json",
+          "sha256": "358219e95b96c02faffe8cc3b5f50ff22e9a4136fddc46b8909f653244f13eff",
+          "byteLength": 2088
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/inverse-endpoints-not-propagated/permuted-source.json",
+          "sha256": "797aca37c9586f01864363d9ff2f28ea14e45915516f4c8b1651e2c62b6ca0d0",
+          "byteLength": 2630
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/inverse-endpoints-not-propagated/mapped.nq",
+          "sha256": "ddfe592ac285e7f30305b89150df130ad2e135440df981d213738c76767974a1",
+          "byteLength": 11755
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/inverse-endpoints-not-propagated/canonical.nq",
+          "sha256": "e2a696ac3774e1e0a03f42a55466581c8016d8199b43210f4598b39f1051584e",
+          "byteLength": 12176
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/inverse-endpoints-not-propagated/ids.json",
+          "sha256": "1435b722501306ff2701f5f9e36c3200ebd678c0baf96b5d0ebdd58b3aaaba28",
+          "byteLength": 2477
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/inverse-endpoints-not-propagated/canonical.json",
+          "sha256": "c4a67633f4722e3faffb93877caf05663e322570e6beccc71e66dc57ee871e40",
+          "byteLength": 1130
+        }
+      }
+    },
+    {
+      "id": "equivalent-endpoints-not-propagated",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B22-no-endpoint-inference",
+        "B22-unequal-partitions"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 20,
+        "blankNodes": 37,
+        "quads": 122,
+        "occurrenceKinds": {
+          "class-node": 3,
+          "label": 2,
+          "property-edge": 2
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/equivalent-endpoints-not-propagated/source.json",
+          "sha256": "4587b3161fbeb06d095e1a4f106d0de2ab24805a808cd7ed2e1b4ec2449a9493",
+          "byteLength": 2603
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/equivalent-endpoints-not-propagated/permuted-source.json",
+          "sha256": "b7d3a0e66fbcde39ec029546f6789ac21a4c73798bca836311544295abf8a868",
+          "byteLength": 3337
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/equivalent-endpoints-not-propagated/mapped.nq",
+          "sha256": "8dc73a8143648108b118e8a9142a008357f36d590e8710894302b3eb32ad4faf",
+          "byteLength": 14430
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/equivalent-endpoints-not-propagated/canonical.nq",
+          "sha256": "481fdf01a82664c43228ade19b555a1767ca04f57fc0c00812828a2e03070176",
+          "byteLength": 14963
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/equivalent-endpoints-not-propagated/ids.json",
+          "sha256": "3364f8c313adf53b699d88b254849ea6c6d8816a5d196bc8f1515b094e73c1a3",
+          "byteLength": 3089
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/equivalent-endpoints-not-propagated/canonical.json",
+          "sha256": "eda3ea9633599aa2d21af1539834a7dae86ebcbbd64b6fd13e3147d63b21c1e5",
+          "byteLength": 1394
+        }
+      }
+    },
+    {
+      "id": "inverse-pair-endpoints-not-propagated",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B22-no-endpoint-inference",
+        "B24-inverse-not-reversed"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 20,
+        "blankNodes": 37,
+        "quads": 122,
+        "occurrenceKinds": {
+          "class-node": 3,
+          "label": 2,
+          "property-edge": 2
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/inverse-pair-endpoints-not-propagated/source.json",
+          "sha256": "c5a41c25d136700061b72ff197025fea700bab159f46fec311be2b08f6f8cc52",
+          "byteLength": 2593
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/inverse-pair-endpoints-not-propagated/permuted-source.json",
+          "sha256": "ad5b0dc381def5aa4116668ed59700ec8cdf15c8df9546da225b3baf5bf0c341",
+          "byteLength": 3327
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/inverse-pair-endpoints-not-propagated/mapped.nq",
+          "sha256": "37716f9c3bdd1e7c47db0c061545e215fb6cd58e87c7d58d07de842267c554cd",
+          "byteLength": 14420
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/inverse-pair-endpoints-not-propagated/canonical.nq",
+          "sha256": "5b128022b4b137626d57cf23425616f4f01c6761bc9e5fe9feb30c4ab1935501",
+          "byteLength": 14953
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/inverse-pair-endpoints-not-propagated/ids.json",
+          "sha256": "cebf635b88841abe212538ddeb5a2659e659a4ee487b50015cb4c51103392e5d",
+          "byteLength": 3089
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/inverse-pair-endpoints-not-propagated/canonical.json",
+          "sha256": "48be37dc928859b1a35431566212935c380f02911ca136e7a17f5e5a9627e2e5",
+          "byteLength": 1384
+        }
+      }
+    },
+    {
+      "id": "object-equivalence-transitive",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B22-property-components",
+        "B22-transitive-property-components"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 25,
+        "blankNodes": 40,
+        "quads": 139,
+        "occurrenceKinds": {
+          "class-node": 3,
+          "label": 1,
+          "property-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/object-equivalence-transitive/source.json",
+          "sha256": "aff8c7a9c55aec3276b46725513efad057cf57b9d7599381f33deeaa2a824b98",
+          "byteLength": 3018
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/object-equivalence-transitive/permuted-source.json",
+          "sha256": "b104e28619936e31d5ce4d2903f430c4dd5a886ee399ef7f4b49aa5e71f7141f",
+          "byteLength": 4049
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/object-equivalence-transitive/mapped.nq",
+          "sha256": "e2974bc4c975a12eeed1182e091d9f3fd4ac461202bffd2a28807705b9f0a35d",
+          "byteLength": 16319
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/object-equivalence-transitive/canonical.nq",
+          "sha256": "33a6973c3d000c335bfd66847a882a9922aa27d7354a0c706501dd5791749717",
+          "byteLength": 16940
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/object-equivalence-transitive/ids.json",
+          "sha256": "ed0eddd3d38a75c65cf7f8c640065391a65ee7a8b0c778df76294ee1a176038e",
+          "byteLength": 3838
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/object-equivalence-transitive/canonical.json",
+          "sha256": "d317a54fe31993bf09c6be43c9940079b01ba3278b0a5ca1d03ed8773669f3e3",
+          "byteLength": 1657
+        }
+      }
+    },
+    {
+      "id": "object-equivalence-partitioned",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B22-property-components",
+        "B22-unequal-partitions"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 26,
+        "blankNodes": 41,
+        "quads": 145,
+        "occurrenceKinds": {
+          "class-node": 3,
+          "label": 2,
+          "property-edge": 2
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/object-equivalence-partitioned/source.json",
+          "sha256": "219de08dcaf8a1221608c6be258e409537639f050cfe74a125c09750eabf00ff",
+          "byteLength": 3174
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/object-equivalence-partitioned/permuted-source.json",
+          "sha256": "73b61b8a3c68480230de557dbd86be7e21c3ee2c40a4f5186aa84d4ab658874c",
+          "byteLength": 4234
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/object-equivalence-partitioned/mapped.nq",
+          "sha256": "dd58d53db51dcaedcf9a8e45d1f2ea39cd6e747eb5986b46b0b78b15b1d109bf",
+          "byteLength": 17052
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/object-equivalence-partitioned/canonical.nq",
+          "sha256": "e7bb9cd074b5f777996152f846b9ac52cb1040b0d6c01bcb7c14a25a62d5708e",
+          "byteLength": 17699
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/object-equivalence-partitioned/ids.json",
+          "sha256": "384b898846a68ae3d8bd3392c99994917199bb9d1ce61eebddbff0465e8af12a",
+          "byteLength": 4007
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/object-equivalence-partitioned/canonical.json",
+          "sha256": "33c6e4dcef0ac1f7204daa79ca01262375910091da84523768cc3ec2d4dbf98c",
+          "byteLength": 1722
+        }
+      }
+    },
+    {
+      "id": "data-equivalence-transitive",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B22-property-components",
+        "B22-transitive-property-components",
+        "B23-full-partition-context"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 30,
+        "blankNodes": 47,
+        "quads": 165,
+        "occurrenceKinds": {
+          "class-node": 3,
+          "datatype-node": 1,
+          "label": 1,
+          "property-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/data-equivalence-transitive/source.json",
+          "sha256": "c6a8d087e90ccdf389a6374634e8c5d9cb33bc3c80cebebfe842d99902b27b83",
+          "byteLength": 3612
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/data-equivalence-transitive/permuted-source.json",
+          "sha256": "3840097ccba4c8567f05b46811d0f4bae2ef2b01f1511aa1b63edc5d8c15692c",
+          "byteLength": 4847
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/data-equivalence-transitive/mapped.nq",
+          "sha256": "6fce2575d2d9b19fd44fb084b5587ac3d86258761ff495739ffb5cbc2bfbdd92",
+          "byteLength": 19302
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/data-equivalence-transitive/canonical.nq",
+          "sha256": "8e180c55346de5feb5f8662825d7be2b9d82a32cf10805e14377dd56916d5b3c",
+          "byteLength": 20041
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/data-equivalence-transitive/ids.json",
+          "sha256": "b4beef210e89a029d39fa96a7677f992a8b0f1f9a4783ea868e14aac337f7a20",
+          "byteLength": 4596
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/data-equivalence-transitive/canonical.json",
+          "sha256": "94db1d3c823f6a6c9453c957a94e60a63c63d508e414503ecf4475a1fc6edd89",
+          "byteLength": 1942
+        }
+      }
+    },
+    {
+      "id": "data-equivalence-partitioned",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B22-property-components",
+        "B22-unequal-partitions",
+        "B23-full-partition-context"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 32,
+        "blankNodes": 51,
+        "quads": 180,
+        "occurrenceKinds": {
+          "class-node": 3,
+          "datatype-node": 2,
+          "label": 2,
+          "property-edge": 2
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/data-equivalence-partitioned/source.json",
+          "sha256": "008c226f2543263cebb6e803645f50f1ec0e8675abba26b9af100af4eb1d6a30",
+          "byteLength": 3981
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/data-equivalence-partitioned/permuted-source.json",
+          "sha256": "643c83430fdaf3063c91a3c23a854c49bb75b8995f9ca9c83ebcfe7ae523f0d8",
+          "byteLength": 5266
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/data-equivalence-partitioned/mapped.nq",
+          "sha256": "34fd6fe17deff662991d78bf96923dc5e7a585465c72055844f65e0849fb9749",
+          "byteLength": 21142
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/data-equivalence-partitioned/canonical.nq",
+          "sha256": "38809ce8b83fc878a4e91d3007c319c97ce3e44bfff374b2e756f2ad14fa43f6",
+          "byteLength": 21941
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/data-equivalence-partitioned/ids.json",
+          "sha256": "bad6db6345574f720b4f08f908cbcd465d764bfef4f24fc721e7691cf479e5c9",
+          "byteLength": 4930
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/data-equivalence-partitioned/canonical.json",
+          "sha256": "9ab168b07009b6049aa90ee7adecb59c4baf1013d2319b1d972e0cefab939aa2",
+          "byteLength": 2103
+        }
+      }
+    },
+    {
+      "id": "rdf-equivalence-transitive",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B22-property-components",
+        "B22-transitive-property-components"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 25,
+        "blankNodes": 40,
+        "quads": 139,
+        "occurrenceKinds": {
+          "class-node": 3,
+          "label": 1,
+          "property-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/rdf-equivalence-transitive/source.json",
+          "sha256": "2495de6d11fe8ffbe87b9b248aabf0920a1feab946a094d40dda0528466c456a",
+          "byteLength": 2985
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/rdf-equivalence-transitive/permuted-source.json",
+          "sha256": "961852f1416df1a5b28e4127da7afc8b494e573fd428e7682bac701f4b8265a6",
+          "byteLength": 4016
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/rdf-equivalence-transitive/mapped.nq",
+          "sha256": "5091a4a98d1182aa04f286262f9fb8e8aa819789c48201ee5902736c3ba707cc",
+          "byteLength": 16286
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/rdf-equivalence-transitive/canonical.nq",
+          "sha256": "45a62239d52ebb84ab4d6f5df9705cc1645a48ea66e745face14c45f132f3f54",
+          "byteLength": 16907
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/rdf-equivalence-transitive/ids.json",
+          "sha256": "a153e1f9cdde8a8cf2af9ca741558ec1262fe7c127140fb751341699422f1575",
+          "byteLength": 3838
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/rdf-equivalence-transitive/canonical.json",
+          "sha256": "bdb60bca9e0c3dfc7c752f42f64be3abfac4da50ed342516be1404b49bfb7486",
+          "byteLength": 1624
+        }
+      }
+    },
+    {
+      "id": "rdf-equivalence-partitioned",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B22-property-components",
+        "B22-unequal-partitions"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 26,
+        "blankNodes": 41,
+        "quads": 145,
+        "occurrenceKinds": {
+          "class-node": 3,
+          "label": 2,
+          "property-edge": 2
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/rdf-equivalence-partitioned/source.json",
+          "sha256": "0957e97184fe8f25d8d046b083e4c7cf225538f02d9d281e46829d8d9ac154b5",
+          "byteLength": 3144
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/rdf-equivalence-partitioned/permuted-source.json",
+          "sha256": "0ab93c41414e2dfa50aec4d4d7eacc948456bccf928f15cf1a0e747276bc50d7",
+          "byteLength": 4204
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/rdf-equivalence-partitioned/mapped.nq",
+          "sha256": "67dd6fe4a926ce99e17c460c2a98fa62af2d9f1b839ad99e0b89e5f1bbe2f769",
+          "byteLength": 17022
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/rdf-equivalence-partitioned/canonical.nq",
+          "sha256": "705361ab4f4f0e89900e2f7f9bafd489a06d4a1234f7a4d7e2f38c03948bf3bd",
+          "byteLength": 17669
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/rdf-equivalence-partitioned/ids.json",
+          "sha256": "587f6546cad186db23a0725361bc68ff5acb0953116231e86a5537b964119783",
+          "byteLength": 4007
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/rdf-equivalence-partitioned/canonical.json",
+          "sha256": "d322fa38c57656b71f17650848096f51148664a45ee32056e0293ccc9d493340",
+          "byteLength": 1692
+        }
+      }
+    },
+    {
+      "id": "object-restriction-excludes-global-alias",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B23-restriction-exact-role",
+        "B23-full-partition-context"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 18,
+        "blankNodes": 36,
+        "quads": 122,
+        "occurrenceKinds": {
+          "class-node": 3,
+          "label": 2,
+          "property-edge": 1,
+          "restriction-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/object-restriction-excludes-global-alias/source.json",
+          "sha256": "351211ea4cf541093590353b9e2c29af5d86604db00c492a8f03fb9d65e48589",
+          "byteLength": 2733
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/object-restriction-excludes-global-alias/permuted-source.json",
+          "sha256": "22cd7999328dfaccf9e2aa8e218e0b4c2478181325562b42d36e42dbe19f6808",
+          "byteLength": 3327
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/object-restriction-excludes-global-alias/mapped.nq",
+          "sha256": "55ec5168ac5b52503267280a3750bffb775df94ba16cde9b1c92757c4eceb4d3",
+          "byteLength": 14379
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/object-restriction-excludes-global-alias/canonical.nq",
+          "sha256": "c4c1a638567dcccaa9d145f144c37cd9ecc8dbf0da73fb1e6a2d7bcc6deeb9c3",
+          "byteLength": 14913
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/object-restriction-excludes-global-alias/ids.json",
+          "sha256": "8176893e5f34aa6c397d1b8f78c07ef689178051df15b5b0e07d1933e1a5baf4",
+          "byteLength": 2838
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/object-restriction-excludes-global-alias/canonical.json",
+          "sha256": "b77e00d6baa1551badb6216dfa6df163f747580f9fc35d50b5f70948e24741e5",
+          "byteLength": 1379
+        }
+      }
+    },
+    {
+      "id": "data-restriction-excludes-global-alias",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B23-restriction-exact-role",
+        "B23-full-partition-context"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 21,
+        "blankNodes": 40,
+        "quads": 139,
+        "occurrenceKinds": {
+          "class-node": 2,
+          "datatype-node": 2,
+          "label": 2,
+          "property-edge": 1,
+          "restriction-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/data-restriction-excludes-global-alias/source.json",
+          "sha256": "d1ee12c944b5eafdece13a89f6665a7d6cfd553112c14bff261340eb9e6f9129",
+          "byteLength": 3175
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/data-restriction-excludes-global-alias/permuted-source.json",
+          "sha256": "2d138e0479ace20b62ed26cab201c6d20be904a1d7cd4b9b7410cc89d51eacfa",
+          "byteLength": 3901
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/data-restriction-excludes-global-alias/mapped.nq",
+          "sha256": "109e275a1e9ed24d522124bd6361ab5a7b1364d6f55e708f60d9f193f2640d4d",
+          "byteLength": 16360
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/data-restriction-excludes-global-alias/canonical.nq",
+          "sha256": "65c00f721a0ec243d790fe2e85a0aee94f32c678e56f6b8b392119d4a74b0f3d",
+          "byteLength": 16965
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/data-restriction-excludes-global-alias/ids.json",
+          "sha256": "f7b16f713e7caf4de6d3a6b1cf1085d6451d5e47ae50491652527951b0103ded",
+          "byteLength": 3308
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/data-restriction-excludes-global-alias/canonical.json",
+          "sha256": "f305d40b17e087291bb5b000308691dea41ff84379d348827c4f05565a8417ec",
+          "byteLength": 1596
+        }
+      }
+    },
+    {
+      "id": "inverse-full-property-partitions",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B24-inverse-partitions",
+        "B24-inverse-orientation",
+        "B24-inverse-replacement"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 28,
+        "blankNodes": 44,
+        "quads": 159,
+        "occurrenceKinds": {
+          "class-node": 2,
+          "inverse-edge": 1,
+          "label": 2
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/inverse-full-property-partitions/source.json",
+          "sha256": "fd873afdf9c17a73a1f31436c8b583fd8a9fc2f48f9cd7c8a0c9efa2e1d7bce6",
+          "byteLength": 3548
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/inverse-full-property-partitions/permuted-source.json",
+          "sha256": "078529d9221e9ac0d72d6aef33a636642d758e4ca06d5f33715518647e1f66e5",
+          "byteLength": 4726
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/inverse-full-property-partitions/mapped.nq",
+          "sha256": "e28b98c7bfcd24194776ca3313fa07b1680877d94ad6ff20d6e9a22551213be0",
+          "byteLength": 18646
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/inverse-full-property-partitions/canonical.nq",
+          "sha256": "3c87c87afebbcd961774aae5c6436fd4873706dabad7fd509bd6b9c45914c0d9",
+          "byteLength": 19364
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/inverse-full-property-partitions/ids.json",
+          "sha256": "610023fb5861cc9514f4c9d3f38923b139af001eb35b13ea80469ec3e17d6de6",
+          "byteLength": 4346
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/inverse-full-property-partitions/canonical.json",
+          "sha256": "acb4eaa33d2920ccc3529e53651c752420b54c7554bdb64d23759daf8274ad15",
+          "byteLength": 1904
+        }
+      }
+    },
+    {
+      "id": "inverse-two-distinct-partitions-self-loop",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B24-inverse-reversed",
+        "B24-inverse-self-loop"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 15,
+        "blankNodes": 28,
+        "quads": 96,
+        "occurrenceKinds": {
+          "class-node": 1,
+          "inverse-edge": 1,
+          "label": 2
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/inverse-two-distinct-partitions-self-loop/source.json",
+          "sha256": "860ca897b1362624f02dfc3b3d1839db89b0c631df0dfb1a960b42ac0a3788dc",
+          "byteLength": 2055
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/inverse-two-distinct-partitions-self-loop/permuted-source.json",
+          "sha256": "0e3a7df39698d4d3aa5f377758e54ada1de77bfc2a9a11ba20c95c06845a567f",
+          "byteLength": 2649
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/inverse-two-distinct-partitions-self-loop/mapped.nq",
+          "sha256": "ce6ec7da537e9236c6ff9734a7eb6c916c1a46ebfa488abd7d5d2a4ad5fc5d76",
+          "byteLength": 11366
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/inverse-two-distinct-partitions-self-loop/canonical.nq",
+          "sha256": "cd52ab669659db624ce637ed65b060f622995456db5c939004c3077a02c026b2",
+          "byteLength": 11793
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/inverse-two-distinct-partitions-self-loop/ids.json",
+          "sha256": "5f309aed46a6d0ca5752328774b4775bc3cac67c339e657764b80451590b96e4",
+          "byteLength": 2352
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/inverse-two-distinct-partitions-self-loop/canonical.json",
+          "sha256": "4edfcc924a6be02eec8542ef39d67b99cfba34058afec9a198ec66234cae4083",
+          "byteLength": 1132
+        }
+      }
+    },
+    {
+      "id": "inverse-expression-member-details",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B24-inverse-named-members"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 20,
+        "blankNodes": 34,
+        "quads": 117,
+        "occurrenceKinds": {
+          "class-node": 2,
+          "label": 2,
+          "property-edge": 2
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/inverse-expression-member-details/source.json",
+          "sha256": "a774414eadf0d4933aa8034888c91a25f2126b9ac6b4cdfb633b840b8253d6eb",
+          "byteLength": 2524
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/inverse-expression-member-details/permuted-source.json",
+          "sha256": "caddd55723188b21d3959a92ed2444692926355810557d2c0d4ac1bd6a6b69fa",
+          "byteLength": 3304
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/inverse-expression-member-details/mapped.nq",
+          "sha256": "7b681f735cc9a0c117a4af8ac02f27154e16a3b11c5f04478a36550943f9333f",
+          "byteLength": 13856
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/inverse-expression-member-details/canonical.nq",
+          "sha256": "b085252e518d05aeea4bbcf92b274335fae8907f4e6aa21dbb9459fd040670f3",
+          "byteLength": 14375
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/inverse-expression-member-details/ids.json",
+          "sha256": "80cfadbfd3e0178836459a588ff65f0da020e51b5493b5a7ec3ab4e9707e7228",
+          "byteLength": 3101
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/inverse-expression-member-details/canonical.json",
+          "sha256": "8a62a9098b56665d9476527519efe16cfedd19e208006f880cc9953d112487af",
+          "byteLength": 1373
+        }
+      }
+    },
+    {
+      "id": "inverse-one-undrawable-partition",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B24-inverse-drawable-both",
+        "B22-undrawable-range"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 18,
+        "blankNodes": 31,
+        "quads": 105,
+        "occurrenceKinds": {
+          "class-node": 2,
+          "label": 1,
+          "property-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/inverse-one-undrawable-partition/source.json",
+          "sha256": "230e2f826a827f30cd2b83458f807bdd45dacb81448d85d24547e2c61ad9f49b",
+          "byteLength": 2232
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/inverse-one-undrawable-partition/permuted-source.json",
+          "sha256": "bda6e1c158d4eb5db62f6f9deb5698cd48248cf692609e33ea5bc02c10c963fd",
+          "byteLength": 2952
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/inverse-one-undrawable-partition/mapped.nq",
+          "sha256": "f6f6fa67a5193db6b88321f3e45dadda5e4eee7f0eef6a6e7a87f4a6b8a035c0",
+          "byteLength": 12409
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/inverse-one-undrawable-partition/canonical.nq",
+          "sha256": "f97e41d679c80b9695e3142d0f966b62606d15e207df05aeca6798c5d51674c1",
+          "byteLength": 12858
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/inverse-one-undrawable-partition/ids.json",
+          "sha256": "5438c1380331bffb9a2a7c22e74f5d7ee38a1a9f4d6e65206cd85c934d09dfb2",
+          "byteLength": 2770
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/inverse-one-undrawable-partition/canonical.json",
+          "sha256": "c60ba4f6acc80feffe185cdf8ab0758b2bbaf3f8db20dd1432f73672fa68f8b3",
+          "byteLength": 1246
+        }
+      }
+    },
+    {
+      "id": "singleton-inverse-nonloop-details",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B24-inverse-singleton",
+        "B24-inverse-not-reversed"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 13,
+        "blankNodes": 26,
+        "quads": 82,
+        "occurrenceKinds": {
+          "class-node": 2,
+          "label": 1,
+          "property-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/singleton-inverse-nonloop-details/source.json",
+          "sha256": "fd2e5c5f44f4057e4ea6368f6b045324ceaca6d047cd59379b9ad7fc9c1604de",
+          "byteLength": 1659
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/singleton-inverse-nonloop-details/permuted-source.json",
+          "sha256": "91bfdd20456ef02da0c0b0482bc479f06170662c2fafa4f2500918ae41f8f875",
+          "byteLength": 2129
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/singleton-inverse-nonloop-details/mapped.nq",
+          "sha256": "c72cfd993987ff64d3bc1fa7aef04a150571cfff9a148adf90639b4fe0fd985f",
+          "byteLength": 9755
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/singleton-inverse-nonloop-details/canonical.nq",
+          "sha256": "6d22452486c17d15e24ff11ff92960aeaa7c4bff8413bd9774f8a7de72aa3ed6",
+          "byteLength": 10105
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/singleton-inverse-nonloop-details/ids.json",
+          "sha256": "a0ca5da0884f9672281673a7bb0fd5cbe221e744f6080a83d5a0d4488c7a4936",
+          "byteLength": 2004
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/singleton-inverse-nonloop-details/canonical.json",
+          "sha256": "fe05cdbfd8f9f29b6d315cebb8a545debe76883320575f9b299c78b2471e5a7c",
+          "byteLength": 945
+        }
+      }
+    },
+    {
+      "id": "disjoint-triad",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B24-disjoint-pairs",
+        "B24-disjoint-one-construct"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 13,
+        "blankNodes": 29,
+        "quads": 91,
+        "occurrenceKinds": {
+          "class-node": 3,
+          "disjoint-edge": 3
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/disjoint-triad/source.json",
+          "sha256": "999ea6e8df89b49d4cc5402f106e1f0e8e96d8db6c57e28f010764e589d2741b",
+          "byteLength": 1777
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/disjoint-triad/permuted-source.json",
+          "sha256": "6cc30a51ee94aefdf499ce42034b0d2e40d351a7c202b7e8035dea18daf2d00a",
+          "byteLength": 2294
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/disjoint-triad/mapped.nq",
+          "sha256": "d8466bacadd5cfddefd586cb5d4320ecc56e8c73f5f6a06824cbf3b744670eab",
+          "byteLength": 10566
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/disjoint-triad/canonical.nq",
+          "sha256": "e0316508e1e8c4677ef6dce46d9de0694feb4e033ba53bc9c0888557f6e46442",
+          "byteLength": 10975
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/disjoint-triad/ids.json",
+          "sha256": "a607a535aba65b3e53d795eec79c1cb5344da2c77dbdfc4e80c9b581002b120d",
+          "byteLength": 2002
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/disjoint-triad/canonical.json",
+          "sha256": "aa555430d6afd84ac1e6bd4d34cc691f74720d631c5ec013457e1af338450b82",
+          "byteLength": 939
+        }
+      }
+    },
+    {
+      "id": "disjoint-aliases",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B24-disjoint-pairs",
+        "B24-disjoint-pair-dedup"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 12,
+        "blankNodes": 27,
+        "quads": 84,
+        "occurrenceKinds": {
+          "class-node": 2,
+          "disjoint-edge": 2
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/disjoint-aliases/source.json",
+          "sha256": "00d1ebb463d57333bced05fd908a857546fa7d8b1d6ebbddeee5a4b7bb2d0380",
+          "byteLength": 1610
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/disjoint-aliases/permuted-source.json",
+          "sha256": "bc227daa646446bdfcbad6ebd8e886459e08037c69667b13bb3246f6018a535a",
+          "byteLength": 2102
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/disjoint-aliases/mapped.nq",
+          "sha256": "3ff6601e90e0802f36529910d131f4e1f58244817373085b37e68150d0d3b717",
+          "byteLength": 9775
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/disjoint-aliases/canonical.nq",
+          "sha256": "568ceeda322b810a6b4283e08e0de6d261f242b73ad7c49d7e67a1cca779a49d",
+          "byteLength": 10145
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/disjoint-aliases/ids.json",
+          "sha256": "301ffbb8587949d5ca6730bbef5b313970beb9276ea06b32df8f147227cc12be",
+          "byteLength": 1836
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/disjoint-aliases/canonical.json",
+          "sha256": "ab7574d0d0349e2bded7c4cd0b72bd37b17ad2016f11024b29d1a24b5ea5e540",
+          "byteLength": 881
+        }
+      }
+    },
+    {
+      "id": "disjoint-singleton",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B24-disjoint-pairs",
+        "B24-disjoint-singleton"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 5,
+        "blankNodes": 17,
+        "quads": 46,
+        "occurrenceKinds": {
+          "class-node": 1,
+          "disjoint-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/disjoint-singleton/source.json",
+          "sha256": "16ff89491f6f6d4ba4b00954eb2cca96cedb4b5f73a97fb095dfb4201556e09f",
+          "byteLength": 789
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/disjoint-singleton/permuted-source.json",
+          "sha256": "90ee4ae9a860540ab5cc75e76bec16f99abf3def2386324647fda7bae7cb3ff9",
+          "byteLength": 952
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/disjoint-singleton/mapped.nq",
+          "sha256": "e733653c2a848ea518ddba77e978b14e848ca4cfaf69c305cdefa5b1a73b595b",
+          "byteLength": 5510
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/disjoint-singleton/canonical.nq",
+          "sha256": "8fe4fc385fc5c87e478c1ffcb7324c3f19f7843b052efd5a3f13f51860cc25d5",
+          "byteLength": 5705
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/disjoint-singleton/ids.json",
+          "sha256": "e90b1f1a88041178e78a74b978fb967f243b1e161c749475b34c5af1320d45ae",
+          "byteLength": 774
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/disjoint-singleton/canonical.json",
+          "sha256": "3a103af0957ce9ebb226bca80d9abd8aaa45dd50fd3861fe416bd50daf423f29",
+          "byteLength": 492
+        }
+      }
+    },
+    {
+      "id": "disjoint-0-drawable-members",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B24-disjoint-undrawable"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 15,
+        "blankNodes": 28,
+        "quads": 93,
+        "occurrenceKinds": {
+          "class-node": 2,
+          "label": 1,
+          "property-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/disjoint-0-drawable-members/source.json",
+          "sha256": "9709c7a8fbe11cbdf01621fd00d102f124c5e5e0fb3a912b5f14fe500efd5e64",
+          "byteLength": 1914
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/disjoint-0-drawable-members/permuted-source.json",
+          "sha256": "43c3d822a0baeebec233cda76872d94f012dbb5bf0e493f17df5be092da5f86f",
+          "byteLength": 2524
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/disjoint-0-drawable-members/mapped.nq",
+          "sha256": "b7ba1f8170e599ea6b99399d714f9db268669026d6fdb22661532ecc20f6dae4",
+          "byteLength": 11000
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/disjoint-0-drawable-members/canonical.nq",
+          "sha256": "2a5e00a0f3eaefc37ecb7a12bb3ed67d2c2e6fdee6d98da925a41d47bbb2f16d",
+          "byteLength": 11405
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/disjoint-0-drawable-members/ids.json",
+          "sha256": "ff91c13f5be0e1e58ec8867e82ea8c2ec01b382c79acf6c79da1518f4f2ed89d",
+          "byteLength": 2312
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/disjoint-0-drawable-members/canonical.json",
+          "sha256": "70cb88e1fe5e7e93034b56171529f7b9fb9fb38247935faf4a33770d57df3e6a",
+          "byteLength": 1072
+        }
+      }
+    },
+    {
+      "id": "disjoint-1-drawable-members",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B24-disjoint-undrawable",
+        "B24-disjoint-not-false-singleton"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 14,
+        "blankNodes": 27,
+        "quads": 88,
+        "occurrenceKinds": {
+          "class-node": 2,
+          "label": 1,
+          "property-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/disjoint-1-drawable-members/source.json",
+          "sha256": "332454640011228b01dae1b6f4a9d4296318cdf746afe7da66f0ecf5a9607318",
+          "byteLength": 1797
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/disjoint-1-drawable-members/permuted-source.json",
+          "sha256": "7e8c0dd04fcf52b3eacab204d1f2f464b3d56d06ee9d05335330640fdb2cdac3",
+          "byteLength": 2345
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/disjoint-1-drawable-members/mapped.nq",
+          "sha256": "51908a5ce021589850ed04515d9e763c31f3809978176234b9c1f6d83bf743d8",
+          "byteLength": 10420
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/disjoint-1-drawable-members/canonical.nq",
+          "sha256": "d784c98c71725690ab6ad6f71ba0f7a371d787e847ca59af914b4b9fbe3286cc",
+          "byteLength": 10798
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/disjoint-1-drawable-members/ids.json",
+          "sha256": "4048ec19a1575b3f73532fdd4edd147cf4c87620d14b69596fae573476027f37",
+          "byteLength": 2158
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/disjoint-1-drawable-members/canonical.json",
+          "sha256": "a8ad191598e822a2a05ad1added6283309189664a57f8702850d9b31d451f679",
+          "byteLength": 1010
+        }
+      }
+    },
+    {
+      "id": "disjoint-2-drawable-members",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B24-disjoint-undrawable"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 15,
+        "blankNodes": 29,
+        "quads": 97,
+        "occurrenceKinds": {
+          "class-node": 2,
+          "disjoint-edge": 1,
+          "label": 1,
+          "property-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/disjoint-2-drawable-members/source.json",
+          "sha256": "729a3dda447b1789a4ecb47a7d67fca3d5205c73061d1381af3f903f6d2fda6f",
+          "byteLength": 1993
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/disjoint-2-drawable-members/permuted-source.json",
+          "sha256": "18fc5825cd6abca8d9c54a3c70987b7c042f39c45bfe0dd2c0e3c349c955c59d",
+          "byteLength": 2618
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/disjoint-2-drawable-members/mapped.nq",
+          "sha256": "57dce912fb96d7724218b6a46f5da3563539f80e083c82865cef26cc5df3d8ab",
+          "byteLength": 11388
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/disjoint-2-drawable-members/canonical.nq",
+          "sha256": "44cffd97183d676f0662094532ca8dce3c8bf097fc26553c26dbacbd69222565",
+          "byteLength": 11816
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/disjoint-2-drawable-members/ids.json",
+          "sha256": "fd2e61c062689ac36b8489dee24c7b92e41117e37ed3347fc0ba3df5235f8523",
+          "byteLength": 2323
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/disjoint-2-drawable-members/canonical.json",
+          "sha256": "9b2155f984712067060ae4ddc72eacc12eeb9e21516cc1e9ad9b3001fcc57083",
+          "byteLength": 1086
+        }
+      }
+    },
+    {
+      "id": "operator-grouped-operand-dedup",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B24-operator-dedup"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 15,
+        "blankNodes": 29,
+        "quads": 96,
+        "occurrenceKinds": {
+          "class-node": 3,
+          "label": 1,
+          "operator-edge": 1,
+          "subclass-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/operator-grouped-operand-dedup/source.json",
+          "sha256": "c84ad203af57b532115abe2c9d12b6209533d7d648106b55aceee23ae9776734",
+          "byteLength": 1980
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/operator-grouped-operand-dedup/permuted-source.json",
+          "sha256": "fafdc77c547b345494a7573cb617cbc04d3b2d6ec6d5353b529f835f79bd4fd2",
+          "byteLength": 2545
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/operator-grouped-operand-dedup/mapped.nq",
+          "sha256": "16b99f1a625c7c82a9232a76d64c0814784fd49fb20040bf716adf1ece99d4de",
+          "byteLength": 11269
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/operator-grouped-operand-dedup/canonical.nq",
+          "sha256": "88b83ea14e69bea6ead0c965051414324ef405740b3d101f2447be72dd08903c",
+          "byteLength": 11696
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/operator-grouped-operand-dedup/ids.json",
+          "sha256": "d7ea3802ee1a5c339fa0e7d66d5a75d26ddc344c531040e1dfd3fb8235231ee7",
+          "byteLength": 2338
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/operator-grouped-operand-dedup/canonical.json",
+          "sha256": "a8320080b6c3a8546984848c2dfced8fb6e8e8c6301b7b12189914d325861c7e",
+          "byteLength": 1045
+        }
+      }
+    },
+    {
+      "id": "operator-no-drawable-operands",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B24-operator-undrawable",
+        "B24-operator-derived-cue"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 19,
+        "blankNodes": 33,
+        "quads": 115,
+        "occurrenceKinds": {
+          "class-node": 3,
+          "label": 2,
+          "property-edge": 1,
+          "subclass-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/operator-no-drawable-operands/source.json",
+          "sha256": "e4ce669bf32cbc73916e08df76302fd66a20d71addc730d02327ffeede7c5a5d",
+          "byteLength": 2462
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/operator-no-drawable-operands/permuted-source.json",
+          "sha256": "4ba1048fa46e8b90d48881e93212369067bf976c2cf5592ea0280dc3b66ff897",
+          "byteLength": 3210
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/operator-no-drawable-operands/mapped.nq",
+          "sha256": "73bb97b4b89f1768b0d16c3e068c6a8b29a71d7613955b6e5a9d1363ec0f1684",
+          "byteLength": 13588
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/operator-no-drawable-operands/canonical.nq",
+          "sha256": "9f87541b67a830655289bd2499ea486e74ded67de9068d0c8abb6a16c6d539b1",
+          "byteLength": 14095
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/operator-no-drawable-operands/ids.json",
+          "sha256": "b2edc856695847ac065b5d24d29b44b471dbc89f3dd37fb32c3516be7660e014",
+          "byteLength": 2969
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/operator-no-drawable-operands/canonical.json",
+          "sha256": "4cdb28b7d10be39b198da3697c89bfdd98f151c390ad2f3d97f28c95529d43f4",
+          "byteLength": 1304
+        }
+      }
+    },
+    {
+      "id": "operator-generic-operand-context",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B23-operator-context"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 13,
+        "blankNodes": 28,
+        "quads": 93,
+        "occurrenceKinds": {
+          "class-node": 3,
+          "label": 1,
+          "operator-edge": 2,
+          "subclass-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/operator-generic-operand-context/source.json",
+          "sha256": "066f84fc778a5c25c3224a58f0148211ca79747704f6357e1348b3444f42187f",
+          "byteLength": 1963
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/operator-generic-operand-context/permuted-source.json",
+          "sha256": "1eaef096eebe4312a29a943a8a59d7599554092dd78a8b09c6d19f82981959c6",
+          "byteLength": 2426
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/operator-generic-operand-context/mapped.nq",
+          "sha256": "85b29bb7f134dccd0ef663e8e0ed2d2227fa11d9d3b181d16af50e2d33d1c060",
+          "byteLength": 10948
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/operator-generic-operand-context/canonical.nq",
+          "sha256": "661fe21e5add18efb9eb8b069f6f1bbbbd8af7c6648c0338098ff4334309acb1",
+          "byteLength": 11352
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/operator-generic-operand-context/ids.json",
+          "sha256": "a78ec21ab66fdc072737e35f9476875ed0a580b130499b04267677d462066e05",
+          "byteLength": 2063
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/operator-generic-operand-context/canonical.json",
+          "sha256": "07d23b7aa17f52d887c93e7f3ac42c84601adb9c7b65b966eeebb99016e5056e",
+          "byteLength": 1003
+        }
+      }
+    },
+    {
+      "id": "subclass-generic-context-reuse-and-split",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B23-subclass-context",
+        "B23-reuse-keys",
+        "B23-split-contexts"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 19,
+        "blankNodes": 36,
+        "quads": 125,
+        "occurrenceKinds": {
+          "class-node": 4,
+          "label": 3,
+          "subclass-edge": 3
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/subclass-generic-context-reuse-and-split/source.json",
+          "sha256": "12a2702522e21c49e7bd7f02fcfa8d6138c320fb9b314d1ea0e3f09d83f3a4c2",
+          "byteLength": 2687
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/subclass-generic-context-reuse-and-split/permuted-source.json",
+          "sha256": "718e5f6b34a21e79379b50f8df1ef7a1b4eeb417c9a3fe239e19c711d2a5db37",
+          "byteLength": 3398
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/subclass-generic-context-reuse-and-split/mapped.nq",
+          "sha256": "996f714b3351c03d6cc4e138995d28f0e656bd9115e9800be0d1c22590e9e119",
+          "byteLength": 14815
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/subclass-generic-context-reuse-and-split/canonical.nq",
+          "sha256": "34d390642cb89c6b5cb4e641aef5e71d9580ff97f61f1b9db09404c92b698074",
+          "byteLength": 15361
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/subclass-generic-context-reuse-and-split/ids.json",
+          "sha256": "00e3c767ee154f6d9fd838d0f6f6ecc39a0a3eda283e693a7ee55f4c36bfae2e",
+          "byteLength": 2992
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/subclass-generic-context-reuse-and-split/canonical.json",
+          "sha256": "91856f3055e71eecc851cfd6dbfea4b245f166f130b15627c42cd524d7086274",
+          "byteLength": 1364
+        }
+      }
+    },
+    {
+      "id": "disjoint-generic-context",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B23-disjoint-context",
+        "B23-rdf-class-generic"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 8,
+        "blankNodes": 23,
+        "quads": 67,
+        "occurrenceKinds": {
+          "class-node": 2,
+          "disjoint-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/disjoint-generic-context/source.json",
+          "sha256": "94d66f068b1c0c69096773cd739c19d2504b295eba9d590f6f594d2c17219249",
+          "byteLength": 1281
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/disjoint-generic-context/permuted-source.json",
+          "sha256": "c4023087a3b4ce916857c18b0651cf2753a3abe3a8aed2c934d17e7c2906c1a0",
+          "byteLength": 1550
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/disjoint-generic-context/mapped.nq",
+          "sha256": "7fe287ac3f0d66b80bfb4eafe357236e77abc941d435237da83cb7d06eb91a13",
+          "byteLength": 7912
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/disjoint-generic-context/canonical.nq",
+          "sha256": "de422aaa463bd3f8ab42fed94f8394a37809f3f909dbf4a5e568b99f9ae90a5e",
+          "byteLength": 8198
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/disjoint-generic-context/ids.json",
+          "sha256": "3c0313166f1219d16dede6ffe65b2431d5805bb0b1fe62ca2abed869eed6fbe6",
+          "byteLength": 1243
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/disjoint-generic-context/canonical.json",
+          "sha256": "83d8ee401adeed782c426289012d7cbb7b7fd667006c0f9381732fea932866f6",
+          "byteLength": 707
+        }
+      }
+    },
+    {
+      "id": "subclass-either-term-undrawable",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B24-subclass-drawable-both"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 15,
+        "blankNodes": 27,
+        "quads": 91,
+        "occurrenceKinds": {
+          "class-node": 2,
+          "label": 1,
+          "property-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/subclass-either-term-undrawable/source.json",
+          "sha256": "f1a77a30385aa8f34d51d1639df73b3dba138f8c2144ffbf39661b6bf4b849b2",
+          "byteLength": 1900
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/subclass-either-term-undrawable/permuted-source.json",
+          "sha256": "6d709f6e0634a4812acd099301160e29aa382ed7869dcffc827c6c6fb3fa5103",
+          "byteLength": 2489
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/subclass-either-term-undrawable/mapped.nq",
+          "sha256": "c1798edc617cbda9cc63a80041b4edb10c45d7b2212f929ca38ff5ad50c2ee60",
+          "byteLength": 10771
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/subclass-either-term-undrawable/canonical.nq",
+          "sha256": "b1dddb2f75118164addfb7dd192d9f3ba8ce3136557350f5509ded80d925935f",
+          "byteLength": 11163
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/subclass-either-term-undrawable/ids.json",
+          "sha256": "4bd82d4a49abec6e899091ceedc37417bada50be3d3eb196f2ac41672b1446c4",
+          "byteLength": 2331
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/subclass-either-term-undrawable/canonical.json",
+          "sha256": "294d1e6f6bf3a3429740d7a2d9c9ba5667ea83a8efea28c7b79214d6daf0d4f0",
+          "byteLength": 1058
+        }
+      }
+    },
+    {
+      "id": "object-min-qualified-details",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B24-restriction-qualified-details"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 15,
+        "blankNodes": 30,
+        "quads": 96,
+        "occurrenceKinds": {
+          "class-node": 3,
+          "label": 1,
+          "property-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/object-min-qualified-details/source.json",
+          "sha256": "eadf04b86bcc05f3503d900867eeef4bc01effc06059369845389ded95667f6a",
+          "byteLength": 2074
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/object-min-qualified-details/permuted-source.json",
+          "sha256": "e26485b977b4b4076d4eb2d705f84b4783b16f208492bf7c055491b4c5f1fd38",
+          "byteLength": 2520
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/object-min-qualified-details/mapped.nq",
+          "sha256": "edf0f6089567fc7698f4e82c02cf3c78ae0e24108ef280b38f563f566ca32e00",
+          "byteLength": 11360
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/object-min-qualified-details/canonical.nq",
+          "sha256": "b7bdc605beb5e043075a8203c2c2a5fd3588c8553087b2279c05bc76255d68bb",
+          "byteLength": 11767
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/object-min-qualified-details/ids.json",
+          "sha256": "422480e22af186521e51b5860e35be2b21d5d7aeacbe0fd18d3e32ec075e4bc0",
+          "byteLength": 2349
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/object-min-qualified-details/canonical.json",
+          "sha256": "9aeaf41018ffadeaa1c9fe2a5d36d30395e504880ad41ed2ee5753ef54e1f3f2",
+          "byteLength": 1095
+        }
+      }
+    },
+    {
+      "id": "object-max-qualified-details",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B24-restriction-qualified-details"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 15,
+        "blankNodes": 30,
+        "quads": 96,
+        "occurrenceKinds": {
+          "class-node": 3,
+          "label": 1,
+          "property-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/object-max-qualified-details/source.json",
+          "sha256": "6a91baea519f5192170c24e345ee2a59bdcb865d15fc7d3671e48b64467d67ee",
+          "byteLength": 2074
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/object-max-qualified-details/permuted-source.json",
+          "sha256": "f5acb628cad0d19057987759caed59dbd5ab73a46aaec4329810314c039beb65",
+          "byteLength": 2520
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/object-max-qualified-details/mapped.nq",
+          "sha256": "4526e7b1c497b22ffd0b913ea20292725961df76b7283e4b223b0d3eb65fddfd",
+          "byteLength": 11360
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/object-max-qualified-details/canonical.nq",
+          "sha256": "29ed1f3d4fe5d5586baa966e11e4d0bf30faa85c4e660b488cbd2417d2063762",
+          "byteLength": 11767
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/object-max-qualified-details/ids.json",
+          "sha256": "422480e22af186521e51b5860e35be2b21d5d7aeacbe0fd18d3e32ec075e4bc0",
+          "byteLength": 2349
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/object-max-qualified-details/canonical.json",
+          "sha256": "b91c9f311decd96be716eb44e100f7fac787a882301fd91f91c323a27dc42c40",
+          "byteLength": 1095
+        }
+      }
+    },
+    {
+      "id": "data-min-qualified-details",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B24-restriction-qualified-details"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 17,
+        "blankNodes": 33,
+        "quads": 107,
+        "occurrenceKinds": {
+          "class-node": 2,
+          "datatype-node": 1,
+          "label": 1,
+          "property-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/data-min-qualified-details/source.json",
+          "sha256": "e3e67f7007b0c07d219487d61243d627ac07ec7947356d19d9d29037f951ba2c",
+          "byteLength": 2379
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/data-min-qualified-details/permuted-source.json",
+          "sha256": "eb8e3454d65bff8447f0c7c0dfd055b9b7006f5a4109c77606d6d285eda4cf75",
+          "byteLength": 2892
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/data-min-qualified-details/mapped.nq",
+          "sha256": "b13611a514039a334c0d834d4547f6c2d021d89009cd89b03c55d2fe253b1748",
+          "byteLength": 12686
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/data-min-qualified-details/canonical.nq",
+          "sha256": "30f9b5b64ef1df9b8df80295077c2b42a3087b6ae17eeb1a727f3c621adb65a7",
+          "byteLength": 13144
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/data-min-qualified-details/ids.json",
+          "sha256": "f91ff9c90bff8fd821863e4a70a2f4c551bc9577bda51a6311631a1fbd0152fb",
+          "byteLength": 2657
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/data-min-qualified-details/canonical.json",
+          "sha256": "6a6c1dfb4825630da13cf615b2c4e59760885da53e6cb007e165e895df12ee6e",
+          "byteLength": 1260
+        }
+      }
+    },
+    {
+      "id": "data-max-qualified-details",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B24-restriction-qualified-details"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 17,
+        "blankNodes": 33,
+        "quads": 107,
+        "occurrenceKinds": {
+          "class-node": 2,
+          "datatype-node": 1,
+          "label": 1,
+          "property-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/data-max-qualified-details/source.json",
+          "sha256": "c1cdc480bba2ea3a5d2bff95b233700d96a4f794d4902da5ba0246052581fc98",
+          "byteLength": 2379
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/data-max-qualified-details/permuted-source.json",
+          "sha256": "90a14fe790307e9537f916288627e41ee5ee4d68b5eaca2621e8167936bfafa1",
+          "byteLength": 2892
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/data-max-qualified-details/mapped.nq",
+          "sha256": "c3b0cf63c219d7eac0d184d0a6f79987de8c67639e59dc02d9408fa231e31194",
+          "byteLength": 12686
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/data-max-qualified-details/canonical.nq",
+          "sha256": "b7e8369ec222b389f7bd228b2870036f527f8306c78a30eb5eee35aa70c3b98e",
+          "byteLength": 13144
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/data-max-qualified-details/ids.json",
+          "sha256": "5866e9312a069698905fd4c295eb36d6999dc041529bc33f1e54b264251ce6fc",
+          "byteLength": 2657
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/data-max-qualified-details/canonical.json",
+          "sha256": "6a2a72e10106b84935485ab16868f363928a8c24d4568da738430119d6f20b72",
+          "byteLength": 1260
+        }
+      }
+    },
+    {
+      "id": "restriction-rdf-class",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B24-restriction-rdfs-sub"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 15,
+        "blankNodes": 32,
+        "quads": 107,
+        "occurrenceKinds": {
+          "class-node": 3,
+          "label": 2,
+          "property-edge": 1,
+          "restriction-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/restriction-rdf-class/source.json",
+          "sha256": "6747b32931f569a02f85cf49ac2ce9218fdf833c04186102fec7ccafd79c8d71",
+          "byteLength": 2402
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/restriction-rdf-class/permuted-source.json",
+          "sha256": "740ed81de13bceb43a7f24b0c75125fea62f26e86ae792e88aa0a9030631ee0f",
+          "byteLength": 2853
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/restriction-rdf-class/mapped.nq",
+          "sha256": "26f596aba65278530f0098c4e64d584ca93fb87688e6b262f3783fabf95a44de",
+          "byteLength": 12676
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/restriction-rdf-class/canonical.nq",
+          "sha256": "d259e80bb65408e84167106879434a6a4f3b2902c4c63dad6d8dce2bad7c5c27",
+          "byteLength": 13141
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/restriction-rdf-class/ids.json",
+          "sha256": "142c1735bb1360799e340c2cad33eb422e78e4dbe2cd8fed7e3b7d1ac90410d6",
+          "byteLength": 2389
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/restriction-rdf-class/canonical.json",
+          "sha256": "6332159ce328516586094c231afafd8faa0db855a5c773d6aed0a36fc1aa3b5d",
+          "byteLength": 1210
+        }
+      }
+    },
+    {
+      "id": "restriction-expression-sub",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B24-restriction-named-sub"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 15,
+        "blankNodes": 30,
+        "quads": 99,
+        "occurrenceKinds": {
+          "class-node": 3,
+          "label": 1,
+          "operator-edge": 1,
+          "property-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/restriction-expression-sub/source.json",
+          "sha256": "4b3d8d2fec20dcb918b25fd2e4ac0019eef19fbc902fdbb0a5e04588b1170c49",
+          "byteLength": 2174
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/restriction-expression-sub/permuted-source.json",
+          "sha256": "401a186218d476826e5e3a48ac052fc94c1665226aeecdf759601c9b5abbfd2d",
+          "byteLength": 2648
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/restriction-expression-sub/mapped.nq",
+          "sha256": "471a82d0b6d8d9a20ee5bd3c42f447a5de73e0ab71857946b511b8887d55b7e7",
+          "byteLength": 11716
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/restriction-expression-sub/canonical.nq",
+          "sha256": "e72e339f2f8f1daa55f2c070c80e22ed340c74e349796608e5cfd79e4f3aff70",
+          "byteLength": 12142
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/restriction-expression-sub/ids.json",
+          "sha256": "c3261fbaf1a284804c9c3606f084718692163b2a535ca94a249157ab3f6aa138",
+          "byteLength": 2367
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/restriction-expression-sub/canonical.json",
+          "sha256": "2c1f923e14b1b8c1f4fa607512dbade38f1a4975130cbeb1ed4e83fa4feac224",
+          "byteLength": 1134
+        }
+      }
+    },
+    {
+      "id": "restriction-other-context",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B24-restriction-subclass-context"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 12,
+        "blankNodes": 27,
+        "quads": 85,
+        "occurrenceKinds": {
+          "class-node": 2,
+          "label": 1,
+          "property-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/restriction-other-context/source.json",
+          "sha256": "e6dc910c5573ef6b8ae16920b3f65496f171b89e5d489504fed666c212813065",
+          "byteLength": 1793
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/restriction-other-context/permuted-source.json",
+          "sha256": "2fcf2a8615581dd5690679d96e96c9a9f78511efb028e169a18a1f703f188e55",
+          "byteLength": 2166
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/restriction-other-context/mapped.nq",
+          "sha256": "bca11a385cb5225e5f7878c23f29f86295903156cc9a5c9d76cbd7d0211a4834",
+          "byteLength": 10074
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/restriction-other-context/canonical.nq",
+          "sha256": "accdd3297631f07814284b52d6a61bbc3d3115b24e6441e3025246b678fd0aeb",
+          "byteLength": 10434
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/restriction-other-context/ids.json",
+          "sha256": "093e3a75403b58a5c0a1921675739564aa2f3316eb1a66a14a6f86fa51f124bd",
+          "byteLength": 1881
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/restriction-other-context/canonical.json",
+          "sha256": "e710a13d6800e467cb401b0101580c53d89ab373902cf43e5d0b3ebcd76a2309",
+          "byteLength": 965
+        }
+      }
+    },
+    {
+      "id": "restrictions-grouped-subclasses-separate-scopes",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B24-restriction-per-construct",
+        "B23-restriction-scope"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 22,
+        "blankNodes": 43,
+        "quads": 151,
+        "occurrenceKinds": {
+          "class-node": 4,
+          "label": 3,
+          "property-edge": 1,
+          "restriction-edge": 2
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/restrictions-grouped-subclasses-separate-scopes/source.json",
+          "sha256": "61ce46ad3ce4ac6751dfdb4d031aaaa926bdec8408fb598126fa1e9ba1933186",
+          "byteLength": 3437
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/restrictions-grouped-subclasses-separate-scopes/permuted-source.json",
+          "sha256": "27a452c683734d330e3bdd0e0304c521196169c2bb069de9c535f8d61ee58793",
+          "byteLength": 4186
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/restrictions-grouped-subclasses-separate-scopes/mapped.nq",
+          "sha256": "d9a790f7fcdb246b6a6a29fdb16e62a865fa94119e22b14b4d57a1737c353db0",
+          "byteLength": 17753
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/restrictions-grouped-subclasses-separate-scopes/canonical.nq",
+          "sha256": "d5013538b43118fd30c0b5556c2081d4bd3de622b3041133bf4061bcb27816db",
+          "byteLength": 18421
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/restrictions-grouped-subclasses-separate-scopes/ids.json",
+          "sha256": "d3cc56c9c066c45f721e3d2b572c0eea360bfe84157688b45d5725104eb5c400",
+          "byteLength": 3494
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/restrictions-grouped-subclasses-separate-scopes/canonical.json",
+          "sha256": "6b3e6e0acd4edf207251bd502376d318fbb69db1e037f700ccdbfb443dcad228",
+          "byteLength": 1662
+        }
+      }
+    },
+    {
+      "id": "subproperty-inverse-directions",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B24-subproperty-direction",
+        "B24-subproperty-no-extra-occurrence"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 26,
+        "blankNodes": 41,
+        "quads": 149,
+        "occurrenceKinds": {
+          "class-node": 2,
+          "inverse-edge": 1,
+          "label": 3,
+          "property-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/subproperty-inverse-directions/source.json",
+          "sha256": "783fa72559d8f34844dd8c7444338c70818fe69fac216311f50afd070e7cf49e",
+          "byteLength": 3246
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/subproperty-inverse-directions/permuted-source.json",
+          "sha256": "09a41d5daa005ecb6e25df9c6698fa0eeef181e2b223dbb79e7b7bdeb581de24",
+          "byteLength": 4338
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/subproperty-inverse-directions/mapped.nq",
+          "sha256": "787dff5793f05ff3c2cc4c94ee352725982a1b8c5ce567f14a1bc6da1c21ed51",
+          "byteLength": 17521
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/subproperty-inverse-directions/canonical.nq",
+          "sha256": "3894d8650f33eadc2e690fbd5cab83d4efcc7e07e7c25d51b04f9a6da0bed85d",
+          "byteLength": 18197
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/subproperty-inverse-directions/ids.json",
+          "sha256": "a18f6842f1bbe5e67f309e7f81a373b870d502dba375c47292067fd1cfdbf419",
+          "byteLength": 4026
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/subproperty-inverse-directions/canonical.json",
+          "sha256": "85c8022062d76be33bc5ecdc00f64384433df7c8fd28ddc2238e927f5e19befb",
+          "byteLength": 1729
+        }
+      }
+    },
+    {
+      "id": "subproperty-missing-projection-details",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B24-subproperty-drawable-both"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 18,
+        "blankNodes": 30,
+        "quads": 103,
+        "occurrenceKinds": {
+          "class-node": 2,
+          "label": 1,
+          "property-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/subproperty-missing-projection-details/source.json",
+          "sha256": "8bb2e97233ea7c619edbe430d8ba9f56237fb29659ccd6354afc935cfa25ef49",
+          "byteLength": 2219
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/subproperty-missing-projection-details/permuted-source.json",
+          "sha256": "302c3b456a71cbdf2d16521212ec7a186e851271962fa8960b987fa14bd38825",
+          "byteLength": 2935
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/subproperty-missing-projection-details/mapped.nq",
+          "sha256": "a83df000ce6af6a393b7f7eb65929e877fc71e04fc9998e8dd25788294dd04ff",
+          "byteLength": 12199
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/subproperty-missing-projection-details/canonical.nq",
+          "sha256": "c9e7aee56891e00bdf1f8197b9ed05d6d11b78cc2076924e8b9e265a9ab86dfd",
+          "byteLength": 12641
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/subproperty-missing-projection-details/ids.json",
+          "sha256": "a6740f919ffd3200bfe9e473e59bfb343aba59e7b18e79bc3b74138f5d395a97",
+          "byteLength": 2774
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/subproperty-missing-projection-details/canonical.json",
+          "sha256": "6a615189a9cb6637b0afd40b4c5dccd250b57d18ea17c5788422eaf09c4ec86a",
+          "byteLength": 1250
+        }
+      }
+    },
+    {
+      "id": "characteristics-principal-and-alias",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B24-characteristic-principal",
+        "B24-characteristic-nonprincipal"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 22,
+        "blankNodes": 36,
+        "quads": 124,
+        "occurrenceKinds": {
+          "class-node": 3,
+          "label": 1,
+          "property-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/characteristics-principal-and-alias/source.json",
+          "sha256": "8e67eeb10cfbb3cb10af25691739d4a46d733b1985d5739879b7dfd91445b4e1",
+          "byteLength": 2816
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/characteristics-principal-and-alias/permuted-source.json",
+          "sha256": "4981e6144cf745f2c79929fdc94e5f2f47cb19c62c82ee0bc05303ada5ed4752",
+          "byteLength": 3565
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/characteristics-principal-and-alias/mapped.nq",
+          "sha256": "7b8611d5de3264f1bdabe0597f9870a7f6a031e297b81f4892bf734730b0b158",
+          "byteLength": 14790
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/characteristics-principal-and-alias/canonical.nq",
+          "sha256": "1c09fcc571a7195f2d49a1af42ad836fa67c5bed1ce5f5d49d3ccadec271c083",
+          "byteLength": 15337
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/characteristics-principal-and-alias/ids.json",
+          "sha256": "034b7ecc0c09baa1278e2c64aba344b1f8ebce6e89043e4c011981489f1bdc92",
+          "byteLength": 3454
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/characteristics-principal-and-alias/canonical.json",
+          "sha256": "262126d4f9e34709515b911d2d7963438189a51f6d4a63056d05ab848dd3869b",
+          "byteLength": 1517
+        }
+      }
+    },
+    {
+      "id": "characteristics-inverse-directions",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B24-characteristic-inverse-direction"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 20,
+        "blankNodes": 34,
+        "quads": 119,
+        "occurrenceKinds": {
+          "class-node": 2,
+          "inverse-edge": 1,
+          "label": 2
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/characteristics-inverse-directions/source.json",
+          "sha256": "84c9a961f8655680b69af56923f3d0a54a8f7d9d2fe98fb7976d6b35fcae3cd9",
+          "byteLength": 2604
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/characteristics-inverse-directions/permuted-source.json",
+          "sha256": "d67c623e5467ba194ac6d64923bfe05b44f4cb7c41948d0ff05f66fddf9304e6",
+          "byteLength": 3362
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/characteristics-inverse-directions/mapped.nq",
+          "sha256": "9cb1a6b87890ae48577472a0303eba5bc77ab0ef9dc07cff1229e39d4aa9d9d1",
+          "byteLength": 14197
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/characteristics-inverse-directions/canonical.nq",
+          "sha256": "1b496828575d12c614a750cc28576f661fe9abea5eeb623b79a176559126aec3",
+          "byteLength": 14725
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/characteristics-inverse-directions/ids.json",
+          "sha256": "529ebb1fd1b4211d3c1138628f150d70bef6d31bab1475ec21d4c5303b350bf0",
+          "byteLength": 3123
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/characteristics-inverse-directions/canonical.json",
+          "sha256": "9eaf5c88d96637c09da154acd57a196ffdc919bcbda594bbca5563a5730c03f8",
+          "byteLength": 1415
+        }
+      }
+    },
+    {
+      "id": "characteristic-inverse-expression-details",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "clauses": [
+        "B24-characteristic-inverse-expression"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 21,
+        "blankNodes": 34,
+        "quads": 120,
+        "occurrenceKinds": {
+          "class-node": 2,
+          "label": 2,
+          "property-edge": 2
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/characteristic-inverse-expression-details/source.json",
+          "sha256": "6d062a85ccff49130161d5407903a8e4e849125f5cc7942045232fa4571626b5",
+          "byteLength": 2733
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/characteristic-inverse-expression-details/permuted-source.json",
+          "sha256": "4478b334d65e8574a21495213fcd69a4576ca5057a295c7192c2c1018aa0e960",
+          "byteLength": 3464
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/characteristic-inverse-expression-details/mapped.nq",
+          "sha256": "4b40cb328ce0225807681c17dddc4e3ccca54c88d814d4f6fd68a6efbc939125",
+          "byteLength": 14318
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/characteristic-inverse-expression-details/canonical.nq",
+          "sha256": "25af8c5f32835f3b1260146ba3bc73be74d9f74ae6c8527c8470b6a8e75e1cd2",
+          "byteLength": 14845
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/characteristic-inverse-expression-details/ids.json",
+          "sha256": "71a3078ae2231ce355ceba71ce16da8db78564f4f4f69d1564a79d00b5ea5457",
+          "byteLength": 3292
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/characteristic-inverse-expression-details/canonical.json",
+          "sha256": "19e72cd07358e7da61a69851d31e9eee6104aa72ab5b8e3d62c4ca0670561e2d",
+          "byteLength": 1460
+        }
+      }
+    },
+    {
+      "id": "artifact-all-positionable-per-property-datatype",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "clauses": [
+        "B24-positionable",
+        "B24-label-cardinality",
+        "B24-no-edge-placement"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 16,
+        "blankNodes": 57,
+        "quads": 189,
+        "occurrenceKinds": {
+          "class-node": 2,
+          "datatype-node": 2,
+          "label": 2,
+          "property-edge": 2
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/artifact-all-positionable-per-property-datatype/source.json",
+          "sha256": "017e99d256cc6f92a9377c311b37aa6d41a4ebd5fd1af7a5a740ee3fa73667f5",
+          "byteLength": 3735
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/artifact-all-positionable-per-property-datatype/permuted-source.json",
+          "sha256": "265e74fa398fdcbf72a5f5db0b207b791df8b77a184e969c1c9d0a29a90291be",
+          "byteLength": 4361
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/artifact-all-positionable-per-property-datatype/mapped.nq",
+          "sha256": "c36093f6aa958c94460af74709f6c6ad9fba4f54dfeac627eca5e675395ffd42",
+          "byteLength": 23061
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/artifact-all-positionable-per-property-datatype/canonical.nq",
+          "sha256": "32c08f94e405f6d42ce92d217db1e01cd1c759f3a5994b0db6d57e9de7912ccb",
+          "byteLength": 23861
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/artifact-all-positionable-per-property-datatype/ids.json",
+          "sha256": "00afda805267186240c73d898db0a33e806cf75a6d960369e8691e469016157e",
+          "byteLength": 2490
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/artifact-all-positionable-per-property-datatype/canonical.json",
+          "sha256": "e82320b53154dfb336d58f0807d569b68108b712c83b1e3d07161aec30b8cacc",
+          "byteLength": 1878
+        }
+      }
+    },
+    {
+      "id": "artifact-all-positionable-matched-inverse",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "clauses": [
+        "B24-positionable",
+        "B24-label-cardinality",
+        "B24-no-edge-placement"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 18,
+        "blankNodes": 48,
+        "quads": 164,
+        "occurrenceKinds": {
+          "class-node": 2,
+          "inverse-edge": 1,
+          "label": 2
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/artifact-all-positionable-matched-inverse/source.json",
+          "sha256": "47214f490fb5275c65b25dae5f4007a5c6ecb303ae4fdcbb7cc681186e19c986",
+          "byteLength": 3224
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/artifact-all-positionable-matched-inverse/permuted-source.json",
+          "sha256": "337197a47c97c3853b29ca50433eb7f0b2d6a8ed9e2cab4ac8ac429f46561b64",
+          "byteLength": 3986
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/artifact-all-positionable-matched-inverse/mapped.nq",
+          "sha256": "39c4084864de50ead5e5f014fc280d814724d02e8af47195e5ab8ed47ce373db",
+          "byteLength": 19851
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/artifact-all-positionable-matched-inverse/canonical.nq",
+          "sha256": "8011c353287e895ceb81a1b327304cd0d345d723aa3ce054ce8450845b0577a4",
+          "byteLength": 20561
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/artifact-all-positionable-matched-inverse/ids.json",
+          "sha256": "2f6cae22d346dc866e596d522389d4bf0593cf4b371ac0e4f39b017cfca7f199",
+          "byteLength": 2780
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/artifact-all-positionable-matched-inverse/canonical.json",
+          "sha256": "7224574d67c9cf32233bd48b61e6e0089671151e64ad664717450b1f90add4de",
+          "byteLength": 1695
+        }
+      }
+    },
+    {
+      "id": "artifact-all-positionable-object-exact-unqualified",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "clauses": [
+        "B24-positionable",
+        "B24-label-cardinality",
+        "B24-no-edge-placement"
+      ],
+      "status": "independently-derived-conditional-topology-pending-review-and-production-comparison",
+      "counts": {
+        "primary": 15,
+        "blankNodes": 50,
+        "quads": 170,
+        "occurrenceKinds": {
+          "class-node": 3,
+          "label": 2,
+          "property-edge": 1,
+          "restriction-edge": 1
+        }
+      },
+      "metamorphic": [
+        "source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/conditional/vectors/artifact-all-positionable-object-exact-unqualified/source.json",
+          "sha256": "f4873b1d8b531c3bee0a6e24b766cddc35235ad7448e34d5af8eb2d10e5fa2a9",
+          "byteLength": 3518
+        },
+        "permuted-source.json": {
+          "path": "supplemental/conditional/vectors/artifact-all-positionable-object-exact-unqualified/permuted-source.json",
+          "sha256": "5164380d92c4dc33b138a1dcc7ca9861d2a2a1ed9e53d0d61915653189da6d87",
+          "byteLength": 3998
+        },
+        "mapped.nq": {
+          "path": "supplemental/conditional/vectors/artifact-all-positionable-object-exact-unqualified/mapped.nq",
+          "sha256": "8173015ee7a5489e158e1d4557bef9bd724e49d11701aaf62c9e3217c45fff34",
+          "byteLength": 20689
+        },
+        "canonical.nq": {
+          "path": "supplemental/conditional/vectors/artifact-all-positionable-object-exact-unqualified/canonical.nq",
+          "sha256": "b7068e6da6c4a4c3cc9d0ddebe3a05825577afe71ed964b62385df64cd9564d6",
+          "byteLength": 21413
+        },
+        "ids.json": {
+          "path": "supplemental/conditional/vectors/artifact-all-positionable-object-exact-unqualified/ids.json",
+          "sha256": "54c918e2b8c4cc75c528f8e490db56e379d422cdd10b69b0604502dd7092874d",
+          "byteLength": 2390
+        },
+        "canonical.json": {
+          "path": "supplemental/conditional/vectors/artifact-all-positionable-object-exact-unqualified/canonical.json",
+          "sha256": "0679da1752f24de45e0593c02ffde1770173c493b74d93140ece8e003d11f176",
+          "byteLength": 1727
+        }
+      }
+    }
+  ]
+}

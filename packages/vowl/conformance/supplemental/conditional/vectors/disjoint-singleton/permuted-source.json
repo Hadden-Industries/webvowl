@@ -1,0 +1,48 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "ends": [
+          "conditional-renamed-2"
+        ],
+        "construct": "conditional-renamed-3",
+        "kind": "disjoint-edge",
+        "id": "conditional-renamed-1"
+      },
+      {
+        "targets": [
+          "conditional-renamed-4"
+        ],
+        "kind": "class-node",
+        "id": "conditional-renamed-2"
+      }
+    ],
+    "constructs": [
+      {
+        "members": [
+          "conditional-renamed-4"
+        ],
+        "kind": "disjoint-classes",
+        "id": "conditional-renamed-3"
+      }
+    ],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "conditional-renamed-5",
+        "kind": "class",
+        "id": "conditional-renamed-4"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "https://example.org/conditional#A",
+        "id": "conditional-renamed-5"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

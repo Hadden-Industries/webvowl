@@ -1,0 +1,139 @@
+{
+  "structuralSourceSha256": "31a0c8523c8fdb82fd66e6935bd2271e0eca6863938058fc5f6949b80438aeb6",
+  "exactChangedSourcePointer": "/visualization/placements/0/position/x",
+  "beforeValue": 0,
+  "afterValue": 1,
+  "before": [
+    {
+      "category": "occurrences",
+      "semanticKey": "class-node:urn:state-identity:Alpha",
+      "sourceHandle": "node-alpha",
+      "canonicalId": "o0",
+      "rdfcIdentifier": "c14n23"
+    },
+    {
+      "category": "occurrences",
+      "semanticKey": "class-node:urn:state-identity:Beta",
+      "sourceHandle": "node-beta",
+      "canonicalId": "o1",
+      "rdfcIdentifier": "c14n27"
+    },
+    {
+      "category": "roles",
+      "semanticKey": "class:urn:state-identity:Alpha",
+      "sourceHandle": "role-alpha",
+      "canonicalId": "r0",
+      "rdfcIdentifier": "c14n21"
+    },
+    {
+      "category": "roles",
+      "semanticKey": "class:urn:state-identity:Beta",
+      "sourceHandle": "role-beta",
+      "canonicalId": "r1",
+      "rdfcIdentifier": "c14n25"
+    },
+    {
+      "category": "subjects",
+      "semanticKey": "urn:state-identity:Alpha",
+      "sourceHandle": "subject-alpha",
+      "canonicalId": "s1",
+      "rdfcIdentifier": "c14n5"
+    },
+    {
+      "category": "subjects",
+      "semanticKey": "urn:state-identity:Beta",
+      "sourceHandle": "subject-beta",
+      "canonicalId": "s0",
+      "rdfcIdentifier": "c14n2"
+    }
+  ],
+  "after": [
+    {
+      "category": "occurrences",
+      "semanticKey": "class-node:urn:state-identity:Alpha",
+      "sourceHandle": "node-alpha",
+      "canonicalId": "o1",
+      "rdfcIdentifier": "c14n27"
+    },
+    {
+      "category": "occurrences",
+      "semanticKey": "class-node:urn:state-identity:Beta",
+      "sourceHandle": "node-beta",
+      "canonicalId": "o0",
+      "rdfcIdentifier": "c14n23"
+    },
+    {
+      "category": "roles",
+      "semanticKey": "class:urn:state-identity:Alpha",
+      "sourceHandle": "role-alpha",
+      "canonicalId": "r1",
+      "rdfcIdentifier": "c14n25"
+    },
+    {
+      "category": "roles",
+      "semanticKey": "class:urn:state-identity:Beta",
+      "sourceHandle": "role-beta",
+      "canonicalId": "r0",
+      "rdfcIdentifier": "c14n21"
+    },
+    {
+      "category": "subjects",
+      "semanticKey": "urn:state-identity:Alpha",
+      "sourceHandle": "subject-alpha",
+      "canonicalId": "s1",
+      "rdfcIdentifier": "c14n5"
+    },
+    {
+      "category": "subjects",
+      "semanticKey": "urn:state-identity:Beta",
+      "sourceHandle": "subject-beta",
+      "canonicalId": "s0",
+      "rdfcIdentifier": "c14n2"
+    }
+  ],
+  "changed": [
+    {
+      "category": "occurrences",
+      "semanticKey": "class-node:urn:state-identity:Alpha",
+      "sourceHandle": "node-alpha",
+      "canonicalId": "o0",
+      "rdfcIdentifier": "c14n23",
+      "afterCanonicalId": "o1"
+    },
+    {
+      "category": "occurrences",
+      "semanticKey": "class-node:urn:state-identity:Beta",
+      "sourceHandle": "node-beta",
+      "canonicalId": "o1",
+      "rdfcIdentifier": "c14n27",
+      "afterCanonicalId": "o0"
+    },
+    {
+      "category": "roles",
+      "semanticKey": "class:urn:state-identity:Alpha",
+      "sourceHandle": "role-alpha",
+      "canonicalId": "r0",
+      "rdfcIdentifier": "c14n21",
+      "afterCanonicalId": "r1"
+    },
+    {
+      "category": "roles",
+      "semanticKey": "class:urn:state-identity:Beta",
+      "sourceHandle": "role-beta",
+      "canonicalId": "r1",
+      "rdfcIdentifier": "c14n25",
+      "afterCanonicalId": "r0"
+    }
+  ],
+  "boundedSearch": {
+    "method": "Try x=1..64 in ascending order, stop at first canonical category-ID difference; all other source data is equal.",
+    "probes": [
+      {
+        "x": 1,
+        "canonicalSha256": "1bacb6ec0cb1bd5b8adfbc709b952cb4611e0d5ba8d98754be7e6275e841c9b9",
+        "changedPrimaryIds": 4
+      }
+    ]
+  },
+  "limitation": "Named semantic keys make this association comparison unambiguous. It does not claim every state change alters every primary ID, nor durable source-handle IDs under symmetry."
+}

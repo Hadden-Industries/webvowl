@@ -1,0 +1,683 @@
+{
+  "format": "independent-canonical-vowl-migration-review-cases-v1",
+  "scope": "Exactly two disjoint artifact successes and two mixed-category named-identity triangle rejections; no product code or output used. All preceding inputs, outputs and case dispositions remain unchanged.",
+  "predecessorPins": [
+    {
+      "path": "supplemental/migration/manifest.json",
+      "sha256": "505fce8a138664b312f17aad79315fbdf7a5977e30a3e6571f7b1295a6364a90"
+    },
+    {
+      "path": "supplemental/migration/language-signature-erratum.json",
+      "sha256": "6708e4d76a23be3463d198efff1c2c1c8b3af9385b37d13a7b16aedf89a7734e"
+    },
+    {
+      "path": "supplemental/migration/expected-successes.json",
+      "sha256": "7af731ac93d6d6b30ae69ecaf221c85f42c8b03bff1080f2db44efbaa6869bf6"
+    }
+  ],
+  "authorities": [
+    {
+      "base": "repository",
+      "path": "docs/specs/2026-09-24-canonical-vowl-design.md",
+      "sha256": "174535bb8cb43f317631f0799721adebfbbc4ceff4d577595be8fb91dd940fac"
+    },
+    {
+      "base": "repository",
+      "path": "docs/specs/2026-09-24-canonical-vowl-core-contract.md",
+      "sha256": "711ba30c291cfb0960334328203188600f60a331996e83379267a4a77b87988d"
+    },
+    {
+      "base": "repository",
+      "path": "docs/specs/2026-09-24-canonical-vowl-projection-contract.md",
+      "sha256": "4c1cf6a7e187f98d40d390e6ff0b5354aca46a8ff195fba5b6badace7eb6078b"
+    },
+    {
+      "base": "repository",
+      "path": "docs/specs/2026-09-24-canonical-vowl-design-decisions.md",
+      "sha256": "f314ec3448f2cf87f73ce6ce8871f3695d4b3b26dee687383b36e36a4fc0a43e"
+    },
+    {
+      "base": "repository",
+      "path": "docs/specs/2026-09-30-canonical-vowl-resource-policy-amendment.md",
+      "sha256": "9f1b7d96229a06f57e29a52f92325a4256e6f826d7532e239848ef99dc0f47c1"
+    },
+    {
+      "base": "repository",
+      "path": "docs/specs/2026-09-30-canonical-vowl-protocol-clarifications.md",
+      "sha256": "057bd8a3a15d5a574b753683917b871bd27bf239d9fd9ffad484550361cd84b4"
+    },
+    {
+      "base": "repository",
+      "path": "docs/plans/2026-09-24-canonical-vowl-implementation-plan.md",
+      "sha256": "15caf9bb9d87051a66a599e7c0d63649a8f775fb8ea4e72c02f7b6c1d6bfd740"
+    },
+    {
+      "base": "repository",
+      "path": "docs/reviews/canonical-vowl-legacy-dialect-inventory.md",
+      "sha256": "9945b689cbc8c5078d169d8797dfdfa1958f5fc3825d6675a6cf8b91c1be5b33"
+    },
+    {
+      "base": "repository",
+      "path": "docs/reviews/canonical-vowl-legacy-ingress-contract.md",
+      "sha256": "4c86970e1360b6e5702da323876dae286f85590c5e582fba31a747080b899306"
+    }
+  ],
+  "independentDependencies": [
+    {
+      "base": "conformance",
+      "path": "supplemental/amended-policy/producer.mjs",
+      "sha256": "da7936738c98cb853de7c6d6f2ae7528cbd4d47a0c1ccb1258dae7c5f7143321"
+    },
+    {
+      "base": "conformance",
+      "path": "supplemental/mapping-counterexamples/model.mjs",
+      "sha256": "3a4ebd134c1d209f84cf9c54072988a7e712f12286e95d35edec4d20f600bfc5"
+    }
+  ],
+  "producerSources": [
+    {
+      "path": "supplemental/migration/review-cases.mjs",
+      "sha256": "7ca79f866d5291d81c666e49df275d4e00b3f40057bdb173cbb16a3d0c640866",
+      "byteLength": 12768
+    },
+    {
+      "path": "supplemental/migration/language-signature-erratum.mjs",
+      "sha256": "600fd1b6c69b6d7ca9d1822b5ed29348bca606bb6f0ebbd4501cbb4ade93b781",
+      "byteLength": 6580
+    },
+    {
+      "path": "supplemental/migration/compact.mjs",
+      "sha256": "77e6f39b4fd9fe7b955fcf2dfcd213a90d14f820e20a541c0d9fecf9ff26b98b",
+      "byteLength": 3567
+    },
+    {
+      "path": "supplemental/migration/verify.mjs",
+      "sha256": "57865dbf01718d52e440cf7760350340f462ae706b3017481a5b968680baaac6",
+      "byteLength": 8677
+    },
+    {
+      "path": "supplemental/migration/support.mjs",
+      "sha256": "56e117a83f2867812fdacfd49d82f1d1a0e224345ee991c3215f4637683488b8",
+      "byteLength": 2899
+    }
+  ],
+  "independentDraft": {
+    "sha256": "9c0aa2c9135d8d3897a0e4a4095338415848e4be49304287a0ddf206febd6279",
+    "scope": "The four inputs and expected models were drafted in external task evidence before the disjoint contract wording and formatting pins settled. No expected bytes came from product output."
+  },
+  "diagnosticMatching": "Require each listed code, warning severity and exact sourcePointer. Other independently justified dropped-field diagnostics may also occur; unspecified prose and warning count are not frozen. Error fixtures require MIGRATION_AMBIGUOUS and return no document.",
+  "vectors": [
+    {
+      "id": "binary-disjoint-artifact-filter-off",
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "input": {
+        "encoding": "UTF-8",
+        "text": "{\n  \"_comment\": \"Created with owlapi VOWLBuilder\",\n  \"class\": [\n    {\n      \"id\": \"0\",\n      \"type\": \"owl:Class\"\n    },\n    {\n      \"id\": \"1\",\n      \"type\": \"owl:Class\"\n    }\n  ],\n  \"classAttribute\": [\n    {\n      \"baseIri\": \"https://example.org/legacy\",\n      \"id\": \"0\",\n      \"instances\": 0,\n      \"iri\": \"https://example.org/legacy#A\",\n      \"label\": {\n        \"IRI-based\": \"A\"\n      },\n      \"pinned\": false,\n      \"pos\": [\n        -3,\n        4\n      ]\n    },\n    {\n      \"baseIri\": \"https://example.org/legacy\",\n      \"id\": \"1\",\n      \"instances\": 0,\n      \"iri\": \"https://example.org/legacy#B\",\n      \"label\": {\n        \"IRI-based\": \"B\"\n      },\n      \"pinned\": true,\n      \"pos\": [\n        12,\n        18\n      ]\n    }\n  ],\n  \"header\": {\n    \"author\": [],\n    \"baseIris\": [\n      \"https://example.org/legacy\"\n    ],\n    \"comments\": {},\n    \"description\": {},\n    \"imports\": [],\n    \"iri\": \"https://example.org/legacy\",\n    \"labels\": {},\n    \"languages\": [],\n    \"other\": {},\n    \"prefixList\": {},\n    \"title\": {},\n    \"version\": \"\"\n  },\n  \"metrics\": {\n    \"classCount\": 2,\n    \"datatypeCount\": 0,\n    \"datatypePropertyCount\": 0,\n    \"individualCount\": 0,\n    \"nodeCount\": 2,\n    \"objectPropertyCount\": 0,\n    \"propertyCount\": 1\n  },\n  \"namespace\": [],\n  \"property\": [\n    {\n      \"id\": \"2\",\n      \"type\": \"owl:disjointWith\"\n    }\n  ],\n  \"propertyAttribute\": [\n    {\n      \"attributes\": [\n        \"anonymous\",\n        \"object\"\n      ],\n      \"domain\": \"0\",\n      \"id\": \"2\",\n      \"pinned\": false,\n      \"pos\": [\n        4.5,\n        11\n      ],\n      \"range\": \"1\"\n    }\n  ],\n  \"settings\": {\n    \"filter\": {\n      \"checkBox\": [\n        {\n          \"checked\": false,\n          \"id\": \"datatypeFilterCheckbox\"\n        },\n        {\n          \"checked\": false,\n          \"id\": \"objectPropertyFilterCheckbox\"\n        },\n        {\n          \"checked\": false,\n          \"id\": \"subclassFilterCheckbox\"\n        },\n        {\n          \"checked\": false,\n          \"id\": \"disjointFilterCheckbox\"\n        },\n        {\n          \"checked\": false,\n          \"id\": \"setoperatorFilterCheckbox\"\n        }\n      ],\n      \"degreeSliderValue\": 0\n    },\n    \"global\": {\n      \"language\": \"IRI-based\",\n      \"paused\": false,\n      \"translation\": [\n        12,\n        -8\n      ],\n      \"zoom\": 2\n    },\n    \"gravity\": {\n      \"classDistance\": 200,\n      \"datatypeDistance\": 120\n    },\n    \"modes\": {\n      \"checkBox\": [\n        {\n          \"checked\": false,\n          \"id\": \"nodescalingModuleCheckbox\"\n        },\n        {\n          \"checked\": true,\n          \"id\": \"compactnotationModuleCheckbox\"\n        },\n        {\n          \"checked\": true,\n          \"id\": \"colorexternalsModuleCheckbox\"\n        },\n        {\n          \"checked\": true,\n          \"id\": \"pickandpinModuleCheckbox\"\n        },\n        {\n          \"checked\": true,\n          \"id\": \"labelWidthModuleCheckbox\"\n        }\n      ],\n      \"colorSwitchState\": false,\n      \"maxLabelWidth\": 180\n    }\n  }\n}",
+        "sha256": "c183f1424ec5c5e9476f24758145b74404b4ba06156d0f696593184c5d9a931d",
+        "byteLength": 2947
+      },
+      "resolutions": [
+        {
+          "kind": "viewport",
+          "sourcePointer": "/settings/global/translation",
+          "width": 640,
+          "height": 480
+        }
+      ],
+      "outcome": "success",
+      "rules": [
+        "A9.3",
+        "B2.4",
+        "B3"
+      ],
+      "diagnostics": [
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "severity": "warning",
+          "sourcePointer": "/propertyAttribute/0/pos"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "severity": "warning",
+          "sourcePointer": "/propertyAttribute/0/pinned"
+        },
+        {
+          "code": "MIGRATION_RESOLVED_FIELD",
+          "severity": "warning",
+          "sourcePointer": "/settings/global/translation"
+        }
+      ],
+      "rationale": "B2 disjoint edges have no label and B3 forbids edge placements. Explicit legacy property position/pin fields therefore drop with exact field diagnostics. Both node placements and explicit pin values remain required. Disjoint filtering hides only the edge; no label or replacement coordinate is created.",
+      "expected": {
+        "source": {
+          "structural": {
+            "ontology": {
+              "imports": [],
+              "annotations": [],
+              "iri": "https://example.org/legacy"
+            },
+            "subjects": [
+              {
+                "id": "s:class-A",
+                "iri": "https://example.org/legacy#A"
+              },
+              {
+                "id": "s:class-B",
+                "iri": "https://example.org/legacy#B"
+              }
+            ],
+            "roles": [
+              {
+                "id": "class-A",
+                "kind": "class",
+                "subject": "s:class-A"
+              },
+              {
+                "id": "class-B",
+                "kind": "class",
+                "subject": "s:class-B"
+              }
+            ],
+            "expressions": [],
+            "constructs": [
+              {
+                "id": "named-relation",
+                "kind": "disjoint-classes",
+                "members": [
+                  "class-A",
+                  "class-B"
+                ]
+              }
+            ],
+            "occurrences": [
+              {
+                "id": "node-0",
+                "kind": "class-node",
+                "targets": [
+                  "class-A"
+                ]
+              },
+              {
+                "id": "node-1",
+                "kind": "class-node",
+                "targets": [
+                  "class-B"
+                ]
+              },
+              {
+                "id": "edge-0",
+                "kind": "disjoint-edge",
+                "construct": "named-relation",
+                "ends": [
+                  "node-0",
+                  "node-1"
+                ]
+              }
+            ]
+          },
+          "visualization": {
+            "placements": [
+              {
+                "occurrence": "node-0",
+                "position": {
+                  "x": -3,
+                  "y": 4
+                },
+                "pinned": false
+              },
+              {
+                "occurrence": "node-1",
+                "position": {
+                  "x": 12,
+                  "y": 18
+                },
+                "pinned": true
+              }
+            ],
+            "camera": {
+              "center": {
+                "x": 154,
+                "y": 124
+              },
+              "zoom": 2
+            },
+            "hidden": [],
+            "labelSelection": {
+              "mode": "iri"
+            },
+            "prefixes": [
+              {
+                "prefix": "rdf",
+                "iri": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+              },
+              {
+                "prefix": "rdfs",
+                "iri": "http://www.w3.org/2000/01/rdf-schema#"
+              },
+              {
+                "prefix": "owl",
+                "iri": "http://www.w3.org/2002/07/owl#"
+              },
+              {
+                "prefix": "xsd",
+                "iri": "http://www.w3.org/2001/XMLSchema#"
+              },
+              {
+                "prefix": "dc",
+                "iri": "http://purl.org/dc/elements/1.1/#"
+              },
+              {
+                "prefix": "xml",
+                "iri": "http://www.w3.org/XML/1998/namespace"
+              }
+            ],
+            "display": {
+              "compactNotation": true,
+              "nodeScaling": "uniform",
+              "externalColoring": true
+            }
+          }
+        },
+        "mappedDefaultGraphNQuads": "<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#root> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#root> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/profile> <https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1> .\n<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#root> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/structural> _:a0 .\n<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#root> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/visualization> _:a13 .\n_:a0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a0 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/constructs> _:a1 .\n_:a0 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/expressions> _:a3 .\n_:a0 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/occurrences> _:a4 .\n_:a0 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/ontology> _:a8 .\n_:a0 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/roles> _:a11 .\n_:a0 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/subjects> _:a12 .\n_:a1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:a1 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:pc0 .\n_:a10 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:a11 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:a11 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:pr0 .\n_:a11 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:pr1 .\n_:a12 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:a12 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:ps0 .\n_:a12 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:ps1 .\n_:a13 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a13 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/camera> _:a14 .\n_:a13 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/display> _:a16 .\n_:a13 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/hidden> _:a17 .\n_:a13 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/labelSelection> _:a18 .\n_:a13 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/placements> _:a19 .\n_:a13 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/prefixes> _:a24 .\n_:a14 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a14 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/center> _:a15 .\n_:a14 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/zoom> \"2\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#binary64> .\n_:a15 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a15 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/x> \"154\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#binary64> .\n_:a15 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/y> \"124\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#binary64> .\n_:a16 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a16 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/compactNotation> \"true\"^^<http://www.w3.org/2001/XMLSchema#boolean> .\n_:a16 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/externalColoring> \"true\"^^<http://www.w3.org/2001/XMLSchema#boolean> .\n_:a16 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/nodeScaling> \"uniform\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n_:a17 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:a18 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a18 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/mode> \"iri\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n_:a19 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:a19 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:a20 .\n_:a19 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:a22 .\n_:a2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:a2 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:pr0 .\n_:a2 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:pr1 .\n_:a20 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a20 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/occurrence> _:po0 .\n_:a20 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/pinned> \"false\"^^<http://www.w3.org/2001/XMLSchema#boolean> .\n_:a20 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/position> _:a21 .\n_:a21 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a21 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/x> \"-3\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#binary64> .\n_:a21 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/y> \"4\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#binary64> .\n_:a22 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a22 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/occurrence> _:po1 .\n_:a22 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/pinned> \"true\"^^<http://www.w3.org/2001/XMLSchema#boolean> .\n_:a22 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/position> _:a23 .\n_:a23 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a23 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/x> \"12\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#binary64> .\n_:a23 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/y> \"18\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#binary64> .\n_:a24 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:a24 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:a25 .\n_:a24 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:a26 .\n_:a24 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:a27 .\n_:a24 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:a28 .\n_:a24 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:a29 .\n_:a24 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:a30 .\n_:a25 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a25 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n_:a25 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/prefix> \"rdf\" .\n_:a26 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a26 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <http://www.w3.org/2000/01/rdf-schema#> .\n_:a26 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/prefix> \"rdfs\" .\n_:a27 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a27 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <http://www.w3.org/2002/07/owl#> .\n_:a27 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/prefix> \"owl\" .\n_:a28 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a28 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <http://www.w3.org/2001/XMLSchema#> .\n_:a28 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/prefix> \"xsd\" .\n_:a29 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a29 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <http://purl.org/dc/elements/1.1/#> .\n_:a29 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/prefix> \"dc\" .\n_:a3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:a30 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a30 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <http://www.w3.org/XML/1998/namespace> .\n_:a30 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/prefix> \"xml\" .\n_:a4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:a4 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:po0 .\n_:a4 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:po1 .\n_:a4 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:po2 .\n_:a5 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:a5 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:pr0 .\n_:a6 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:a6 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:pr1 .\n_:a7 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:a7 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:po0 .\n_:a7 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:po1 .\n_:a8 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a8 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/annotations> _:a9 .\n_:a8 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/imports> _:a10 .\n_:a8 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <https://example.org/legacy> .\n_:a9 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:pc0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Construct> .\n_:pc0 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/kind> \"disjoint-classes\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n_:pc0 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/members> _:a2 .\n_:po0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Occurrence> .\n_:po0 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/kind> \"class-node\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n_:po0 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/targets> _:a5 .\n_:po1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Occurrence> .\n_:po1 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/kind> \"class-node\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n_:po1 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/targets> _:a6 .\n_:po2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Occurrence> .\n_:po2 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/construct> _:pc0 .\n_:po2 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/ends> _:a7 .\n_:po2 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/kind> \"disjoint-edge\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n_:pr0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Role> .\n_:pr0 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/kind> \"class\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n_:pr0 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/subject> _:ps0 .\n_:pr1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Role> .\n_:pr1 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/kind> \"class\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n_:pr1 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/subject> _:ps1 .\n_:ps0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Subject> .\n_:ps0 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <https://example.org/legacy#A> .\n_:ps1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Subject> .\n_:ps1 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <https://example.org/legacy#B> .\n",
+        "canonicalNQuads": "<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#root> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#root> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/profile> <https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1> .\n<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#root> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/structural> _:c14n27 .\n<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#root> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/visualization> _:c14n32 .\n_:c14n0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:c14n0 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n35 .\n_:c14n0 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n38 .\n_:c14n1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:c14n10 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Occurrence> .\n_:c14n10 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/construct> _:c14n31 .\n_:c14n10 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/ends> _:c14n0 .\n_:c14n10 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/kind> \"disjoint-edge\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n_:c14n11 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n11 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <http://www.w3.org/2000/01/rdf-schema#> .\n_:c14n11 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/prefix> \"rdfs\" .\n_:c14n12 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Subject> .\n_:c14n12 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <https://example.org/legacy#B> .\n_:c14n13 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n13 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/x> \"154\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#binary64> .\n_:c14n13 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/y> \"124\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#binary64> .\n_:c14n14 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n14 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/center> _:c14n13 .\n_:c14n14 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/zoom> \"2\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#binary64> .\n_:c14n15 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:c14n16 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:c14n16 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n33 .\n_:c14n16 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n36 .\n_:c14n17 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:c14n17 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n26 .\n_:c14n17 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n7 .\n_:c14n18 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:c14n18 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n10 .\n_:c14n18 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n35 .\n_:c14n18 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n38 .\n_:c14n19 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n19 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/x> \"-3\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#binary64> .\n_:c14n19 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/y> \"4\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#binary64> .\n_:c14n2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:c14n20 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:c14n20 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n33 .\n_:c14n20 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n36 .\n_:c14n21 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:c14n21 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n11 .\n_:c14n21 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n28 .\n_:c14n21 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n3 .\n_:c14n21 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n30 .\n_:c14n21 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n6 .\n_:c14n21 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n8 .\n_:c14n22 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:c14n22 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n12 .\n_:c14n22 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n25 .\n_:c14n23 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:c14n23 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n31 .\n_:c14n24 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n24 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/x> \"12\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#binary64> .\n_:c14n24 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/y> \"18\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#binary64> .\n_:c14n25 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Subject> .\n_:c14n25 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <https://example.org/legacy#A> .\n_:c14n26 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n26 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/occurrence> _:c14n35 .\n_:c14n26 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/pinned> \"false\"^^<http://www.w3.org/2001/XMLSchema#boolean> .\n_:c14n26 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/position> _:c14n19 .\n_:c14n27 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n27 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/constructs> _:c14n23 .\n_:c14n27 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/expressions> _:c14n1 .\n_:c14n27 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/occurrences> _:c14n18 .\n_:c14n27 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/ontology> _:c14n5 .\n_:c14n27 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/roles> _:c14n16 .\n_:c14n27 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/subjects> _:c14n22 .\n_:c14n28 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n28 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <http://www.w3.org/2001/XMLSchema#> .\n_:c14n28 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/prefix> \"xsd\" .\n_:c14n29 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n29 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/compactNotation> \"true\"^^<http://www.w3.org/2001/XMLSchema#boolean> .\n_:c14n29 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/externalColoring> \"true\"^^<http://www.w3.org/2001/XMLSchema#boolean> .\n_:c14n29 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/nodeScaling> \"uniform\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n_:c14n3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n3 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n_:c14n3 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/prefix> \"rdf\" .\n_:c14n30 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n30 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <http://purl.org/dc/elements/1.1/#> .\n_:c14n30 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/prefix> \"dc\" .\n_:c14n31 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Construct> .\n_:c14n31 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/kind> \"disjoint-classes\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n_:c14n31 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/members> _:c14n20 .\n_:c14n32 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n32 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/camera> _:c14n14 .\n_:c14n32 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/display> _:c14n29 .\n_:c14n32 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/hidden> _:c14n2 .\n_:c14n32 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/labelSelection> _:c14n9 .\n_:c14n32 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/placements> _:c14n17 .\n_:c14n32 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/prefixes> _:c14n21 .\n_:c14n33 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Role> .\n_:c14n33 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/kind> \"class\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n_:c14n33 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/subject> _:c14n25 .\n_:c14n34 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:c14n34 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n33 .\n_:c14n35 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Occurrence> .\n_:c14n35 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/kind> \"class-node\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n_:c14n35 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/targets> _:c14n34 .\n_:c14n36 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Role> .\n_:c14n36 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/kind> \"class\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n_:c14n36 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/subject> _:c14n12 .\n_:c14n37 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:c14n37 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n36 .\n_:c14n38 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Occurrence> .\n_:c14n38 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/kind> \"class-node\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n_:c14n38 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/targets> _:c14n37 .\n_:c14n4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:c14n5 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n5 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/annotations> _:c14n15 .\n_:c14n5 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/imports> _:c14n4 .\n_:c14n5 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <https://example.org/legacy> .\n_:c14n6 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n6 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <http://www.w3.org/XML/1998/namespace> .\n_:c14n6 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/prefix> \"xml\" .\n_:c14n7 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n7 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/occurrence> _:c14n38 .\n_:c14n7 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/pinned> \"true\"^^<http://www.w3.org/2001/XMLSchema#boolean> .\n_:c14n7 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/position> _:c14n24 .\n_:c14n8 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n8 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <http://www.w3.org/2002/07/owl#> .\n_:c14n8 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/prefix> \"owl\" .\n_:c14n9 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n9 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/mode> \"iri\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n",
+        "primaryCorrespondence": [
+          {
+            "category": "subjects",
+            "sourceHandle": "s:class-B",
+            "primaryBlankNode": "ps1",
+            "rdfcIdentifier": "c14n12",
+            "canonicalId": "s0"
+          },
+          {
+            "category": "subjects",
+            "sourceHandle": "s:class-A",
+            "primaryBlankNode": "ps0",
+            "rdfcIdentifier": "c14n25",
+            "canonicalId": "s1"
+          },
+          {
+            "category": "roles",
+            "sourceHandle": "class-A",
+            "primaryBlankNode": "pr0",
+            "rdfcIdentifier": "c14n33",
+            "canonicalId": "r0"
+          },
+          {
+            "category": "roles",
+            "sourceHandle": "class-B",
+            "primaryBlankNode": "pr1",
+            "rdfcIdentifier": "c14n36",
+            "canonicalId": "r1"
+          },
+          {
+            "category": "constructs",
+            "sourceHandle": "named-relation",
+            "primaryBlankNode": "pc0",
+            "rdfcIdentifier": "c14n31",
+            "canonicalId": "c0"
+          },
+          {
+            "category": "occurrences",
+            "sourceHandle": "edge-0",
+            "primaryBlankNode": "po2",
+            "rdfcIdentifier": "c14n10",
+            "canonicalId": "o0"
+          },
+          {
+            "category": "occurrences",
+            "sourceHandle": "node-0",
+            "primaryBlankNode": "po0",
+            "rdfcIdentifier": "c14n35",
+            "canonicalId": "o1"
+          },
+          {
+            "category": "occurrences",
+            "sourceHandle": "node-1",
+            "primaryBlankNode": "po1",
+            "rdfcIdentifier": "c14n38",
+            "canonicalId": "o2"
+          }
+        ],
+        "canonicalBytes": {
+          "encoding": "UTF-8",
+          "text": "{\"profile\":\"https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1\",\"structural\":{\"constructs\":[{\"id\":\"c0\",\"kind\":\"disjoint-classes\",\"members\":[\"r0\",\"r1\"]}],\"expressions\":[],\"occurrences\":[{\"construct\":\"c0\",\"ends\":[\"o1\",\"o2\"],\"id\":\"o0\",\"kind\":\"disjoint-edge\"},{\"id\":\"o1\",\"kind\":\"class-node\",\"targets\":[\"r0\"]},{\"id\":\"o2\",\"kind\":\"class-node\",\"targets\":[\"r1\"]}],\"ontology\":{\"annotations\":[],\"imports\":[],\"iri\":\"https://example.org/legacy\"},\"roles\":[{\"id\":\"r0\",\"kind\":\"class\",\"subject\":\"s1\"},{\"id\":\"r1\",\"kind\":\"class\",\"subject\":\"s0\"}],\"subjects\":[{\"id\":\"s0\",\"iri\":\"https://example.org/legacy#B\"},{\"id\":\"s1\",\"iri\":\"https://example.org/legacy#A\"}]},\"visualization\":{\"camera\":{\"center\":{\"x\":154,\"y\":124},\"zoom\":2},\"display\":{\"compactNotation\":true,\"externalColoring\":true,\"nodeScaling\":\"uniform\"},\"hidden\":[],\"labelSelection\":{\"mode\":\"iri\"},\"placements\":[{\"occurrence\":\"o1\",\"pinned\":false,\"position\":{\"x\":-3,\"y\":4}},{\"occurrence\":\"o2\",\"pinned\":true,\"position\":{\"x\":12,\"y\":18}}],\"prefixes\":[{\"iri\":\"http://purl.org/dc/elements/1.1/#\",\"prefix\":\"dc\"},{\"iri\":\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\",\"prefix\":\"rdf\"},{\"iri\":\"http://www.w3.org/2000/01/rdf-schema#\",\"prefix\":\"rdfs\"},{\"iri\":\"http://www.w3.org/2001/XMLSchema#\",\"prefix\":\"xsd\"},{\"iri\":\"http://www.w3.org/2002/07/owl#\",\"prefix\":\"owl\"},{\"iri\":\"http://www.w3.org/XML/1998/namespace\",\"prefix\":\"xml\"}]}}",
+          "sha256": "d982f7595a6c87d44f404ecdf1d0899095de17e4b98c0360f47101c945c326b3",
+          "byteLength": 1372
+        }
+      }
+    },
+    {
+      "id": "binary-disjoint-artifact-filter-on",
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "input": {
+        "encoding": "UTF-8",
+        "text": "{\n  \"_comment\": \"Created with owlapi VOWLBuilder\",\n  \"class\": [\n    {\n      \"id\": \"0\",\n      \"type\": \"owl:Class\"\n    },\n    {\n      \"id\": \"1\",\n      \"type\": \"owl:Class\"\n    }\n  ],\n  \"classAttribute\": [\n    {\n      \"baseIri\": \"https://example.org/legacy\",\n      \"id\": \"0\",\n      \"instances\": 0,\n      \"iri\": \"https://example.org/legacy#A\",\n      \"label\": {\n        \"IRI-based\": \"A\"\n      },\n      \"pinned\": false,\n      \"pos\": [\n        -3,\n        4\n      ]\n    },\n    {\n      \"baseIri\": \"https://example.org/legacy\",\n      \"id\": \"1\",\n      \"instances\": 0,\n      \"iri\": \"https://example.org/legacy#B\",\n      \"label\": {\n        \"IRI-based\": \"B\"\n      },\n      \"pinned\": true,\n      \"pos\": [\n        12,\n        18\n      ]\n    }\n  ],\n  \"header\": {\n    \"author\": [],\n    \"baseIris\": [\n      \"https://example.org/legacy\"\n    ],\n    \"comments\": {},\n    \"description\": {},\n    \"imports\": [],\n    \"iri\": \"https://example.org/legacy\",\n    \"labels\": {},\n    \"languages\": [],\n    \"other\": {},\n    \"prefixList\": {},\n    \"title\": {},\n    \"version\": \"\"\n  },\n  \"metrics\": {\n    \"classCount\": 2,\n    \"datatypeCount\": 0,\n    \"datatypePropertyCount\": 0,\n    \"individualCount\": 0,\n    \"nodeCount\": 2,\n    \"objectPropertyCount\": 0,\n    \"propertyCount\": 1\n  },\n  \"namespace\": [],\n  \"property\": [\n    {\n      \"id\": \"2\",\n      \"type\": \"owl:disjointWith\"\n    }\n  ],\n  \"propertyAttribute\": [\n    {\n      \"attributes\": [\n        \"anonymous\",\n        \"object\"\n      ],\n      \"domain\": \"0\",\n      \"id\": \"2\",\n      \"pinned\": false,\n      \"pos\": [\n        4.5,\n        11\n      ],\n      \"range\": \"1\"\n    }\n  ],\n  \"settings\": {\n    \"filter\": {\n      \"checkBox\": [\n        {\n          \"checked\": false,\n          \"id\": \"datatypeFilterCheckbox\"\n        },\n        {\n          \"checked\": false,\n          \"id\": \"objectPropertyFilterCheckbox\"\n        },\n        {\n          \"checked\": false,\n          \"id\": \"subclassFilterCheckbox\"\n        },\n        {\n          \"checked\": true,\n          \"id\": \"disjointFilterCheckbox\"\n        },\n        {\n          \"checked\": false,\n          \"id\": \"setoperatorFilterCheckbox\"\n        }\n      ],\n      \"degreeSliderValue\": 0\n    },\n    \"global\": {\n      \"language\": \"IRI-based\",\n      \"paused\": false,\n      \"translation\": [\n        12,\n        -8\n      ],\n      \"zoom\": 2\n    },\n    \"gravity\": {\n      \"classDistance\": 200,\n      \"datatypeDistance\": 120\n    },\n    \"modes\": {\n      \"checkBox\": [\n        {\n          \"checked\": false,\n          \"id\": \"nodescalingModuleCheckbox\"\n        },\n        {\n          \"checked\": true,\n          \"id\": \"compactnotationModuleCheckbox\"\n        },\n        {\n          \"checked\": true,\n          \"id\": \"colorexternalsModuleCheckbox\"\n        },\n        {\n          \"checked\": true,\n          \"id\": \"pickandpinModuleCheckbox\"\n        },\n        {\n          \"checked\": true,\n          \"id\": \"labelWidthModuleCheckbox\"\n        }\n      ],\n      \"colorSwitchState\": false,\n      \"maxLabelWidth\": 180\n    }\n  }\n}",
+        "sha256": "e35553940e1339eeb33cbeaa976adf3270017cc819d56953104dde3cc2c532fc",
+        "byteLength": 2946
+      },
+      "resolutions": [
+        {
+          "kind": "viewport",
+          "sourcePointer": "/settings/global/translation",
+          "width": 640,
+          "height": 480
+        }
+      ],
+      "outcome": "success",
+      "rules": [
+        "A9.3",
+        "B2.4",
+        "B3"
+      ],
+      "diagnostics": [
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "severity": "warning",
+          "sourcePointer": "/propertyAttribute/0/pos"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "severity": "warning",
+          "sourcePointer": "/propertyAttribute/0/pinned"
+        },
+        {
+          "code": "MIGRATION_RESOLVED_FIELD",
+          "severity": "warning",
+          "sourcePointer": "/settings/global/translation"
+        }
+      ],
+      "rationale": "B2 disjoint edges have no label and B3 forbids edge placements. Explicit legacy property position/pin fields therefore drop with exact field diagnostics. Both node placements and explicit pin values remain required. Disjoint filtering hides only the edge; no label or replacement coordinate is created.",
+      "expected": {
+        "source": {
+          "structural": {
+            "ontology": {
+              "imports": [],
+              "annotations": [],
+              "iri": "https://example.org/legacy"
+            },
+            "subjects": [
+              {
+                "id": "s:class-A",
+                "iri": "https://example.org/legacy#A"
+              },
+              {
+                "id": "s:class-B",
+                "iri": "https://example.org/legacy#B"
+              }
+            ],
+            "roles": [
+              {
+                "id": "class-A",
+                "kind": "class",
+                "subject": "s:class-A"
+              },
+              {
+                "id": "class-B",
+                "kind": "class",
+                "subject": "s:class-B"
+              }
+            ],
+            "expressions": [],
+            "constructs": [
+              {
+                "id": "named-relation",
+                "kind": "disjoint-classes",
+                "members": [
+                  "class-A",
+                  "class-B"
+                ]
+              }
+            ],
+            "occurrences": [
+              {
+                "id": "node-0",
+                "kind": "class-node",
+                "targets": [
+                  "class-A"
+                ]
+              },
+              {
+                "id": "node-1",
+                "kind": "class-node",
+                "targets": [
+                  "class-B"
+                ]
+              },
+              {
+                "id": "edge-0",
+                "kind": "disjoint-edge",
+                "construct": "named-relation",
+                "ends": [
+                  "node-0",
+                  "node-1"
+                ]
+              }
+            ]
+          },
+          "visualization": {
+            "placements": [
+              {
+                "occurrence": "node-0",
+                "position": {
+                  "x": -3,
+                  "y": 4
+                },
+                "pinned": false
+              },
+              {
+                "occurrence": "node-1",
+                "position": {
+                  "x": 12,
+                  "y": 18
+                },
+                "pinned": true
+              }
+            ],
+            "camera": {
+              "center": {
+                "x": 154,
+                "y": 124
+              },
+              "zoom": 2
+            },
+            "hidden": [
+              "edge-0"
+            ],
+            "labelSelection": {
+              "mode": "iri"
+            },
+            "prefixes": [
+              {
+                "prefix": "rdf",
+                "iri": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+              },
+              {
+                "prefix": "rdfs",
+                "iri": "http://www.w3.org/2000/01/rdf-schema#"
+              },
+              {
+                "prefix": "owl",
+                "iri": "http://www.w3.org/2002/07/owl#"
+              },
+              {
+                "prefix": "xsd",
+                "iri": "http://www.w3.org/2001/XMLSchema#"
+              },
+              {
+                "prefix": "dc",
+                "iri": "http://purl.org/dc/elements/1.1/#"
+              },
+              {
+                "prefix": "xml",
+                "iri": "http://www.w3.org/XML/1998/namespace"
+              }
+            ],
+            "display": {
+              "compactNotation": true,
+              "nodeScaling": "uniform",
+              "externalColoring": true
+            }
+          }
+        },
+        "mappedDefaultGraphNQuads": "<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#root> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#root> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/profile> <https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1> .\n<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#root> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/structural> _:a0 .\n<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#root> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/visualization> _:a13 .\n_:a0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a0 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/constructs> _:a1 .\n_:a0 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/expressions> _:a3 .\n_:a0 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/occurrences> _:a4 .\n_:a0 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/ontology> _:a8 .\n_:a0 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/roles> _:a11 .\n_:a0 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/subjects> _:a12 .\n_:a1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:a1 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:pc0 .\n_:a10 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:a11 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:a11 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:pr0 .\n_:a11 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:pr1 .\n_:a12 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:a12 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:ps0 .\n_:a12 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:ps1 .\n_:a13 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a13 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/camera> _:a14 .\n_:a13 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/display> _:a16 .\n_:a13 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/hidden> _:a17 .\n_:a13 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/labelSelection> _:a18 .\n_:a13 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/placements> _:a19 .\n_:a13 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/prefixes> _:a24 .\n_:a14 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a14 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/center> _:a15 .\n_:a14 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/zoom> \"2\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#binary64> .\n_:a15 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a15 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/x> \"154\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#binary64> .\n_:a15 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/y> \"124\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#binary64> .\n_:a16 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a16 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/compactNotation> \"true\"^^<http://www.w3.org/2001/XMLSchema#boolean> .\n_:a16 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/externalColoring> \"true\"^^<http://www.w3.org/2001/XMLSchema#boolean> .\n_:a16 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/nodeScaling> \"uniform\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n_:a17 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:a17 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:po2 .\n_:a18 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a18 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/mode> \"iri\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n_:a19 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:a19 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:a20 .\n_:a19 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:a22 .\n_:a2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:a2 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:pr0 .\n_:a2 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:pr1 .\n_:a20 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a20 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/occurrence> _:po0 .\n_:a20 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/pinned> \"false\"^^<http://www.w3.org/2001/XMLSchema#boolean> .\n_:a20 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/position> _:a21 .\n_:a21 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a21 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/x> \"-3\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#binary64> .\n_:a21 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/y> \"4\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#binary64> .\n_:a22 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a22 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/occurrence> _:po1 .\n_:a22 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/pinned> \"true\"^^<http://www.w3.org/2001/XMLSchema#boolean> .\n_:a22 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/position> _:a23 .\n_:a23 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a23 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/x> \"12\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#binary64> .\n_:a23 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/y> \"18\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#binary64> .\n_:a24 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:a24 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:a25 .\n_:a24 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:a26 .\n_:a24 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:a27 .\n_:a24 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:a28 .\n_:a24 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:a29 .\n_:a24 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:a30 .\n_:a25 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a25 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n_:a25 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/prefix> \"rdf\" .\n_:a26 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a26 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <http://www.w3.org/2000/01/rdf-schema#> .\n_:a26 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/prefix> \"rdfs\" .\n_:a27 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a27 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <http://www.w3.org/2002/07/owl#> .\n_:a27 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/prefix> \"owl\" .\n_:a28 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a28 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <http://www.w3.org/2001/XMLSchema#> .\n_:a28 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/prefix> \"xsd\" .\n_:a29 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a29 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <http://purl.org/dc/elements/1.1/#> .\n_:a29 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/prefix> \"dc\" .\n_:a3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:a30 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a30 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <http://www.w3.org/XML/1998/namespace> .\n_:a30 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/prefix> \"xml\" .\n_:a4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:a4 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:po0 .\n_:a4 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:po1 .\n_:a4 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:po2 .\n_:a5 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:a5 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:pr0 .\n_:a6 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:a6 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:pr1 .\n_:a7 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:a7 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:po0 .\n_:a7 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:po1 .\n_:a8 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:a8 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/annotations> _:a9 .\n_:a8 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/imports> _:a10 .\n_:a8 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <https://example.org/legacy> .\n_:a9 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:pc0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Construct> .\n_:pc0 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/kind> \"disjoint-classes\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n_:pc0 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/members> _:a2 .\n_:po0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Occurrence> .\n_:po0 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/kind> \"class-node\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n_:po0 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/targets> _:a5 .\n_:po1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Occurrence> .\n_:po1 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/kind> \"class-node\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n_:po1 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/targets> _:a6 .\n_:po2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Occurrence> .\n_:po2 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/construct> _:pc0 .\n_:po2 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/ends> _:a7 .\n_:po2 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/kind> \"disjoint-edge\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n_:pr0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Role> .\n_:pr0 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/kind> \"class\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n_:pr0 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/subject> _:ps0 .\n_:pr1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Role> .\n_:pr1 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/kind> \"class\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n_:pr1 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/subject> _:ps1 .\n_:ps0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Subject> .\n_:ps0 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <https://example.org/legacy#A> .\n_:ps1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Subject> .\n_:ps1 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <https://example.org/legacy#B> .\n",
+        "canonicalNQuads": "<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#root> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#root> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/profile> <https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1> .\n<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#root> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/structural> _:c14n27 .\n<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#root> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/visualization> _:c14n32 .\n_:c14n0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:c14n0 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n35 .\n_:c14n0 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n38 .\n_:c14n1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:c14n10 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n10 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <http://www.w3.org/2000/01/rdf-schema#> .\n_:c14n10 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/prefix> \"rdfs\" .\n_:c14n11 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Subject> .\n_:c14n11 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <https://example.org/legacy#B> .\n_:c14n12 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n12 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/x> \"154\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#binary64> .\n_:c14n12 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/y> \"124\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#binary64> .\n_:c14n13 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n13 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/center> _:c14n12 .\n_:c14n13 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/zoom> \"2\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#binary64> .\n_:c14n14 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:c14n15 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:c14n15 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n33 .\n_:c14n15 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n36 .\n_:c14n16 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:c14n16 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n26 .\n_:c14n16 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n6 .\n_:c14n17 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:c14n17 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n35 .\n_:c14n17 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n38 .\n_:c14n17 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n7 .\n_:c14n18 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n18 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/x> \"-3\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#binary64> .\n_:c14n18 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/y> \"4\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#binary64> .\n_:c14n19 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:c14n19 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n33 .\n_:c14n19 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n36 .\n_:c14n2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n2 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n_:c14n2 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/prefix> \"rdf\" .\n_:c14n20 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:c14n20 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n7 .\n_:c14n21 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:c14n21 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n10 .\n_:c14n21 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n2 .\n_:c14n21 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n28 .\n_:c14n21 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n30 .\n_:c14n21 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n5 .\n_:c14n21 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n8 .\n_:c14n22 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:c14n22 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n11 .\n_:c14n22 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n25 .\n_:c14n23 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:c14n23 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n31 .\n_:c14n24 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n24 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/x> \"12\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#binary64> .\n_:c14n24 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/y> \"18\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#binary64> .\n_:c14n25 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Subject> .\n_:c14n25 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <https://example.org/legacy#A> .\n_:c14n26 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n26 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/occurrence> _:c14n35 .\n_:c14n26 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/pinned> \"false\"^^<http://www.w3.org/2001/XMLSchema#boolean> .\n_:c14n26 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/position> _:c14n18 .\n_:c14n27 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n27 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/constructs> _:c14n23 .\n_:c14n27 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/expressions> _:c14n1 .\n_:c14n27 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/occurrences> _:c14n17 .\n_:c14n27 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/ontology> _:c14n4 .\n_:c14n27 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/roles> _:c14n15 .\n_:c14n27 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/subjects> _:c14n22 .\n_:c14n28 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n28 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <http://www.w3.org/2001/XMLSchema#> .\n_:c14n28 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/prefix> \"xsd\" .\n_:c14n29 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n29 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/compactNotation> \"true\"^^<http://www.w3.org/2001/XMLSchema#boolean> .\n_:c14n29 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/externalColoring> \"true\"^^<http://www.w3.org/2001/XMLSchema#boolean> .\n_:c14n29 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/nodeScaling> \"uniform\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n_:c14n3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:c14n30 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n30 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <http://purl.org/dc/elements/1.1/#> .\n_:c14n30 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/prefix> \"dc\" .\n_:c14n31 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Construct> .\n_:c14n31 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/kind> \"disjoint-classes\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n_:c14n31 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/members> _:c14n19 .\n_:c14n32 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n32 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/camera> _:c14n13 .\n_:c14n32 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/display> _:c14n29 .\n_:c14n32 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/hidden> _:c14n20 .\n_:c14n32 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/labelSelection> _:c14n9 .\n_:c14n32 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/placements> _:c14n16 .\n_:c14n32 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/prefixes> _:c14n21 .\n_:c14n33 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Role> .\n_:c14n33 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/kind> \"class\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n_:c14n33 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/subject> _:c14n25 .\n_:c14n34 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:c14n34 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n33 .\n_:c14n35 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Occurrence> .\n_:c14n35 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/kind> \"class-node\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n_:c14n35 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/targets> _:c14n34 .\n_:c14n36 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Role> .\n_:c14n36 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/kind> \"class\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n_:c14n36 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/subject> _:c14n11 .\n_:c14n37 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Set> .\n_:c14n37 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#member> _:c14n36 .\n_:c14n38 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Occurrence> .\n_:c14n38 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/kind> \"class-node\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n_:c14n38 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/targets> _:c14n37 .\n_:c14n4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n4 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/annotations> _:c14n14 .\n_:c14n4 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/imports> _:c14n3 .\n_:c14n4 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <https://example.org/legacy> .\n_:c14n5 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n5 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <http://www.w3.org/XML/1998/namespace> .\n_:c14n5 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/prefix> \"xml\" .\n_:c14n6 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n6 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/occurrence> _:c14n38 .\n_:c14n6 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/pinned> \"true\"^^<http://www.w3.org/2001/XMLSchema#boolean> .\n_:c14n6 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/position> _:c14n24 .\n_:c14n7 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Occurrence> .\n_:c14n7 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/construct> _:c14n31 .\n_:c14n7 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/ends> _:c14n0 .\n_:c14n7 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/kind> \"disjoint-edge\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n_:c14n8 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n8 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/iri> <http://www.w3.org/2002/07/owl#> .\n_:c14n8 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/prefix> \"owl\" .\n_:c14n9 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#Object> .\n_:c14n9 <https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#field/mode> \"iri\"^^<https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#token> .\n",
+        "primaryCorrespondence": [
+          {
+            "category": "subjects",
+            "sourceHandle": "s:class-B",
+            "primaryBlankNode": "ps1",
+            "rdfcIdentifier": "c14n11",
+            "canonicalId": "s0"
+          },
+          {
+            "category": "subjects",
+            "sourceHandle": "s:class-A",
+            "primaryBlankNode": "ps0",
+            "rdfcIdentifier": "c14n25",
+            "canonicalId": "s1"
+          },
+          {
+            "category": "roles",
+            "sourceHandle": "class-A",
+            "primaryBlankNode": "pr0",
+            "rdfcIdentifier": "c14n33",
+            "canonicalId": "r0"
+          },
+          {
+            "category": "roles",
+            "sourceHandle": "class-B",
+            "primaryBlankNode": "pr1",
+            "rdfcIdentifier": "c14n36",
+            "canonicalId": "r1"
+          },
+          {
+            "category": "constructs",
+            "sourceHandle": "named-relation",
+            "primaryBlankNode": "pc0",
+            "rdfcIdentifier": "c14n31",
+            "canonicalId": "c0"
+          },
+          {
+            "category": "occurrences",
+            "sourceHandle": "edge-0",
+            "primaryBlankNode": "po2",
+            "rdfcIdentifier": "c14n7",
+            "canonicalId": "o0"
+          },
+          {
+            "category": "occurrences",
+            "sourceHandle": "node-0",
+            "primaryBlankNode": "po0",
+            "rdfcIdentifier": "c14n35",
+            "canonicalId": "o1"
+          },
+          {
+            "category": "occurrences",
+            "sourceHandle": "node-1",
+            "primaryBlankNode": "po1",
+            "rdfcIdentifier": "c14n38",
+            "canonicalId": "o2"
+          }
+        ],
+        "canonicalBytes": {
+          "encoding": "UTF-8",
+          "text": "{\"profile\":\"https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1\",\"structural\":{\"constructs\":[{\"id\":\"c0\",\"kind\":\"disjoint-classes\",\"members\":[\"r0\",\"r1\"]}],\"expressions\":[],\"occurrences\":[{\"construct\":\"c0\",\"ends\":[\"o1\",\"o2\"],\"id\":\"o0\",\"kind\":\"disjoint-edge\"},{\"id\":\"o1\",\"kind\":\"class-node\",\"targets\":[\"r0\"]},{\"id\":\"o2\",\"kind\":\"class-node\",\"targets\":[\"r1\"]}],\"ontology\":{\"annotations\":[],\"imports\":[],\"iri\":\"https://example.org/legacy\"},\"roles\":[{\"id\":\"r0\",\"kind\":\"class\",\"subject\":\"s1\"},{\"id\":\"r1\",\"kind\":\"class\",\"subject\":\"s0\"}],\"subjects\":[{\"id\":\"s0\",\"iri\":\"https://example.org/legacy#B\"},{\"id\":\"s1\",\"iri\":\"https://example.org/legacy#A\"}]},\"visualization\":{\"camera\":{\"center\":{\"x\":154,\"y\":124},\"zoom\":2},\"display\":{\"compactNotation\":true,\"externalColoring\":true,\"nodeScaling\":\"uniform\"},\"hidden\":[\"o0\"],\"labelSelection\":{\"mode\":\"iri\"},\"placements\":[{\"occurrence\":\"o1\",\"pinned\":false,\"position\":{\"x\":-3,\"y\":4}},{\"occurrence\":\"o2\",\"pinned\":true,\"position\":{\"x\":12,\"y\":18}}],\"prefixes\":[{\"iri\":\"http://purl.org/dc/elements/1.1/#\",\"prefix\":\"dc\"},{\"iri\":\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\",\"prefix\":\"rdf\"},{\"iri\":\"http://www.w3.org/2000/01/rdf-schema#\",\"prefix\":\"rdfs\"},{\"iri\":\"http://www.w3.org/2001/XMLSchema#\",\"prefix\":\"xsd\"},{\"iri\":\"http://www.w3.org/2002/07/owl#\",\"prefix\":\"owl\"},{\"iri\":\"http://www.w3.org/XML/1998/namespace\",\"prefix\":\"xml\"}]}}",
+          "sha256": "20c26194198789686b0e089d13efa40c26e4afa6bd42b06f6177f72ddaec544d",
+          "byteLength": 1376
+        }
+      }
+    },
+    {
+      "id": "mixed-class-categories-equivalence-named-triangle",
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "input": {
+        "encoding": "UTF-8",
+        "text": "{\n  \"_comment\": \"Created with owlapi VOWLBuilder\",\n  \"class\": [\n    {\n      \"id\": \"A-owl\",\n      \"type\": \"owl:Class\"\n    },\n    {\n      \"id\": \"B-owl\",\n      \"type\": \"owl:Class\"\n    },\n    {\n      \"id\": \"C-owl\",\n      \"type\": \"owl:Class\"\n    },\n    {\n      \"id\": \"B-rdf\",\n      \"type\": \"rdfs:Class\"\n    },\n    {\n      \"id\": \"C-rdf\",\n      \"type\": \"rdfs:Class\"\n    }\n  ],\n  \"classAttribute\": [\n    {\n      \"baseIri\": \"https://example.org/legacy\",\n      \"equivalent\": [\n        \"B-owl\",\n        \"C-owl\"\n      ],\n      \"id\": \"A-owl\",\n      \"instances\": 0,\n      \"iri\": \"https://example.org/legacy#A\",\n      \"label\": {\n        \"IRI-based\": \"A\"\n      }\n    },\n    {\n      \"baseIri\": \"https://example.org/legacy\",\n      \"equivalent\": [\n        \"A-owl\"\n      ],\n      \"id\": \"B-owl\",\n      \"instances\": 0,\n      \"iri\": \"https://example.org/legacy#B\",\n      \"label\": {\n        \"IRI-based\": \"B\"\n      }\n    },\n    {\n      \"baseIri\": \"https://example.org/legacy\",\n      \"equivalent\": [\n        \"A-owl\"\n      ],\n      \"id\": \"C-owl\",\n      \"instances\": 0,\n      \"iri\": \"https://example.org/legacy#C\",\n      \"label\": {\n        \"IRI-based\": \"C\"\n      }\n    },\n    {\n      \"attributes\": [\n        \"rdf\"\n      ],\n      \"baseIri\": \"https://example.org/legacy\",\n      \"equivalent\": [\n        \"C-rdf\"\n      ],\n      \"id\": \"B-rdf\",\n      \"instances\": 0,\n      \"iri\": \"https://example.org/legacy#B\",\n      \"label\": {\n        \"IRI-based\": \"B\"\n      }\n    },\n    {\n      \"attributes\": [\n        \"rdf\"\n      ],\n      \"baseIri\": \"https://example.org/legacy\",\n      \"equivalent\": [\n        \"B-rdf\"\n      ],\n      \"id\": \"C-rdf\",\n      \"instances\": 0,\n      \"iri\": \"https://example.org/legacy#C\",\n      \"label\": {\n        \"IRI-based\": \"C\"\n      }\n    }\n  ],\n  \"header\": {\n    \"author\": [],\n    \"baseIris\": [\n      \"https://example.org/legacy\"\n    ],\n    \"comments\": {},\n    \"description\": {},\n    \"imports\": [],\n    \"iri\": \"https://example.org/legacy\",\n    \"labels\": {},\n    \"languages\": [],\n    \"other\": {},\n    \"prefixList\": {},\n    \"title\": {},\n    \"version\": \"\"\n  },\n  \"metrics\": {\n    \"classCount\": 5,\n    \"datatypeCount\": 0,\n    \"datatypePropertyCount\": 0,\n    \"individualCount\": 0,\n    \"nodeCount\": 5,\n    \"objectPropertyCount\": 0,\n    \"propertyCount\": 0\n  },\n  \"namespace\": [],\n  \"property\": [],\n  \"propertyAttribute\": []\n}",
+        "sha256": "104fad258fc355a371d99c6b559426aa01a04539bfc255cae580ddf0fcbb280c",
+        "byteLength": 2301
+      },
+      "resolutions": [],
+      "outcome": "error",
+      "errorCode": "MIGRATION_AMBIGUOUS",
+      "rules": [
+        "A2",
+        "A9.3",
+        "legacy ingress named-identity triangle rule"
+      ],
+      "proof": {
+        "rawVertices": 5,
+        "rawEdges": 3,
+        "everyRawEdgeCategoryHomogeneous": true,
+        "rawGraphHasTriangle": false,
+        "resolvedNamedVertices": [
+          "https://example.org/legacy#A",
+          "https://example.org/legacy#B",
+          "https://example.org/legacy#C"
+        ],
+        "resolvedNamedPairs": [
+          [
+            "https://example.org/legacy#A",
+            "https://example.org/legacy#B"
+          ],
+          [
+            "https://example.org/legacy#A",
+            "https://example.org/legacy#C"
+          ],
+          [
+            "https://example.org/legacy#B",
+            "https://example.org/legacy#C"
+          ]
+        ]
+      },
+      "rationale": "The OWL graph contains A-B and A-C, while the RDF-class graph contains B'-C'. B' and C' have the exact IRIs of B and C. A2 removes generic rdf-class roles where class roles exist; named identity resolution therefore exposes A-B-C's complete triangle. Historical n-ary grouping is not recoverable merely because raw IDs or pre-promotion class categories partition its edges."
+    },
+    {
+      "id": "mixed-class-categories-disjointness-named-triangle",
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "input": {
+        "encoding": "UTF-8",
+        "text": "{\n  \"_comment\": \"Created with owlapi VOWLBuilder\",\n  \"class\": [\n    {\n      \"id\": \"A-owl\",\n      \"type\": \"owl:Class\"\n    },\n    {\n      \"id\": \"B-owl\",\n      \"type\": \"owl:Class\"\n    },\n    {\n      \"id\": \"C-owl\",\n      \"type\": \"owl:Class\"\n    },\n    {\n      \"id\": \"B-rdf\",\n      \"type\": \"rdfs:Class\"\n    },\n    {\n      \"id\": \"C-rdf\",\n      \"type\": \"rdfs:Class\"\n    }\n  ],\n  \"classAttribute\": [\n    {\n      \"baseIri\": \"https://example.org/legacy\",\n      \"id\": \"A-owl\",\n      \"instances\": 0,\n      \"iri\": \"https://example.org/legacy#A\",\n      \"label\": {\n        \"IRI-based\": \"A\"\n      }\n    },\n    {\n      \"baseIri\": \"https://example.org/legacy\",\n      \"id\": \"B-owl\",\n      \"instances\": 0,\n      \"iri\": \"https://example.org/legacy#B\",\n      \"label\": {\n        \"IRI-based\": \"B\"\n      }\n    },\n    {\n      \"baseIri\": \"https://example.org/legacy\",\n      \"id\": \"C-owl\",\n      \"instances\": 0,\n      \"iri\": \"https://example.org/legacy#C\",\n      \"label\": {\n        \"IRI-based\": \"C\"\n      }\n    },\n    {\n      \"attributes\": [\n        \"rdf\"\n      ],\n      \"baseIri\": \"https://example.org/legacy\",\n      \"id\": \"B-rdf\",\n      \"instances\": 0,\n      \"iri\": \"https://example.org/legacy#B\",\n      \"label\": {\n        \"IRI-based\": \"B\"\n      }\n    },\n    {\n      \"attributes\": [\n        \"rdf\"\n      ],\n      \"baseIri\": \"https://example.org/legacy\",\n      \"id\": \"C-rdf\",\n      \"instances\": 0,\n      \"iri\": \"https://example.org/legacy#C\",\n      \"label\": {\n        \"IRI-based\": \"C\"\n      }\n    }\n  ],\n  \"header\": {\n    \"author\": [],\n    \"baseIris\": [\n      \"https://example.org/legacy\"\n    ],\n    \"comments\": {},\n    \"description\": {},\n    \"imports\": [],\n    \"iri\": \"https://example.org/legacy\",\n    \"labels\": {},\n    \"languages\": [],\n    \"other\": {},\n    \"prefixList\": {},\n    \"title\": {},\n    \"version\": \"\"\n  },\n  \"metrics\": {\n    \"classCount\": 5,\n    \"datatypeCount\": 0,\n    \"datatypePropertyCount\": 0,\n    \"individualCount\": 0,\n    \"nodeCount\": 5,\n    \"objectPropertyCount\": 0,\n    \"propertyCount\": 3\n  },\n  \"namespace\": [],\n  \"property\": [\n    {\n      \"id\": \"relation-0\",\n      \"type\": \"owl:disjointWith\"\n    },\n    {\n      \"id\": \"relation-1\",\n      \"type\": \"owl:disjointWith\"\n    },\n    {\n      \"id\": \"relation-2\",\n      \"type\": \"owl:disjointWith\"\n    }\n  ],\n  \"propertyAttribute\": [\n    {\n      \"attributes\": [\n        \"anonymous\",\n        \"object\"\n      ],\n      \"domain\": \"A-owl\",\n      \"id\": \"relation-0\",\n      \"range\": \"B-owl\"\n    },\n    {\n      \"attributes\": [\n        \"anonymous\",\n        \"object\"\n      ],\n      \"domain\": \"A-owl\",\n      \"id\": \"relation-1\",\n      \"range\": \"C-owl\"\n    },\n    {\n      \"attributes\": [\n        \"anonymous\",\n        \"object\"\n      ],\n      \"domain\": \"B-rdf\",\n      \"id\": \"relation-2\",\n      \"range\": \"C-rdf\"\n    }\n  ]\n}",
+        "sha256": "9cbd5d5829fab3152e6a328e4c18a8dd2642cf63d1699b61108055ca08b7a09c",
+        "byteLength": 2737
+      },
+      "resolutions": [],
+      "outcome": "error",
+      "errorCode": "MIGRATION_AMBIGUOUS",
+      "rules": [
+        "A2",
+        "A9.3",
+        "legacy ingress named-identity triangle rule"
+      ],
+      "proof": {
+        "rawVertices": 5,
+        "rawEdges": 3,
+        "everyRawEdgeCategoryHomogeneous": true,
+        "rawGraphHasTriangle": false,
+        "resolvedNamedVertices": [
+          "https://example.org/legacy#A",
+          "https://example.org/legacy#B",
+          "https://example.org/legacy#C"
+        ],
+        "resolvedNamedPairs": [
+          [
+            "https://example.org/legacy#A",
+            "https://example.org/legacy#B"
+          ],
+          [
+            "https://example.org/legacy#A",
+            "https://example.org/legacy#C"
+          ],
+          [
+            "https://example.org/legacy#B",
+            "https://example.org/legacy#C"
+          ]
+        ]
+      },
+      "rationale": "The OWL graph contains A-B and A-C, while the RDF-class graph contains B'-C'. B' and C' have the exact IRIs of B and C. A2 removes generic rdf-class roles where class roles exist; named identity resolution therefore exposes A-B-C's complete triangle. Historical n-ary grouping is not recoverable merely because raw IDs or pre-promotion class categories partition its edges."
+    }
+  ]
+}

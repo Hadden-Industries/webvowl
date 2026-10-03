@@ -1,0 +1,58 @@
+[
+  {
+    "category": "subjects",
+    "sourceHandle": "subject-language",
+    "primaryBlankNode": "ps2",
+    "rdfcIdentifier": "c14n0",
+    "canonicalId": "s0"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "subject-A",
+    "primaryBlankNode": "ps0",
+    "rdfcIdentifier": "c14n5",
+    "canonicalId": "s1"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "subject-note",
+    "primaryBlankNode": "ps1",
+    "rdfcIdentifier": "c14n10",
+    "canonicalId": "s2"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "A",
+    "primaryBlankNode": "pr0",
+    "rdfcIdentifier": "c14n1",
+    "canonicalId": "r0"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "language",
+    "primaryBlankNode": "pr2",
+    "rdfcIdentifier": "c14n12",
+    "canonicalId": "r1"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "note",
+    "primaryBlankNode": "pr1",
+    "rdfcIdentifier": "c14n17",
+    "canonicalId": "r2"
+  },
+  {
+    "category": "constructs",
+    "sourceHandle": "annotation",
+    "primaryBlankNode": "pc0",
+    "rdfcIdentifier": "c14n11",
+    "canonicalId": "c0"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "node-A",
+    "primaryBlankNode": "po0",
+    "rdfcIdentifier": "c14n7",
+    "canonicalId": "o0"
+  }
+]

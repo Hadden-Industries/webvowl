@@ -1,13 +1,11 @@
 import {
-  describeVowlDocumentRecord,
-  readVowlDocumentPrefixes,
-  resolveVowlEditorIri,
   VOWL_EDITOR_CLASS_TYPES,
   VOWL_EDITOR_PROPERTY_TYPES,
   VOWL_EDITOR_DATATYPE_NAMES,
   DEFAULT_VOWL_EDITOR_PREFIXES,
 } from "./controller/vowlDocument.js";
 import { createLanguageTools } from "../../shared/js/util/languageTools.js";
+import { PROTECTED_ONTOLOGY_EDITOR_PREFIXES } from "./controller/ontologyEditorPrefixes.js";
 
 // This presentation reads immutable document records. Only application
 // operations can accept an edit; no drawn element is an editing authority.
@@ -100,9 +98,7 @@ export function createOntologyEditorSidebar({
   }
 
   function prefixedIri(iri) {
-    for (const [name, prefixIri] of Object.entries(
-      readVowlDocumentPrefixes(snapshot.vowlModel),
-    )) {
+    for (const [name, prefixIri] of Object.entries(snapshot.prefixes)) {
       if (typeof prefixIri === "string" && iri.startsWith(prefixIri)) {
         return `${name}:${iri.slice(prefixIri.length)}`;
       }
@@ -128,7 +124,7 @@ export function createOntologyEditorSidebar({
     const typeInput = document.getElementById("typeEditor");
     const datatypeInput = document.getElementById("typeEditor_datatype");
     const type = selectedRecord.type;
-    const isProperty = selectedTarget.collection === "property";
+    const isProperty = snapshot.isProperty;
     const isDatatype = ["rdfs:Datatype", "rdfs:Literal"].includes(type);
     const iri = selectedRecord.iri ?? "";
     const fixedLabel = {
@@ -150,27 +146,37 @@ export function createOntologyEditorSidebar({
     iriInput.value = prefixedIri(iri);
     iriInput.title = iri;
     iriInput.disabled =
+      selectedRecord.iriEditable === false ||
       fixedLabel !== undefined ||
       type === "owl:disjointWith" ||
       (isDatatype && !isUndefinedDatatype);
     labelInput.value = fixedLabel ?? localizedText(selectedRecord.label);
-    labelInput.disabled = fixedLabel !== undefined || isFixedDatatype;
-    typeInput.disabled = false;
+    labelInput.disabled =
+      selectedRecord.labelEditable === false ||
+      fixedLabel !== undefined ||
+      isFixedDatatype;
+    labelInput.title =
+      selectedRecord.labelEditable === false
+        ? "This selection does not have one editable text label per language. Inspect its exact annotations."
+        : "";
+    typeInput.disabled = selectedRecord.typeEditable === false;
     datatypeInput.disabled = false;
     document
       .getElementById("typeEditForm_datatype")
       .classList.toggle("hidden", !isDatatype || type === "rdfs:Literal");
     presentOptions(
       typeInput,
-      isDatatype
-        ? ["rdfs:Literal", "rdfs:Datatype"]
-        : isProperty
-          ? type === "owl:datatypeProperty"
-            ? ["owl:datatypeProperty"]
-            : VOWL_EDITOR_PROPERTY_TYPES.filter(
-                (value) => value !== "owl:datatypeProperty",
-              )
-          : VOWL_EDITOR_CLASS_TYPES,
+      selectedRecord.typeEditable === false
+        ? [type]
+        : isDatatype
+          ? ["rdfs:Literal", "rdfs:Datatype"]
+          : isProperty
+            ? type === "owl:datatypeProperty"
+              ? ["owl:datatypeProperty"]
+              : VOWL_EDITOR_PROPERTY_TYPES.filter(
+                  (value) => value !== "owl:datatypeProperty",
+                )
+            : VOWL_EDITOR_CLASS_TYPES,
       type,
     );
     presentOptions(
@@ -182,17 +188,16 @@ export function createOntologyEditorSidebar({
       iriInput,
       () =>
         editSelectedRecord({
-          iri: resolveVowlEditorIri(iriInput.value, snapshot.vowlModel),
+          iri: webVowlController.resolveOntologyEditorIri(iriInput.value),
         }),
       signal,
     );
-    const hasDefaultDerivedIri =
-      iri === `${snapshot.vowlModel.header?.iri}${selectedRecord.id}`;
+    const hasDefaultDerivedIri = snapshot.derivedIriBase !== undefined;
     const labelChange = () => ({
       label: { language, text: labelInput.value },
       ...(hasDefaultDerivedIri
         ? {
-            iri: `${snapshot.vowlModel.header.iri}${labelInput.value.replaceAll(" ", "_")}`,
+            iri: `${snapshot.derivedIriBase}${labelInput.value.replaceAll(" ", "_")}`,
           }
         : {}),
     });
@@ -228,13 +233,14 @@ export function createOntologyEditorSidebar({
     );
     characteristics.replaceChildren();
     const names =
-      fixedLabel !== undefined || isDatatype
+      selectedRecord.availableCharacteristics ??
+      (fixedLabel !== undefined || isDatatype
         ? []
         : !isProperty
           ? ["deprecated"]
           : type === "owl:datatypeProperty"
             ? ["deprecated", "functional"]
-            : ["deprecated", "inverse functional", "functional", "transitive"];
+            : ["deprecated", "inverse functional", "functional", "transitive"]);
     document
       .getElementById("property_characteristics_Container")
       .classList.toggle("hidden", names.length === 0);
@@ -298,7 +304,9 @@ export function createOntologyEditorSidebar({
     if (state.loadGeneration === 0) {
       return;
     }
-    snapshot = webVowlController.getOntologyDocument();
+    snapshot = webVowlController.getOntologyEditorView(
+      state.selectedDocumentRecord,
+    );
     language = state.view?.language ?? "default";
     const metadataKey = `${snapshot.loadGeneration}:${state.documentRevision}:${language}`;
     if (force || presentedMetadataKey !== metadataKey) {
@@ -310,20 +318,20 @@ export function createOntologyEditorSidebar({
         ["descriptionEditor", "description"],
       ]) {
         const input = document.getElementById(id);
-        const value = snapshot.vowlModel.header?.[field];
+        const value = snapshot.metadata[field];
         input.value =
           field === "author" && Array.isArray(value)
             ? value.join(",")
             : localizedText(value);
-        input.disabled = false;
+        input.disabled = snapshot.ambiguousMetadata?.includes(field) ?? false;
+        input.title = input.disabled
+          ? "Multiple or non-text annotations require an exact annotation edit."
+          : "";
       }
       presentedMetadataKey = metadataKey;
     }
     selectedTarget = state.selectedDocumentRecord;
-    selectedRecord =
-      selectedTarget === null || selectedTarget === undefined
-        ? undefined
-        : describeVowlDocumentRecord(snapshot.vowlModel, selectedTarget);
+    selectedRecord = snapshot.selectedRecord;
     const selectionKey = JSON.stringify([
       snapshot.loadGeneration,
       state.documentRevision,
@@ -336,7 +344,7 @@ export function createOntologyEditorSidebar({
     }
     const prefixKey = JSON.stringify([
       state.editorMode?.isEditorMode,
-      readVowlDocumentPrefixes(snapshot.vowlModel),
+      snapshot.prefixes,
     ]);
     if (force || prefixKey !== presentedPrefixKey) {
       prefixControlsAbortController.abort();
@@ -348,7 +356,7 @@ export function createOntologyEditorSidebar({
       add.disabled = false;
       if (state.editorMode?.isEditorMode) {
         for (const [prefixName, namespaceIri] of Object.entries(
-          readVowlDocumentPrefixes(snapshot.vowlModel),
+          snapshot.prefixes,
         )) {
           appendPrefixEditorRow({
             isNewPrefix: false,
@@ -530,7 +538,7 @@ export function createOntologyEditorSidebar({
   }
 
   const SVG_NAMESPACE_IRI = "http://www.w3.org/2000/svg";
-  const PROTECTED_PREFIX_NAMES = new Set(["rdf", "rdfs", "xsd", "dc", "owl"]);
+  const PROTECTED_PREFIX_NAMES = new Set(PROTECTED_ONTOLOGY_EDITOR_PREFIXES);
   const PREFIX_EDITOR_ICON_PATHS = Object.freeze({
     edit: {
       pathData:

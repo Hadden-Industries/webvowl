@@ -1,0 +1,542 @@
+{
+  "format": "canonical-vowl-conformance-manifest/1",
+  "status": "independent-field-witness-completion-pending-review",
+  "specificationRevision": [
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design.md",
+      "sha256": "174535bb8cb43f317631f0799721adebfbbc4ceff4d577595be8fb91dd940fac"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-core-contract.md",
+      "sha256": "711ba30c291cfb0960334328203188600f60a331996e83379267a4a77b87988d"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-projection-contract.md",
+      "sha256": "4c1cf6a7e187f98d40d390e6ff0b5354aca46a8ff195fba5b6badace7eb6078b"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design-decisions.md",
+      "sha256": "f314ec3448f2cf87f73ce6ce8871f3695d4b3b26dee687383b36e36a4fc0a43e"
+    }
+  ],
+  "amendment": {
+    "path": "docs/specs/2026-09-30-canonical-vowl-resource-policy-amendment.md",
+    "sha256": "9f1b7d96229a06f57e29a52f92325a4256e6f826d7532e239848ef99dc0f47c1",
+    "approval": "Owner approved the exact quadratic capped work-policy amendment on 2026-09-30, as communicated by the parent integration task. Approval does not waive independent review."
+  },
+  "sourceArtifacts": [
+    {
+      "path": "supplemental/field-contract/contracts.mjs",
+      "sha256": "6f8d018d17edd726c5437d9b9ed7bf677005fe55cb086e84d227b6c089858130"
+    },
+    {
+      "path": "supplemental/field-contract/support.mjs",
+      "sha256": "ac1ffa3cebc2e4156ef693716d54f62cac9ef8fe6d3620e5843a5737262d7bf5"
+    },
+    {
+      "path": "supplemental/field-contract/positives.mjs",
+      "sha256": "7c8731afb57ad69fcf5d7c0f1f2a2f16784b91a6cd62d92b14ede802aec23208"
+    },
+    {
+      "path": "supplemental/field-contract/derive-additional-positives.mjs",
+      "sha256": "480286e197e3379a45b7442bd1349c222b386df36b240c1909bb3bb3358ea3f6"
+    }
+  ],
+  "vectors": [
+    {
+      "id": "anchor-characteristic-functional",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceWitness": {
+        "path": "supplemental/field-contract/positive/anchor-object-characteristic/source.json",
+        "sha256": "d014520ade7147c74a38f254c5622eb94dc027bff46fd5c4edc31e26fa635bd2",
+        "byteLength": 2716
+      },
+      "derivation": "Change the supported base fact and its exact embedded assertion together; characteristics create no new occurrence.",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A5",
+        "A10",
+        "B2"
+      ],
+      "counts": {
+        "primary": 18,
+        "blankNodes": 35,
+        "quads": 115
+      },
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-functional/source.json",
+          "sha256": "89dbce143260b9f6a85d5f769511d08df73e9865accc566c80195a4030514632",
+          "byteLength": 2718
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-functional/permuted-source.json",
+          "sha256": "12e68d7e90fde66d2973cc321891ed04715295eeb0b8a11ddd6a42da8f273c76",
+          "byteLength": 3171
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-functional/mapped.nq",
+          "sha256": "4121ffe5cce602b2ba2be938ed4b1bb65252c37676631ec61d3bbef52cf7a61d",
+          "byteLength": 13879
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-functional/canonical.nq",
+          "sha256": "2185db807591d6dc2033320faf053ea5ee98475bb101aac3119e290a20feefd1",
+          "byteLength": 14369
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-functional/ids.json",
+          "sha256": "50dbb660af85aa8144ec0cddae0d359f6a96e76b0ffcc2d7fb1f4ff472e7fd7a",
+          "byteLength": 2821
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-functional/canonical.json",
+          "sha256": "9139affe5bdd88170d4bd419883ceb2d3b27dc755a925a92824118de9d8d6c3f",
+          "byteLength": 1512
+        }
+      }
+    },
+    {
+      "id": "anchor-characteristic-inverse-functional",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceWitness": {
+        "path": "supplemental/field-contract/positive/anchor-object-characteristic/source.json",
+        "sha256": "d014520ade7147c74a38f254c5622eb94dc027bff46fd5c4edc31e26fa635bd2",
+        "byteLength": 2716
+      },
+      "derivation": "Change the supported base fact and its exact embedded assertion together; characteristics create no new occurrence.",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A5",
+        "A10",
+        "B2"
+      ],
+      "counts": {
+        "primary": 18,
+        "blankNodes": 35,
+        "quads": 115
+      },
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-inverse-functional/source.json",
+          "sha256": "cc0fa5a6ea157db34eac6518c5d44caf410a9555e8c9b340ea14f1331e397ecf",
+          "byteLength": 2734
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-inverse-functional/permuted-source.json",
+          "sha256": "7997a4c7e4427f7c77932067f56dc02844bd22c1d0c76d332d3db33688f2f135",
+          "byteLength": 3187
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-inverse-functional/mapped.nq",
+          "sha256": "3e807c273cb565d2e0bc872a6f61bc22f1832f04c7ca0357555ee5c5ac6e2cc8",
+          "byteLength": 13895
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-inverse-functional/canonical.nq",
+          "sha256": "f2b86f76138c03cf056c8adc7eaa09e8923f888b01a952c9204a6803ab34a3f7",
+          "byteLength": 14388
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-inverse-functional/ids.json",
+          "sha256": "54929fd36eb7b6aef32451c75f3cd2409fd968e6ce3552003cabb3da6eea80b8",
+          "byteLength": 2822
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-inverse-functional/canonical.json",
+          "sha256": "0593cd44bde8246d3b0a18967d93495369d078cab9f004f18b853e1788727c5d",
+          "byteLength": 1528
+        }
+      }
+    },
+    {
+      "id": "anchor-characteristic-symmetric",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceWitness": {
+        "path": "supplemental/field-contract/positive/anchor-object-characteristic/source.json",
+        "sha256": "d014520ade7147c74a38f254c5622eb94dc027bff46fd5c4edc31e26fa635bd2",
+        "byteLength": 2716
+      },
+      "derivation": "Change the supported base fact and its exact embedded assertion together; characteristics create no new occurrence.",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A5",
+        "A10",
+        "B2"
+      ],
+      "counts": {
+        "primary": 18,
+        "blankNodes": 35,
+        "quads": 115
+      },
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-symmetric/source.json",
+          "sha256": "fb6e1f9236761347da19394e423baf26a4aeb7b15f5b2d401a1d964e8d5a9781",
+          "byteLength": 2716
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-symmetric/permuted-source.json",
+          "sha256": "828dbcc99c42d04c71276e24e72217619f550f818b8b909f9936ba034945f0f2",
+          "byteLength": 3169
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-symmetric/mapped.nq",
+          "sha256": "024b3bab5e7db8aa9f283fde4997d5ef65cf6e6c920257270f7a51ada74c3d65",
+          "byteLength": 13877
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-symmetric/canonical.nq",
+          "sha256": "71171f1d019f692265a5acf14ac1c193bc1789244f7ee59707984e4acdf586b6",
+          "byteLength": 14370
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-symmetric/ids.json",
+          "sha256": "39185a3ef38e6dbf4da8abe0cbfad18f10f297842876a0d93a8e1dd4923a0e41",
+          "byteLength": 2822
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-symmetric/canonical.json",
+          "sha256": "4765ade153d319f43ee5a763a83b5a0665a36cd1f9a089dca4b8fcccd3af6e14",
+          "byteLength": 1510
+        }
+      }
+    },
+    {
+      "id": "anchor-characteristic-asymmetric",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceWitness": {
+        "path": "supplemental/field-contract/positive/anchor-object-characteristic/source.json",
+        "sha256": "d014520ade7147c74a38f254c5622eb94dc027bff46fd5c4edc31e26fa635bd2",
+        "byteLength": 2716
+      },
+      "derivation": "Change the supported base fact and its exact embedded assertion together; characteristics create no new occurrence.",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A5",
+        "A10",
+        "B2"
+      ],
+      "counts": {
+        "primary": 18,
+        "blankNodes": 35,
+        "quads": 115
+      },
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-asymmetric/source.json",
+          "sha256": "efdab23b23ced32208c8e451f7d18368d0354e3b14ffb76384f31318f560347f",
+          "byteLength": 2718
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-asymmetric/permuted-source.json",
+          "sha256": "2a1d8c68f636e6a9e484e66ee916abf3039ef012fed3e15c6ba11bc3b985602a",
+          "byteLength": 3171
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-asymmetric/mapped.nq",
+          "sha256": "4df3ebd89507ffc281c6c3f05d2d0c38f13b4262643b54bc32b179e90aa2c6fd",
+          "byteLength": 13879
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-asymmetric/canonical.nq",
+          "sha256": "1cdbf1b646f0d7ae682f7678865042eadf5e21b386ea28b03a259d0d5ed94645",
+          "byteLength": 14369
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-asymmetric/ids.json",
+          "sha256": "de35b6bb95ce19661fc6853325baf96831329f30fc9286b91a2697895a0aee3b",
+          "byteLength": 2822
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-asymmetric/canonical.json",
+          "sha256": "2eabce0190982295be78aabadb53e6d997fe9cc8f8e7eeee793cd486c5112269",
+          "byteLength": 1512
+        }
+      }
+    },
+    {
+      "id": "anchor-characteristic-transitive",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceWitness": {
+        "path": "supplemental/field-contract/positive/anchor-object-characteristic/source.json",
+        "sha256": "d014520ade7147c74a38f254c5622eb94dc027bff46fd5c4edc31e26fa635bd2",
+        "byteLength": 2716
+      },
+      "derivation": "Change the supported base fact and its exact embedded assertion together; characteristics create no new occurrence.",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A5",
+        "A10",
+        "B2"
+      ],
+      "counts": {
+        "primary": 18,
+        "blankNodes": 35,
+        "quads": 115
+      },
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-transitive/source.json",
+          "sha256": "927dd6f330ba248ce9e4800508739cb0f67e80fcdc97ba40d25642c8b2b2978f",
+          "byteLength": 2718
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-transitive/permuted-source.json",
+          "sha256": "493784b6ffa6490cfeeedb14dcaa56f38e61c6933d3f92e8cf0a277fbc284c7e",
+          "byteLength": 3171
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-transitive/mapped.nq",
+          "sha256": "2e814364052edae6f3f7f6cc5b5caa63c0d6870ae206e8986d2b45f7320a3d44",
+          "byteLength": 13879
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-transitive/canonical.nq",
+          "sha256": "e8ac4ac1af70ddea7a0c3c9d9da7ce7969908ed08b4c38a3b54116663665250f",
+          "byteLength": 14369
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-transitive/ids.json",
+          "sha256": "c82723f46999df4ba0c6c77d1a9c6f25c03283b47298b001e6d550ca97313bf3",
+          "byteLength": 2822
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-transitive/canonical.json",
+          "sha256": "5a5bbb2134587909c693466afd7234f8112b715f1d04d1406f55beb833f51f79",
+          "byteLength": 1512
+        }
+      }
+    },
+    {
+      "id": "anchor-characteristic-irreflexive",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceWitness": {
+        "path": "supplemental/field-contract/positive/anchor-object-characteristic/source.json",
+        "sha256": "d014520ade7147c74a38f254c5622eb94dc027bff46fd5c4edc31e26fa635bd2",
+        "byteLength": 2716
+      },
+      "derivation": "Change the supported base fact and its exact embedded assertion together; characteristics create no new occurrence.",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A5",
+        "A10",
+        "B2"
+      ],
+      "counts": {
+        "primary": 18,
+        "blankNodes": 35,
+        "quads": 115
+      },
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-irreflexive/source.json",
+          "sha256": "e726383ffa9bc62995943ed35b52e7bc7386a0960cc8c2e5c1cf12d953cfd7c9",
+          "byteLength": 2720
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-irreflexive/permuted-source.json",
+          "sha256": "eb0c9a32f6e7f5463f316a4145ab0dcf04790e0964a069e80064663685f6738d",
+          "byteLength": 3173
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-irreflexive/mapped.nq",
+          "sha256": "725e5109d569852a6a468b817fa2b39771c7fa4c985bc7dce77538d74e73c216",
+          "byteLength": 13881
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-irreflexive/canonical.nq",
+          "sha256": "a6037638f70d688a7046934100356e03e335f1bae20393f4b460daa532f0c94a",
+          "byteLength": 14374
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-irreflexive/ids.json",
+          "sha256": "ace449882ea97d1870f4d23bd56c3253ee00c55a0d27ed3a5495dc39801f5a16",
+          "byteLength": 2822
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/additional-positive/anchor-characteristic-irreflexive/canonical.json",
+          "sha256": "befdb408fb0c42c5095c75e211d413f0c2a6ce9cbe6971860be7b6a546e52743",
+          "byteLength": 1514
+        }
+      }
+    },
+    {
+      "id": "reference-sort-data-union",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceWitness": {
+        "path": "supplemental/grammar/vectors/data-union/source.json",
+        "sha256": "8401bcfde90177b447c68be130fef70b0da15c6e7b4513da360770586e1e1f02",
+        "byteLength": 1152
+      },
+      "derivation": "Add a named annotation-property declaration, permitted to be otherwise unused by A2. B2 assigns it no occurrence. It supplies an existing role of a wrong sort without dangling references in the negative mutation.",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A5",
+        "A10",
+        "B2"
+      ],
+      "counts": {
+        "primary": 10,
+        "blankNodes": 20,
+        "quads": 60
+      },
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/additional-positive/reference-sort-data-union/source.json",
+          "sha256": "55664c471b7d18723dde5019388d68326d4195347440f9c0e4b0b4a0668c8ca4",
+          "byteLength": 1400
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/additional-positive/reference-sort-data-union/permuted-source.json",
+          "sha256": "9ac4d38c69ff28670af7fa535838ebeb1e72b3a6a055f8057b7be97187154a6a",
+          "byteLength": 1528
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/additional-positive/reference-sort-data-union/mapped.nq",
+          "sha256": "6ed0adbdbfe19e868d902364a2152e92a9a3075a21f24603bcb980bfff53c5f5",
+          "byteLength": 7174
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/additional-positive/reference-sort-data-union/canonical.nq",
+          "sha256": "2b0e4438f2fa7fc4ada0299d3b6bb592a7d31eb95d85375c05b7c8ba11b4a130",
+          "byteLength": 7430
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/additional-positive/reference-sort-data-union/ids.json",
+          "sha256": "cc032a4a31029e0339ad7ee500ddaf213e8a0f0f201a5953cdd10acc6b91a967",
+          "byteLength": 1593
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/additional-positive/reference-sort-data-union/canonical.json",
+          "sha256": "6d892c3d6898b31963c6413e9332cf3e3598c13ef4397b6a25b8463c7cfb83c9",
+          "byteLength": 789
+        }
+      }
+    },
+    {
+      "id": "reference-sort-datatype-restriction",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceWitness": {
+        "path": "supplemental/grammar/vectors/datatype-restriction/source.json",
+        "sha256": "33a868e450b1bb5abb3ab53029dd9bd5a79f721ec4eb175ae7396e483ecf93fa",
+        "byteLength": 1460
+      },
+      "derivation": "Add a named annotation-property declaration, permitted to be otherwise unused by A2. B2 assigns it no occurrence. It supplies an existing role of a wrong sort without dangling references in the negative mutation.",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A5",
+        "A10",
+        "B2"
+      ],
+      "counts": {
+        "primary": 8,
+        "blankNodes": 22,
+        "quads": 68
+      },
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/additional-positive/reference-sort-datatype-restriction/source.json",
+          "sha256": "116f3a168d9623af9f6f32510369ea013e944608cd4aa265c1c457df9fb4d3a6",
+          "byteLength": 1708
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/additional-positive/reference-sort-datatype-restriction/permuted-source.json",
+          "sha256": "6e7c7eac0c2532777b49ccb2620b1afc0bb2c4b3d120bd7a33a470631594fc06",
+          "byteLength": 1802
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/additional-positive/reference-sort-datatype-restriction/mapped.nq",
+          "sha256": "7ab04806eda8893022d4bb123289c1543cded46388612698226cddd2e498c256",
+          "byteLength": 8208
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/additional-positive/reference-sort-datatype-restriction/canonical.nq",
+          "sha256": "7bd3e5bd2cb2aaadbd223b29bf28a08f96c87bca2ab532d0babe48dd1e709902",
+          "byteLength": 8491
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/additional-positive/reference-sort-datatype-restriction/ids.json",
+          "sha256": "c9b1f00adb61ac0c05ae856134ef79c5d28ace42f4c852115e97b6a0dd80a7bb",
+          "byteLength": 1280
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/additional-positive/reference-sort-datatype-restriction/canonical.json",
+          "sha256": "4bfff441b40032cb0164dc26f7942bd3ec14b5c0c4ad84a19ca75df070966eec",
+          "byteLength": 1001
+        }
+      }
+    },
+    {
+      "id": "anchor-inverse-three-role-witness",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "sourceWitness": {
+        "path": "supplemental/conditional/vectors/subproperty-inverse-directions/source.json",
+        "sha256": "783fa72559d8f34844dd8c7444338c70818fe69fac216311f50afd070e7cf49e",
+        "byteLength": 3246
+      },
+      "derivation": "Exact supported inverse-properties assertion in a graph already containing three distinct object-property roles. The positive assertion still has at most two members.",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A5",
+        "A10",
+        "B2"
+      ],
+      "counts": {
+        "primary": 31,
+        "blankNodes": 52,
+        "quads": 185
+      },
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/additional-positive/anchor-inverse-three-role-witness/source.json",
+          "sha256": "708af05d881117720148b1e232a707bebf0d72de3468aae0c914f424956c88fe",
+          "byteLength": 4301
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/additional-positive/anchor-inverse-three-role-witness/permuted-source.json",
+          "sha256": "2952afe02d6d15af5d155769f209ebca129ec9c445fe5542c3fa4cb4cd82e497",
+          "byteLength": 5321
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/additional-positive/anchor-inverse-three-role-witness/mapped.nq",
+          "sha256": "1962de36dc70ada625dfbd1661b8ab46b6f02915fa46ab95207af4bec385e8fe",
+          "byteLength": 21821
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/additional-positive/anchor-inverse-three-role-witness/canonical.nq",
+          "sha256": "5362fae02f06ec60242c50add65418134a86f75f53aeef8938c6f82a0b1741b8",
+          "byteLength": 22653
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/additional-positive/anchor-inverse-three-role-witness/ids.json",
+          "sha256": "3e878185f18c286cd85e90bfb3213b654dbf252162933b0c8996e358a6a24173",
+          "byteLength": 4853
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/additional-positive/anchor-inverse-three-role-witness/canonical.json",
+          "sha256": "6bb82ed17e43ca8bbe027f0a70b5eee65c07befa54b94962cadd0d691822c7ea",
+          "byteLength": 2260
+        }
+      }
+    }
+  ]
+}

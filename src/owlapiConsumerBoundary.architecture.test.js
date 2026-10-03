@@ -17,24 +17,20 @@ const LOCAL_PACKAGE_SOURCE_PATH = path.join(ROOT, "src", "owlapi-js");
 const INSTALLED_PACKAGE_PATH = path.join(ROOT, "node_modules", "owlapi");
 const UTILITY_PATH = path.join(ROOT, "util");
 
-const EXPECTED_GIT_SPECIFIER =
-  "git+https://github.com/Hadden-Industries/owlapi.git#caabb1197ffdab91c1e10d596d177b5142aea5c1";
-// npm can serialize a GitHub resolution with SSH transport even when the
-// manifest requests HTTPS. Keep the repository and full commit exact.
-const APPROVED_GIT_RESOLUTIONS = new Set([
-  EXPECTED_GIT_SPECIFIER,
-  EXPECTED_GIT_SPECIFIER.replace(
-    "git+https://github.com/",
-    "git+ssh://git@github.com/",
-  ),
-]);
-const EXPECTED_PACKAGE_VERSION = "0.1.0-alpha.0";
+const EXPECTED_PACKAGE_SPECIFIER = "npm:@hadden-industries/owlapi@0.1.0-rc.1";
+const EXPECTED_RESOLUTION =
+  "https://registry.npmjs.org/@hadden-industries/owlapi/-/owlapi-0.1.0-rc.1.tgz";
+const EXPECTED_INTEGRITY =
+  "sha512-uDv9Omh2l2zxAjpVeQi4UxXEad/cRiKQUJT5RhxR3WtaAjPL3gAoOha9dPRhH6o2zlBdeg50g8EIVQgtt8RGqA==";
+const EXPECTED_PACKAGE_VERSION = "0.1.0-rc.1";
 const EXPECTED_EXPORTS = {
   ".": "./index.js",
   "./apibinding": "./apibinding/index.js",
   "./model": "./model/index.js",
   "./io": "./io/index.js",
   "./formats": "./formats/index.js",
+  "./profiles": "./profiles/index.js",
+  "./util": "./util/index.js",
 };
 const APPROVED_IMPORT_SPECIFIERS = new Set([
   "owlapi",
@@ -42,6 +38,7 @@ const APPROVED_IMPORT_SPECIFIERS = new Set([
   "owlapi/model",
   "owlapi/io",
   "owlapi/formats",
+  "owlapi/profiles",
 ]);
 const OWLAPI_OWNED_ROOT_DEPENDENCIES = [
   "@rdfjs/data-model",
@@ -51,12 +48,7 @@ const OWLAPI_OWNED_ROOT_DEPENDENCIES = [
   "rdfxml-streaming-parser",
 ];
 const WEBVOWL_OWNED_XML_DEPENDENCY = "0.9.12";
-const PACKAGE_CONFIGURATION_KEYS = [
-  "imports",
-  "overrides",
-  "resolutions",
-  "workspaces",
-];
+const PACKAGE_CONFIGURATION_KEYS = ["imports", "overrides", "resolutions"];
 const CONFIGURATION_PATHS = [
   path.join(ROOT, "vite.config.mjs"),
   path.join(ROOT, "eslint.config.js"),
@@ -192,7 +184,11 @@ const importedSpecifiers = (filePath) =>
 
 const importBoundaryViolations = () => {
   const violations = [];
-  for (const sourceRoot of [path.join(ROOT, "src"), UTILITY_PATH]) {
+  for (const sourceRoot of [
+    path.join(ROOT, "src"),
+    UTILITY_PATH,
+    path.join(ROOT, "packages", "vowl", "src"),
+  ]) {
     for (const filePath of sourceFiles(sourceRoot)) {
       for (const specifier of importedSpecifiers(filePath)) {
         if (
@@ -293,7 +289,7 @@ describe("installed owlapi consumer boundary", () => {
   test("declares the immutable package coordinate and only inventory-proven WebVOWL dependencies", () => {
     const manifest = readJson(PACKAGE_JSON_PATH);
 
-    expect(manifest.dependencies?.owlapi).toBe(EXPECTED_GIT_SPECIFIER);
+    expect(manifest.dependencies?.owlapi).toBe(EXPECTED_PACKAGE_SPECIFIER);
     expect(manifest.devDependencies?.owlapi).toBeUndefined();
     expect(manifest.dependencies?.["@xmldom/xmldom"]).toBe(
       WEBVOWL_OWNED_XML_DEPENDENCY,
@@ -307,45 +303,32 @@ describe("installed owlapi consumer boundary", () => {
     ).toEqual([]);
   });
 
-  test("locks the same full Git commit as the root manifest", () => {
+  test("locks the approved registry alias and integrity for both consumers", () => {
     const lockfile = readJson(PACKAGE_LOCK_PATH);
     const rootPackage = lockfile.packages?.[""];
     const installedPackage = lockfile.packages?.["node_modules/owlapi"];
 
     expect(lockfile.lockfileVersion).toBe(3);
-    expect(rootPackage?.dependencies?.owlapi).toBe(EXPECTED_GIT_SPECIFIER);
-    expect(APPROVED_GIT_RESOLUTIONS.has(installedPackage?.resolved)).toBe(true);
+    expect(rootPackage?.dependencies?.owlapi).toBe(EXPECTED_PACKAGE_SPECIFIER);
+    expect(installedPackage?.resolved).toBe(EXPECTED_RESOLUTION);
+    expect(installedPackage?.integrity).toBe(EXPECTED_INTEGRITY);
+    expect(installedPackage?.name).toBe("@hadden-industries/owlapi");
+    expect(lockfile.packages?.["packages/vowl"]?.dependencies?.owlapi).toBe(
+      EXPECTED_PACKAGE_SPECIFIER,
+    );
+    expect(
+      Object.keys(lockfile.packages).filter((key) =>
+        key.endsWith("node_modules/owlapi"),
+      ),
+    ).toEqual(["node_modules/owlapi"]);
     expect(installedPackage?.version).toBe(EXPECTED_PACKAGE_VERSION);
-  });
-
-  test.each([
-    "git+https://github.com/Hadden-Industries/owlapi.git#caabb1197ffdab91c1e10d596d177b5142aea5c1",
-    "git+ssh://git@github.com/Hadden-Industries/owlapi.git#caabb1197ffdab91c1e10d596d177b5142aea5c1",
-  ])("accepts the pinned Git resolution %s", (resolution) => {
-    expect(APPROVED_GIT_RESOLUTIONS.has(resolution)).toBe(true);
-  });
-
-  test.each([
-    undefined,
-    "",
-    "git+https://github.com/other-owner/owlapi.git#caabb1197ffdab91c1e10d596d177b5142aea5c1",
-    "git+ssh://git@github.com/Hadden-Industries/other-repo.git#caabb1197ffdab91c1e10d596d177b5142aea5c1",
-    "git+ssh://git@other-host.example/Hadden-Industries/owlapi.git#caabb1197ffdab91c1e10d596d177b5142aea5c1",
-    "git+https://github.com/Hadden-Industries/owlapi.git#0000000000000000000000000000000000000000",
-    "git+ssh://git@github.com/Hadden-Industries/owlapi.git#0000000000000000000000000000000000000000",
-    "git+https://github.com/Hadden-Industries/owlapi.git#main",
-    "git+ssh://git@github.com/Hadden-Industries/owlapi.git#caabb11",
-    "git+https://github.com/Hadden-Industries/owlapi.git",
-    "git+http://github.com/Hadden-Industries/owlapi.git#caabb1197ffdab91c1e10d596d177b5142aea5c1",
-  ])("rejects an unapproved Git resolution %s", (resolution) => {
-    expect(APPROVED_GIT_RESOLUTIONS.has(resolution)).toBe(false);
   });
 
   test("observes the approved installed identity and public exports", () => {
     expect(existsSync(INSTALLED_PACKAGE_JSON_PATH)).toBe(true);
     const installedManifest = readJson(INSTALLED_PACKAGE_JSON_PATH);
 
-    expect(installedManifest.name).toBe("owlapi");
+    expect(installedManifest.name).toBe("@hadden-industries/owlapi");
     expect(installedManifest.version).toBe(EXPECTED_PACKAGE_VERSION);
     expect(installedManifest.exports).toEqual(EXPECTED_EXPORTS);
   });
@@ -364,7 +347,7 @@ describe("installed owlapi consumer boundary", () => {
     });
   });
 
-  test("defines no workspace, override, alias, or resolver fallback", () => {
+  test("permits only the VOWL workspace and no OWLAPI resolver overrides", () => {
     const manifest = readJson(PACKAGE_JSON_PATH);
     const forbiddenKeys = PACKAGE_CONFIGURATION_KEYS.filter((key) =>
       Object.hasOwn(manifest, key),
@@ -375,6 +358,10 @@ describe("installed owlapi consumer boundary", () => {
       /\bowlapi(?:-js)?\b/iu.test(readFileSync(filePath, "utf8")),
     ).map(relative);
 
+    expect(manifest.workspaces).toEqual(["packages/vowl"]);
+    expect(
+      readJson(path.join(ROOT, "packages", "vowl", "package.json")).name,
+    ).toBe("vowl");
     expect(forbiddenKeys).toEqual([]);
     expect(JSON.stringify(manifestWithoutCoordinate)).not.toMatch(
       /\bowlapi(?:-js)?\b/iu,

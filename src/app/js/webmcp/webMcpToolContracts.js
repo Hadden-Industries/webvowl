@@ -13,7 +13,10 @@ import {
   createVisualizationModesRequest,
   createForceLayoutDistancesRequest,
 } from "../controller/renderedGraphRuntimeContracts.js";
-import { normalizeVisualizationFilename } from "../controller/webVowlControllerContracts.js";
+import {
+  normalizeVisualizationFilename,
+  ONTOLOGY_ROLE_KINDS,
+} from "../controller/webVowlControllerContracts.js";
 
 // The agent-facing surface of this page. Each tool is a
 // bounded operation over the ontology the controller holds, never a generic
@@ -160,6 +163,11 @@ const ONTOLOGY_ELEMENT_REFERENCE_SCHEMA = Object.freeze({
           maxLength: MAXIMUM_LOCATION_LENGTH,
           minLength: 1,
         }),
+        roleKind: Object.freeze({
+          type: "string",
+          enum: Object.values(ONTOLOGY_ROLE_KINDS).flat(),
+          description: "Exact semantic role when one IRI has multiple roles.",
+        }),
       },
       required: ["kind", "iri"],
     }),
@@ -182,6 +190,11 @@ const ONTOLOGY_ELEMENT_REFERENCE_SCHEMA = Object.freeze({
           description: "Identifier of the anonymous element within that load.",
           maxLength: MAXIMUM_ANONYMOUS_LOCAL_ID_LENGTH,
           minLength: 1,
+        }),
+        roleKind: Object.freeze({
+          type: "string",
+          enum: Object.values(ONTOLOGY_ROLE_KINDS).flat(),
+          description: "Exact semantic role of the anonymous element.",
         }),
       },
       required: ["kind", "loadGeneration", "localId"],
@@ -1090,13 +1103,24 @@ function normalizeOntologyElementReference(requestedReference) {
   );
   assertOnlyAllowedFieldNames(
     requestedReference,
-    branchFieldNames,
+    [...branchFieldNames, "roleKind"],
     "ontology element reference",
   );
+  const role =
+    requestedReference.roleKind === undefined
+      ? {}
+      : {
+          roleKind: assertEnumMember(
+            requestedReference.roleKind,
+            "roleKind",
+            ONTOLOGY_ROLE_KINDS[requestedReference.kind],
+          ),
+        };
 
   if (branchFieldNames === IRI_REFERENCE_FIELD_NAMES) {
     return Object.freeze({
       kind: requestedReference.kind,
+      ...role,
       iri: assertBoundedString(
         requestedReference.iri,
         "iri",
@@ -1106,6 +1130,7 @@ function normalizeOntologyElementReference(requestedReference) {
   }
   return Object.freeze({
     kind: requestedReference.kind,
+    ...role,
     loadGeneration: assertWholeNumberInRange(
       requestedReference.loadGeneration,
       "loadGeneration",
@@ -1332,6 +1357,7 @@ const ACCEPTED_DOMAIN_ERROR_CODES = Object.freeze([
   "IMPORT_FAILED",
   "VIEW_REJECTED",
   "ELEMENT_NOT_FOUND",
+  "ELEMENT_AMBIGUOUS",
   "LAYOUT_TIMEOUT",
   "EXPORT_FAILED",
 ]);

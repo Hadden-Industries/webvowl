@@ -1,0 +1,6 @@
+Prefix(:=<https://example.org/owl-seed#>)
+Ontology(
+Declaration(Class(:A))
+Declaration(AnnotationProperty(:note))
+AnnotationAssertion(:note :A "not-an-integer"^^<http://www.w3.org/2001/XMLSchema#integer>)
+)

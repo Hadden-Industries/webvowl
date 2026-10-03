@@ -1,0 +1,93 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "ends": [
+          "conditional-renamed-4",
+          "conditional-renamed-3"
+        ],
+        "construct": "conditional-renamed-5",
+        "kind": "disjoint-edge",
+        "id": "conditional-renamed-1"
+      },
+      {
+        "ends": [
+          "conditional-renamed-3"
+        ],
+        "construct": "conditional-renamed-5",
+        "kind": "disjoint-edge",
+        "id": "conditional-renamed-2"
+      },
+      {
+        "targets": [
+          "conditional-renamed-8",
+          "conditional-renamed-9"
+        ],
+        "kind": "class-node",
+        "id": "conditional-renamed-3"
+      },
+      {
+        "targets": [
+          "conditional-renamed-7"
+        ],
+        "kind": "class-node",
+        "id": "conditional-renamed-4"
+      }
+    ],
+    "constructs": [
+      {
+        "members": [
+          "conditional-renamed-7",
+          "conditional-renamed-8",
+          "conditional-renamed-9"
+        ],
+        "kind": "disjoint-classes",
+        "id": "conditional-renamed-5"
+      },
+      {
+        "members": [
+          "conditional-renamed-8",
+          "conditional-renamed-9"
+        ],
+        "kind": "equivalent-classes",
+        "id": "conditional-renamed-6"
+      }
+    ],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "conditional-renamed-10",
+        "kind": "class",
+        "id": "conditional-renamed-7"
+      },
+      {
+        "subject": "conditional-renamed-11",
+        "kind": "class",
+        "id": "conditional-renamed-8"
+      },
+      {
+        "subject": "conditional-renamed-12",
+        "kind": "class",
+        "id": "conditional-renamed-9"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "https://example.org/conditional#C",
+        "id": "conditional-renamed-10"
+      },
+      {
+        "iri": "https://example.org/conditional#B",
+        "id": "conditional-renamed-11"
+      },
+      {
+        "iri": "https://example.org/conditional#A",
+        "id": "conditional-renamed-12"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

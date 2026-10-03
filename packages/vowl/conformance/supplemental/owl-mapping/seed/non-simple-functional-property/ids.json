@@ -1,0 +1,79 @@
+[
+  {
+    "category": "subjects",
+    "sourceHandle": "s:A",
+    "primaryBlankNode": "ps0",
+    "rdfcIdentifier": "c14n5",
+    "canonicalId": "s0"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s:p",
+    "primaryBlankNode": "ps1",
+    "rdfcIdentifier": "c14n20",
+    "canonicalId": "s1"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "p",
+    "primaryBlankNode": "pr1",
+    "rdfcIdentifier": "c14n11",
+    "canonicalId": "r0"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "A",
+    "primaryBlankNode": "pr0",
+    "rdfcIdentifier": "c14n18",
+    "canonicalId": "r1"
+  },
+  {
+    "category": "constructs",
+    "sourceHandle": "functional",
+    "primaryBlankNode": "pc3",
+    "rdfcIdentifier": "c14n2",
+    "canonicalId": "c0"
+  },
+  {
+    "category": "constructs",
+    "sourceHandle": "range",
+    "primaryBlankNode": "pc1",
+    "rdfcIdentifier": "c14n7",
+    "canonicalId": "c1"
+  },
+  {
+    "category": "constructs",
+    "sourceHandle": "domain",
+    "primaryBlankNode": "pc0",
+    "rdfcIdentifier": "c14n10",
+    "canonicalId": "c2"
+  },
+  {
+    "category": "constructs",
+    "sourceHandle": "transitive",
+    "primaryBlankNode": "pc2",
+    "rdfcIdentifier": "c14n16",
+    "canonicalId": "c3"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "edge-0",
+    "primaryBlankNode": "po1",
+    "rdfcIdentifier": "c14n6",
+    "canonicalId": "o0"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "node-0",
+    "primaryBlankNode": "po0",
+    "rdfcIdentifier": "c14n9",
+    "canonicalId": "o1"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "edge-0-label-single",
+    "primaryBlankNode": "po2",
+    "rdfcIdentifier": "c14n21",
+    "canonicalId": "o2"
+  }
+]

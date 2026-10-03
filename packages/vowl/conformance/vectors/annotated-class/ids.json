@@ -1,0 +1,107 @@
+[
+  {
+    "category": "subjects",
+    "sourceHandle": "s-language",
+    "primaryBlankNode": "ps4",
+    "rdfcIdentifier": "c14n1",
+    "canonicalId": "s0"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "anonymous-value",
+    "primaryBlankNode": "ps5",
+    "rdfcIdentifier": "c14n4",
+    "canonicalId": "s1"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s-note",
+    "primaryBlankNode": "ps2",
+    "rdfcIdentifier": "c14n5",
+    "canonicalId": "s2"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s-text",
+    "primaryBlankNode": "ps3",
+    "rdfcIdentifier": "c14n17",
+    "canonicalId": "s3"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s-A",
+    "primaryBlankNode": "ps0",
+    "rdfcIdentifier": "c14n22",
+    "canonicalId": "s4"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s-label",
+    "primaryBlankNode": "ps1",
+    "rdfcIdentifier": "c14n23",
+    "canonicalId": "s5"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "A",
+    "primaryBlankNode": "pr0",
+    "rdfcIdentifier": "c14n16",
+    "canonicalId": "r0"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "text",
+    "primaryBlankNode": "pr3",
+    "rdfcIdentifier": "c14n39",
+    "canonicalId": "r1"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "language",
+    "primaryBlankNode": "pr4",
+    "rdfcIdentifier": "c14n40",
+    "canonicalId": "r2"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "label",
+    "primaryBlankNode": "pr1",
+    "rdfcIdentifier": "c14n41",
+    "canonicalId": "r3"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "note",
+    "primaryBlankNode": "pr2",
+    "rdfcIdentifier": "c14n42",
+    "canonicalId": "r4"
+  },
+  {
+    "category": "constructs",
+    "sourceHandle": "label-assertion",
+    "primaryBlankNode": "pc0",
+    "rdfcIdentifier": "c14n6",
+    "canonicalId": "c0"
+  },
+  {
+    "category": "constructs",
+    "sourceHandle": "label-anchor",
+    "primaryBlankNode": "pc1",
+    "rdfcIdentifier": "c14n25",
+    "canonicalId": "c1"
+  },
+  {
+    "category": "constructs",
+    "sourceHandle": "declaration-anchor",
+    "primaryBlankNode": "pc2",
+    "rdfcIdentifier": "c14n31",
+    "canonicalId": "c2"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "node-A",
+    "primaryBlankNode": "po0",
+    "rdfcIdentifier": "c14n8",
+    "canonicalId": "o0"
+  }
+]

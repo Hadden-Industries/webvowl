@@ -1,0 +1,139 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s-A",
+        "iri": "https://example.org/conditional#A"
+      },
+      {
+        "id": "s-B",
+        "iri": "https://example.org/conditional#B"
+      },
+      {
+        "id": "s-Thing",
+        "iri": "http://www.w3.org/2002/07/owl#Thing"
+      },
+      {
+        "id": "s-p",
+        "iri": "https://example.org/conditional#p"
+      },
+      {
+        "id": "s-q",
+        "iri": "https://example.org/conditional#q"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s-A"
+      },
+      {
+        "id": "B",
+        "kind": "class",
+        "subject": "s-B"
+      },
+      {
+        "id": "Thing",
+        "kind": "class",
+        "subject": "s-Thing"
+      },
+      {
+        "id": "p",
+        "kind": "object-property",
+        "subject": "s-p"
+      },
+      {
+        "id": "q",
+        "kind": "object-property",
+        "subject": "s-q"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "domain-p",
+        "kind": "object-domain",
+        "property": "p",
+        "target": "A"
+      },
+      {
+        "id": "range-p",
+        "kind": "object-range",
+        "property": "p",
+        "target": "B"
+      },
+      {
+        "id": "relation",
+        "kind": "inverse-properties",
+        "members": [
+          "p",
+          "q"
+        ]
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "node-B",
+        "kind": "class-node",
+        "targets": [
+          "B"
+        ]
+      },
+      {
+        "id": "generic",
+        "kind": "class-node",
+        "targets": [
+          "Thing"
+        ],
+        "context": {
+          "kind": "class",
+          "targets": [
+            "Thing"
+          ]
+        }
+      },
+      {
+        "id": "edge-p",
+        "kind": "property-edge",
+        "properties": [
+          "p"
+        ],
+        "from": "node-A",
+        "to": "node-B"
+      },
+      {
+        "id": "label-edge-p-single",
+        "kind": "label",
+        "edge": "edge-p",
+        "direction": "single"
+      },
+      {
+        "id": "edge-q",
+        "kind": "property-edge",
+        "properties": [
+          "q"
+        ],
+        "from": "generic",
+        "to": "generic"
+      },
+      {
+        "id": "label-edge-q-single",
+        "kind": "label",
+        "edge": "edge-q",
+        "direction": "single"
+      }
+    ]
+  }
+}

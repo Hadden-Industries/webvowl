@@ -5,6 +5,61 @@ import { IRI } from "owlapi/model";
 
 import { WebVowlImportResolver } from "./importResolver.js";
 
+test("byte acquisition retains exact response bytes and final redirect context", async () => {
+  const bytes = new Uint8Array([0xef, 0xbb, 0xbf, 0x61, 0xff]);
+  const response = new Response(bytes, {
+    headers: { "content-type": "application/rdf+xml" },
+  });
+  Object.defineProperty(response, "url", {
+    value: "https://example.org/final/source.rdf",
+  });
+  const fetchImpl = jest.fn(async () => response);
+  const resolver = new WebVowlImportResolver({ fetchImpl });
+  const acquired = await resolver.loadBytes("https://example.org/request", {
+    config: { maxRemoteDocumentBytes: 5 },
+  });
+  expect(acquired.bytes).toEqual(bytes);
+  expect(acquired.documentIri).toBe("https://example.org/final/source.rdf");
+  expect(acquired.contentType).toBe("application/rdf+xml");
+  expect(acquired.fileName).toBe("source.rdf");
+  expect(fetchImpl.mock.calls[0][1]).toMatchObject({ credentials: "omit" });
+});
+
+test("streamed byte acquisition stops and cancels before accepting an oversized body", async () => {
+  const cancel = jest.fn();
+  const body = new ReadableStream({
+    pull(controller) {
+      controller.enqueue(new Uint8Array([1, 2, 3]));
+    },
+    cancel,
+  });
+  const resolver = new WebVowlImportResolver({
+    fetchImpl: async () => new Response(body),
+  });
+  await expect(
+    resolver.loadBytes("https://example.org/source", {
+      config: { maxRemoteDocumentBytes: 4 },
+    }),
+  ).rejects.toBeInstanceOf(ResourceLimitError);
+  expect(cancel).toHaveBeenCalledTimes(1);
+});
+
+test("cancellation releases a stalled byte stream without waiting for its next chunk", async () => {
+  const cancel = jest.fn();
+  const body = new ReadableStream({ cancel });
+  const abort = new AbortController();
+  const resolver = new WebVowlImportResolver({
+    fetchImpl: async () => new Response(body),
+  });
+  const pending = resolver.loadBytes("https://example.org/source", {
+    signal: abort.signal,
+  });
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  abort.abort();
+  await expect(pending).rejects.toMatchObject({ name: "AbortError" });
+  expect(cancel).toHaveBeenCalledTimes(1);
+});
+
 describe("WebVowlImportResolver", () => {
   it("derives the HTTP import fetch scheme from the WebVOWL base", async () => {
     const response = () => ({

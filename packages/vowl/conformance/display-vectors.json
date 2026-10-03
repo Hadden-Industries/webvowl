@@ -1,0 +1,784 @@
+{
+  "status": "independently-derived-pending-review-and-application-execution",
+  "scope": "Language-neutral conceptual operation inputs; no additional core exports or wire fields",
+  "candidateLabelPremise": "Candidates come only from qualifying retained annotation assertions; filtering axiom annotations is separately required",
+  "vectors": [
+    {
+      "id": "full-iri-bypasses-label-and-prefix",
+      "operation": "select-label",
+      "rule": "B4",
+      "input": {
+        "iri": "https://example.org/o#A",
+        "unnamedKind": "anonymous class",
+        "selection": {
+          "mode": "iri"
+        },
+        "candidates": [
+          {
+            "kind": "typed",
+            "lexical": "Label",
+            "datatype": "http://www.w3.org/2001/XMLSchema#string"
+          }
+        ],
+        "prefixes": [
+          {
+            "prefix": "ex",
+            "iri": "https://example.org/o#"
+          }
+        ]
+      },
+      "expected": "https://example.org/o#A"
+    },
+    {
+      "id": "unnamed-never-uses-handle",
+      "operation": "select-label",
+      "rule": "B4",
+      "input": {
+        "iri": null,
+        "unnamedKind": "anonymous class",
+        "selection": {
+          "mode": "iri"
+        },
+        "candidates": [],
+        "prefixes": []
+      },
+      "expected": "anonymous class"
+    },
+    {
+      "id": "untagged-utf8-not-locale",
+      "operation": "select-label",
+      "rule": "B4",
+      "input": {
+        "iri": "https://example.org/o#A",
+        "unnamedKind": "anonymous class",
+        "selection": {
+          "mode": "untagged"
+        },
+        "candidates": [
+          {
+            "kind": "typed",
+            "lexical": "ä",
+            "datatype": "http://www.w3.org/2001/XMLSchema#string"
+          },
+          {
+            "kind": "typed",
+            "lexical": "z",
+            "datatype": "http://www.w3.org/2001/XMLSchema#string"
+          }
+        ],
+        "prefixes": []
+      },
+      "expected": "z"
+    },
+    {
+      "id": "language-exact-before-parent",
+      "operation": "select-label",
+      "rule": "B4",
+      "input": {
+        "iri": "https://example.org/o#A",
+        "unnamedKind": "anonymous class",
+        "selection": {
+          "mode": "language",
+          "range": "zh-hant-tw"
+        },
+        "candidates": [
+          {
+            "kind": "language",
+            "lexical": "Traditional",
+            "language": "zh-hant"
+          },
+          {
+            "kind": "language",
+            "lexical": "Taiwan",
+            "language": "zh-hant-tw"
+          },
+          {
+            "kind": "language",
+            "lexical": "Chinese",
+            "language": "zh"
+          }
+        ],
+        "prefixes": []
+      },
+      "expected": "Taiwan"
+    },
+    {
+      "id": "language-parent-lookup",
+      "operation": "select-label",
+      "rule": "B4",
+      "input": {
+        "iri": "https://example.org/o#A",
+        "unnamedKind": "anonymous class",
+        "selection": {
+          "mode": "language",
+          "range": "zh-hant-tw"
+        },
+        "candidates": [
+          {
+            "kind": "language",
+            "lexical": "Traditional",
+            "language": "zh-hant"
+          },
+          {
+            "kind": "language",
+            "lexical": "Chinese",
+            "language": "zh"
+          }
+        ],
+        "prefixes": []
+      },
+      "expected": "Traditional"
+    },
+    {
+      "id": "no-arbitrary-regional-expansion",
+      "operation": "select-label",
+      "rule": "B4",
+      "input": {
+        "iri": "https://example.org/o#A",
+        "unnamedKind": "anonymous class",
+        "selection": {
+          "mode": "language",
+          "range": "en"
+        },
+        "candidates": [
+          {
+            "kind": "language",
+            "lexical": "British",
+            "language": "en-gb"
+          },
+          {
+            "kind": "language",
+            "lexical": "American",
+            "language": "en-us"
+          },
+          {
+            "kind": "typed",
+            "lexical": "Default",
+            "datatype": "http://www.w3.org/2001/XMLSchema#string"
+          }
+        ],
+        "prefixes": []
+      },
+      "expected": "Default"
+    },
+    {
+      "id": "no-english-fallback",
+      "operation": "select-label",
+      "rule": "B4",
+      "input": {
+        "iri": "https://example.org/o#A",
+        "unnamedKind": "anonymous class",
+        "selection": {
+          "mode": "language",
+          "range": "fr"
+        },
+        "candidates": [
+          {
+            "kind": "language",
+            "lexical": "English",
+            "language": "en"
+          }
+        ],
+        "prefixes": []
+      },
+      "expected": "A"
+    },
+    {
+      "id": "wildcard-goes-to-default",
+      "operation": "select-label",
+      "rule": "B4",
+      "input": {
+        "iri": "https://example.org/o#A",
+        "unnamedKind": "anonymous class",
+        "selection": {
+          "mode": "language",
+          "range": "*"
+        },
+        "candidates": [
+          {
+            "kind": "language",
+            "lexical": "English",
+            "language": "en"
+          },
+          {
+            "kind": "typed",
+            "lexical": "Default",
+            "datatype": "http://www.w3.org/2001/XMLSchema#string"
+          }
+        ],
+        "prefixes": []
+      },
+      "expected": "Default"
+    },
+    {
+      "id": "lookup-removes-trailing-singleton",
+      "operation": "select-label",
+      "rule": "B4",
+      "input": {
+        "iri": "https://example.org/o#A",
+        "unnamedKind": "anonymous class",
+        "selection": {
+          "mode": "language",
+          "range": "en-us-x-test"
+        },
+        "candidates": [
+          {
+            "kind": "language",
+            "lexical": "United States",
+            "language": "en-us"
+          }
+        ],
+        "prefixes": []
+      },
+      "expected": "United States"
+    },
+    {
+      "id": "language-tie-complete-literal-order",
+      "operation": "select-label",
+      "rule": "B4",
+      "input": {
+        "iri": "https://example.org/o#A",
+        "unnamedKind": "anonymous class",
+        "selection": {
+          "mode": "language",
+          "range": "en"
+        },
+        "candidates": [
+          {
+            "kind": "language",
+            "lexical": "z",
+            "language": "en"
+          },
+          {
+            "kind": "language",
+            "lexical": "ä",
+            "language": "en"
+          }
+        ],
+        "prefixes": []
+      },
+      "expected": "z"
+    },
+    {
+      "id": "prefix-tie-empty-name",
+      "operation": "select-label",
+      "rule": "B4",
+      "input": {
+        "iri": "https://example.org/o#A",
+        "unnamedKind": "anonymous class",
+        "selection": {
+          "mode": "untagged"
+        },
+        "candidates": [],
+        "prefixes": [
+          {
+            "prefix": "ex",
+            "iri": "https://example.org/o#"
+          },
+          {
+            "prefix": "",
+            "iri": "https://example.org/o#"
+          }
+        ]
+      },
+      "expected": ":A"
+    },
+    {
+      "id": "prefix-longest-match",
+      "operation": "select-label",
+      "rule": "B4",
+      "input": {
+        "iri": "https://example.org/o#A",
+        "unnamedKind": "anonymous class",
+        "selection": {
+          "mode": "untagged"
+        },
+        "candidates": [],
+        "prefixes": [
+          {
+            "prefix": "short",
+            "iri": "https://example.org/"
+          },
+          {
+            "prefix": "long",
+            "iri": "https://example.org/o#"
+          }
+        ]
+      },
+      "expected": "long:A"
+    },
+    {
+      "id": "prefix-fixed-nbsp-whitespace",
+      "operation": "select-label",
+      "rule": "B4",
+      "input": {
+        "iri": "urn:ex:A B",
+        "unnamedKind": "anonymous class",
+        "selection": {
+          "mode": "untagged"
+        },
+        "candidates": [],
+        "prefixes": [
+          {
+            "prefix": "e",
+            "iri": "urn:ex:"
+          }
+        ]
+      },
+      "expected": "A B"
+    },
+    {
+      "id": "prefix-bom-is-not-fixed-whitespace",
+      "operation": "select-label",
+      "rule": "B4",
+      "input": {
+        "iri": "urn:ex:A﻿B",
+        "unnamedKind": "anonymous class",
+        "selection": {
+          "mode": "untagged"
+        },
+        "candidates": [],
+        "prefixes": [
+          {
+            "prefix": "e",
+            "iri": "urn:ex:"
+          }
+        ]
+      },
+      "expected": "e:A﻿B"
+    },
+    {
+      "id": "fallback-does-not-percent-decode",
+      "operation": "select-label",
+      "rule": "B4",
+      "input": {
+        "iri": "https://example.org/o#A%20B",
+        "unnamedKind": "anonymous class",
+        "selection": {
+          "mode": "untagged"
+        },
+        "candidates": [],
+        "prefixes": []
+      },
+      "expected": "A%20B"
+    },
+    {
+      "id": "empty-final-suffix-full-iri",
+      "operation": "select-label",
+      "rule": "B4",
+      "input": {
+        "iri": "https://example.org/o#",
+        "unnamedKind": "anonymous class",
+        "selection": {
+          "mode": "untagged"
+        },
+        "candidates": [],
+        "prefixes": []
+      },
+      "expected": "https://example.org/o#"
+    },
+    {
+      "id": "fixed-builtin-before-prefix",
+      "operation": "select-label",
+      "rule": "B4",
+      "input": {
+        "iri": "http://www.w3.org/2002/07/owl#Thing",
+        "unnamedKind": "anonymous class",
+        "selection": {
+          "mode": "untagged"
+        },
+        "candidates": [],
+        "prefixes": [
+          {
+            "prefix": "owl",
+            "iri": "http://www.w3.org/2002/07/owl#"
+          }
+        ]
+      },
+      "expected": "Thing"
+    },
+    {
+      "id": "anonymous-root-local",
+      "operation": "classify-external",
+      "rule": "B5",
+      "input": {
+        "rootOntologyIri": null,
+        "subjectIri": "https://outside.example/A"
+      },
+      "expected": false
+    },
+    {
+      "id": "unnamed-subject-local",
+      "operation": "classify-external",
+      "rule": "B5",
+      "input": {
+        "rootOntologyIri": "https://example.org/o",
+        "subjectIri": null
+      },
+      "expected": false
+    },
+    {
+      "id": "root-itself-local",
+      "operation": "classify-external",
+      "rule": "B5",
+      "input": {
+        "rootOntologyIri": "https://example.org/o",
+        "subjectIri": "https://example.org/o"
+      },
+      "expected": false
+    },
+    {
+      "id": "fragment-local",
+      "operation": "classify-external",
+      "rule": "B5",
+      "input": {
+        "rootOntologyIri": "https://example.org/o",
+        "subjectIri": "https://example.org/o#A"
+      },
+      "expected": false
+    },
+    {
+      "id": "path-local",
+      "operation": "classify-external",
+      "rule": "B5",
+      "input": {
+        "rootOntologyIri": "https://example.org/o",
+        "subjectIri": "https://example.org/o/A"
+      },
+      "expected": false
+    },
+    {
+      "id": "subpath-external",
+      "operation": "classify-external",
+      "rule": "B5",
+      "input": {
+        "rootOntologyIri": "https://example.org/o",
+        "subjectIri": "https://example.org/o/sub/A"
+      },
+      "expected": true
+    },
+    {
+      "id": "one-trailing-slash",
+      "operation": "classify-external",
+      "rule": "B5",
+      "input": {
+        "rootOntologyIri": "https://example.org/o/",
+        "subjectIri": "https://example.org/o/#A"
+      },
+      "expected": false
+    },
+    {
+      "id": "query-same",
+      "operation": "classify-external",
+      "rule": "B5",
+      "input": {
+        "rootOntologyIri": "https://example.org/o?rev=1",
+        "subjectIri": "https://example.org/o/A?rev=1"
+      },
+      "expected": false
+    },
+    {
+      "id": "query-different",
+      "operation": "classify-external",
+      "rule": "B5",
+      "input": {
+        "rootOntologyIri": "https://example.org/o?rev=1",
+        "subjectIri": "https://example.org/o/A?rev=2"
+      },
+      "expected": true
+    },
+    {
+      "id": "authority-case-preserved",
+      "operation": "classify-external",
+      "rule": "B5",
+      "input": {
+        "rootOntologyIri": "https://EXAMPLE.org/o",
+        "subjectIri": "https://example.org/o#A"
+      },
+      "expected": true
+    },
+    {
+      "id": "empty-final-segment",
+      "operation": "classify-external",
+      "rule": "B5",
+      "input": {
+        "rootOntologyIri": "https://example.org/o",
+        "subjectIri": "https://example.org/o/A/"
+      },
+      "expected": true
+    },
+    {
+      "id": "urn-local",
+      "operation": "classify-external",
+      "rule": "B5",
+      "input": {
+        "rootOntologyIri": "urn:example:ontology",
+        "subjectIri": "urn:example:ontology:Class"
+      },
+      "expected": false
+    },
+    {
+      "id": "exact-builtin-exemption",
+      "operation": "classify-external",
+      "rule": "B5",
+      "input": {
+        "rootOntologyIri": "https://example.org/o",
+        "subjectIri": "http://www.w3.org/2002/07/owl#Thing"
+      },
+      "expected": false
+    },
+    {
+      "id": "no-namespace-wide-exemption",
+      "operation": "classify-external",
+      "rule": "B5",
+      "input": {
+        "rootOntologyIri": "https://example.org/o",
+        "subjectIri": "http://www.w3.org/2002/07/owl#ImaginedBuiltin"
+      },
+      "expected": true
+    },
+    {
+      "id": "membership-factor-0",
+      "operation": "radius-factor",
+      "rule": "B5",
+      "input": {
+        "generic": false,
+        "nodeScaling": "direct-membership",
+        "directDistinctIndividualCount": 0
+      },
+      "expected": 1
+    },
+    {
+      "id": "membership-factor-15",
+      "operation": "radius-factor",
+      "rule": "B5",
+      "input": {
+        "generic": false,
+        "nodeScaling": "direct-membership",
+        "directDistinctIndividualCount": 15
+      },
+      "expected": 2
+    },
+    {
+      "id": "membership-factor-255",
+      "operation": "radius-factor",
+      "rule": "B5",
+      "input": {
+        "generic": false,
+        "nodeScaling": "direct-membership",
+        "directDistinctIndividualCount": 255
+      },
+      "expected": 3
+    },
+    {
+      "id": "membership-factor-4095",
+      "operation": "radius-factor",
+      "rule": "B5",
+      "input": {
+        "generic": false,
+        "nodeScaling": "direct-membership",
+        "directDistinctIndividualCount": 4095
+      },
+      "expected": 4
+    },
+    {
+      "id": "membership-factor-8191",
+      "operation": "radius-factor",
+      "rule": "B5",
+      "input": {
+        "generic": false,
+        "nodeScaling": "direct-membership",
+        "directDistinctIndividualCount": 8191
+      },
+      "expected": 4
+    },
+    {
+      "id": "generic-fixed-radius",
+      "operation": "radius-factor",
+      "rule": "B5",
+      "input": {
+        "generic": true,
+        "nodeScaling": "direct-membership",
+        "directDistinctIndividualCount": 8191
+      },
+      "expected": 0.6
+    },
+    {
+      "id": "uniform-radius",
+      "operation": "radius-factor",
+      "rule": "B5",
+      "input": {
+        "generic": false,
+        "nodeScaling": "uniform",
+        "directDistinctIndividualCount": 8191
+      },
+      "expected": 1
+    },
+    {
+      "id": "equivalence-direct-membership-union",
+      "operation": "membership-factor",
+      "rule": "B5",
+      "input": {
+        "targets": [
+          "A",
+          "B"
+        ],
+        "memberships": [
+          [
+            "A",
+            "i1"
+          ],
+          [
+            "B",
+            "i1"
+          ],
+          [
+            "A",
+            "i2"
+          ],
+          [
+            "B",
+            "i3"
+          ]
+        ],
+        "hiddenIndividuals": [
+          "i2"
+        ]
+      },
+      "expected": {
+        "count": 3,
+        "factor": 1.5
+      }
+    },
+    {
+      "id": "principal-local-before-iri",
+      "operation": "principal-and-aliases",
+      "rule": "B4/B5",
+      "input": {
+        "rootOntologyIri": "https://example.org/o",
+        "externalColoring": false,
+        "members": [
+          {
+            "iri": "https://aaa.example/A",
+            "kind": "class"
+          },
+          {
+            "iri": "https://example.org/o#Z",
+            "kind": "class"
+          },
+          {
+            "iri": "https://example.org/o#B",
+            "kind": "class"
+          }
+        ]
+      },
+      "expected": {
+        "principalIri": "https://example.org/o#B",
+        "aliasIris": [
+          "https://aaa.example/A",
+          "https://example.org/o#Z"
+        ]
+      }
+    },
+    {
+      "id": "camera-canvas-to-viewport",
+      "operation": "camera-project",
+      "rule": "B3",
+      "input": {
+        "viewport": {
+          "width": 800,
+          "height": 600
+        },
+        "center": {
+          "x": 10,
+          "y": 20
+        },
+        "zoom": 2,
+        "point": {
+          "x": 15,
+          "y": 10
+        }
+      },
+      "expected": {
+        "x": 410,
+        "y": 280
+      }
+    },
+    {
+      "id": "legacy-camera-conversion",
+      "operation": "camera-center",
+      "rule": "B3",
+      "input": {
+        "viewport": {
+          "width": 800,
+          "height": 600
+        },
+        "translation": {
+          "x": 100,
+          "y": 50
+        },
+        "zoom": 2
+      },
+      "expected": {
+        "x": 150,
+        "y": 125
+      }
+    },
+    {
+      "id": "exact-huge-cardinality",
+      "operation": "cardinality-text",
+      "rule": "B2.4",
+      "input": {
+        "kind": "object-exact-cardinality",
+        "cardinality": "90071992547409931234567890"
+      },
+      "expected": "90071992547409931234567890"
+    },
+    {
+      "id": "minimum-cardinality",
+      "operation": "cardinality-text",
+      "rule": "B2.4",
+      "input": {
+        "kind": "object-min-cardinality",
+        "cardinality": "3"
+      },
+      "expected": "3..*"
+    },
+    {
+      "id": "maximum-cardinality",
+      "operation": "cardinality-text",
+      "rule": "B2.4",
+      "input": {
+        "kind": "data-max-cardinality",
+        "cardinality": "3"
+      },
+      "expected": "0..3"
+    },
+    {
+      "id": "compact-notation-preserves-meaning",
+      "operation": "compact-notation",
+      "rule": "B5",
+      "input": {
+        "compactNotation": true,
+        "selectedName": "has child",
+        "aliases": [
+          "offspring"
+        ],
+        "cardinality": "2",
+        "subclassPhrase": "Subclass of",
+        "characteristicOnlyIndication": "functional"
+      },
+      "expected": {
+        "selectedName": "has child",
+        "aliases": [
+          "offspring"
+        ],
+        "cardinality": "2",
+        "subclassPhrase": "",
+        "characteristicOnlyIndication": "functional",
+        "occurrenceTopologyChanged": false,
+        "placementsStillRequired": true
+      }
+    }
+  ]
+}

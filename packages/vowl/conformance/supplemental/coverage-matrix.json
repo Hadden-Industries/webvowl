@@ -1,0 +1,3887 @@
+{
+  "status": "independent-token-and-enum-coverage-pending-review",
+  "activeManifest": {
+    "path": "supplemental/amended-policy/manifest.json",
+    "sha256": "90f3754316f683a76ad9eecb8341d29a738b3f77b61c13362034de07cee92156"
+  },
+  "specificationRevision": [
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design.md",
+      "sha256": "174535bb8cb43f317631f0799721adebfbbc4ceff4d577595be8fb91dd940fac"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-core-contract.md",
+      "sha256": "711ba30c291cfb0960334328203188600f60a331996e83379267a4a77b87988d"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-projection-contract.md",
+      "sha256": "4c1cf6a7e187f98d40d390e6ff0b5354aca46a8ff195fba5b6badace7eb6078b"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design-decisions.md",
+      "sha256": "f314ec3448f2cf87f73ce6ce8871f3695d4b3b26dee687383b36e36a4fc0a43e"
+    }
+  ],
+  "amendment": {
+    "path": "docs/specs/2026-09-30-canonical-vowl-resource-policy-amendment.md",
+    "sha256": "9f1b7d96229a06f57e29a52f92325a4256e6f826d7532e239848ef99dc0f47c1",
+    "approval": "Owner approved the exact quadratic capped work-policy amendment on 2026-09-30, as communicated by the parent integration task. Approval does not waive independent review."
+  },
+  "count": {
+    "roles": 8,
+    "expressions": 23,
+    "constructTokens": 32,
+    "constructRowsIncludingCharacteristicValues": 38
+  },
+  "limitation": "Fixture linkage proves only recorded token/enum presence. Conditional projection, display execution, hostile-input safety, cross-runtime, browser, accessibility and adapter coverage are separately qualified.",
+  "rows": [
+    {
+      "category": "role",
+      "kind": "class",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "class-node"
+      ],
+      "condition": "Ordinary and anonymous roles always; generic roles only when a projected relation needs them",
+      "generationRule": "B2.1/B2.3",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Named equivalence components group; generic splitting and anonymous identity are preserved",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "named-class-structural",
+          "source": "vectors/named-class-structural/source.json",
+          "canonical": "vectors/named-class-structural/canonical.json"
+        },
+        {
+          "id": "named-class-artifact",
+          "source": "vectors/named-class-artifact/source.json",
+          "canonical": "vectors/named-class-artifact/canonical.json"
+        },
+        {
+          "id": "annotated-class",
+          "source": "vectors/annotated-class/source.json",
+          "canonical": "vectors/annotated-class/canonical.json"
+        },
+        {
+          "id": "asymmetric-subclass",
+          "source": "vectors/asymmetric-subclass/source.json",
+          "canonical": "vectors/asymmetric-subclass/canonical.json"
+        },
+        {
+          "id": "symmetric-anonymous-classes",
+          "source": "vectors/symmetric-anonymous-classes/source.json",
+          "canonical": "vectors/symmetric-anonymous-classes/canonical.json"
+        },
+        {
+          "id": "symmetric-anonymous-artifact",
+          "source": "vectors/symmetric-anonymous-artifact/source.json",
+          "canonical": "vectors/symmetric-anonymous-artifact/canonical.json"
+        },
+        {
+          "id": "named-pair-artifact",
+          "source": "vectors/named-pair-artifact/source.json",
+          "canonical": "vectors/named-pair-artifact/canonical.json"
+        },
+        {
+          "id": "named-pair-exchanged-artifact",
+          "source": "vectors/named-pair-exchanged-artifact/source.json",
+          "canonical": "vectors/named-pair-exchanged-artifact/canonical.json"
+        },
+        {
+          "id": "repeated-chain",
+          "source": "vectors/repeated-chain/source.json",
+          "canonical": "vectors/repeated-chain/canonical.json"
+        },
+        {
+          "id": "reversed-chain",
+          "source": "vectors/reversed-chain/source.json",
+          "canonical": "vectors/reversed-chain/canonical.json"
+        },
+        {
+          "id": "short-chain",
+          "source": "vectors/short-chain/source.json",
+          "canonical": "vectors/short-chain/canonical.json"
+        },
+        {
+          "id": "per-property-datatype",
+          "source": "vectors/per-property-datatype/source.json",
+          "canonical": "supplemental/amended-policy/vectors/per-property-datatype/canonical.json"
+        },
+        {
+          "id": "matched-inverse",
+          "source": "vectors/matched-inverse/source.json",
+          "canonical": "vectors/matched-inverse/canonical.json"
+        },
+        {
+          "id": "unmatched-inverse",
+          "source": "vectors/unmatched-inverse/source.json",
+          "canonical": "vectors/unmatched-inverse/canonical.json"
+        },
+        {
+          "id": "equivalence-disjoint-loop-empty-key",
+          "source": "vectors/equivalence-disjoint-loop-empty-key/source.json",
+          "canonical": "vectors/equivalence-disjoint-loop-empty-key/canonical.json"
+        },
+        {
+          "id": "partial-union-projection",
+          "source": "vectors/partial-union-projection/source.json",
+          "canonical": "vectors/partial-union-projection/canonical.json"
+        },
+        {
+          "id": "object-min-unqualified",
+          "source": "vectors/object-min-unqualified/source.json",
+          "canonical": "vectors/object-min-unqualified/canonical.json"
+        },
+        {
+          "id": "object-max-unqualified",
+          "source": "vectors/object-max-unqualified/source.json",
+          "canonical": "vectors/object-max-unqualified/canonical.json"
+        },
+        {
+          "id": "object-exact-unqualified",
+          "source": "vectors/object-exact-unqualified/source.json",
+          "canonical": "vectors/object-exact-unqualified/canonical.json"
+        },
+        {
+          "id": "data-min-unqualified",
+          "source": "vectors/data-min-unqualified/source.json",
+          "canonical": "vectors/data-min-unqualified/canonical.json"
+        },
+        {
+          "id": "data-max-unqualified",
+          "source": "vectors/data-max-unqualified/source.json",
+          "canonical": "vectors/data-max-unqualified/canonical.json"
+        },
+        {
+          "id": "data-exact-unqualified",
+          "source": "vectors/data-exact-unqualified/source.json",
+          "canonical": "vectors/data-exact-unqualified/canonical.json"
+        },
+        {
+          "id": "object-qualified-details",
+          "source": "vectors/object-qualified-details/source.json",
+          "canonical": "vectors/object-qualified-details/canonical.json"
+        },
+        {
+          "id": "data-qualified-details",
+          "source": "vectors/data-qualified-details/source.json",
+          "canonical": "vectors/data-qualified-details/canonical.json"
+        },
+        {
+          "id": "class-intersection",
+          "source": "supplemental/grammar/vectors/class-intersection/source.json",
+          "canonical": "supplemental/grammar/vectors/class-intersection/canonical.json"
+        },
+        {
+          "id": "class-complement",
+          "source": "supplemental/grammar/vectors/class-complement/source.json",
+          "canonical": "supplemental/grammar/vectors/class-complement/canonical.json"
+        },
+        {
+          "id": "class-enumeration",
+          "source": "supplemental/grammar/vectors/class-enumeration/source.json",
+          "canonical": "supplemental/grammar/vectors/class-enumeration/canonical.json"
+        },
+        {
+          "id": "object-all",
+          "source": "supplemental/grammar/vectors/object-all/source.json",
+          "canonical": "supplemental/grammar/vectors/object-all/canonical.json"
+        },
+        {
+          "id": "object-value",
+          "source": "supplemental/grammar/vectors/object-value/source.json",
+          "canonical": "supplemental/grammar/vectors/object-value/canonical.json"
+        },
+        {
+          "id": "object-self",
+          "source": "supplemental/grammar/vectors/object-self/source.json",
+          "canonical": "supplemental/grammar/vectors/object-self/canonical.json"
+        },
+        {
+          "id": "data-some",
+          "source": "supplemental/grammar/vectors/data-some/source.json",
+          "canonical": "supplemental/grammar/vectors/data-some/canonical.json"
+        },
+        {
+          "id": "data-all",
+          "source": "supplemental/grammar/vectors/data-all/source.json",
+          "canonical": "supplemental/grammar/vectors/data-all/canonical.json"
+        },
+        {
+          "id": "data-value",
+          "source": "supplemental/grammar/vectors/data-value/source.json",
+          "canonical": "supplemental/grammar/vectors/data-value/canonical.json"
+        },
+        {
+          "id": "object-inverse",
+          "source": "supplemental/grammar/vectors/object-inverse/source.json",
+          "canonical": "supplemental/grammar/vectors/object-inverse/canonical.json"
+        },
+        {
+          "id": "disjoint-union",
+          "source": "supplemental/grammar/vectors/disjoint-union/source.json",
+          "canonical": "supplemental/grammar/vectors/disjoint-union/canonical.json"
+        },
+        {
+          "id": "sub-object-property",
+          "source": "supplemental/grammar/vectors/sub-object-property/source.json",
+          "canonical": "supplemental/grammar/vectors/sub-object-property/canonical.json"
+        },
+        {
+          "id": "equivalent-object-properties",
+          "source": "supplemental/grammar/vectors/equivalent-object-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/equivalent-object-properties/canonical.json"
+        },
+        {
+          "id": "disjoint-object-properties",
+          "source": "supplemental/grammar/vectors/disjoint-object-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/disjoint-object-properties/canonical.json"
+        },
+        {
+          "id": "sub-data-property",
+          "source": "supplemental/grammar/vectors/sub-data-property/source.json",
+          "canonical": "supplemental/grammar/vectors/sub-data-property/canonical.json"
+        },
+        {
+          "id": "equivalent-data-properties",
+          "source": "supplemental/grammar/vectors/equivalent-data-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/equivalent-data-properties/canonical.json"
+        },
+        {
+          "id": "disjoint-data-properties",
+          "source": "supplemental/grammar/vectors/disjoint-data-properties/source.json",
+          "canonical": "supplemental/amended-policy/vectors/disjoint-data-properties/canonical.json"
+        },
+        {
+          "id": "sub-rdf-property",
+          "source": "supplemental/grammar/vectors/sub-rdf-property/source.json",
+          "canonical": "supplemental/grammar/vectors/sub-rdf-property/canonical.json"
+        },
+        {
+          "id": "equivalent-rdf-properties",
+          "source": "supplemental/grammar/vectors/equivalent-rdf-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/equivalent-rdf-properties/canonical.json"
+        },
+        {
+          "id": "disjoint-rdf-properties",
+          "source": "supplemental/grammar/vectors/disjoint-rdf-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/disjoint-rdf-properties/canonical.json"
+        },
+        {
+          "id": "object-characteristic-functional",
+          "source": "supplemental/grammar/vectors/object-characteristic-functional/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-functional/canonical.json"
+        },
+        {
+          "id": "object-characteristic-inverse-functional",
+          "source": "supplemental/grammar/vectors/object-characteristic-inverse-functional/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-inverse-functional/canonical.json"
+        },
+        {
+          "id": "object-characteristic-symmetric",
+          "source": "supplemental/grammar/vectors/object-characteristic-symmetric/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-symmetric/canonical.json"
+        },
+        {
+          "id": "object-characteristic-asymmetric",
+          "source": "supplemental/grammar/vectors/object-characteristic-asymmetric/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-asymmetric/canonical.json"
+        },
+        {
+          "id": "object-characteristic-transitive",
+          "source": "supplemental/grammar/vectors/object-characteristic-transitive/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-transitive/canonical.json"
+        },
+        {
+          "id": "object-characteristic-reflexive",
+          "source": "supplemental/grammar/vectors/object-characteristic-reflexive/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-reflexive/canonical.json"
+        },
+        {
+          "id": "object-characteristic-irreflexive",
+          "source": "supplemental/grammar/vectors/object-characteristic-irreflexive/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-irreflexive/canonical.json"
+        },
+        {
+          "id": "data-characteristic",
+          "source": "supplemental/grammar/vectors/data-characteristic/source.json",
+          "canonical": "supplemental/grammar/vectors/data-characteristic/canonical.json"
+        },
+        {
+          "id": "rdf-characteristic",
+          "source": "supplemental/grammar/vectors/rdf-characteristic/source.json",
+          "canonical": "supplemental/grammar/vectors/rdf-characteristic/canonical.json"
+        },
+        {
+          "id": "nonempty-key",
+          "source": "supplemental/grammar/vectors/nonempty-key/source.json",
+          "canonical": "supplemental/grammar/vectors/nonempty-key/canonical.json"
+        },
+        {
+          "id": "class-membership-and-punning",
+          "source": "supplemental/grammar/vectors/class-membership-and-punning/source.json",
+          "canonical": "supplemental/grammar/vectors/class-membership-and-punning/canonical.json"
+        },
+        {
+          "id": "object-data-property-punning",
+          "source": "supplemental/grammar/vectors/object-data-property-punning/source.json",
+          "canonical": "supplemental/grammar/vectors/object-data-property-punning/canonical.json"
+        },
+        {
+          "id": "singleton-inverse-self-loop",
+          "source": "supplemental/grammar/vectors/singleton-inverse-self-loop/source.json",
+          "canonical": "supplemental/grammar/vectors/singleton-inverse-self-loop/canonical.json"
+        },
+        {
+          "id": "multiple-explicit-inverse-pairs",
+          "source": "supplemental/grammar/vectors/multiple-explicit-inverse-pairs/source.json",
+          "canonical": "supplemental/amended-policy/vectors/multiple-explicit-inverse-pairs/canonical.json"
+        },
+        {
+          "id": "unequal-equivalent-property-endpoints",
+          "source": "supplemental/grammar/vectors/unequal-equivalent-property-endpoints/source.json",
+          "canonical": "supplemental/grammar/vectors/unequal-equivalent-property-endpoints/canonical.json"
+        },
+        {
+          "id": "partial-property-group-with-inverse-expression",
+          "source": "supplemental/grammar/vectors/partial-property-group-with-inverse-expression/source.json",
+          "canonical": "supplemental/grammar/vectors/partial-property-group-with-inverse-expression/canonical.json"
+        },
+        {
+          "id": "partial-class-group-exclusions",
+          "source": "supplemental/grammar/vectors/partial-class-group-exclusions/source.json",
+          "canonical": "supplemental/grammar/vectors/partial-class-group-exclusions/canonical.json"
+        },
+        {
+          "id": "undrawable-range-no-default-role",
+          "source": "supplemental/grammar/vectors/undrawable-range-no-default-role/source.json",
+          "canonical": "supplemental/grammar/vectors/undrawable-range-no-default-role/canonical.json"
+        },
+        {
+          "id": "undrawable-range-declared-thing",
+          "source": "supplemental/grammar/vectors/undrawable-range-declared-thing/source.json",
+          "canonical": "supplemental/grammar/vectors/undrawable-range-declared-thing/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-outer",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-outer/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-outer/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-inner",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-inner/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-inner/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-C",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-C/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-C/canonical.json"
+        },
+        {
+          "id": "singleton-disjoint-data-properties",
+          "source": "supplemental/grammar/vectors/singleton-disjoint-data-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/singleton-disjoint-data-properties/canonical.json"
+        },
+        {
+          "id": "rdf-property-resource-class",
+          "source": "supplemental/grammar/vectors/rdf-property-resource-class/source.json",
+          "canonical": "supplemental/grammar/vectors/rdf-property-resource-class/canonical.json"
+        },
+        {
+          "id": "disjoint-two-distinct-ends",
+          "source": "supplemental/grammar/vectors/disjoint-two-distinct-ends/source.json",
+          "canonical": "supplemental/grammar/vectors/disjoint-two-distinct-ends/canonical.json"
+        },
+        {
+          "id": "restriction-ineligible-anonymous-subclass",
+          "source": "supplemental/grammar/vectors/restriction-ineligible-anonymous-subclass/source.json",
+          "canonical": "supplemental/grammar/vectors/restriction-ineligible-anonymous-subclass/canonical.json"
+        },
+        {
+          "id": "restriction-ineligible-inverse-property",
+          "source": "supplemental/grammar/vectors/restriction-ineligible-inverse-property/source.json",
+          "canonical": "supplemental/grammar/vectors/restriction-ineligible-inverse-property/canonical.json"
+        },
+        {
+          "id": "two-restrictions-distinct-scopes",
+          "source": "supplemental/grammar/vectors/two-restrictions-distinct-scopes/source.json",
+          "canonical": "supplemental/grammar/vectors/two-restrictions-distinct-scopes/canonical.json"
+        },
+        {
+          "id": "artifact-hidden-node-closure",
+          "source": "supplemental/grammar/vectors/artifact-hidden-node-closure/source.json",
+          "canonical": "supplemental/grammar/vectors/artifact-hidden-node-closure/canonical.json"
+        },
+        {
+          "id": "artifact-hidden-edge-closure",
+          "source": "supplemental/grammar/vectors/artifact-hidden-edge-closure/source.json",
+          "canonical": "supplemental/grammar/vectors/artifact-hidden-edge-closure/canonical.json"
+        },
+        {
+          "id": "artifact-hidden-label-closure",
+          "source": "supplemental/grammar/vectors/artifact-hidden-label-closure/source.json",
+          "canonical": "supplemental/grammar/vectors/artifact-hidden-label-closure/canonical.json"
+        },
+        {
+          "id": "language-i-klingon",
+          "source": "supplemental/grammar/vectors/language-i-klingon/source.json",
+          "canonical": "supplemental/grammar/vectors/language-i-klingon/canonical.json"
+        },
+        {
+          "id": "language-en-gb-oed",
+          "source": "supplemental/grammar/vectors/language-en-gb-oed/source.json",
+          "canonical": "supplemental/grammar/vectors/language-en-gb-oed/canonical.json"
+        },
+        {
+          "id": "language-sgn-be-fr",
+          "source": "supplemental/grammar/vectors/language-sgn-be-fr/source.json",
+          "canonical": "supplemental/grammar/vectors/language-sgn-be-fr/canonical.json"
+        },
+        {
+          "id": "language-zh-min-nan",
+          "source": "supplemental/grammar/vectors/language-zh-min-nan/source.json",
+          "canonical": "supplemental/grammar/vectors/language-zh-min-nan/canonical.json"
+        },
+        {
+          "id": "language-de-latn-de-1901-a-aaa-x-private",
+          "source": "supplemental/grammar/vectors/language-de-latn-de-1901-a-aaa-x-private/source.json",
+          "canonical": "supplemental/grammar/vectors/language-de-latn-de-1901-a-aaa-x-private/canonical.json"
+        },
+        {
+          "id": "typed-integer-lexical-01",
+          "source": "supplemental/grammar/vectors/typed-integer-lexical-01/source.json",
+          "canonical": "supplemental/grammar/vectors/typed-integer-lexical-01/canonical.json"
+        },
+        {
+          "id": "typed-integer-lexical-1",
+          "source": "supplemental/grammar/vectors/typed-integer-lexical-1/source.json",
+          "canonical": "supplemental/grammar/vectors/typed-integer-lexical-1/canonical.json"
+        },
+        {
+          "id": "iri-value-equals-source-handle",
+          "source": "supplemental/grammar/vectors/iri-value-equals-source-handle/source.json",
+          "canonical": "supplemental/grammar/vectors/iri-value-equals-source-handle/canonical.json"
+        },
+        {
+          "id": "inverse-orientation-opposes-role-rank",
+          "source": "supplemental/grammar/vectors/inverse-orientation-opposes-role-rank/source.json",
+          "canonical": "supplemental/grammar/vectors/inverse-orientation-opposes-role-rank/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "role",
+      "kind": "rdf-class",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "class-node"
+      ],
+      "condition": "Ordinary and anonymous roles always; generic roles only when a projected relation needs them",
+      "generationRule": "B2.1/B2.3",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Named equivalence components group; generic splitting and anonymous identity are preserved",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "rdf-property-resource-rdf-class",
+          "source": "supplemental/grammar/vectors/rdf-property-resource-rdf-class/source.json",
+          "canonical": "supplemental/grammar/vectors/rdf-property-resource-rdf-class/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "role",
+      "kind": "datatype",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "datatype-node"
+      ],
+      "condition": "Named datatype is an effective drawable relation endpoint",
+      "generationRule": "B2.2/B2.3",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Unattached datatypes remain details-only; split by exact property context",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "annotated-class",
+          "source": "vectors/annotated-class/source.json",
+          "canonical": "vectors/annotated-class/canonical.json"
+        },
+        {
+          "id": "per-property-datatype",
+          "source": "vectors/per-property-datatype/source.json",
+          "canonical": "supplemental/amended-policy/vectors/per-property-datatype/canonical.json"
+        },
+        {
+          "id": "data-min-unqualified",
+          "source": "vectors/data-min-unqualified/source.json",
+          "canonical": "vectors/data-min-unqualified/canonical.json"
+        },
+        {
+          "id": "data-max-unqualified",
+          "source": "vectors/data-max-unqualified/source.json",
+          "canonical": "vectors/data-max-unqualified/canonical.json"
+        },
+        {
+          "id": "data-exact-unqualified",
+          "source": "vectors/data-exact-unqualified/source.json",
+          "canonical": "vectors/data-exact-unqualified/canonical.json"
+        },
+        {
+          "id": "data-qualified-details",
+          "source": "vectors/data-qualified-details/source.json",
+          "canonical": "vectors/data-qualified-details/canonical.json"
+        },
+        {
+          "id": "data-some",
+          "source": "supplemental/grammar/vectors/data-some/source.json",
+          "canonical": "supplemental/grammar/vectors/data-some/canonical.json"
+        },
+        {
+          "id": "data-all",
+          "source": "supplemental/grammar/vectors/data-all/source.json",
+          "canonical": "supplemental/grammar/vectors/data-all/canonical.json"
+        },
+        {
+          "id": "data-value",
+          "source": "supplemental/grammar/vectors/data-value/source.json",
+          "canonical": "supplemental/grammar/vectors/data-value/canonical.json"
+        },
+        {
+          "id": "data-intersection",
+          "source": "supplemental/grammar/vectors/data-intersection/source.json",
+          "canonical": "supplemental/grammar/vectors/data-intersection/canonical.json"
+        },
+        {
+          "id": "data-union",
+          "source": "supplemental/grammar/vectors/data-union/source.json",
+          "canonical": "supplemental/grammar/vectors/data-union/canonical.json"
+        },
+        {
+          "id": "data-complement",
+          "source": "supplemental/grammar/vectors/data-complement/source.json",
+          "canonical": "supplemental/grammar/vectors/data-complement/canonical.json"
+        },
+        {
+          "id": "data-enumeration",
+          "source": "supplemental/grammar/vectors/data-enumeration/source.json",
+          "canonical": "supplemental/grammar/vectors/data-enumeration/canonical.json"
+        },
+        {
+          "id": "datatype-restriction",
+          "source": "supplemental/grammar/vectors/datatype-restriction/source.json",
+          "canonical": "supplemental/grammar/vectors/datatype-restriction/canonical.json"
+        },
+        {
+          "id": "sub-data-property",
+          "source": "supplemental/grammar/vectors/sub-data-property/source.json",
+          "canonical": "supplemental/grammar/vectors/sub-data-property/canonical.json"
+        },
+        {
+          "id": "equivalent-data-properties",
+          "source": "supplemental/grammar/vectors/equivalent-data-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/equivalent-data-properties/canonical.json"
+        },
+        {
+          "id": "disjoint-data-properties",
+          "source": "supplemental/grammar/vectors/disjoint-data-properties/source.json",
+          "canonical": "supplemental/amended-policy/vectors/disjoint-data-properties/canonical.json"
+        },
+        {
+          "id": "data-characteristic",
+          "source": "supplemental/grammar/vectors/data-characteristic/source.json",
+          "canonical": "supplemental/grammar/vectors/data-characteristic/canonical.json"
+        },
+        {
+          "id": "nonempty-key",
+          "source": "supplemental/grammar/vectors/nonempty-key/source.json",
+          "canonical": "supplemental/grammar/vectors/nonempty-key/canonical.json"
+        },
+        {
+          "id": "object-data-property-punning",
+          "source": "supplemental/grammar/vectors/object-data-property-punning/source.json",
+          "canonical": "supplemental/grammar/vectors/object-data-property-punning/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-outer",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-outer/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-outer/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-inner",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-inner/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-inner/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-C",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-C/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-C/canonical.json"
+        },
+        {
+          "id": "singleton-disjoint-data-properties",
+          "source": "supplemental/grammar/vectors/singleton-disjoint-data-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/singleton-disjoint-data-properties/canonical.json"
+        },
+        {
+          "id": "language-i-klingon",
+          "source": "supplemental/grammar/vectors/language-i-klingon/source.json",
+          "canonical": "supplemental/grammar/vectors/language-i-klingon/canonical.json"
+        },
+        {
+          "id": "language-en-gb-oed",
+          "source": "supplemental/grammar/vectors/language-en-gb-oed/source.json",
+          "canonical": "supplemental/grammar/vectors/language-en-gb-oed/canonical.json"
+        },
+        {
+          "id": "language-sgn-be-fr",
+          "source": "supplemental/grammar/vectors/language-sgn-be-fr/source.json",
+          "canonical": "supplemental/grammar/vectors/language-sgn-be-fr/canonical.json"
+        },
+        {
+          "id": "language-zh-min-nan",
+          "source": "supplemental/grammar/vectors/language-zh-min-nan/source.json",
+          "canonical": "supplemental/grammar/vectors/language-zh-min-nan/canonical.json"
+        },
+        {
+          "id": "language-de-latn-de-1901-a-aaa-x-private",
+          "source": "supplemental/grammar/vectors/language-de-latn-de-1901-a-aaa-x-private/source.json",
+          "canonical": "supplemental/grammar/vectors/language-de-latn-de-1901-a-aaa-x-private/canonical.json"
+        },
+        {
+          "id": "typed-integer-lexical-01",
+          "source": "supplemental/grammar/vectors/typed-integer-lexical-01/source.json",
+          "canonical": "supplemental/grammar/vectors/typed-integer-lexical-01/canonical.json"
+        },
+        {
+          "id": "typed-integer-lexical-1",
+          "source": "supplemental/grammar/vectors/typed-integer-lexical-1/source.json",
+          "canonical": "supplemental/grammar/vectors/typed-integer-lexical-1/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "role",
+      "kind": "object-property",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "property-edge",
+        "inverse-edge",
+        "label"
+      ],
+      "condition": "A named-role partition has drawable exact effective endpoints",
+      "generationRule": "B2.2/B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No endpoint propagation; equivalence partitions preserve unequal endpoint terms",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "repeated-chain",
+          "source": "vectors/repeated-chain/source.json",
+          "canonical": "vectors/repeated-chain/canonical.json"
+        },
+        {
+          "id": "reversed-chain",
+          "source": "vectors/reversed-chain/source.json",
+          "canonical": "vectors/reversed-chain/canonical.json"
+        },
+        {
+          "id": "short-chain",
+          "source": "vectors/short-chain/source.json",
+          "canonical": "vectors/short-chain/canonical.json"
+        },
+        {
+          "id": "matched-inverse",
+          "source": "vectors/matched-inverse/source.json",
+          "canonical": "vectors/matched-inverse/canonical.json"
+        },
+        {
+          "id": "unmatched-inverse",
+          "source": "vectors/unmatched-inverse/source.json",
+          "canonical": "vectors/unmatched-inverse/canonical.json"
+        },
+        {
+          "id": "partial-union-projection",
+          "source": "vectors/partial-union-projection/source.json",
+          "canonical": "vectors/partial-union-projection/canonical.json"
+        },
+        {
+          "id": "object-min-unqualified",
+          "source": "vectors/object-min-unqualified/source.json",
+          "canonical": "vectors/object-min-unqualified/canonical.json"
+        },
+        {
+          "id": "object-max-unqualified",
+          "source": "vectors/object-max-unqualified/source.json",
+          "canonical": "vectors/object-max-unqualified/canonical.json"
+        },
+        {
+          "id": "object-exact-unqualified",
+          "source": "vectors/object-exact-unqualified/source.json",
+          "canonical": "vectors/object-exact-unqualified/canonical.json"
+        },
+        {
+          "id": "object-qualified-details",
+          "source": "vectors/object-qualified-details/source.json",
+          "canonical": "vectors/object-qualified-details/canonical.json"
+        },
+        {
+          "id": "object-all",
+          "source": "supplemental/grammar/vectors/object-all/source.json",
+          "canonical": "supplemental/grammar/vectors/object-all/canonical.json"
+        },
+        {
+          "id": "object-value",
+          "source": "supplemental/grammar/vectors/object-value/source.json",
+          "canonical": "supplemental/grammar/vectors/object-value/canonical.json"
+        },
+        {
+          "id": "object-self",
+          "source": "supplemental/grammar/vectors/object-self/source.json",
+          "canonical": "supplemental/grammar/vectors/object-self/canonical.json"
+        },
+        {
+          "id": "object-inverse",
+          "source": "supplemental/grammar/vectors/object-inverse/source.json",
+          "canonical": "supplemental/grammar/vectors/object-inverse/canonical.json"
+        },
+        {
+          "id": "sub-object-property",
+          "source": "supplemental/grammar/vectors/sub-object-property/source.json",
+          "canonical": "supplemental/grammar/vectors/sub-object-property/canonical.json"
+        },
+        {
+          "id": "equivalent-object-properties",
+          "source": "supplemental/grammar/vectors/equivalent-object-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/equivalent-object-properties/canonical.json"
+        },
+        {
+          "id": "disjoint-object-properties",
+          "source": "supplemental/grammar/vectors/disjoint-object-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/disjoint-object-properties/canonical.json"
+        },
+        {
+          "id": "object-characteristic-functional",
+          "source": "supplemental/grammar/vectors/object-characteristic-functional/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-functional/canonical.json"
+        },
+        {
+          "id": "object-characteristic-inverse-functional",
+          "source": "supplemental/grammar/vectors/object-characteristic-inverse-functional/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-inverse-functional/canonical.json"
+        },
+        {
+          "id": "object-characteristic-symmetric",
+          "source": "supplemental/grammar/vectors/object-characteristic-symmetric/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-symmetric/canonical.json"
+        },
+        {
+          "id": "object-characteristic-asymmetric",
+          "source": "supplemental/grammar/vectors/object-characteristic-asymmetric/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-asymmetric/canonical.json"
+        },
+        {
+          "id": "object-characteristic-transitive",
+          "source": "supplemental/grammar/vectors/object-characteristic-transitive/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-transitive/canonical.json"
+        },
+        {
+          "id": "object-characteristic-reflexive",
+          "source": "supplemental/grammar/vectors/object-characteristic-reflexive/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-reflexive/canonical.json"
+        },
+        {
+          "id": "object-characteristic-irreflexive",
+          "source": "supplemental/grammar/vectors/object-characteristic-irreflexive/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-irreflexive/canonical.json"
+        },
+        {
+          "id": "nonempty-key",
+          "source": "supplemental/grammar/vectors/nonempty-key/source.json",
+          "canonical": "supplemental/grammar/vectors/nonempty-key/canonical.json"
+        },
+        {
+          "id": "object-data-property-punning",
+          "source": "supplemental/grammar/vectors/object-data-property-punning/source.json",
+          "canonical": "supplemental/grammar/vectors/object-data-property-punning/canonical.json"
+        },
+        {
+          "id": "singleton-inverse-self-loop",
+          "source": "supplemental/grammar/vectors/singleton-inverse-self-loop/source.json",
+          "canonical": "supplemental/grammar/vectors/singleton-inverse-self-loop/canonical.json"
+        },
+        {
+          "id": "multiple-explicit-inverse-pairs",
+          "source": "supplemental/grammar/vectors/multiple-explicit-inverse-pairs/source.json",
+          "canonical": "supplemental/amended-policy/vectors/multiple-explicit-inverse-pairs/canonical.json"
+        },
+        {
+          "id": "unequal-equivalent-property-endpoints",
+          "source": "supplemental/grammar/vectors/unequal-equivalent-property-endpoints/source.json",
+          "canonical": "supplemental/grammar/vectors/unequal-equivalent-property-endpoints/canonical.json"
+        },
+        {
+          "id": "partial-property-group-with-inverse-expression",
+          "source": "supplemental/grammar/vectors/partial-property-group-with-inverse-expression/source.json",
+          "canonical": "supplemental/grammar/vectors/partial-property-group-with-inverse-expression/canonical.json"
+        },
+        {
+          "id": "undrawable-range-no-default-role",
+          "source": "supplemental/grammar/vectors/undrawable-range-no-default-role/source.json",
+          "canonical": "supplemental/grammar/vectors/undrawable-range-no-default-role/canonical.json"
+        },
+        {
+          "id": "undrawable-range-declared-thing",
+          "source": "supplemental/grammar/vectors/undrawable-range-declared-thing/source.json",
+          "canonical": "supplemental/grammar/vectors/undrawable-range-declared-thing/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-outer",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-outer/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-outer/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-inner",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-inner/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-inner/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-C",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-C/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-C/canonical.json"
+        },
+        {
+          "id": "restriction-ineligible-anonymous-subclass",
+          "source": "supplemental/grammar/vectors/restriction-ineligible-anonymous-subclass/source.json",
+          "canonical": "supplemental/grammar/vectors/restriction-ineligible-anonymous-subclass/canonical.json"
+        },
+        {
+          "id": "restriction-ineligible-inverse-property",
+          "source": "supplemental/grammar/vectors/restriction-ineligible-inverse-property/source.json",
+          "canonical": "supplemental/grammar/vectors/restriction-ineligible-inverse-property/canonical.json"
+        },
+        {
+          "id": "two-restrictions-distinct-scopes",
+          "source": "supplemental/grammar/vectors/two-restrictions-distinct-scopes/source.json",
+          "canonical": "supplemental/grammar/vectors/two-restrictions-distinct-scopes/canonical.json"
+        },
+        {
+          "id": "inverse-orientation-opposes-role-rank",
+          "source": "supplemental/grammar/vectors/inverse-orientation-opposes-role-rank/source.json",
+          "canonical": "supplemental/grammar/vectors/inverse-orientation-opposes-role-rank/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "role",
+      "kind": "data-property",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "property-edge",
+        "inverse-edge",
+        "label"
+      ],
+      "condition": "A named-role partition has drawable exact effective endpoints",
+      "generationRule": "B2.2/B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No endpoint propagation; equivalence partitions preserve unequal endpoint terms",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "per-property-datatype",
+          "source": "vectors/per-property-datatype/source.json",
+          "canonical": "supplemental/amended-policy/vectors/per-property-datatype/canonical.json"
+        },
+        {
+          "id": "data-min-unqualified",
+          "source": "vectors/data-min-unqualified/source.json",
+          "canonical": "vectors/data-min-unqualified/canonical.json"
+        },
+        {
+          "id": "data-max-unqualified",
+          "source": "vectors/data-max-unqualified/source.json",
+          "canonical": "vectors/data-max-unqualified/canonical.json"
+        },
+        {
+          "id": "data-exact-unqualified",
+          "source": "vectors/data-exact-unqualified/source.json",
+          "canonical": "vectors/data-exact-unqualified/canonical.json"
+        },
+        {
+          "id": "data-qualified-details",
+          "source": "vectors/data-qualified-details/source.json",
+          "canonical": "vectors/data-qualified-details/canonical.json"
+        },
+        {
+          "id": "data-some",
+          "source": "supplemental/grammar/vectors/data-some/source.json",
+          "canonical": "supplemental/grammar/vectors/data-some/canonical.json"
+        },
+        {
+          "id": "data-all",
+          "source": "supplemental/grammar/vectors/data-all/source.json",
+          "canonical": "supplemental/grammar/vectors/data-all/canonical.json"
+        },
+        {
+          "id": "data-value",
+          "source": "supplemental/grammar/vectors/data-value/source.json",
+          "canonical": "supplemental/grammar/vectors/data-value/canonical.json"
+        },
+        {
+          "id": "sub-data-property",
+          "source": "supplemental/grammar/vectors/sub-data-property/source.json",
+          "canonical": "supplemental/grammar/vectors/sub-data-property/canonical.json"
+        },
+        {
+          "id": "equivalent-data-properties",
+          "source": "supplemental/grammar/vectors/equivalent-data-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/equivalent-data-properties/canonical.json"
+        },
+        {
+          "id": "disjoint-data-properties",
+          "source": "supplemental/grammar/vectors/disjoint-data-properties/source.json",
+          "canonical": "supplemental/amended-policy/vectors/disjoint-data-properties/canonical.json"
+        },
+        {
+          "id": "data-characteristic",
+          "source": "supplemental/grammar/vectors/data-characteristic/source.json",
+          "canonical": "supplemental/grammar/vectors/data-characteristic/canonical.json"
+        },
+        {
+          "id": "nonempty-key",
+          "source": "supplemental/grammar/vectors/nonempty-key/source.json",
+          "canonical": "supplemental/grammar/vectors/nonempty-key/canonical.json"
+        },
+        {
+          "id": "object-data-property-punning",
+          "source": "supplemental/grammar/vectors/object-data-property-punning/source.json",
+          "canonical": "supplemental/grammar/vectors/object-data-property-punning/canonical.json"
+        },
+        {
+          "id": "singleton-disjoint-data-properties",
+          "source": "supplemental/grammar/vectors/singleton-disjoint-data-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/singleton-disjoint-data-properties/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "role",
+      "kind": "rdf-property",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "property-edge",
+        "inverse-edge",
+        "label"
+      ],
+      "condition": "A named-role partition has drawable exact effective endpoints",
+      "generationRule": "B2.2/B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No endpoint propagation; equivalence partitions preserve unequal endpoint terms",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "sub-rdf-property",
+          "source": "supplemental/grammar/vectors/sub-rdf-property/source.json",
+          "canonical": "supplemental/grammar/vectors/sub-rdf-property/canonical.json"
+        },
+        {
+          "id": "equivalent-rdf-properties",
+          "source": "supplemental/grammar/vectors/equivalent-rdf-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/equivalent-rdf-properties/canonical.json"
+        },
+        {
+          "id": "disjoint-rdf-properties",
+          "source": "supplemental/grammar/vectors/disjoint-rdf-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/disjoint-rdf-properties/canonical.json"
+        },
+        {
+          "id": "rdf-characteristic",
+          "source": "supplemental/grammar/vectors/rdf-characteristic/source.json",
+          "canonical": "supplemental/grammar/vectors/rdf-characteristic/canonical.json"
+        },
+        {
+          "id": "rdf-property-resource-class",
+          "source": "supplemental/grammar/vectors/rdf-property-resource-class/source.json",
+          "canonical": "supplemental/grammar/vectors/rdf-property-resource-class/canonical.json"
+        },
+        {
+          "id": "rdf-property-resource-rdf-class",
+          "source": "supplemental/grammar/vectors/rdf-property-resource-rdf-class/source.json",
+          "canonical": "supplemental/grammar/vectors/rdf-property-resource-rdf-class/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "role",
+      "kind": "annotation-property",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No ABox or property-metadata glyph is defined in v1",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "annotated-class",
+          "source": "vectors/annotated-class/source.json",
+          "canonical": "vectors/annotated-class/canonical.json"
+        },
+        {
+          "id": "sub-annotation-property",
+          "source": "supplemental/grammar/vectors/sub-annotation-property/source.json",
+          "canonical": "supplemental/grammar/vectors/sub-annotation-property/canonical.json"
+        },
+        {
+          "id": "annotation-domain",
+          "source": "supplemental/grammar/vectors/annotation-domain/source.json",
+          "canonical": "supplemental/grammar/vectors/annotation-domain/canonical.json"
+        },
+        {
+          "id": "annotation-range",
+          "source": "supplemental/grammar/vectors/annotation-range/source.json",
+          "canonical": "supplemental/grammar/vectors/annotation-range/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-outer",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-outer/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-outer/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-inner",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-inner/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-inner/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-C",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-C/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-C/canonical.json"
+        },
+        {
+          "id": "language-i-klingon",
+          "source": "supplemental/grammar/vectors/language-i-klingon/source.json",
+          "canonical": "supplemental/grammar/vectors/language-i-klingon/canonical.json"
+        },
+        {
+          "id": "language-en-gb-oed",
+          "source": "supplemental/grammar/vectors/language-en-gb-oed/source.json",
+          "canonical": "supplemental/grammar/vectors/language-en-gb-oed/canonical.json"
+        },
+        {
+          "id": "language-sgn-be-fr",
+          "source": "supplemental/grammar/vectors/language-sgn-be-fr/source.json",
+          "canonical": "supplemental/grammar/vectors/language-sgn-be-fr/canonical.json"
+        },
+        {
+          "id": "language-zh-min-nan",
+          "source": "supplemental/grammar/vectors/language-zh-min-nan/source.json",
+          "canonical": "supplemental/grammar/vectors/language-zh-min-nan/canonical.json"
+        },
+        {
+          "id": "language-de-latn-de-1901-a-aaa-x-private",
+          "source": "supplemental/grammar/vectors/language-de-latn-de-1901-a-aaa-x-private/source.json",
+          "canonical": "supplemental/grammar/vectors/language-de-latn-de-1901-a-aaa-x-private/canonical.json"
+        },
+        {
+          "id": "typed-integer-lexical-01",
+          "source": "supplemental/grammar/vectors/typed-integer-lexical-01/source.json",
+          "canonical": "supplemental/grammar/vectors/typed-integer-lexical-01/canonical.json"
+        },
+        {
+          "id": "typed-integer-lexical-1",
+          "source": "supplemental/grammar/vectors/typed-integer-lexical-1/source.json",
+          "canonical": "supplemental/grammar/vectors/typed-integer-lexical-1/canonical.json"
+        },
+        {
+          "id": "iri-value-equals-source-handle",
+          "source": "supplemental/grammar/vectors/iri-value-equals-source-handle/source.json",
+          "canonical": "supplemental/grammar/vectors/iri-value-equals-source-handle/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "role",
+      "kind": "individual",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No ABox or property-metadata glyph is defined in v1",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "class-enumeration",
+          "source": "supplemental/grammar/vectors/class-enumeration/source.json",
+          "canonical": "supplemental/grammar/vectors/class-enumeration/canonical.json"
+        },
+        {
+          "id": "object-value",
+          "source": "supplemental/grammar/vectors/object-value/source.json",
+          "canonical": "supplemental/grammar/vectors/object-value/canonical.json"
+        },
+        {
+          "id": "class-membership-and-punning",
+          "source": "supplemental/grammar/vectors/class-membership-and-punning/source.json",
+          "canonical": "supplemental/grammar/vectors/class-membership-and-punning/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "expression",
+      "kind": "class-union",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "class-node",
+        "operator-edge"
+      ],
+      "condition": "Operator gets its own node; connect only drawable operands",
+      "generationRule": "B2.1/B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Keep every semantic operand and expose omitted-operand details",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "partial-union-projection",
+          "source": "vectors/partial-union-projection/source.json",
+          "canonical": "vectors/partial-union-projection/canonical.json"
+        },
+        {
+          "id": "class-membership-and-punning",
+          "source": "supplemental/grammar/vectors/class-membership-and-punning/source.json",
+          "canonical": "supplemental/grammar/vectors/class-membership-and-punning/canonical.json"
+        },
+        {
+          "id": "partial-class-group-exclusions",
+          "source": "supplemental/grammar/vectors/partial-class-group-exclusions/source.json",
+          "canonical": "supplemental/grammar/vectors/partial-class-group-exclusions/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "expression",
+      "kind": "class-intersection",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "class-node",
+        "operator-edge"
+      ],
+      "condition": "Operator gets its own node; connect only drawable operands",
+      "generationRule": "B2.1/B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Keep every semantic operand and expose omitted-operand details",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "class-intersection",
+          "source": "supplemental/grammar/vectors/class-intersection/source.json",
+          "canonical": "supplemental/grammar/vectors/class-intersection/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-outer",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-outer/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-outer/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-inner",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-inner/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-inner/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-C",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-C/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-C/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "expression",
+      "kind": "class-complement",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "class-node",
+        "operator-edge"
+      ],
+      "condition": "Operator gets its own node; connect only drawable operands",
+      "generationRule": "B2.1/B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Keep every semantic operand and expose omitted-operand details",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "class-complement",
+          "source": "supplemental/grammar/vectors/class-complement/source.json",
+          "canonical": "supplemental/grammar/vectors/class-complement/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "expression",
+      "kind": "class-enumeration",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No standalone glyph or inferred quantified-restriction edge",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "class-enumeration",
+          "source": "supplemental/grammar/vectors/class-enumeration/source.json",
+          "canonical": "supplemental/grammar/vectors/class-enumeration/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "expression",
+      "kind": "object-some",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No standalone glyph or inferred quantified-restriction edge",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "partial-union-projection",
+          "source": "vectors/partial-union-projection/source.json",
+          "canonical": "vectors/partial-union-projection/canonical.json"
+        },
+        {
+          "id": "undrawable-range-no-default-role",
+          "source": "supplemental/grammar/vectors/undrawable-range-no-default-role/source.json",
+          "canonical": "supplemental/grammar/vectors/undrawable-range-no-default-role/canonical.json"
+        },
+        {
+          "id": "undrawable-range-declared-thing",
+          "source": "supplemental/grammar/vectors/undrawable-range-declared-thing/source.json",
+          "canonical": "supplemental/grammar/vectors/undrawable-range-declared-thing/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "expression",
+      "kind": "object-all",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No standalone glyph or inferred quantified-restriction edge",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "object-all",
+          "source": "supplemental/grammar/vectors/object-all/source.json",
+          "canonical": "supplemental/grammar/vectors/object-all/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "expression",
+      "kind": "object-value",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No standalone glyph or inferred quantified-restriction edge",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "object-value",
+          "source": "supplemental/grammar/vectors/object-value/source.json",
+          "canonical": "supplemental/grammar/vectors/object-value/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "expression",
+      "kind": "object-self",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No standalone glyph or inferred quantified-restriction edge",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "object-self",
+          "source": "supplemental/grammar/vectors/object-self/source.json",
+          "canonical": "supplemental/grammar/vectors/object-self/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "expression",
+      "kind": "data-some",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No standalone glyph or inferred quantified-restriction edge",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "data-some",
+          "source": "supplemental/grammar/vectors/data-some/source.json",
+          "canonical": "supplemental/grammar/vectors/data-some/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "expression",
+      "kind": "data-all",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No standalone glyph or inferred quantified-restriction edge",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "data-all",
+          "source": "supplemental/grammar/vectors/data-all/source.json",
+          "canonical": "supplemental/grammar/vectors/data-all/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "expression",
+      "kind": "data-value",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No standalone glyph or inferred quantified-restriction edge",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "data-value",
+          "source": "supplemental/grammar/vectors/data-value/source.json",
+          "canonical": "supplemental/grammar/vectors/data-value/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "expression",
+      "kind": "object-inverse",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No standalone glyph or inferred quantified-restriction edge",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "object-inverse",
+          "source": "supplemental/grammar/vectors/object-inverse/source.json",
+          "canonical": "supplemental/grammar/vectors/object-inverse/canonical.json"
+        },
+        {
+          "id": "partial-property-group-with-inverse-expression",
+          "source": "supplemental/grammar/vectors/partial-property-group-with-inverse-expression/source.json",
+          "canonical": "supplemental/grammar/vectors/partial-property-group-with-inverse-expression/canonical.json"
+        },
+        {
+          "id": "restriction-ineligible-inverse-property",
+          "source": "supplemental/grammar/vectors/restriction-ineligible-inverse-property/source.json",
+          "canonical": "supplemental/grammar/vectors/restriction-ineligible-inverse-property/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "expression",
+      "kind": "object-min-cardinality",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "restriction-edge",
+        "label"
+      ],
+      "condition": "Super of a subclass from a named class role; exact named property and exact generic filler",
+      "generationRule": "B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Qualified, inverse-property, anonymous-subclass and other contexts remain details-only; each retained bound is separate",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "object-min-unqualified",
+          "source": "vectors/object-min-unqualified/source.json",
+          "canonical": "vectors/object-min-unqualified/canonical.json"
+        },
+        {
+          "id": "two-restrictions-distinct-scopes",
+          "source": "supplemental/grammar/vectors/two-restrictions-distinct-scopes/source.json",
+          "canonical": "supplemental/grammar/vectors/two-restrictions-distinct-scopes/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "expression",
+      "kind": "object-max-cardinality",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "restriction-edge",
+        "label"
+      ],
+      "condition": "Super of a subclass from a named class role; exact named property and exact generic filler",
+      "generationRule": "B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Qualified, inverse-property, anonymous-subclass and other contexts remain details-only; each retained bound is separate",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "object-max-unqualified",
+          "source": "vectors/object-max-unqualified/source.json",
+          "canonical": "vectors/object-max-unqualified/canonical.json"
+        },
+        {
+          "id": "two-restrictions-distinct-scopes",
+          "source": "supplemental/grammar/vectors/two-restrictions-distinct-scopes/source.json",
+          "canonical": "supplemental/grammar/vectors/two-restrictions-distinct-scopes/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "expression",
+      "kind": "object-exact-cardinality",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "restriction-edge",
+        "label"
+      ],
+      "condition": "Super of a subclass from a named class role; exact named property and exact generic filler",
+      "generationRule": "B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Qualified, inverse-property, anonymous-subclass and other contexts remain details-only; each retained bound is separate",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "object-exact-unqualified",
+          "source": "vectors/object-exact-unqualified/source.json",
+          "canonical": "vectors/object-exact-unqualified/canonical.json"
+        },
+        {
+          "id": "object-qualified-details",
+          "source": "vectors/object-qualified-details/source.json",
+          "canonical": "vectors/object-qualified-details/canonical.json"
+        },
+        {
+          "id": "restriction-ineligible-anonymous-subclass",
+          "source": "supplemental/grammar/vectors/restriction-ineligible-anonymous-subclass/source.json",
+          "canonical": "supplemental/grammar/vectors/restriction-ineligible-anonymous-subclass/canonical.json"
+        },
+        {
+          "id": "restriction-ineligible-inverse-property",
+          "source": "supplemental/grammar/vectors/restriction-ineligible-inverse-property/source.json",
+          "canonical": "supplemental/grammar/vectors/restriction-ineligible-inverse-property/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "expression",
+      "kind": "data-min-cardinality",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "restriction-edge",
+        "label"
+      ],
+      "condition": "Super of a subclass from a named class role; exact named property and exact generic filler",
+      "generationRule": "B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Qualified, inverse-property, anonymous-subclass and other contexts remain details-only; each retained bound is separate",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "data-min-unqualified",
+          "source": "vectors/data-min-unqualified/source.json",
+          "canonical": "vectors/data-min-unqualified/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "expression",
+      "kind": "data-max-cardinality",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "restriction-edge",
+        "label"
+      ],
+      "condition": "Super of a subclass from a named class role; exact named property and exact generic filler",
+      "generationRule": "B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Qualified, inverse-property, anonymous-subclass and other contexts remain details-only; each retained bound is separate",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "data-max-unqualified",
+          "source": "vectors/data-max-unqualified/source.json",
+          "canonical": "vectors/data-max-unqualified/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "expression",
+      "kind": "data-exact-cardinality",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "restriction-edge",
+        "label"
+      ],
+      "condition": "Super of a subclass from a named class role; exact named property and exact generic filler",
+      "generationRule": "B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Qualified, inverse-property, anonymous-subclass and other contexts remain details-only; each retained bound is separate",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "data-exact-unqualified",
+          "source": "vectors/data-exact-unqualified/source.json",
+          "canonical": "vectors/data-exact-unqualified/canonical.json"
+        },
+        {
+          "id": "data-qualified-details",
+          "source": "vectors/data-qualified-details/source.json",
+          "canonical": "vectors/data-qualified-details/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "expression",
+      "kind": "data-intersection",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No class-operator glyph is reused for data-range meaning",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "data-intersection",
+          "source": "supplemental/grammar/vectors/data-intersection/source.json",
+          "canonical": "supplemental/grammar/vectors/data-intersection/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "expression",
+      "kind": "data-union",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No class-operator glyph is reused for data-range meaning",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "data-union",
+          "source": "supplemental/grammar/vectors/data-union/source.json",
+          "canonical": "supplemental/grammar/vectors/data-union/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "expression",
+      "kind": "data-complement",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No class-operator glyph is reused for data-range meaning",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "data-complement",
+          "source": "supplemental/grammar/vectors/data-complement/source.json",
+          "canonical": "supplemental/grammar/vectors/data-complement/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "expression",
+      "kind": "data-enumeration",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No class-operator glyph is reused for data-range meaning",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "data-enumeration",
+          "source": "supplemental/grammar/vectors/data-enumeration/source.json",
+          "canonical": "supplemental/grammar/vectors/data-enumeration/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "expression",
+      "kind": "datatype-restriction",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No class-operator glyph is reused for data-range meaning",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "datatype-restriction",
+          "source": "supplemental/grammar/vectors/datatype-restriction/source.json",
+          "canonical": "supplemental/grammar/vectors/datatype-restriction/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "subclass",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "subclass-edge",
+        "restriction-edge",
+        "label"
+      ],
+      "condition": "Both terms drawable, or the exact unqualified cardinality restriction conditions hold",
+      "generationRule": "B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "All other subclass assertions remain details-only",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "asymmetric-subclass",
+          "source": "vectors/asymmetric-subclass/source.json",
+          "canonical": "vectors/asymmetric-subclass/canonical.json"
+        },
+        {
+          "id": "partial-union-projection",
+          "source": "vectors/partial-union-projection/source.json",
+          "canonical": "vectors/partial-union-projection/canonical.json"
+        },
+        {
+          "id": "object-min-unqualified",
+          "source": "vectors/object-min-unqualified/source.json",
+          "canonical": "vectors/object-min-unqualified/canonical.json"
+        },
+        {
+          "id": "object-max-unqualified",
+          "source": "vectors/object-max-unqualified/source.json",
+          "canonical": "vectors/object-max-unqualified/canonical.json"
+        },
+        {
+          "id": "object-exact-unqualified",
+          "source": "vectors/object-exact-unqualified/source.json",
+          "canonical": "vectors/object-exact-unqualified/canonical.json"
+        },
+        {
+          "id": "data-min-unqualified",
+          "source": "vectors/data-min-unqualified/source.json",
+          "canonical": "vectors/data-min-unqualified/canonical.json"
+        },
+        {
+          "id": "data-max-unqualified",
+          "source": "vectors/data-max-unqualified/source.json",
+          "canonical": "vectors/data-max-unqualified/canonical.json"
+        },
+        {
+          "id": "data-exact-unqualified",
+          "source": "vectors/data-exact-unqualified/source.json",
+          "canonical": "vectors/data-exact-unqualified/canonical.json"
+        },
+        {
+          "id": "object-qualified-details",
+          "source": "vectors/object-qualified-details/source.json",
+          "canonical": "vectors/object-qualified-details/canonical.json"
+        },
+        {
+          "id": "data-qualified-details",
+          "source": "vectors/data-qualified-details/source.json",
+          "canonical": "vectors/data-qualified-details/canonical.json"
+        },
+        {
+          "id": "class-intersection",
+          "source": "supplemental/grammar/vectors/class-intersection/source.json",
+          "canonical": "supplemental/grammar/vectors/class-intersection/canonical.json"
+        },
+        {
+          "id": "class-complement",
+          "source": "supplemental/grammar/vectors/class-complement/source.json",
+          "canonical": "supplemental/grammar/vectors/class-complement/canonical.json"
+        },
+        {
+          "id": "class-enumeration",
+          "source": "supplemental/grammar/vectors/class-enumeration/source.json",
+          "canonical": "supplemental/grammar/vectors/class-enumeration/canonical.json"
+        },
+        {
+          "id": "object-all",
+          "source": "supplemental/grammar/vectors/object-all/source.json",
+          "canonical": "supplemental/grammar/vectors/object-all/canonical.json"
+        },
+        {
+          "id": "object-value",
+          "source": "supplemental/grammar/vectors/object-value/source.json",
+          "canonical": "supplemental/grammar/vectors/object-value/canonical.json"
+        },
+        {
+          "id": "object-self",
+          "source": "supplemental/grammar/vectors/object-self/source.json",
+          "canonical": "supplemental/grammar/vectors/object-self/canonical.json"
+        },
+        {
+          "id": "data-some",
+          "source": "supplemental/grammar/vectors/data-some/source.json",
+          "canonical": "supplemental/grammar/vectors/data-some/canonical.json"
+        },
+        {
+          "id": "data-all",
+          "source": "supplemental/grammar/vectors/data-all/source.json",
+          "canonical": "supplemental/grammar/vectors/data-all/canonical.json"
+        },
+        {
+          "id": "data-value",
+          "source": "supplemental/grammar/vectors/data-value/source.json",
+          "canonical": "supplemental/grammar/vectors/data-value/canonical.json"
+        },
+        {
+          "id": "restriction-ineligible-anonymous-subclass",
+          "source": "supplemental/grammar/vectors/restriction-ineligible-anonymous-subclass/source.json",
+          "canonical": "supplemental/grammar/vectors/restriction-ineligible-anonymous-subclass/canonical.json"
+        },
+        {
+          "id": "restriction-ineligible-inverse-property",
+          "source": "supplemental/grammar/vectors/restriction-ineligible-inverse-property/source.json",
+          "canonical": "supplemental/grammar/vectors/restriction-ineligible-inverse-property/canonical.json"
+        },
+        {
+          "id": "two-restrictions-distinct-scopes",
+          "source": "supplemental/grammar/vectors/two-restrictions-distinct-scopes/source.json",
+          "canonical": "supplemental/grammar/vectors/two-restrictions-distinct-scopes/canonical.json"
+        },
+        {
+          "id": "artifact-hidden-node-closure",
+          "source": "supplemental/grammar/vectors/artifact-hidden-node-closure/source.json",
+          "canonical": "supplemental/grammar/vectors/artifact-hidden-node-closure/canonical.json"
+        },
+        {
+          "id": "artifact-hidden-edge-closure",
+          "source": "supplemental/grammar/vectors/artifact-hidden-edge-closure/source.json",
+          "canonical": "supplemental/grammar/vectors/artifact-hidden-edge-closure/canonical.json"
+        },
+        {
+          "id": "artifact-hidden-label-closure",
+          "source": "supplemental/grammar/vectors/artifact-hidden-label-closure/source.json",
+          "canonical": "supplemental/grammar/vectors/artifact-hidden-label-closure/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "equivalent-classes",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "class-node"
+      ],
+      "condition": "Named ordinary class members join components",
+      "generationRule": "B2.1",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Generic roles, anonymous roles and expressions stay out of grouping; no extra equivalence edge",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "equivalence-disjoint-loop-empty-key",
+          "source": "vectors/equivalence-disjoint-loop-empty-key/source.json",
+          "canonical": "vectors/equivalence-disjoint-loop-empty-key/canonical.json"
+        },
+        {
+          "id": "partial-class-group-exclusions",
+          "source": "supplemental/grammar/vectors/partial-class-group-exclusions/source.json",
+          "canonical": "supplemental/grammar/vectors/partial-class-group-exclusions/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "disjoint-classes",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "disjoint-edge"
+      ],
+      "condition": "Drawable member pairs, including normalized singleton and collapsed self-loops",
+      "generationRule": "B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Only endpoint pairs deduplicate; undrawable members remain in details",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "equivalence-disjoint-loop-empty-key",
+          "source": "vectors/equivalence-disjoint-loop-empty-key/source.json",
+          "canonical": "vectors/equivalence-disjoint-loop-empty-key/canonical.json"
+        },
+        {
+          "id": "disjoint-two-distinct-ends",
+          "source": "supplemental/grammar/vectors/disjoint-two-distinct-ends/source.json",
+          "canonical": "supplemental/grammar/vectors/disjoint-two-distinct-ends/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "equivalent-object-properties",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "property-edge",
+        "inverse-edge",
+        "label"
+      ],
+      "condition": "Named members with the same exact direct effective endpoint pair share a partition",
+      "generationRule": "B2.2",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Inverse expression members remain details-only; no extra equivalence edge",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "equivalent-object-properties",
+          "source": "supplemental/grammar/vectors/equivalent-object-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/equivalent-object-properties/canonical.json"
+        },
+        {
+          "id": "unequal-equivalent-property-endpoints",
+          "source": "supplemental/grammar/vectors/unequal-equivalent-property-endpoints/source.json",
+          "canonical": "supplemental/grammar/vectors/unequal-equivalent-property-endpoints/canonical.json"
+        },
+        {
+          "id": "partial-property-group-with-inverse-expression",
+          "source": "supplemental/grammar/vectors/partial-property-group-with-inverse-expression/source.json",
+          "canonical": "supplemental/grammar/vectors/partial-property-group-with-inverse-expression/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "equivalent-data-properties",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "property-edge",
+        "inverse-edge",
+        "label"
+      ],
+      "condition": "Named members with the same exact direct effective endpoint pair share a partition",
+      "generationRule": "B2.2",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Inverse expression members remain details-only; no extra equivalence edge",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "equivalent-data-properties",
+          "source": "supplemental/grammar/vectors/equivalent-data-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/equivalent-data-properties/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "equivalent-rdf-properties",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "property-edge",
+        "inverse-edge",
+        "label"
+      ],
+      "condition": "Named members with the same exact direct effective endpoint pair share a partition",
+      "generationRule": "B2.2",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Inverse expression members remain details-only; no extra equivalence edge",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "equivalent-rdf-properties",
+          "source": "supplemental/grammar/vectors/equivalent-rdf-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/equivalent-rdf-properties/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "inverse-properties",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "inverse-edge",
+        "label"
+      ],
+      "condition": "Named drawable partitions with exactly reversed endpoint terms; a singleton is a self-pair",
+      "generationRule": "B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Unmatched inverses stay in details and preserve independently drawable property edges",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "matched-inverse",
+          "source": "vectors/matched-inverse/source.json",
+          "canonical": "vectors/matched-inverse/canonical.json"
+        },
+        {
+          "id": "unmatched-inverse",
+          "source": "vectors/unmatched-inverse/source.json",
+          "canonical": "vectors/unmatched-inverse/canonical.json"
+        },
+        {
+          "id": "singleton-inverse-self-loop",
+          "source": "supplemental/grammar/vectors/singleton-inverse-self-loop/source.json",
+          "canonical": "supplemental/grammar/vectors/singleton-inverse-self-loop/canonical.json"
+        },
+        {
+          "id": "multiple-explicit-inverse-pairs",
+          "source": "supplemental/grammar/vectors/multiple-explicit-inverse-pairs/source.json",
+          "canonical": "supplemental/amended-policy/vectors/multiple-explicit-inverse-pairs/canonical.json"
+        },
+        {
+          "id": "inverse-orientation-opposes-role-rank",
+          "source": "supplemental/grammar/vectors/inverse-orientation-opposes-role-rank/source.json",
+          "canonical": "supplemental/grammar/vectors/inverse-orientation-opposes-role-rank/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "object-domain",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "property-edge",
+        "inverse-edge"
+      ],
+      "condition": "Contributes a direct normalized named-property endpoint which is drawable",
+      "generationRule": "B2.2/B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Compound undrawable ranges remain details-only; no semantic copies on occurrences",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "matched-inverse",
+          "source": "vectors/matched-inverse/source.json",
+          "canonical": "vectors/matched-inverse/canonical.json"
+        },
+        {
+          "id": "unmatched-inverse",
+          "source": "vectors/unmatched-inverse/source.json",
+          "canonical": "vectors/unmatched-inverse/canonical.json"
+        },
+        {
+          "id": "object-all",
+          "source": "supplemental/grammar/vectors/object-all/source.json",
+          "canonical": "supplemental/grammar/vectors/object-all/canonical.json"
+        },
+        {
+          "id": "object-value",
+          "source": "supplemental/grammar/vectors/object-value/source.json",
+          "canonical": "supplemental/grammar/vectors/object-value/canonical.json"
+        },
+        {
+          "id": "object-self",
+          "source": "supplemental/grammar/vectors/object-self/source.json",
+          "canonical": "supplemental/grammar/vectors/object-self/canonical.json"
+        },
+        {
+          "id": "object-inverse",
+          "source": "supplemental/grammar/vectors/object-inverse/source.json",
+          "canonical": "supplemental/grammar/vectors/object-inverse/canonical.json"
+        },
+        {
+          "id": "sub-object-property",
+          "source": "supplemental/grammar/vectors/sub-object-property/source.json",
+          "canonical": "supplemental/grammar/vectors/sub-object-property/canonical.json"
+        },
+        {
+          "id": "equivalent-object-properties",
+          "source": "supplemental/grammar/vectors/equivalent-object-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/equivalent-object-properties/canonical.json"
+        },
+        {
+          "id": "disjoint-object-properties",
+          "source": "supplemental/grammar/vectors/disjoint-object-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/disjoint-object-properties/canonical.json"
+        },
+        {
+          "id": "object-characteristic-functional",
+          "source": "supplemental/grammar/vectors/object-characteristic-functional/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-functional/canonical.json"
+        },
+        {
+          "id": "object-characteristic-inverse-functional",
+          "source": "supplemental/grammar/vectors/object-characteristic-inverse-functional/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-inverse-functional/canonical.json"
+        },
+        {
+          "id": "object-characteristic-symmetric",
+          "source": "supplemental/grammar/vectors/object-characteristic-symmetric/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-symmetric/canonical.json"
+        },
+        {
+          "id": "object-characteristic-asymmetric",
+          "source": "supplemental/grammar/vectors/object-characteristic-asymmetric/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-asymmetric/canonical.json"
+        },
+        {
+          "id": "object-characteristic-transitive",
+          "source": "supplemental/grammar/vectors/object-characteristic-transitive/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-transitive/canonical.json"
+        },
+        {
+          "id": "object-characteristic-reflexive",
+          "source": "supplemental/grammar/vectors/object-characteristic-reflexive/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-reflexive/canonical.json"
+        },
+        {
+          "id": "object-characteristic-irreflexive",
+          "source": "supplemental/grammar/vectors/object-characteristic-irreflexive/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-irreflexive/canonical.json"
+        },
+        {
+          "id": "nonempty-key",
+          "source": "supplemental/grammar/vectors/nonempty-key/source.json",
+          "canonical": "supplemental/grammar/vectors/nonempty-key/canonical.json"
+        },
+        {
+          "id": "object-data-property-punning",
+          "source": "supplemental/grammar/vectors/object-data-property-punning/source.json",
+          "canonical": "supplemental/grammar/vectors/object-data-property-punning/canonical.json"
+        },
+        {
+          "id": "singleton-inverse-self-loop",
+          "source": "supplemental/grammar/vectors/singleton-inverse-self-loop/source.json",
+          "canonical": "supplemental/grammar/vectors/singleton-inverse-self-loop/canonical.json"
+        },
+        {
+          "id": "multiple-explicit-inverse-pairs",
+          "source": "supplemental/grammar/vectors/multiple-explicit-inverse-pairs/source.json",
+          "canonical": "supplemental/amended-policy/vectors/multiple-explicit-inverse-pairs/canonical.json"
+        },
+        {
+          "id": "unequal-equivalent-property-endpoints",
+          "source": "supplemental/grammar/vectors/unequal-equivalent-property-endpoints/source.json",
+          "canonical": "supplemental/grammar/vectors/unequal-equivalent-property-endpoints/canonical.json"
+        },
+        {
+          "id": "partial-property-group-with-inverse-expression",
+          "source": "supplemental/grammar/vectors/partial-property-group-with-inverse-expression/source.json",
+          "canonical": "supplemental/grammar/vectors/partial-property-group-with-inverse-expression/canonical.json"
+        },
+        {
+          "id": "undrawable-range-no-default-role",
+          "source": "supplemental/grammar/vectors/undrawable-range-no-default-role/source.json",
+          "canonical": "supplemental/grammar/vectors/undrawable-range-no-default-role/canonical.json"
+        },
+        {
+          "id": "undrawable-range-declared-thing",
+          "source": "supplemental/grammar/vectors/undrawable-range-declared-thing/source.json",
+          "canonical": "supplemental/grammar/vectors/undrawable-range-declared-thing/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-outer",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-outer/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-outer/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-inner",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-inner/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-inner/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-C",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-C/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-C/canonical.json"
+        },
+        {
+          "id": "inverse-orientation-opposes-role-rank",
+          "source": "supplemental/grammar/vectors/inverse-orientation-opposes-role-rank/source.json",
+          "canonical": "supplemental/grammar/vectors/inverse-orientation-opposes-role-rank/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "object-range",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "property-edge",
+        "inverse-edge"
+      ],
+      "condition": "Contributes a direct normalized named-property endpoint which is drawable",
+      "generationRule": "B2.2/B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Compound undrawable ranges remain details-only; no semantic copies on occurrences",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "matched-inverse",
+          "source": "vectors/matched-inverse/source.json",
+          "canonical": "vectors/matched-inverse/canonical.json"
+        },
+        {
+          "id": "unmatched-inverse",
+          "source": "vectors/unmatched-inverse/source.json",
+          "canonical": "vectors/unmatched-inverse/canonical.json"
+        },
+        {
+          "id": "object-all",
+          "source": "supplemental/grammar/vectors/object-all/source.json",
+          "canonical": "supplemental/grammar/vectors/object-all/canonical.json"
+        },
+        {
+          "id": "object-value",
+          "source": "supplemental/grammar/vectors/object-value/source.json",
+          "canonical": "supplemental/grammar/vectors/object-value/canonical.json"
+        },
+        {
+          "id": "object-self",
+          "source": "supplemental/grammar/vectors/object-self/source.json",
+          "canonical": "supplemental/grammar/vectors/object-self/canonical.json"
+        },
+        {
+          "id": "object-inverse",
+          "source": "supplemental/grammar/vectors/object-inverse/source.json",
+          "canonical": "supplemental/grammar/vectors/object-inverse/canonical.json"
+        },
+        {
+          "id": "sub-object-property",
+          "source": "supplemental/grammar/vectors/sub-object-property/source.json",
+          "canonical": "supplemental/grammar/vectors/sub-object-property/canonical.json"
+        },
+        {
+          "id": "equivalent-object-properties",
+          "source": "supplemental/grammar/vectors/equivalent-object-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/equivalent-object-properties/canonical.json"
+        },
+        {
+          "id": "disjoint-object-properties",
+          "source": "supplemental/grammar/vectors/disjoint-object-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/disjoint-object-properties/canonical.json"
+        },
+        {
+          "id": "object-characteristic-functional",
+          "source": "supplemental/grammar/vectors/object-characteristic-functional/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-functional/canonical.json"
+        },
+        {
+          "id": "object-characteristic-inverse-functional",
+          "source": "supplemental/grammar/vectors/object-characteristic-inverse-functional/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-inverse-functional/canonical.json"
+        },
+        {
+          "id": "object-characteristic-symmetric",
+          "source": "supplemental/grammar/vectors/object-characteristic-symmetric/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-symmetric/canonical.json"
+        },
+        {
+          "id": "object-characteristic-asymmetric",
+          "source": "supplemental/grammar/vectors/object-characteristic-asymmetric/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-asymmetric/canonical.json"
+        },
+        {
+          "id": "object-characteristic-transitive",
+          "source": "supplemental/grammar/vectors/object-characteristic-transitive/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-transitive/canonical.json"
+        },
+        {
+          "id": "object-characteristic-reflexive",
+          "source": "supplemental/grammar/vectors/object-characteristic-reflexive/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-reflexive/canonical.json"
+        },
+        {
+          "id": "object-characteristic-irreflexive",
+          "source": "supplemental/grammar/vectors/object-characteristic-irreflexive/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-irreflexive/canonical.json"
+        },
+        {
+          "id": "nonempty-key",
+          "source": "supplemental/grammar/vectors/nonempty-key/source.json",
+          "canonical": "supplemental/grammar/vectors/nonempty-key/canonical.json"
+        },
+        {
+          "id": "object-data-property-punning",
+          "source": "supplemental/grammar/vectors/object-data-property-punning/source.json",
+          "canonical": "supplemental/grammar/vectors/object-data-property-punning/canonical.json"
+        },
+        {
+          "id": "singleton-inverse-self-loop",
+          "source": "supplemental/grammar/vectors/singleton-inverse-self-loop/source.json",
+          "canonical": "supplemental/grammar/vectors/singleton-inverse-self-loop/canonical.json"
+        },
+        {
+          "id": "multiple-explicit-inverse-pairs",
+          "source": "supplemental/grammar/vectors/multiple-explicit-inverse-pairs/source.json",
+          "canonical": "supplemental/amended-policy/vectors/multiple-explicit-inverse-pairs/canonical.json"
+        },
+        {
+          "id": "unequal-equivalent-property-endpoints",
+          "source": "supplemental/grammar/vectors/unequal-equivalent-property-endpoints/source.json",
+          "canonical": "supplemental/grammar/vectors/unequal-equivalent-property-endpoints/canonical.json"
+        },
+        {
+          "id": "partial-property-group-with-inverse-expression",
+          "source": "supplemental/grammar/vectors/partial-property-group-with-inverse-expression/source.json",
+          "canonical": "supplemental/grammar/vectors/partial-property-group-with-inverse-expression/canonical.json"
+        },
+        {
+          "id": "undrawable-range-no-default-role",
+          "source": "supplemental/grammar/vectors/undrawable-range-no-default-role/source.json",
+          "canonical": "supplemental/grammar/vectors/undrawable-range-no-default-role/canonical.json"
+        },
+        {
+          "id": "undrawable-range-declared-thing",
+          "source": "supplemental/grammar/vectors/undrawable-range-declared-thing/source.json",
+          "canonical": "supplemental/grammar/vectors/undrawable-range-declared-thing/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-outer",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-outer/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-outer/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-inner",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-inner/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-inner/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-C",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-C/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-C/canonical.json"
+        },
+        {
+          "id": "inverse-orientation-opposes-role-rank",
+          "source": "supplemental/grammar/vectors/inverse-orientation-opposes-role-rank/source.json",
+          "canonical": "supplemental/grammar/vectors/inverse-orientation-opposes-role-rank/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "data-domain",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "property-edge",
+        "inverse-edge"
+      ],
+      "condition": "Contributes a direct normalized named-property endpoint which is drawable",
+      "generationRule": "B2.2/B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Compound undrawable ranges remain details-only; no semantic copies on occurrences",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "data-some",
+          "source": "supplemental/grammar/vectors/data-some/source.json",
+          "canonical": "supplemental/grammar/vectors/data-some/canonical.json"
+        },
+        {
+          "id": "data-all",
+          "source": "supplemental/grammar/vectors/data-all/source.json",
+          "canonical": "supplemental/grammar/vectors/data-all/canonical.json"
+        },
+        {
+          "id": "data-value",
+          "source": "supplemental/grammar/vectors/data-value/source.json",
+          "canonical": "supplemental/grammar/vectors/data-value/canonical.json"
+        },
+        {
+          "id": "sub-data-property",
+          "source": "supplemental/grammar/vectors/sub-data-property/source.json",
+          "canonical": "supplemental/grammar/vectors/sub-data-property/canonical.json"
+        },
+        {
+          "id": "equivalent-data-properties",
+          "source": "supplemental/grammar/vectors/equivalent-data-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/equivalent-data-properties/canonical.json"
+        },
+        {
+          "id": "disjoint-data-properties",
+          "source": "supplemental/grammar/vectors/disjoint-data-properties/source.json",
+          "canonical": "supplemental/amended-policy/vectors/disjoint-data-properties/canonical.json"
+        },
+        {
+          "id": "data-characteristic",
+          "source": "supplemental/grammar/vectors/data-characteristic/source.json",
+          "canonical": "supplemental/grammar/vectors/data-characteristic/canonical.json"
+        },
+        {
+          "id": "nonempty-key",
+          "source": "supplemental/grammar/vectors/nonempty-key/source.json",
+          "canonical": "supplemental/grammar/vectors/nonempty-key/canonical.json"
+        },
+        {
+          "id": "object-data-property-punning",
+          "source": "supplemental/grammar/vectors/object-data-property-punning/source.json",
+          "canonical": "supplemental/grammar/vectors/object-data-property-punning/canonical.json"
+        },
+        {
+          "id": "singleton-disjoint-data-properties",
+          "source": "supplemental/grammar/vectors/singleton-disjoint-data-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/singleton-disjoint-data-properties/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "data-range",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "property-edge",
+        "inverse-edge"
+      ],
+      "condition": "Contributes a direct normalized named-property endpoint which is drawable",
+      "generationRule": "B2.2/B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Compound undrawable ranges remain details-only; no semantic copies on occurrences",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "data-some",
+          "source": "supplemental/grammar/vectors/data-some/source.json",
+          "canonical": "supplemental/grammar/vectors/data-some/canonical.json"
+        },
+        {
+          "id": "data-all",
+          "source": "supplemental/grammar/vectors/data-all/source.json",
+          "canonical": "supplemental/grammar/vectors/data-all/canonical.json"
+        },
+        {
+          "id": "data-value",
+          "source": "supplemental/grammar/vectors/data-value/source.json",
+          "canonical": "supplemental/grammar/vectors/data-value/canonical.json"
+        },
+        {
+          "id": "sub-data-property",
+          "source": "supplemental/grammar/vectors/sub-data-property/source.json",
+          "canonical": "supplemental/grammar/vectors/sub-data-property/canonical.json"
+        },
+        {
+          "id": "equivalent-data-properties",
+          "source": "supplemental/grammar/vectors/equivalent-data-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/equivalent-data-properties/canonical.json"
+        },
+        {
+          "id": "disjoint-data-properties",
+          "source": "supplemental/grammar/vectors/disjoint-data-properties/source.json",
+          "canonical": "supplemental/amended-policy/vectors/disjoint-data-properties/canonical.json"
+        },
+        {
+          "id": "data-characteristic",
+          "source": "supplemental/grammar/vectors/data-characteristic/source.json",
+          "canonical": "supplemental/grammar/vectors/data-characteristic/canonical.json"
+        },
+        {
+          "id": "nonempty-key",
+          "source": "supplemental/grammar/vectors/nonempty-key/source.json",
+          "canonical": "supplemental/grammar/vectors/nonempty-key/canonical.json"
+        },
+        {
+          "id": "object-data-property-punning",
+          "source": "supplemental/grammar/vectors/object-data-property-punning/source.json",
+          "canonical": "supplemental/grammar/vectors/object-data-property-punning/canonical.json"
+        },
+        {
+          "id": "singleton-disjoint-data-properties",
+          "source": "supplemental/grammar/vectors/singleton-disjoint-data-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/singleton-disjoint-data-properties/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "rdf-domain",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "property-edge",
+        "inverse-edge"
+      ],
+      "condition": "Contributes a direct normalized named-property endpoint which is drawable",
+      "generationRule": "B2.2/B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Compound undrawable ranges remain details-only; no semantic copies on occurrences",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "sub-rdf-property",
+          "source": "supplemental/grammar/vectors/sub-rdf-property/source.json",
+          "canonical": "supplemental/grammar/vectors/sub-rdf-property/canonical.json"
+        },
+        {
+          "id": "equivalent-rdf-properties",
+          "source": "supplemental/grammar/vectors/equivalent-rdf-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/equivalent-rdf-properties/canonical.json"
+        },
+        {
+          "id": "disjoint-rdf-properties",
+          "source": "supplemental/grammar/vectors/disjoint-rdf-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/disjoint-rdf-properties/canonical.json"
+        },
+        {
+          "id": "rdf-characteristic",
+          "source": "supplemental/grammar/vectors/rdf-characteristic/source.json",
+          "canonical": "supplemental/grammar/vectors/rdf-characteristic/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "rdf-range",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "property-edge",
+        "inverse-edge"
+      ],
+      "condition": "Contributes a direct normalized named-property endpoint which is drawable",
+      "generationRule": "B2.2/B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Compound undrawable ranges remain details-only; no semantic copies on occurrences",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "sub-rdf-property",
+          "source": "supplemental/grammar/vectors/sub-rdf-property/source.json",
+          "canonical": "supplemental/grammar/vectors/sub-rdf-property/canonical.json"
+        },
+        {
+          "id": "equivalent-rdf-properties",
+          "source": "supplemental/grammar/vectors/equivalent-rdf-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/equivalent-rdf-properties/canonical.json"
+        },
+        {
+          "id": "disjoint-rdf-properties",
+          "source": "supplemental/grammar/vectors/disjoint-rdf-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/disjoint-rdf-properties/canonical.json"
+        },
+        {
+          "id": "rdf-characteristic",
+          "source": "supplemental/grammar/vectors/rdf-characteristic/source.json",
+          "canonical": "supplemental/grammar/vectors/rdf-characteristic/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "sub-object-property",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Both explicitly related named roles have ordinary or inverse occurrences",
+      "generationRule": "B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Interaction highlighting only; inverse-expression or absent projections remain details-only",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "object-inverse",
+          "source": "supplemental/grammar/vectors/object-inverse/source.json",
+          "canonical": "supplemental/grammar/vectors/object-inverse/canonical.json"
+        },
+        {
+          "id": "sub-object-property",
+          "source": "supplemental/grammar/vectors/sub-object-property/source.json",
+          "canonical": "supplemental/grammar/vectors/sub-object-property/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "sub-data-property",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Both explicitly related named roles have ordinary or inverse occurrences",
+      "generationRule": "B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Interaction highlighting only; inverse-expression or absent projections remain details-only",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "sub-data-property",
+          "source": "supplemental/grammar/vectors/sub-data-property/source.json",
+          "canonical": "supplemental/grammar/vectors/sub-data-property/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "sub-rdf-property",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Both explicitly related named roles have ordinary or inverse occurrences",
+      "generationRule": "B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Interaction highlighting only; inverse-expression or absent projections remain details-only",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "sub-rdf-property",
+          "source": "supplemental/grammar/vectors/sub-rdf-property/source.json",
+          "canonical": "supplemental/grammar/vectors/sub-rdf-property/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "object-characteristic",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Only a direct construct on the selected named principal of an ordinary edge or inverse direction receives visual property treatment; other members and inverse-expression subjects remain details-only.",
+      "generationRule": "B1/B2.4/B2.5/B4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Reflexive, irreflexive and asymmetric are details-only; no transfer from inverse expressions or nonprincipal aliases",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "characteristic": "functional",
+      "fixtures": [
+        {
+          "id": "object-characteristic-functional",
+          "source": "supplemental/grammar/vectors/object-characteristic-functional/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-functional/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "object-characteristic",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Only a direct construct on the selected named principal of an ordinary edge or inverse direction receives visual property treatment; other members and inverse-expression subjects remain details-only.",
+      "generationRule": "B1/B2.4/B2.5/B4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Reflexive, irreflexive and asymmetric are details-only; no transfer from inverse expressions or nonprincipal aliases",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "characteristic": "inverse-functional",
+      "fixtures": [
+        {
+          "id": "object-characteristic-inverse-functional",
+          "source": "supplemental/grammar/vectors/object-characteristic-inverse-functional/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-inverse-functional/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "object-characteristic",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Only a direct construct on the selected named principal of an ordinary edge or inverse direction receives visual property treatment; other members and inverse-expression subjects remain details-only.",
+      "generationRule": "B1/B2.4/B2.5/B4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Reflexive, irreflexive and asymmetric are details-only; no transfer from inverse expressions or nonprincipal aliases",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "characteristic": "symmetric",
+      "fixtures": [
+        {
+          "id": "object-characteristic-symmetric",
+          "source": "supplemental/grammar/vectors/object-characteristic-symmetric/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-symmetric/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "object-characteristic",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Only a direct construct on the selected named principal of an ordinary edge or inverse direction receives visual property treatment; other members and inverse-expression subjects remain details-only.",
+      "generationRule": "B1/B2.4/B2.5/B4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Reflexive, irreflexive and asymmetric are details-only; no transfer from inverse expressions or nonprincipal aliases",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "characteristic": "transitive",
+      "fixtures": [
+        {
+          "id": "object-characteristic-transitive",
+          "source": "supplemental/grammar/vectors/object-characteristic-transitive/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-transitive/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "object-characteristic",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always details-only under B2.5; no additional occurrence.",
+      "generationRule": "B1/B2.4/B2.5/B4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Reflexive, irreflexive and asymmetric are details-only; no transfer from inverse expressions or nonprincipal aliases",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "characteristic": "reflexive",
+      "fixtures": [
+        {
+          "id": "object-characteristic-reflexive",
+          "source": "supplemental/grammar/vectors/object-characteristic-reflexive/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-reflexive/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "object-characteristic",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always details-only under B2.5; no additional occurrence.",
+      "generationRule": "B1/B2.4/B2.5/B4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Reflexive, irreflexive and asymmetric are details-only; no transfer from inverse expressions or nonprincipal aliases",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "characteristic": "irreflexive",
+      "fixtures": [
+        {
+          "id": "object-characteristic-irreflexive",
+          "source": "supplemental/grammar/vectors/object-characteristic-irreflexive/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-irreflexive/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "object-characteristic",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always details-only under B2.5; no additional occurrence.",
+      "generationRule": "B1/B2.4/B2.5/B4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Reflexive, irreflexive and asymmetric are details-only; no transfer from inverse expressions or nonprincipal aliases",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "characteristic": "asymmetric",
+      "fixtures": [
+        {
+          "id": "object-characteristic-asymmetric",
+          "source": "supplemental/grammar/vectors/object-characteristic-asymmetric/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-asymmetric/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "data-characteristic",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Direct functional characteristic of the selected named principal",
+      "generationRule": "B2.4/B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No extra occurrence or transfer from aliases",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "data-characteristic",
+          "source": "supplemental/grammar/vectors/data-characteristic/source.json",
+          "canonical": "supplemental/grammar/vectors/data-characteristic/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "rdf-characteristic",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Direct functional characteristic of the selected named principal",
+      "generationRule": "B2.4/B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No extra occurrence or transfer from aliases",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "rdf-characteristic",
+          "source": "supplemental/grammar/vectors/rdf-characteristic/source.json",
+          "canonical": "supplemental/grammar/vectors/rdf-characteristic/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "disjoint-union",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Retained structures have no additional v1 glyph",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "disjoint-union",
+          "source": "supplemental/grammar/vectors/disjoint-union/source.json",
+          "canonical": "supplemental/grammar/vectors/disjoint-union/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "disjoint-object-properties",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Retained structures have no additional v1 glyph",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "disjoint-object-properties",
+          "source": "supplemental/grammar/vectors/disjoint-object-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/disjoint-object-properties/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "disjoint-data-properties",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Retained structures have no additional v1 glyph",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "disjoint-data-properties",
+          "source": "supplemental/grammar/vectors/disjoint-data-properties/source.json",
+          "canonical": "supplemental/amended-policy/vectors/disjoint-data-properties/canonical.json"
+        },
+        {
+          "id": "singleton-disjoint-data-properties",
+          "source": "supplemental/grammar/vectors/singleton-disjoint-data-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/singleton-disjoint-data-properties/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "disjoint-rdf-properties",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Retained structures have no additional v1 glyph",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "disjoint-rdf-properties",
+          "source": "supplemental/grammar/vectors/disjoint-rdf-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/disjoint-rdf-properties/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "property-chain",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Retained structures have no additional v1 glyph",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "repeated-chain",
+          "source": "vectors/repeated-chain/source.json",
+          "canonical": "vectors/repeated-chain/canonical.json"
+        },
+        {
+          "id": "reversed-chain",
+          "source": "vectors/reversed-chain/source.json",
+          "canonical": "vectors/reversed-chain/canonical.json"
+        },
+        {
+          "id": "short-chain",
+          "source": "vectors/short-chain/source.json",
+          "canonical": "vectors/short-chain/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "datatype-definition",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Retained structures have no additional v1 glyph",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "data-intersection",
+          "source": "supplemental/grammar/vectors/data-intersection/source.json",
+          "canonical": "supplemental/grammar/vectors/data-intersection/canonical.json"
+        },
+        {
+          "id": "data-union",
+          "source": "supplemental/grammar/vectors/data-union/source.json",
+          "canonical": "supplemental/grammar/vectors/data-union/canonical.json"
+        },
+        {
+          "id": "data-complement",
+          "source": "supplemental/grammar/vectors/data-complement/source.json",
+          "canonical": "supplemental/grammar/vectors/data-complement/canonical.json"
+        },
+        {
+          "id": "data-enumeration",
+          "source": "supplemental/grammar/vectors/data-enumeration/source.json",
+          "canonical": "supplemental/grammar/vectors/data-enumeration/canonical.json"
+        },
+        {
+          "id": "datatype-restriction",
+          "source": "supplemental/grammar/vectors/datatype-restriction/source.json",
+          "canonical": "supplemental/grammar/vectors/datatype-restriction/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "key",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Retained structures have no additional v1 glyph",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "equivalence-disjoint-loop-empty-key",
+          "source": "vectors/equivalence-disjoint-loop-empty-key/source.json",
+          "canonical": "vectors/equivalence-disjoint-loop-empty-key/canonical.json"
+        },
+        {
+          "id": "nonempty-key",
+          "source": "supplemental/grammar/vectors/nonempty-key/source.json",
+          "canonical": "supplemental/grammar/vectors/nonempty-key/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "sub-annotation-property",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Annotations and direct member listings are inspectable; derived labels are not semantic copies",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "sub-annotation-property",
+          "source": "supplemental/grammar/vectors/sub-annotation-property/source.json",
+          "canonical": "supplemental/grammar/vectors/sub-annotation-property/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "annotation-domain",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Annotations and direct member listings are inspectable; derived labels are not semantic copies",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "annotation-domain",
+          "source": "supplemental/grammar/vectors/annotation-domain/source.json",
+          "canonical": "supplemental/grammar/vectors/annotation-domain/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "annotation-range",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Annotations and direct member listings are inspectable; derived labels are not semantic copies",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "annotation-range",
+          "source": "supplemental/grammar/vectors/annotation-range/source.json",
+          "canonical": "supplemental/grammar/vectors/annotation-range/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "annotation-assertion",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Annotations and direct member listings are inspectable; derived labels are not semantic copies",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "annotated-class",
+          "source": "vectors/annotated-class/source.json",
+          "canonical": "vectors/annotated-class/canonical.json"
+        },
+        {
+          "id": "language-i-klingon",
+          "source": "supplemental/grammar/vectors/language-i-klingon/source.json",
+          "canonical": "supplemental/grammar/vectors/language-i-klingon/canonical.json"
+        },
+        {
+          "id": "language-en-gb-oed",
+          "source": "supplemental/grammar/vectors/language-en-gb-oed/source.json",
+          "canonical": "supplemental/grammar/vectors/language-en-gb-oed/canonical.json"
+        },
+        {
+          "id": "language-sgn-be-fr",
+          "source": "supplemental/grammar/vectors/language-sgn-be-fr/source.json",
+          "canonical": "supplemental/grammar/vectors/language-sgn-be-fr/canonical.json"
+        },
+        {
+          "id": "language-zh-min-nan",
+          "source": "supplemental/grammar/vectors/language-zh-min-nan/source.json",
+          "canonical": "supplemental/grammar/vectors/language-zh-min-nan/canonical.json"
+        },
+        {
+          "id": "language-de-latn-de-1901-a-aaa-x-private",
+          "source": "supplemental/grammar/vectors/language-de-latn-de-1901-a-aaa-x-private/source.json",
+          "canonical": "supplemental/grammar/vectors/language-de-latn-de-1901-a-aaa-x-private/canonical.json"
+        },
+        {
+          "id": "typed-integer-lexical-01",
+          "source": "supplemental/grammar/vectors/typed-integer-lexical-01/source.json",
+          "canonical": "supplemental/grammar/vectors/typed-integer-lexical-01/canonical.json"
+        },
+        {
+          "id": "typed-integer-lexical-1",
+          "source": "supplemental/grammar/vectors/typed-integer-lexical-1/source.json",
+          "canonical": "supplemental/grammar/vectors/typed-integer-lexical-1/canonical.json"
+        },
+        {
+          "id": "iri-value-equals-source-handle",
+          "source": "supplemental/grammar/vectors/iri-value-equals-source-handle/source.json",
+          "canonical": "supplemental/grammar/vectors/iri-value-equals-source-handle/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "assertion-anchor",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Annotations and direct member listings are inspectable; derived labels are not semantic copies",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "annotated-class",
+          "source": "vectors/annotated-class/source.json",
+          "canonical": "vectors/annotated-class/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-outer",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-outer/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-outer/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-inner",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-inner/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-inner/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-C",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-C/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-C/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "construct",
+      "kind": "class-membership",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Annotations and direct member listings are inspectable; derived labels are not semantic copies",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "class-membership-and-punning",
+          "source": "supplemental/grammar/vectors/class-membership-and-punning/source.json",
+          "canonical": "supplemental/grammar/vectors/class-membership-and-punning/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "metadata",
+      "kind": "ontology",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5/B4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Header/details or label derivation; no independently positioned graph occurrence",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "empty-structural",
+          "source": "vectors/empty-structural/source.json",
+          "canonical": "vectors/empty-structural/canonical.json"
+        },
+        {
+          "id": "named-class-structural",
+          "source": "vectors/named-class-structural/source.json",
+          "canonical": "vectors/named-class-structural/canonical.json"
+        },
+        {
+          "id": "empty-artifact",
+          "source": "vectors/empty-artifact/source.json",
+          "canonical": "vectors/empty-artifact/canonical.json"
+        },
+        {
+          "id": "named-class-artifact",
+          "source": "vectors/named-class-artifact/source.json",
+          "canonical": "vectors/named-class-artifact/canonical.json"
+        },
+        {
+          "id": "annotated-class",
+          "source": "vectors/annotated-class/source.json",
+          "canonical": "vectors/annotated-class/canonical.json"
+        },
+        {
+          "id": "asymmetric-subclass",
+          "source": "vectors/asymmetric-subclass/source.json",
+          "canonical": "vectors/asymmetric-subclass/canonical.json"
+        },
+        {
+          "id": "symmetric-anonymous-classes",
+          "source": "vectors/symmetric-anonymous-classes/source.json",
+          "canonical": "vectors/symmetric-anonymous-classes/canonical.json"
+        },
+        {
+          "id": "symmetric-anonymous-artifact",
+          "source": "vectors/symmetric-anonymous-artifact/source.json",
+          "canonical": "vectors/symmetric-anonymous-artifact/canonical.json"
+        },
+        {
+          "id": "named-pair-artifact",
+          "source": "vectors/named-pair-artifact/source.json",
+          "canonical": "vectors/named-pair-artifact/canonical.json"
+        },
+        {
+          "id": "named-pair-exchanged-artifact",
+          "source": "vectors/named-pair-exchanged-artifact/source.json",
+          "canonical": "vectors/named-pair-exchanged-artifact/canonical.json"
+        },
+        {
+          "id": "repeated-chain",
+          "source": "vectors/repeated-chain/source.json",
+          "canonical": "vectors/repeated-chain/canonical.json"
+        },
+        {
+          "id": "reversed-chain",
+          "source": "vectors/reversed-chain/source.json",
+          "canonical": "vectors/reversed-chain/canonical.json"
+        },
+        {
+          "id": "short-chain",
+          "source": "vectors/short-chain/source.json",
+          "canonical": "vectors/short-chain/canonical.json"
+        },
+        {
+          "id": "per-property-datatype",
+          "source": "vectors/per-property-datatype/source.json",
+          "canonical": "supplemental/amended-policy/vectors/per-property-datatype/canonical.json"
+        },
+        {
+          "id": "matched-inverse",
+          "source": "vectors/matched-inverse/source.json",
+          "canonical": "vectors/matched-inverse/canonical.json"
+        },
+        {
+          "id": "unmatched-inverse",
+          "source": "vectors/unmatched-inverse/source.json",
+          "canonical": "vectors/unmatched-inverse/canonical.json"
+        },
+        {
+          "id": "equivalence-disjoint-loop-empty-key",
+          "source": "vectors/equivalence-disjoint-loop-empty-key/source.json",
+          "canonical": "vectors/equivalence-disjoint-loop-empty-key/canonical.json"
+        },
+        {
+          "id": "partial-union-projection",
+          "source": "vectors/partial-union-projection/source.json",
+          "canonical": "vectors/partial-union-projection/canonical.json"
+        },
+        {
+          "id": "object-min-unqualified",
+          "source": "vectors/object-min-unqualified/source.json",
+          "canonical": "vectors/object-min-unqualified/canonical.json"
+        },
+        {
+          "id": "object-max-unqualified",
+          "source": "vectors/object-max-unqualified/source.json",
+          "canonical": "vectors/object-max-unqualified/canonical.json"
+        },
+        {
+          "id": "object-exact-unqualified",
+          "source": "vectors/object-exact-unqualified/source.json",
+          "canonical": "vectors/object-exact-unqualified/canonical.json"
+        },
+        {
+          "id": "data-min-unqualified",
+          "source": "vectors/data-min-unqualified/source.json",
+          "canonical": "vectors/data-min-unqualified/canonical.json"
+        },
+        {
+          "id": "data-max-unqualified",
+          "source": "vectors/data-max-unqualified/source.json",
+          "canonical": "vectors/data-max-unqualified/canonical.json"
+        },
+        {
+          "id": "data-exact-unqualified",
+          "source": "vectors/data-exact-unqualified/source.json",
+          "canonical": "vectors/data-exact-unqualified/canonical.json"
+        },
+        {
+          "id": "object-qualified-details",
+          "source": "vectors/object-qualified-details/source.json",
+          "canonical": "vectors/object-qualified-details/canonical.json"
+        },
+        {
+          "id": "data-qualified-details",
+          "source": "vectors/data-qualified-details/source.json",
+          "canonical": "vectors/data-qualified-details/canonical.json"
+        },
+        {
+          "id": "class-intersection",
+          "source": "supplemental/grammar/vectors/class-intersection/source.json",
+          "canonical": "supplemental/grammar/vectors/class-intersection/canonical.json"
+        },
+        {
+          "id": "class-complement",
+          "source": "supplemental/grammar/vectors/class-complement/source.json",
+          "canonical": "supplemental/grammar/vectors/class-complement/canonical.json"
+        },
+        {
+          "id": "class-enumeration",
+          "source": "supplemental/grammar/vectors/class-enumeration/source.json",
+          "canonical": "supplemental/grammar/vectors/class-enumeration/canonical.json"
+        },
+        {
+          "id": "object-all",
+          "source": "supplemental/grammar/vectors/object-all/source.json",
+          "canonical": "supplemental/grammar/vectors/object-all/canonical.json"
+        },
+        {
+          "id": "object-value",
+          "source": "supplemental/grammar/vectors/object-value/source.json",
+          "canonical": "supplemental/grammar/vectors/object-value/canonical.json"
+        },
+        {
+          "id": "object-self",
+          "source": "supplemental/grammar/vectors/object-self/source.json",
+          "canonical": "supplemental/grammar/vectors/object-self/canonical.json"
+        },
+        {
+          "id": "data-some",
+          "source": "supplemental/grammar/vectors/data-some/source.json",
+          "canonical": "supplemental/grammar/vectors/data-some/canonical.json"
+        },
+        {
+          "id": "data-all",
+          "source": "supplemental/grammar/vectors/data-all/source.json",
+          "canonical": "supplemental/grammar/vectors/data-all/canonical.json"
+        },
+        {
+          "id": "data-value",
+          "source": "supplemental/grammar/vectors/data-value/source.json",
+          "canonical": "supplemental/grammar/vectors/data-value/canonical.json"
+        },
+        {
+          "id": "object-inverse",
+          "source": "supplemental/grammar/vectors/object-inverse/source.json",
+          "canonical": "supplemental/grammar/vectors/object-inverse/canonical.json"
+        },
+        {
+          "id": "data-intersection",
+          "source": "supplemental/grammar/vectors/data-intersection/source.json",
+          "canonical": "supplemental/grammar/vectors/data-intersection/canonical.json"
+        },
+        {
+          "id": "data-union",
+          "source": "supplemental/grammar/vectors/data-union/source.json",
+          "canonical": "supplemental/grammar/vectors/data-union/canonical.json"
+        },
+        {
+          "id": "data-complement",
+          "source": "supplemental/grammar/vectors/data-complement/source.json",
+          "canonical": "supplemental/grammar/vectors/data-complement/canonical.json"
+        },
+        {
+          "id": "data-enumeration",
+          "source": "supplemental/grammar/vectors/data-enumeration/source.json",
+          "canonical": "supplemental/grammar/vectors/data-enumeration/canonical.json"
+        },
+        {
+          "id": "datatype-restriction",
+          "source": "supplemental/grammar/vectors/datatype-restriction/source.json",
+          "canonical": "supplemental/grammar/vectors/datatype-restriction/canonical.json"
+        },
+        {
+          "id": "disjoint-union",
+          "source": "supplemental/grammar/vectors/disjoint-union/source.json",
+          "canonical": "supplemental/grammar/vectors/disjoint-union/canonical.json"
+        },
+        {
+          "id": "sub-object-property",
+          "source": "supplemental/grammar/vectors/sub-object-property/source.json",
+          "canonical": "supplemental/grammar/vectors/sub-object-property/canonical.json"
+        },
+        {
+          "id": "equivalent-object-properties",
+          "source": "supplemental/grammar/vectors/equivalent-object-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/equivalent-object-properties/canonical.json"
+        },
+        {
+          "id": "disjoint-object-properties",
+          "source": "supplemental/grammar/vectors/disjoint-object-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/disjoint-object-properties/canonical.json"
+        },
+        {
+          "id": "sub-data-property",
+          "source": "supplemental/grammar/vectors/sub-data-property/source.json",
+          "canonical": "supplemental/grammar/vectors/sub-data-property/canonical.json"
+        },
+        {
+          "id": "equivalent-data-properties",
+          "source": "supplemental/grammar/vectors/equivalent-data-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/equivalent-data-properties/canonical.json"
+        },
+        {
+          "id": "disjoint-data-properties",
+          "source": "supplemental/grammar/vectors/disjoint-data-properties/source.json",
+          "canonical": "supplemental/amended-policy/vectors/disjoint-data-properties/canonical.json"
+        },
+        {
+          "id": "sub-rdf-property",
+          "source": "supplemental/grammar/vectors/sub-rdf-property/source.json",
+          "canonical": "supplemental/grammar/vectors/sub-rdf-property/canonical.json"
+        },
+        {
+          "id": "equivalent-rdf-properties",
+          "source": "supplemental/grammar/vectors/equivalent-rdf-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/equivalent-rdf-properties/canonical.json"
+        },
+        {
+          "id": "disjoint-rdf-properties",
+          "source": "supplemental/grammar/vectors/disjoint-rdf-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/disjoint-rdf-properties/canonical.json"
+        },
+        {
+          "id": "object-characteristic-functional",
+          "source": "supplemental/grammar/vectors/object-characteristic-functional/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-functional/canonical.json"
+        },
+        {
+          "id": "object-characteristic-inverse-functional",
+          "source": "supplemental/grammar/vectors/object-characteristic-inverse-functional/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-inverse-functional/canonical.json"
+        },
+        {
+          "id": "object-characteristic-symmetric",
+          "source": "supplemental/grammar/vectors/object-characteristic-symmetric/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-symmetric/canonical.json"
+        },
+        {
+          "id": "object-characteristic-asymmetric",
+          "source": "supplemental/grammar/vectors/object-characteristic-asymmetric/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-asymmetric/canonical.json"
+        },
+        {
+          "id": "object-characteristic-transitive",
+          "source": "supplemental/grammar/vectors/object-characteristic-transitive/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-transitive/canonical.json"
+        },
+        {
+          "id": "object-characteristic-reflexive",
+          "source": "supplemental/grammar/vectors/object-characteristic-reflexive/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-reflexive/canonical.json"
+        },
+        {
+          "id": "object-characteristic-irreflexive",
+          "source": "supplemental/grammar/vectors/object-characteristic-irreflexive/source.json",
+          "canonical": "supplemental/grammar/vectors/object-characteristic-irreflexive/canonical.json"
+        },
+        {
+          "id": "data-characteristic",
+          "source": "supplemental/grammar/vectors/data-characteristic/source.json",
+          "canonical": "supplemental/grammar/vectors/data-characteristic/canonical.json"
+        },
+        {
+          "id": "rdf-characteristic",
+          "source": "supplemental/grammar/vectors/rdf-characteristic/source.json",
+          "canonical": "supplemental/grammar/vectors/rdf-characteristic/canonical.json"
+        },
+        {
+          "id": "sub-annotation-property",
+          "source": "supplemental/grammar/vectors/sub-annotation-property/source.json",
+          "canonical": "supplemental/grammar/vectors/sub-annotation-property/canonical.json"
+        },
+        {
+          "id": "annotation-domain",
+          "source": "supplemental/grammar/vectors/annotation-domain/source.json",
+          "canonical": "supplemental/grammar/vectors/annotation-domain/canonical.json"
+        },
+        {
+          "id": "annotation-range",
+          "source": "supplemental/grammar/vectors/annotation-range/source.json",
+          "canonical": "supplemental/grammar/vectors/annotation-range/canonical.json"
+        },
+        {
+          "id": "nonempty-key",
+          "source": "supplemental/grammar/vectors/nonempty-key/source.json",
+          "canonical": "supplemental/grammar/vectors/nonempty-key/canonical.json"
+        },
+        {
+          "id": "class-membership-and-punning",
+          "source": "supplemental/grammar/vectors/class-membership-and-punning/source.json",
+          "canonical": "supplemental/grammar/vectors/class-membership-and-punning/canonical.json"
+        },
+        {
+          "id": "object-data-property-punning",
+          "source": "supplemental/grammar/vectors/object-data-property-punning/source.json",
+          "canonical": "supplemental/grammar/vectors/object-data-property-punning/canonical.json"
+        },
+        {
+          "id": "singleton-inverse-self-loop",
+          "source": "supplemental/grammar/vectors/singleton-inverse-self-loop/source.json",
+          "canonical": "supplemental/grammar/vectors/singleton-inverse-self-loop/canonical.json"
+        },
+        {
+          "id": "multiple-explicit-inverse-pairs",
+          "source": "supplemental/grammar/vectors/multiple-explicit-inverse-pairs/source.json",
+          "canonical": "supplemental/amended-policy/vectors/multiple-explicit-inverse-pairs/canonical.json"
+        },
+        {
+          "id": "unequal-equivalent-property-endpoints",
+          "source": "supplemental/grammar/vectors/unequal-equivalent-property-endpoints/source.json",
+          "canonical": "supplemental/grammar/vectors/unequal-equivalent-property-endpoints/canonical.json"
+        },
+        {
+          "id": "partial-property-group-with-inverse-expression",
+          "source": "supplemental/grammar/vectors/partial-property-group-with-inverse-expression/source.json",
+          "canonical": "supplemental/grammar/vectors/partial-property-group-with-inverse-expression/canonical.json"
+        },
+        {
+          "id": "partial-class-group-exclusions",
+          "source": "supplemental/grammar/vectors/partial-class-group-exclusions/source.json",
+          "canonical": "supplemental/grammar/vectors/partial-class-group-exclusions/canonical.json"
+        },
+        {
+          "id": "undrawable-range-no-default-role",
+          "source": "supplemental/grammar/vectors/undrawable-range-no-default-role/source.json",
+          "canonical": "supplemental/grammar/vectors/undrawable-range-no-default-role/canonical.json"
+        },
+        {
+          "id": "undrawable-range-declared-thing",
+          "source": "supplemental/grammar/vectors/undrawable-range-declared-thing/source.json",
+          "canonical": "supplemental/grammar/vectors/undrawable-range-declared-thing/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-outer",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-outer/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-outer/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-inner",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-inner/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-inner/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-C",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-C/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-C/canonical.json"
+        },
+        {
+          "id": "singleton-disjoint-data-properties",
+          "source": "supplemental/grammar/vectors/singleton-disjoint-data-properties/source.json",
+          "canonical": "supplemental/grammar/vectors/singleton-disjoint-data-properties/canonical.json"
+        },
+        {
+          "id": "rdf-property-resource-class",
+          "source": "supplemental/grammar/vectors/rdf-property-resource-class/source.json",
+          "canonical": "supplemental/grammar/vectors/rdf-property-resource-class/canonical.json"
+        },
+        {
+          "id": "rdf-property-resource-rdf-class",
+          "source": "supplemental/grammar/vectors/rdf-property-resource-rdf-class/source.json",
+          "canonical": "supplemental/grammar/vectors/rdf-property-resource-rdf-class/canonical.json"
+        },
+        {
+          "id": "disjoint-two-distinct-ends",
+          "source": "supplemental/grammar/vectors/disjoint-two-distinct-ends/source.json",
+          "canonical": "supplemental/grammar/vectors/disjoint-two-distinct-ends/canonical.json"
+        },
+        {
+          "id": "restriction-ineligible-anonymous-subclass",
+          "source": "supplemental/grammar/vectors/restriction-ineligible-anonymous-subclass/source.json",
+          "canonical": "supplemental/grammar/vectors/restriction-ineligible-anonymous-subclass/canonical.json"
+        },
+        {
+          "id": "restriction-ineligible-inverse-property",
+          "source": "supplemental/grammar/vectors/restriction-ineligible-inverse-property/source.json",
+          "canonical": "supplemental/grammar/vectors/restriction-ineligible-inverse-property/canonical.json"
+        },
+        {
+          "id": "two-restrictions-distinct-scopes",
+          "source": "supplemental/grammar/vectors/two-restrictions-distinct-scopes/source.json",
+          "canonical": "supplemental/grammar/vectors/two-restrictions-distinct-scopes/canonical.json"
+        },
+        {
+          "id": "artifact-hidden-node-closure",
+          "source": "supplemental/grammar/vectors/artifact-hidden-node-closure/source.json",
+          "canonical": "supplemental/grammar/vectors/artifact-hidden-node-closure/canonical.json"
+        },
+        {
+          "id": "artifact-hidden-edge-closure",
+          "source": "supplemental/grammar/vectors/artifact-hidden-edge-closure/source.json",
+          "canonical": "supplemental/grammar/vectors/artifact-hidden-edge-closure/canonical.json"
+        },
+        {
+          "id": "artifact-hidden-label-closure",
+          "source": "supplemental/grammar/vectors/artifact-hidden-label-closure/source.json",
+          "canonical": "supplemental/grammar/vectors/artifact-hidden-label-closure/canonical.json"
+        },
+        {
+          "id": "language-i-klingon",
+          "source": "supplemental/grammar/vectors/language-i-klingon/source.json",
+          "canonical": "supplemental/grammar/vectors/language-i-klingon/canonical.json"
+        },
+        {
+          "id": "language-en-gb-oed",
+          "source": "supplemental/grammar/vectors/language-en-gb-oed/source.json",
+          "canonical": "supplemental/grammar/vectors/language-en-gb-oed/canonical.json"
+        },
+        {
+          "id": "language-sgn-be-fr",
+          "source": "supplemental/grammar/vectors/language-sgn-be-fr/source.json",
+          "canonical": "supplemental/grammar/vectors/language-sgn-be-fr/canonical.json"
+        },
+        {
+          "id": "language-zh-min-nan",
+          "source": "supplemental/grammar/vectors/language-zh-min-nan/source.json",
+          "canonical": "supplemental/grammar/vectors/language-zh-min-nan/canonical.json"
+        },
+        {
+          "id": "language-de-latn-de-1901-a-aaa-x-private",
+          "source": "supplemental/grammar/vectors/language-de-latn-de-1901-a-aaa-x-private/source.json",
+          "canonical": "supplemental/grammar/vectors/language-de-latn-de-1901-a-aaa-x-private/canonical.json"
+        },
+        {
+          "id": "typed-integer-lexical-01",
+          "source": "supplemental/grammar/vectors/typed-integer-lexical-01/source.json",
+          "canonical": "supplemental/grammar/vectors/typed-integer-lexical-01/canonical.json"
+        },
+        {
+          "id": "typed-integer-lexical-1",
+          "source": "supplemental/grammar/vectors/typed-integer-lexical-1/source.json",
+          "canonical": "supplemental/grammar/vectors/typed-integer-lexical-1/canonical.json"
+        },
+        {
+          "id": "iri-value-equals-source-handle",
+          "source": "supplemental/grammar/vectors/iri-value-equals-source-handle/source.json",
+          "canonical": "supplemental/grammar/vectors/iri-value-equals-source-handle/canonical.json"
+        },
+        {
+          "id": "inverse-orientation-opposes-role-rank",
+          "source": "supplemental/grammar/vectors/inverse-orientation-opposes-role-rank/source.json",
+          "canonical": "supplemental/grammar/vectors/inverse-orientation-opposes-role-rank/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "metadata",
+      "kind": "imports",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5/B4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Header/details or label derivation; no independently positioned graph occurrence",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "annotated-class",
+          "source": "vectors/annotated-class/source.json",
+          "canonical": "vectors/annotated-class/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "metadata",
+      "kind": "annotations",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5/B4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Header/details or label derivation; no independently positioned graph occurrence",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "annotated-class",
+          "source": "vectors/annotated-class/source.json",
+          "canonical": "vectors/annotated-class/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-outer",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-outer/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-outer/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-inner",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-inner/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-inner/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-C",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-C/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-C/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "annotation-value",
+      "kind": "iri",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "A2/B2.5/B4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Preserve boxed exact values; only qualifying label assertions provide candidate text",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "annotated-class",
+          "source": "vectors/annotated-class/source.json",
+          "canonical": "vectors/annotated-class/canonical.json"
+        },
+        {
+          "id": "iri-value-equals-source-handle",
+          "source": "supplemental/grammar/vectors/iri-value-equals-source-handle/source.json",
+          "canonical": "supplemental/grammar/vectors/iri-value-equals-source-handle/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "annotation-value",
+      "kind": "subject",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "A2/B2.5/B4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Preserve boxed exact values; only qualifying label assertions provide candidate text",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "annotated-class",
+          "source": "vectors/annotated-class/source.json",
+          "canonical": "vectors/annotated-class/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "annotation-value",
+      "kind": "typed",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "A2/B2.5/B4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Preserve boxed exact values; only qualifying label assertions provide candidate text",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "annotated-class",
+          "source": "vectors/annotated-class/source.json",
+          "canonical": "vectors/annotated-class/canonical.json"
+        },
+        {
+          "id": "data-value",
+          "source": "supplemental/grammar/vectors/data-value/source.json",
+          "canonical": "supplemental/grammar/vectors/data-value/canonical.json"
+        },
+        {
+          "id": "data-enumeration",
+          "source": "supplemental/grammar/vectors/data-enumeration/source.json",
+          "canonical": "supplemental/grammar/vectors/data-enumeration/canonical.json"
+        },
+        {
+          "id": "datatype-restriction",
+          "source": "supplemental/grammar/vectors/datatype-restriction/source.json",
+          "canonical": "supplemental/grammar/vectors/datatype-restriction/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-outer",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-outer/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-outer/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-inner",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-inner/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-inner/canonical.json"
+        },
+        {
+          "id": "aggregate-anchor-C",
+          "source": "supplemental/grammar/vectors/aggregate-anchor-C/source.json",
+          "canonical": "supplemental/grammar/vectors/aggregate-anchor-C/canonical.json"
+        },
+        {
+          "id": "typed-integer-lexical-01",
+          "source": "supplemental/grammar/vectors/typed-integer-lexical-01/source.json",
+          "canonical": "supplemental/grammar/vectors/typed-integer-lexical-01/canonical.json"
+        },
+        {
+          "id": "typed-integer-lexical-1",
+          "source": "supplemental/grammar/vectors/typed-integer-lexical-1/source.json",
+          "canonical": "supplemental/grammar/vectors/typed-integer-lexical-1/canonical.json"
+        }
+      ]
+    },
+    {
+      "category": "annotation-value",
+      "kind": "language",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "A2/B2.5/B4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Preserve boxed exact values; only qualifying label assertions provide candidate text",
+      "coverageStatus": "Token/value appears in pinned positive bytes; this does not prove every conditional branch or renderer treatment.",
+      "fixtures": [
+        {
+          "id": "annotated-class",
+          "source": "vectors/annotated-class/source.json",
+          "canonical": "vectors/annotated-class/canonical.json"
+        },
+        {
+          "id": "data-enumeration",
+          "source": "supplemental/grammar/vectors/data-enumeration/source.json",
+          "canonical": "supplemental/grammar/vectors/data-enumeration/canonical.json"
+        },
+        {
+          "id": "language-i-klingon",
+          "source": "supplemental/grammar/vectors/language-i-klingon/source.json",
+          "canonical": "supplemental/grammar/vectors/language-i-klingon/canonical.json"
+        },
+        {
+          "id": "language-en-gb-oed",
+          "source": "supplemental/grammar/vectors/language-en-gb-oed/source.json",
+          "canonical": "supplemental/grammar/vectors/language-en-gb-oed/canonical.json"
+        },
+        {
+          "id": "language-sgn-be-fr",
+          "source": "supplemental/grammar/vectors/language-sgn-be-fr/source.json",
+          "canonical": "supplemental/grammar/vectors/language-sgn-be-fr/canonical.json"
+        },
+        {
+          "id": "language-zh-min-nan",
+          "source": "supplemental/grammar/vectors/language-zh-min-nan/source.json",
+          "canonical": "supplemental/grammar/vectors/language-zh-min-nan/canonical.json"
+        },
+        {
+          "id": "language-de-latn-de-1901-a-aaa-x-private",
+          "source": "supplemental/grammar/vectors/language-de-latn-de-1901-a-aaa-x-private/source.json",
+          "canonical": "supplemental/grammar/vectors/language-de-latn-de-1901-a-aaa-x-private/canonical.json"
+        }
+      ]
+    }
+  ]
+}

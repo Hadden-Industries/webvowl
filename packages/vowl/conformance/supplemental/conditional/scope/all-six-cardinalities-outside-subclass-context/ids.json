@@ -1,0 +1,177 @@
+[
+  {
+    "category": "subjects",
+    "sourceHandle": "s-Thing",
+    "primaryBlankNode": "ps1",
+    "rdfcIdentifier": "c14n2",
+    "canonicalId": "s0"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s-A",
+    "primaryBlankNode": "ps0",
+    "rdfcIdentifier": "c14n6",
+    "canonicalId": "s1"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s-p",
+    "primaryBlankNode": "ps2",
+    "rdfcIdentifier": "c14n7",
+    "canonicalId": "s2"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s-q",
+    "primaryBlankNode": "ps3",
+    "rdfcIdentifier": "c14n22",
+    "canonicalId": "s3"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s-Literal",
+    "primaryBlankNode": "ps4",
+    "rdfcIdentifier": "c14n28",
+    "canonicalId": "s4"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "A",
+    "primaryBlankNode": "pr0",
+    "rdfcIdentifier": "c14n8",
+    "canonicalId": "r0"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "Thing",
+    "primaryBlankNode": "pr1",
+    "rdfcIdentifier": "c14n12",
+    "canonicalId": "r1"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "Literal",
+    "primaryBlankNode": "pr4",
+    "rdfcIdentifier": "c14n14",
+    "canonicalId": "r2"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "p",
+    "primaryBlankNode": "pr2",
+    "rdfcIdentifier": "c14n17",
+    "canonicalId": "r3"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "q",
+    "primaryBlankNode": "pr3",
+    "rdfcIdentifier": "c14n20",
+    "canonicalId": "r4"
+  },
+  {
+    "category": "expressions",
+    "sourceHandle": "object-max",
+    "primaryBlankNode": "px1",
+    "rdfcIdentifier": "c14n0",
+    "canonicalId": "x0"
+  },
+  {
+    "category": "expressions",
+    "sourceHandle": "object-exact",
+    "primaryBlankNode": "px2",
+    "rdfcIdentifier": "c14n24",
+    "canonicalId": "x1"
+  },
+  {
+    "category": "expressions",
+    "sourceHandle": "data-min",
+    "primaryBlankNode": "px3",
+    "rdfcIdentifier": "c14n26",
+    "canonicalId": "x2"
+  },
+  {
+    "category": "expressions",
+    "sourceHandle": "data-exact",
+    "primaryBlankNode": "px5",
+    "rdfcIdentifier": "c14n27",
+    "canonicalId": "x3"
+  },
+  {
+    "category": "expressions",
+    "sourceHandle": "data-max",
+    "primaryBlankNode": "px4",
+    "rdfcIdentifier": "c14n30",
+    "canonicalId": "x4"
+  },
+  {
+    "category": "expressions",
+    "sourceHandle": "object-min",
+    "primaryBlankNode": "px0",
+    "rdfcIdentifier": "c14n31",
+    "canonicalId": "x5"
+  },
+  {
+    "category": "constructs",
+    "sourceHandle": "equivalence",
+    "primaryBlankNode": "pc0",
+    "rdfcIdentifier": "c14n19",
+    "canonicalId": "c0"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "global-domain",
+    "primaryBlankNode": "po1",
+    "rdfcIdentifier": "c14n10",
+    "canonicalId": "o0"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "node-A",
+    "primaryBlankNode": "po0",
+    "rdfcIdentifier": "c14n11",
+    "canonicalId": "o1"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "data-domain",
+    "primaryBlankNode": "po4",
+    "rdfcIdentifier": "c14n16",
+    "canonicalId": "o2"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "data-range",
+    "primaryBlankNode": "po5",
+    "rdfcIdentifier": "c14n18",
+    "canonicalId": "o3"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "global-edge",
+    "primaryBlankNode": "po2",
+    "rdfcIdentifier": "c14n40",
+    "canonicalId": "o4"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "label-global-edge",
+    "primaryBlankNode": "po3",
+    "rdfcIdentifier": "c14n42",
+    "canonicalId": "o5"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "data-edge",
+    "primaryBlankNode": "po6",
+    "rdfcIdentifier": "c14n43",
+    "canonicalId": "o6"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "data-label",
+    "primaryBlankNode": "po7",
+    "rdfcIdentifier": "c14n45",
+    "canonicalId": "o7"
+  }
+]

@@ -1,0 +1,32 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "targets": [
+          "field-permutation-2"
+        ],
+        "kind": "class-node",
+        "id": "field-permutation-1"
+      }
+    ],
+    "constructs": [],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "field-permutation-3",
+        "kind": "class",
+        "id": "field-permutation-2"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "urn:mapping-pair:A",
+        "id": "field-permutation-3"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

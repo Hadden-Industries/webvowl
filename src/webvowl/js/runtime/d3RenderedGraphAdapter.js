@@ -8,10 +8,13 @@ import { createRenderedSvgExportClone } from "./renderedSvgExportClone.js";
 import { captureRenderedDrawing } from "./captureRenderedDrawing.js";
 import { serializeOntologyAsTurtle } from "./ontologyTurtleSerializer.js";
 import { createRenderedDrawingSnapshot } from "../../../app/js/controller/renderedDrawingSnapshot.js";
+import { indexOntologyElementReferencesByVowlElementId } from "../../../app/js/controller/vowlModelInspectionProjector.js";
 import {
-  indexOntologyElementReferencesByVowlElementId,
   ontologyElementReferenceKey,
-} from "../../../app/js/controller/vowlModelInspectionProjector.js";
+  createOntologyElementReference,
+  createVowlDocumentRecordTarget,
+  resolveOntologyElementReference,
+} from "../../../app/js/controller/webVowlControllerContracts.js";
 import {
   createContinuousZoomRequest,
   createAppliedVisualizationView,
@@ -32,10 +35,12 @@ import {
   createVowlModelReplacementRequest,
   createVowlModelRevisionRequest,
   createVowlModelReplacementResult,
+  createCanonicalDrawingRequest,
 } from "../../../app/js/controller/renderedGraphRuntimeContracts.js";
 
 import {
   createRenderedArrangement,
+  createRenderedOccurrenceReference,
   createRenderedOccurrenceSelectionRequest,
   resolveRenderedArrangementChanges,
 } from "../../../app/js/controller/renderedArrangementContracts.js";
@@ -176,6 +181,10 @@ export function createD3RenderedGraphAdapter(dependencies) {
   }
   let isDisposed = false;
   let activeLoadGeneration = null;
+  let canonicalDocumentRevision = null;
+  let canonicalBindings = null;
+  let canonicalDisplay = null;
+  let canonicalLabelSelection = null;
   let hasBuiltRenderedGraphRoot = false;
   let rendererElementIdsByOntologyElementReferenceKey = new Map();
   let ontologyElementReferencesByRendererElementId = new Map();
@@ -201,34 +210,139 @@ export function createD3RenderedGraphAdapter(dependencies) {
       loadGeneration: activeLoadGeneration,
       occurrences: renderedGraphInternals
         .readArrangement()
-        .map(({ rendererKey, rendererElementIds, ...geometry }) => {
+        .flatMap(({ rendererKey, rendererElementIds, ...geometry }) => {
+          if (canonicalBindings) {
+            const bindings = rendererElementIds
+              .map((id) => canonicalBindings.get(String(id)))
+              .filter(Boolean);
+            const positionable = bindings.find(
+              (binding) => binding.positionable,
+            );
+            if (!positionable) {
+              return [];
+            }
+            occurrenceIdsByRendererKey.set(
+              rendererKey,
+              positionable.runtimeReference.occurrenceId,
+            );
+            return [
+              {
+                ...geometry,
+                reference: positionable.runtimeReference,
+                recordTargets: bindings.flatMap(
+                  (binding) => binding.recordTargets,
+                ),
+                ontologyElementReferences: bindings.flatMap(
+                  (binding) => binding.semanticReferences,
+                ),
+              },
+            ];
+          }
           if (!occurrenceIdsByRendererKey.has(rendererKey)) {
             occurrenceIdsByRendererKey.set(
               rendererKey,
               `occurrence-${occurrenceIdsByRendererKey.size + 1}`,
             );
           }
-          return {
-            ...geometry,
-            reference: {
-              loadGeneration: activeLoadGeneration,
-              occurrenceId: occurrenceIdsByRendererKey.get(rendererKey),
+          return [
+            {
+              ...geometry,
+              reference: {
+                loadGeneration: activeLoadGeneration,
+                occurrenceId: occurrenceIdsByRendererKey.get(rendererKey),
+              },
+              recordTargets: rendererElementIds
+                .map((id) =>
+                  documentRecordTargetsByRendererElementId.get(String(id)),
+                )
+                .filter((target) => target !== null && target !== undefined),
+              ontologyElementReferences: rendererElementIds
+                .map((id) =>
+                  ontologyElementReferencesByRendererElementId.get(String(id)),
+                )
+                .filter(
+                  (reference) => reference !== null && reference !== undefined,
+                ),
             },
-            recordTargets: rendererElementIds
-              .map((id) =>
-                documentRecordTargetsByRendererElementId.get(String(id)),
-              )
-              .filter((target) => target !== null && target !== undefined),
-            ontologyElementReferences: rendererElementIds
-              .map((id) =>
-                ontologyElementReferencesByRendererElementId.get(String(id)),
-              )
-              .filter(
-                (reference) => reference !== null && reference !== undefined,
-              ),
-          };
+          ];
         }),
     });
+  }
+
+  function prepareCanonicalBindings(candidate) {
+    const expected = new Map([
+      ...candidate.drawing.nodes.map((row) => [row.occurrence, true]),
+      ...candidate.drawing.labels.map((row) => [row.occurrence, true]),
+      ...candidate.drawing.edges.map((row) => [row.occurrence, false]),
+    ]);
+    const seen = new Set();
+    if (
+      candidate.drawing.applicationBindings !== undefined &&
+      candidate.drawing.applicationBindings.length !== expected.size
+    ) {
+      throw new TypeError(
+        "Canonical drawing bindings must cover every drawing occurrence exactly once.",
+      );
+    }
+    return new Map(
+      (candidate.drawing.applicationBindings ?? []).map((binding) => {
+        const runtimeReference = createRenderedOccurrenceReference(
+          binding.runtimeReference,
+        );
+        if (
+          runtimeReference.loadGeneration !== candidate.loadGeneration ||
+          typeof binding.positionable !== "boolean" ||
+          seen.has(binding.occurrence) ||
+          expected.get(binding.occurrence) !== binding.positionable
+        ) {
+          throw new TypeError(
+            "Canonical drawing bindings must belong to the mounted load.",
+          );
+        }
+        seen.add(binding.occurrence);
+        const recordTargets = binding.recordTargets.map(
+          createVowlDocumentRecordTarget,
+        );
+        if (
+          recordTargets.some(
+            (target) => target.loadGeneration !== candidate.loadGeneration,
+          )
+        ) {
+          throw new TypeError(
+            "Canonical editable targets must belong to the mounted load.",
+          );
+        }
+        return [
+          binding.occurrence,
+          {
+            ...binding,
+            runtimeReference,
+            recordTargets,
+            semanticReferences: binding.semanticReferences.map(
+              createOntologyElementReference,
+            ),
+          },
+        ];
+      }),
+    );
+  }
+
+  function semanticReferencesForRenderer(id) {
+    if (canonicalBindings) {
+      return canonicalBindings.get(String(id))?.semanticReferences ?? [];
+    }
+    const reference = ontologyElementReferencesByRendererElementId.get(
+      String(id),
+    );
+    return reference ? [reference] : [];
+  }
+
+  function editableTargetForRenderer(id) {
+    if (canonicalBindings) {
+      const targets = canonicalBindings.get(String(id))?.recordTargets ?? [];
+      return targets.length === 1 ? targets[0] : null;
+    }
+    return documentRecordTargetsByRendererElementId.get(String(id));
   }
 
   function rendererKeyForOccurrence(reference) {
@@ -316,6 +430,47 @@ export function createD3RenderedGraphAdapter(dependencies) {
 
   // Renderer warnings and progress reach the runtime as structured events.
   renderedGraphInternals.setRenderedGraphEventPort?.({
+    publishSemanticCreation: ({
+      type,
+      position,
+      from,
+      to,
+      datatype = null,
+    }) => {
+      if (!canonicalBindings || activeLoadGeneration === null) {
+        return false;
+      }
+      const fromTarget =
+        from === undefined ? null : editableTargetForRenderer(from);
+      const toTarget = to === undefined ? null : editableTargetForRenderer(to);
+      if (
+        (from !== undefined && !fromTarget) ||
+        (to !== undefined && !toTarget)
+      ) {
+        publishRenderedGraphEvent({
+          kind: "render-warning-raised",
+          loadGeneration: activeLoadGeneration,
+          payload: {
+            warningCode: "GRAPH_EDIT_REJECTED",
+            message:
+              "Choose an unambiguous semantic endpoint for this relationship.",
+          },
+        });
+        return false;
+      }
+      return publishRenderedGraphEvent({
+        kind: "semantic-creation-requested",
+        loadGeneration: activeLoadGeneration,
+        payload: {
+          type,
+          position,
+          datatype,
+          fromTarget,
+          toTarget,
+          documentRevision: canonicalDocumentRevision,
+        },
+      });
+    },
     publishRecordCreation: (payload) => {
       if (activeLoadGeneration !== null) {
         publishRenderedGraphEvent({
@@ -331,9 +486,35 @@ export function createD3RenderedGraphAdapter(dependencies) {
       nodeRecordId,
       labelPosition,
     ) => {
-      const recordTarget =
-        documentRecordTargetsByRendererElementId.get(recordId);
+      const recordTarget = editableTargetForRenderer(recordId);
       if (activeLoadGeneration !== null && recordTarget) {
+        if (canonicalBindings) {
+          const nodeTarget = editableTargetForRenderer(nodeRecordId);
+          if (!nodeTarget) {
+            publishRenderedGraphEvent({
+              kind: "render-warning-raised",
+              loadGeneration: activeLoadGeneration,
+              payload: {
+                warningCode: "EDITOR_TARGET_AMBIGUOUS",
+                message:
+                  "Select one exact semantic endpoint before changing this relationship.",
+              },
+            });
+            return;
+          }
+          publishRenderedGraphEvent({
+            kind: "record-endpoint-edit-requested",
+            loadGeneration: activeLoadGeneration,
+            payload: {
+              recordTarget,
+              nodeTarget,
+              endpoint,
+              labelPosition,
+              documentRevision: canonicalDocumentRevision,
+            },
+          });
+          return;
+        }
         publishRenderedGraphEvent({
           kind: "record-endpoint-edit-requested",
           loadGeneration: activeLoadGeneration,
@@ -342,13 +523,17 @@ export function createD3RenderedGraphAdapter(dependencies) {
       }
     },
     publishRecordDeletion: (recordId) => {
-      const recordTarget =
-        documentRecordTargetsByRendererElementId.get(recordId);
+      const recordTarget = editableTargetForRenderer(recordId);
       if (activeLoadGeneration !== null && recordTarget) {
         publishRenderedGraphEvent({
           kind: "record-deletion-requested",
           loadGeneration: activeLoadGeneration,
-          payload: { recordTarget },
+          payload: {
+            recordTarget,
+            ...(canonicalBindings
+              ? { documentRevision: canonicalDocumentRevision }
+              : {}),
+          },
         });
       }
     },
@@ -420,15 +605,7 @@ export function createD3RenderedGraphAdapter(dependencies) {
         loadGeneration: activeLoadGeneration,
         payload: {
           selectedOntologyElementReferences: selectedElementIds.flatMap(
-            (rendererElementId) => {
-              const ontologyElementReference =
-                ontologyElementReferencesByRendererElementId.get(
-                  String(rendererElementId),
-                );
-              return ontologyElementReference === undefined
-                ? []
-                : [ontologyElementReference];
-            },
+            semanticReferencesForRenderer,
           ),
         },
       });
@@ -438,16 +615,13 @@ export function createD3RenderedGraphAdapter(dependencies) {
         payload: {
           recordTarget:
             selectedElementIds.length === 1
-              ? (documentRecordTargetsByRendererElementId.get(
-                  String(selectedElementIds[0]),
-                ) ?? null)
+              ? (editableTargetForRenderer(selectedElementIds[0]) ?? null)
               : null,
         },
       });
     },
     publishRecordLabelEdit: (recordId, text, deriveIriFromLabel) => {
-      const recordTarget =
-        documentRecordTargetsByRendererElementId.get(recordId);
+      const recordTarget = editableTargetForRenderer(recordId);
       if (
         activeLoadGeneration === null ||
         recordTarget === null ||
@@ -458,7 +632,14 @@ export function createD3RenderedGraphAdapter(dependencies) {
       return publishRenderedGraphEvent({
         kind: "record-label-edit-requested",
         loadGeneration: activeLoadGeneration,
-        payload: { recordTarget, text, deriveIriFromLabel },
+        payload: {
+          recordTarget,
+          text,
+          deriveIriFromLabel,
+          ...(canonicalBindings
+            ? { documentRevision: canonicalDocumentRevision }
+            : {}),
+        },
       });
     },
     publishRenderWarning: (warningCode, message) => {
@@ -499,7 +680,13 @@ export function createD3RenderedGraphAdapter(dependencies) {
     const settings = renderedGraphInternals.options();
     const degreeFilter = settings.nodeDegreeFilter();
     return {
-      language: renderedGraphInternals.language(),
+      language: canonicalLabelSelection
+        ? canonicalLabelSelection.mode === "iri"
+          ? "IRI-based"
+          : canonicalLabelSelection.mode === "untagged"
+            ? "undefined"
+            : canonicalLabelSelection.range
+        : renderedGraphInternals.language(),
       focus: appliedVisualizationView.focus,
       filters: {
         ...Object.fromEntries(
@@ -518,6 +705,13 @@ export function createD3RenderedGraphAdapter(dependencies) {
             ([name, readModule]) => [name, readModule(settings).enabled()],
           ),
         ),
+        ...(canonicalDisplay
+          ? {
+              compactNotation: canonicalDisplay.compactNotation,
+              nodeScaling: canonicalDisplay.nodeScaling === "direct-membership",
+              colorExternals: canonicalDisplay.externalColoring,
+            }
+          : {}),
         dynamicLabelWidth: settings.dynamicLabelWidth(),
         maxLabelWidthPx: settings.maxLabelWidth(),
         colorExternalsMode: settings.colorExternalsModule().colorModeType(),
@@ -535,6 +729,34 @@ export function createD3RenderedGraphAdapter(dependencies) {
     requestedView,
     { updateDrawing = true } = {},
   ) {
+    // Resolve ambiguity before changing filters, language or existing highlights.
+    const focus = requestedView.focus ?? appliedVisualizationView.focus;
+    const focusedElementIds = focus.flatMap((ontologyElementReference) => {
+      if (canonicalBindings) {
+        const exact = resolveOntologyElementReference(
+          ontologyElementReference,
+          [...canonicalBindings.values()].flatMap(
+            (binding) => binding.semanticReferences,
+          ),
+        );
+        return exact
+          ? [...canonicalBindings]
+              .filter(([, binding]) =>
+                binding.semanticReferences.some(
+                  (reference) =>
+                    ontologyElementReferenceKey(reference) ===
+                    ontologyElementReferenceKey(exact),
+                ),
+              )
+              .map(([id]) => id)
+          : [];
+      }
+      return (
+        rendererElementIdsByOntologyElementReferenceKey.get(
+          ontologyElementReferenceKey(ontologyElementReference),
+        ) ?? []
+      );
+    });
     const renderedGraphSettings = renderedGraphInternals.options();
     let requiresRecomputation = false;
 
@@ -578,14 +800,7 @@ export function createD3RenderedGraphAdapter(dependencies) {
     // so restore the standing focus even when this request omitted that field.
     if (requestedView.focus !== undefined || requiresRecomputation) {
       renderedGraphInternals.resetSearchHighlight();
-      const focus = requestedView.focus ?? appliedVisualizationView.focus;
       if (focus.length > 0) {
-        const focusedElementIds = focus.flatMap(
-          (ontologyElementReference) =>
-            rendererElementIdsByOntologyElementReferenceKey.get(
-              ontologyElementReferenceKey(ontologyElementReference),
-            ) ?? [],
-        );
         if (focusedElementIds.length > 0) {
           // Highlighting marks the elements; bringing one into view is the
           // separate focus-next directive.
@@ -737,6 +952,10 @@ export function createD3RenderedGraphAdapter(dependencies) {
         createAbortError("The rendered graph was cleared."),
       );
       activeLoadGeneration = null;
+      canonicalDocumentRevision = null;
+      canonicalBindings = null;
+      canonicalDisplay = null;
+      canonicalLabelSelection = null;
       ontologyElementReferencesByRendererElementId.clear();
       documentRecordTargetsByRendererElementId.clear();
       occurrenceIdsByRendererKey.clear();
@@ -745,11 +964,153 @@ export function createD3RenderedGraphAdapter(dependencies) {
       renderedGraphInternals.clearRenderedGraph();
     },
 
+    async replaceCanonicalDrawing(request, { signal } = {}) {
+      assertNotDisposed();
+      const candidate = createCanonicalDrawingRequest(request);
+      const bindings = prepareCanonicalBindings(candidate);
+      signal?.throwIfAborted();
+      retireActiveGeneration(
+        createAbortError("The canonical drawing was replaced."),
+      );
+      activeLoadGeneration = candidate.loadGeneration;
+      canonicalDocumentRevision = null;
+      canonicalBindings = null;
+      canonicalDisplay = null;
+      canonicalLabelSelection = null;
+      const owner = new AbortController();
+      activeGenerationAbortController = owner;
+      const operationSignal = signal
+        ? AbortSignal.any([owner.signal, signal])
+        : owner.signal;
+      occurrenceIdsByRendererKey.clear();
+      ontologyElementReferencesByRendererElementId.clear();
+      documentRecordTargetsByRendererElementId.clear();
+      rendererElementIdsByOntologyElementReferenceKey.clear();
+      appliedVisualizationView = DEFAULT_APPLIED_VISUALIZATION_VIEW;
+      try {
+        if (!hasBuiltRenderedGraphRoot) {
+          renderedGraphInternals.initializeSvgRoot();
+          hasBuiltRenderedGraphRoot = true;
+        }
+        const initial = candidate.initialVisualization ?? {};
+        applyVisualizationModesToRenderer(initial.modes ?? {}, {
+          updateDrawing: false,
+        });
+        if (initial.forceDistances) {
+          renderedGraphInternals.setForceLayoutDistances(
+            initial.forceDistances,
+          );
+        }
+        renderedGraphInternals.load(candidate.loadGeneration, {
+          canonicalDrawing: candidate.drawing,
+          isPaused: candidate.layout === "pause",
+          centerViewport: false,
+        });
+        canonicalBindings = bindings;
+        if (
+          initial.view?.zoomScale !== undefined ||
+          initial.view?.translation !== undefined
+        ) {
+          renderedGraphInternals.setViewportTransform(
+            initial.view.zoomScale ?? renderedGraphInternals.scaleFactor(),
+            initial.view.translation === undefined
+              ? renderedGraphInternals.translation()
+              : [initial.view.translation.xPx, initial.view.translation.yPx],
+          );
+        }
+        if (initial.view?.focus !== undefined) {
+          applyVisualizationViewToRenderer({ focus: initial.view.focus });
+          appliedVisualizationView = {
+            ...appliedVisualizationView,
+            focus: initial.view.focus,
+          };
+        }
+        while (!renderedGraphInternals.isReadyForPaint()) {
+          await awaitObservedPaint(candidate.loadGeneration, operationSignal);
+        }
+        await awaitObservedPaint(candidate.loadGeneration, operationSignal);
+        operationSignal.throwIfAborted();
+        if (isDisposed || activeGenerationAbortController !== owner) {
+          throw createAbortError(
+            "The canonical drawing was superseded before its first paint.",
+          );
+        }
+        canonicalDocumentRevision = candidate.documentRevision;
+        canonicalBindings = bindings;
+        canonicalDisplay = candidate.drawing.display ?? null;
+        canonicalLabelSelection = candidate.drawing.labelSelection ?? null;
+        return Object.freeze({
+          loadGeneration: candidate.loadGeneration,
+          documentRevision: candidate.documentRevision,
+        });
+      } catch (error) {
+        if (activeGenerationAbortController === owner) {
+          retireActiveGeneration(error);
+          activeLoadGeneration = null;
+        }
+        throw error;
+      }
+    },
+
+    applyCanonicalDrawingRevision(request) {
+      assertNotDisposed();
+      const candidate = createCanonicalDrawingRequest(request, {
+        revision: true,
+      });
+      const bindings = prepareCanonicalBindings(candidate);
+      if (
+        candidate.loadGeneration !== activeLoadGeneration ||
+        candidate.baseRevision !== canonicalDocumentRevision
+      ) {
+        throw createAbortError(
+          "The canonical drawing revision is stale or has no accepted mount.",
+        );
+      }
+      try {
+        renderedGraphInternals.applyCanonicalDrawingRevision(candidate.drawing);
+      } catch (error) {
+        if (error.code === "CANONICAL_DRAWING_RECOVERY_FAILED") {
+          canonicalDocumentRevision = null;
+          canonicalBindings = null;
+          canonicalDisplay = null;
+          canonicalLabelSelection = null;
+          retireActiveGeneration(error);
+          activeLoadGeneration = null;
+        }
+        throw error;
+      }
+      canonicalDocumentRevision = candidate.documentRevision;
+      canonicalBindings = bindings;
+      canonicalDisplay = candidate.drawing.display ?? null;
+      canonicalLabelSelection = candidate.drawing.labelSelection ?? null;
+      return Object.freeze({
+        loadGeneration: activeLoadGeneration,
+        documentRevision: canonicalDocumentRevision,
+      });
+    },
+
+    readCanonicalDrawingState() {
+      assertNotDisposed();
+      if (activeLoadGeneration === null || canonicalDocumentRevision === null) {
+        throw new Error("No completed canonical drawing exists.");
+      }
+      return {
+        loadGeneration: activeLoadGeneration,
+        documentRevision: canonicalDocumentRevision,
+        ...renderedGraphInternals.readCanonicalDrawingState(),
+      };
+    },
+
     async replaceVowlModel(request, { signal } = {}) {
       assertNotDisposed();
       const replacementRequest = createVowlModelReplacementRequest(request);
       const { loadGeneration } = replacementRequest;
       signal?.throwIfAborted();
+
+      canonicalDocumentRevision = null;
+      canonicalBindings = null;
+      canonicalDisplay = null;
+      canonicalLabelSelection = null;
 
       retireActiveGeneration(
         createAbortError(
@@ -899,6 +1260,19 @@ export function createD3RenderedGraphAdapter(dependencies) {
       });
     },
 
+    readVisualizationView() {
+      assertNotDisposed();
+      return createAppliedVisualizationView(readAppliedVisualizationView());
+    },
+    readVisualizationViewport() {
+      assertNotDisposed();
+      const [xPx, yPx] = renderedGraphInternals.translation();
+      return Object.freeze({
+        zoomScale: renderedGraphInternals.scaleFactor(),
+        translation: Object.freeze({ xPx, yPx }),
+      });
+    },
+
     async applyVisualizationView(request, { signal } = {}) {
       assertNotDisposed();
       const viewApplicationRequest =
@@ -994,6 +1368,23 @@ export function createD3RenderedGraphAdapter(dependencies) {
       assertNotDisposed();
       if (activeLoadGeneration === null) {
         throw new Error("No completed visible rendered graph snapshot exists.");
+      }
+      if (canonicalBindings) {
+        const { nodeIds, propertyIds } =
+          renderedGraphInternals.readVisibleElementIds();
+        return createVisibleRenderedGraphSnapshot({
+          loadGeneration: activeLoadGeneration,
+          visibleElementReferences: nodeIds
+            .flatMap(semanticReferencesForRenderer)
+            .filter((reference) => reference.kind !== "property"),
+          visibleRelationshipReferences: propertyIds
+            .flatMap(semanticReferencesForRenderer)
+            .filter((reference) => reference.kind === "property"),
+          visibleGraphCounts: {
+            visibleNodeCount: nodeIds.length,
+            visiblePropertyCount: propertyIds.length,
+          },
+        });
       }
       return projectVisibleRenderedGraphSnapshot(
         ontologyElementReferencesByRendererElementId,
@@ -1171,6 +1562,11 @@ export function createD3RenderedGraphAdapter(dependencies) {
 
     createTurtleDocumentSnapshot(request) {
       assertNotDisposed();
+      if (canonicalDocumentRevision !== null) {
+        throw new Error(
+          "Canonical Turtle export requires the complete semantic document.",
+        );
+      }
       if (
         request?.loadGeneration !== activeLoadGeneration ||
         activeLoadGeneration === null

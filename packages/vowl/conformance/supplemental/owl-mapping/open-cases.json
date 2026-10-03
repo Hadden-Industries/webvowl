@@ -1,0 +1,58 @@
+{
+  "status": "Explicit open cases, excluded from active success/error-code coverage counts",
+  "producer": {
+    "path": "supplemental/owl-mapping/derive-open.mjs",
+    "sha256": "9fb68c055c4404745a4a9faf8baeabb421030bb63e10e68e5090fb9d782c09ce",
+    "byteLength": 2846
+  },
+  "vectors": [
+    {
+      "id": "malformed-rdf-list",
+      "root": {
+        "bytes": {
+          "path": "supplemental/owl-mapping/open/malformed-rdf-list.ttl",
+          "sha256": "37d31a4105328aec6bd50f344fa6d98ec9857405ae7e0df9057935bba330aee0",
+          "byteLength": 286
+        },
+        "mediaType": "text/turtle",
+        "documentIri": "https://documents.example/malformed-rdf-list"
+      },
+      "rules": [
+        "A9.1",
+        "A9.2",
+        "A3"
+      ],
+      "mustRejectInBothProfiles": true,
+      "stableCodeStatus": "unclosed",
+      "reason": "Missing rdf:rest makes the OWL list malformed even though Turtle tokenization succeeds.",
+      "missingDecision": "A9 mandates rejection, but the source text alone does not decide whether this owning parse fails before a structural object exists (MAPPING_SYNTAX_INVALID) or reports an unconstructible/ambiguous retained source. The independently reviewed adapter error-dispatch contract must settle its stable code before this becomes an active acceptance vector."
+    },
+    {
+      "id": "cyclic-rdf-expression",
+      "root": {
+        "bytes": {
+          "path": "supplemental/owl-mapping/open/cyclic-rdf-expression.ttl",
+          "sha256": "35f1ede8a5a6fdf16d18aa2af42afa03bb4a7a1fe6d17ba6975958c06abc52d7",
+          "byteLength": 301
+        },
+        "mediaType": "text/turtle",
+        "documentIri": "https://documents.example/cyclic-rdf-expression"
+      },
+      "rules": [
+        "A9.1",
+        "A9.2",
+        "A3"
+      ],
+      "mustRejectInBothProfiles": true,
+      "stableCodeStatus": "unclosed",
+      "reason": "The class-expression expansion is cyclic and cannot become an A3 acyclic retained expression graph.",
+      "missingDecision": "A9 mandates rejection, but the source text alone does not decide whether this owning parse fails before a structural object exists (MAPPING_SYNTAX_INVALID) or reports an unconstructible/ambiguous retained source. The independently reviewed adapter error-dispatch contract must settle its stable code before this becomes an active acceptance vector."
+    }
+  ],
+  "additionalGaps": [
+    "Only three selected syntaxes have positive cross-syntax witnesses; no exhaustive owning parser qualification is claimed.",
+    "Active omission/exclusion fixtures explicitly declare named roles to avoid selecting the unresolved use-only signature-retention policy.",
+    "Known nonrecoverable semantic failures such as reserved vocabulary and invalid facets need the reviewed stable dispatch before code-specific vectors are frozen.",
+    "Resolver cancellation, shared aggregate byte limits, hostile buffers/accessors and deadline boundaries are adapter security/resource work, not covered by these bounded semantic seeds."
+  ]
+}

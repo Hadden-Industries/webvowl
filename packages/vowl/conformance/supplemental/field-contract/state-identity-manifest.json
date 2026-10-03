@@ -1,0 +1,185 @@
+{
+  "format": "canonical-vowl-conformance-manifest/1",
+  "status": "independent-state-only-identity-pair-pending-review",
+  "specificationRevision": [
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design.md",
+      "sha256": "174535bb8cb43f317631f0799721adebfbbc4ceff4d577595be8fb91dd940fac"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-core-contract.md",
+      "sha256": "711ba30c291cfb0960334328203188600f60a331996e83379267a4a77b87988d"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-projection-contract.md",
+      "sha256": "4c1cf6a7e187f98d40d390e6ff0b5354aca46a8ff195fba5b6badace7eb6078b"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design-decisions.md",
+      "sha256": "f314ec3448f2cf87f73ce6ce8871f3695d4b3b26dee687383b36e36a4fc0a43e"
+    }
+  ],
+  "amendment": {
+    "path": "docs/specs/2026-09-30-canonical-vowl-resource-policy-amendment.md",
+    "sha256": "9f1b7d96229a06f57e29a52f92325a4256e6f826d7532e239848ef99dc0f47c1",
+    "approval": "Owner approved the exact quadratic capped work-policy amendment on 2026-09-30, as communicated by the parent integration task. Approval does not waive independent review."
+  },
+  "policy": {
+    "formula": "min(totalAllocatedBlankNodes ** 2, rdfDeepIterations)",
+    "defaultRdfDeepIterations": 100000,
+    "upperCallerOverride": 1000000,
+    "defaultDeadlineMs": 10000,
+    "zeroOverrideAllowed": true,
+    "fallbackAllowed": false
+  },
+  "dependencies": {
+    "rdf-canonize": "5.0.0",
+    "canonicalize": "5.1.0"
+  },
+  "comparisonRules": {
+    "mapped.nq": "RDF dataset isomorphism; private labels/order are not contractual.",
+    "canonical.nq": "Exact canonical N-Quads bytes.",
+    "canonical.json": "Exact complete JCS bytes.",
+    "ids.json": "Informative derivation only; symmetric handle correspondences are not contractual."
+  },
+  "sourceArtifacts": [
+    {
+      "path": "supplemental/field-contract/support.mjs",
+      "sha256": "ac1ffa3cebc2e4156ef693716d54f62cac9ef8fe6d3620e5843a5737262d7bf5"
+    },
+    {
+      "path": "supplemental/field-contract/contracts.mjs",
+      "sha256": "6f8d018d17edd726c5437d9b9ed7bf677005fe55cb086e84d227b6c089858130"
+    },
+    {
+      "path": "supplemental/field-contract/positives.mjs",
+      "sha256": "7c8731afb57ad69fcf5d7c0f1f2a2f16784b91a6cd62d92b14ede802aec23208"
+    },
+    {
+      "path": "supplemental/field-contract/derive-state-identity.mjs",
+      "sha256": "9aa5482c36d7c057de8afca9ee8d379b6bc2d9ffc3b62add2a8116112c53ba5e"
+    }
+  ],
+  "producer": {
+    "path": "supplemental/amended-policy/producer.mjs",
+    "sha256": "da7936738c98cb853de7c6d6f2ae7528cbd4d47a0c1ccb1258dae7c5f7143321"
+  },
+  "associations": {
+    "path": "supplemental/field-contract/state-identity/associations.json",
+    "sha256": "953ed92749c41bd6459f0be47d89244444d814ef84d72fee34192aff7812a2cd",
+    "byteLength": 4023
+  },
+  "independence": "The A6 producer and bounded source-state search are independent of product outputs. Sources have identical structure and one changed x coordinate; named subject/role/occurrence associations expose complete category ranks.",
+  "vectors": [
+    {
+      "id": "state-identity-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "rules": [
+        "A6",
+        "B2.3",
+        "B3",
+        "D18.1",
+        "D18.2",
+        "AC-005"
+      ],
+      "status": "independently-derived-state-only-category-relabel-pending-review",
+      "counts": {
+        "primary": 6,
+        "blankNodes": 29,
+        "quads": 85
+      },
+      "metamorphic": [
+        "typed-source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/state-identity/state-identity-before/source.json",
+          "sha256": "4bba04712b695a7450736c2bc3f6eb0736a590bc1945d6f1b94e1e8a34450a1e",
+          "byteLength": 1501
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/state-identity/state-identity-before/permuted-source.json",
+          "sha256": "b0f71baf5c5a84e8d27da260b2e7e81b5451b5ccc01b2ec8cf37760fe971a704",
+          "byteLength": 1603
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/state-identity/state-identity-before/mapped.nq",
+          "sha256": "0fc910cd01afe16d41672bcb1d1080b527cca20af3894063acb57fbe393cd2e5",
+          "byteLength": 10497
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/state-identity/state-identity-before/canonical.nq",
+          "sha256": "9b9ecb58b02c26488b39dabbb5d214d2f599ce9da5f6f9f9823d98698b106b12",
+          "byteLength": 10848
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/state-identity/state-identity-before/ids.json",
+          "sha256": "9e9039880c6047f7d58b5aafe860ddd4371d43cada9dba741a79d8ff09d99c88",
+          "byteLength": 952
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/state-identity/state-identity-before/canonical.json",
+          "sha256": "c6b16befd66ca5c0eed4f05b4827a250b66f7e32fbedc0e69e6c2e4e9d781ac2",
+          "byteLength": 828
+        }
+      }
+    },
+    {
+      "id": "state-identity-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "rules": [
+        "A6",
+        "B2.3",
+        "B3",
+        "D18.1",
+        "D18.2",
+        "AC-005"
+      ],
+      "status": "independently-derived-state-only-category-relabel-pending-review",
+      "counts": {
+        "primary": 6,
+        "blankNodes": 29,
+        "quads": 85
+      },
+      "metamorphic": [
+        "typed-source-handle-bijection",
+        "all-set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/field-contract/state-identity/state-identity-after/source.json",
+          "sha256": "1d9e762d6b6a4df787cb06b0866fda436072df05ba81b97d3e13c7d58ba8db0a",
+          "byteLength": 1501
+        },
+        "permuted-source.json": {
+          "path": "supplemental/field-contract/state-identity/state-identity-after/permuted-source.json",
+          "sha256": "f9bc7ba647f7f90df281720754cfc448d2556144c4e36589d467346b951ce506",
+          "byteLength": 1603
+        },
+        "mapped.nq": {
+          "path": "supplemental/field-contract/state-identity/state-identity-after/mapped.nq",
+          "sha256": "b96b20b136009fb3b97e31f68e5f6476383f94ba1d4fcebcb67d8a9abb062853",
+          "byteLength": 10497
+        },
+        "canonical.nq": {
+          "path": "supplemental/field-contract/state-identity/state-identity-after/canonical.nq",
+          "sha256": "eafc830fad8f2d037d4ded647e3d1d981f44ea89ba9af8476ad0eb2e0c1eb60b",
+          "byteLength": 10847
+        },
+        "ids.json": {
+          "path": "supplemental/field-contract/state-identity/state-identity-after/ids.json",
+          "sha256": "320614f046bccf932f5024b4b0c2a0564d9fed2b0fdda904af77eddae6111368",
+          "byteLength": 952
+        },
+        "canonical.json": {
+          "path": "supplemental/field-contract/state-identity/state-identity-after/canonical.json",
+          "sha256": "1bacb6ec0cb1bd5b8adfbc709b952cb4611e0d5ba8d98754be7e6275e841c9b9",
+          "byteLength": 828
+        }
+      }
+    }
+  ]
+}

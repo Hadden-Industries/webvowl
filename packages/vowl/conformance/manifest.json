@@ -1,0 +1,271 @@
+{
+  "format": "canonical-vowl-conformance-manifest/1",
+  "status": "experimental-seed-corpus-pending-independent-review",
+  "specificationRevision": [
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design.md",
+      "sha256": "174535bb8cb43f317631f0799721adebfbbc4ceff4d577595be8fb91dd940fac"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-core-contract.md",
+      "sha256": "711ba30c291cfb0960334328203188600f60a331996e83379267a4a77b87988d"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-projection-contract.md",
+      "sha256": "4c1cf6a7e187f98d40d390e6ff0b5354aca46a8ff195fba5b6badace7eb6078b"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design-decisions.md",
+      "sha256": "f314ec3448f2cf87f73ce6ce8871f3695d4b3b26dee687383b36e36a4fc0a43e"
+    }
+  ],
+  "profiles": {
+    "structural": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+    "artifact": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1"
+  },
+  "algorithms": {
+    "graph": "RDFC-1.0",
+    "internalDigest": "sha256",
+    "json": "RFC 8785"
+  },
+  "oracle": {
+    "name": "specification-derived-conformance-producer",
+    "version": "0.2.0",
+    "source": "oracle/producer.mjs",
+    "sourceSha256": "5097d9726c839afc7b4240dcb5527bd5089f5f847d788e9b32b6d3dd67699fd1",
+    "sourceArtifacts": [
+      {
+        "path": "oracle/producer.mjs",
+        "sha256": "5097d9726c839afc7b4240dcb5527bd5089f5f847d788e9b32b6d3dd67699fd1"
+      },
+      {
+        "path": "oracle/seed-sources.mjs",
+        "sha256": "fba52f7fbea6e50cede4be537e50a0f9d9bfc6047d25ec86f85d92b3dbef2704"
+      },
+      {
+        "path": "oracle/derive-vectors.mjs",
+        "sha256": "45e07db622b9306a1541daa5e58e4864ceb362c18d5d65e88970a24857a84cf9"
+      },
+      {
+        "path": "oracle/check-producer.mjs",
+        "sha256": "d016b858595548eb0e8b3c1b54442b002127c11a202db06025008f0482f3fb68"
+      }
+    ],
+    "dependencies": {
+      "rdf-canonize": "5.0.0",
+      "canonicalize": "5.1.0"
+    },
+    "derivationHistory": [
+      {
+        "canonicalize": "2.1.0",
+        "sourceSha256": "81bab1df05a49d5731a9dc3e3f5dbf69142d978d0742ae068f878f00be711456",
+        "manifestSha256": "2cfb61347e9505840b515145f456dfde3e6fd464c74f4b24158a04a31452454f",
+        "result": "Initial derivation; producer subsequently received repository Prettier formatting only, and every vector file byte reproduced unchanged with canonicalize 5.1.0"
+      },
+      {
+        "canonicalize": "5.1.0",
+        "sourceSha256": "0e3f988211f5e80b817d8867e6f026ebfeda38f98c88791b7913556f6f8851d3",
+        "manifestSha256": "fd76f91f855e2ee0107c9d43dab77213fa3332a40e19eb325d42e6cc7125cb2f",
+        "result": "Claude read-only seed review confirmed expected bytes/counts; F1-F8 led to narrower coverage claims, complete source-file pins, and oracle guards. All frozen vector files reproduce unchanged. Revised producer review is pending."
+      }
+    ],
+    "independence": "No production mapping, normalization, projection, ID code, or tests read or imported. Hand-derived normalized sources and occurrences; separate A6 mapper/category issuer. Shared standards libraries only.",
+    "limitations": [
+      "Not a complete validator or OWL/legacy adapter",
+      "Guards do not establish complete RFC3987/RFC5646 validation, role-target typing, semantic normal form, projection, or artifact-state invariants; reviewed normalized inputs remain required",
+      "Seed byte/count review completed; revised oracle and extended fixture review pending",
+      "Production comparison and cross-runtime matrix pending"
+    ]
+  },
+  "vectors": [
+    {
+      "id": "empty-structural",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "rules": [
+        "A2",
+        "A6.1",
+        "A6.2",
+        "A6.3",
+        "D9",
+        "D18.2"
+      ],
+      "status": "independently-derived-pending-review",
+      "coverageLimits": [
+        "D18.2 empty/singleton categories only; no numeric-rank or multi-member set-order discrimination",
+        "Text/Decimal templates are covered by the extended corpus, not these seeds"
+      ],
+      "counts": {
+        "primary": 0,
+        "blankNodes": 9,
+        "quads": 20
+      },
+      "files": {
+        "source.json": {
+          "path": "vectors/empty-structural/source.json",
+          "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+          "byteLength": 200
+        },
+        "mapped.nq": {
+          "path": "vectors/empty-structural/mapped.nq",
+          "sha256": "f1e963337844aab88552871a8878e95ed4e6657c8892e07dde1dd50cead46072",
+          "byteLength": 2496
+        },
+        "canonical.nq": {
+          "path": "vectors/empty-structural/canonical.nq",
+          "sha256": "db60b276c64f63a0a86a60fb901d4698827101dabcd8679f6362f4dd4168b6ee",
+          "byteLength": 2574
+        },
+        "ids.json": {
+          "path": "vectors/empty-structural/ids.json",
+          "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+          "byteLength": 3
+        },
+        "canonical.json": {
+          "path": "vectors/empty-structural/canonical.json",
+          "sha256": "d20d292b5553f3af1316ec929445b959da5ac829d86751580f80219363b71aae",
+          "byteLength": 230
+        }
+      }
+    },
+    {
+      "id": "named-class-structural",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "rules": [
+        "A2",
+        "A6",
+        "B2.1",
+        "D18.2"
+      ],
+      "status": "independently-derived-pending-review",
+      "coverageLimits": [
+        "D18.2 empty/singleton categories only; no numeric-rank or multi-member set-order discrimination",
+        "Text/Decimal templates are covered by the extended corpus, not these seeds"
+      ],
+      "counts": {
+        "primary": 3,
+        "blankNodes": 13,
+        "quads": 33
+      },
+      "files": {
+        "source.json": {
+          "path": "vectors/named-class-structural/source.json",
+          "sha256": "5fb3584a228bd2f40a4bd3734154bffdabfccd17a23a2f5cb7d0a148a3a188b2",
+          "byteLength": 535
+        },
+        "mapped.nq": {
+          "path": "vectors/named-class-structural/mapped.nq",
+          "sha256": "f63aae7132dac51a4f7c93a17a169310db203cd6889f10f73447158ee61459ff",
+          "byteLength": 3997
+        },
+        "canonical.nq": {
+          "path": "vectors/named-class-structural/canonical.nq",
+          "sha256": "1f7ab7d12852250d2aa6b0a60c214a5729b2bfcf6965b3310362066345aa7eb6",
+          "byteLength": 4132
+        },
+        "ids.json": {
+          "path": "vectors/named-class-structural/ids.json",
+          "sha256": "0dd7bba03e230baeb7382392261f6bfa2e17dac471881565cb0448d7f803a39d",
+          "byteLength": 477
+        },
+        "canonical.json": {
+          "path": "vectors/named-class-structural/canonical.json",
+          "sha256": "a0ae73e8261941a08c576d3fbd0be8871081e4bfa57f76790bfeea5e7c52e8f1",
+          "byteLength": 362
+        }
+      }
+    },
+    {
+      "id": "empty-artifact",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "rules": [
+        "A6",
+        "B3",
+        "D9"
+      ],
+      "status": "independently-derived-pending-review",
+      "coverageLimits": [
+        "D18.2 empty/singleton categories only; no numeric-rank or multi-member set-order discrimination",
+        "Text/Decimal templates are covered by the extended corpus, not these seeds"
+      ],
+      "counts": {
+        "primary": 0,
+        "blankNodes": 17,
+        "quads": 43
+      },
+      "files": {
+        "source.json": {
+          "path": "vectors/empty-artifact/source.json",
+          "sha256": "3e9d57e5ed490010c822db43375fca30d4c19fcec72de8b9acf94e173c97209f",
+          "byteLength": 557
+        },
+        "mapped.nq": {
+          "path": "vectors/empty-artifact/mapped.nq",
+          "sha256": "17ba4083b665016bb73e90dbaeccb6860a4cb28671a881468cde2fde6d9a5359",
+          "byteLength": 5477
+        },
+        "canonical.nq": {
+          "path": "vectors/empty-artifact/canonical.nq",
+          "sha256": "a6435d97740a70c6661a0a679a824961afcafb6ae6e6db26731efe3622def75f",
+          "byteLength": 5651
+        },
+        "ids.json": {
+          "path": "vectors/empty-artifact/ids.json",
+          "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+          "byteLength": 3
+        },
+        "canonical.json": {
+          "path": "vectors/empty-artifact/canonical.json",
+          "sha256": "ab83edd2480bcbb4bb4c2fc27a90aeee245bcf086ccc13b92e45c4e2e905b79c",
+          "byteLength": 444
+        }
+      }
+    },
+    {
+      "id": "named-class-artifact",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "rules": [
+        "A6",
+        "B2.1",
+        "B3",
+        "D18.2"
+      ],
+      "status": "independently-derived-pending-review",
+      "coverageLimits": [
+        "D18.2 empty/singleton categories only; no numeric-rank or multi-member set-order discrimination",
+        "Text/Decimal templates are covered by the extended corpus, not these seeds"
+      ],
+      "counts": {
+        "primary": 3,
+        "blankNodes": 23,
+        "quads": 64
+      },
+      "files": {
+        "source.json": {
+          "path": "vectors/named-class-artifact/source.json",
+          "sha256": "b388afd18223a2a1afd83c0756f1959c9052cf227ef6038ebeedbbd23a9991b5",
+          "byteLength": 1044
+        },
+        "mapped.nq": {
+          "path": "vectors/named-class-artifact/mapped.nq",
+          "sha256": "f5eb8d769dabc7bfc147e0233c540fd17e88dcd7b47abc2c922c3acaf95385c3",
+          "byteLength": 7993
+        },
+        "canonical.nq": {
+          "path": "vectors/named-class-artifact/canonical.nq",
+          "sha256": "66d73798f1419c8e429f3fae94ddf9370bee85aafc9c4cab7c0fda8082794921",
+          "byteLength": 8250
+        },
+        "ids.json": {
+          "path": "vectors/named-class-artifact/ids.json",
+          "sha256": "5c0afb252a4d6d9cede7ef7df58e265c8bbd56296125ddc7ade77e258553d664",
+          "byteLength": 478
+        },
+        "canonical.json": {
+          "path": "vectors/named-class-artifact/canonical.json",
+          "sha256": "4b6d3be6845944990e40bdbd86717d8fdcc0b370d9a063e2f077ec34b8ac55bd",
+          "byteLength": 638
+        }
+      }
+    }
+  ]
+}

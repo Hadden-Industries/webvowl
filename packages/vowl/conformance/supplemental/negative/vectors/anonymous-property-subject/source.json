@@ -1,0 +1,123 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s-A",
+        "iri": "https://example.org/o#A"
+      },
+      {
+        "id": "s-B",
+        "iri": "https://example.org/o#B"
+      },
+      {
+        "id": "s-p"
+      },
+      {
+        "id": "s-q",
+        "iri": "https://example.org/o#q"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s-A"
+      },
+      {
+        "id": "B",
+        "kind": "class",
+        "subject": "s-B"
+      },
+      {
+        "id": "p",
+        "kind": "object-property",
+        "subject": "s-p"
+      },
+      {
+        "id": "q",
+        "kind": "object-property",
+        "subject": "s-q"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "domain-p",
+        "kind": "object-domain",
+        "property": "p",
+        "target": "A"
+      },
+      {
+        "id": "range-p",
+        "kind": "object-range",
+        "property": "p",
+        "target": "B"
+      },
+      {
+        "id": "domain-q",
+        "kind": "object-domain",
+        "property": "q",
+        "target": "B"
+      },
+      {
+        "id": "range-q",
+        "kind": "object-range",
+        "property": "q",
+        "target": "A"
+      },
+      {
+        "id": "inverse",
+        "kind": "inverse-properties",
+        "members": [
+          "q",
+          "p"
+        ]
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "node-B",
+        "kind": "class-node",
+        "targets": [
+          "B"
+        ]
+      },
+      {
+        "id": "inverse-edge",
+        "kind": "inverse-edge",
+        "construct": "inverse",
+        "forward": [
+          "p"
+        ],
+        "reverse": [
+          "q"
+        ],
+        "from": "node-A",
+        "to": "node-B"
+      },
+      {
+        "id": "forward-label",
+        "kind": "label",
+        "edge": "inverse-edge",
+        "direction": "forward"
+      },
+      {
+        "id": "reverse-label",
+        "kind": "label",
+        "edge": "inverse-edge",
+        "direction": "reverse"
+      }
+    ]
+  }
+}

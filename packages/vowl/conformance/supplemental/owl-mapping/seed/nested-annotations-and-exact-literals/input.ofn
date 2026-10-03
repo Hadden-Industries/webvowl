@@ -1,0 +1,10 @@
+Prefix(:=<https://example.org/owl-seed#>)
+Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)
+Ontology(
+Declaration(Class(:A))
+Declaration(Class(:B))
+Declaration(AnnotationProperty(:note))
+Declaration(AnnotationProperty(:meta))
+SubClassOf(Annotation(Annotation(:meta "nested") :note "01"^^xsd:integer) :A :B)
+AnnotationAssertion(:note :A "Colour"@EN-gb)
+)

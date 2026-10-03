@@ -1,0 +1,30 @@
+{
+  "correspondence": [
+    {
+      "previous": "s0",
+      "current": "s0"
+    },
+    {
+      "previous": "s1",
+      "current": null
+    },
+    {
+      "previous": "r0",
+      "current": null
+    },
+    {
+      "previous": "r1",
+      "current": "r0"
+    },
+    {
+      "previous": "o0",
+      "current": null
+    },
+    {
+      "previous": "o1",
+      "current": "o0"
+    }
+  ],
+  "created": [],
+  "comparison": "Compare correspondence as a total previous-ID mapping and created as an ID set; the amendment does not specify array order. These cases need no merge aliases and do not claim general editing normalization coverage."
+}

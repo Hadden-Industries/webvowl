@@ -1,0 +1,130 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s-Thing",
+        "iri": "http://www.w3.org/2002/07/owl#Thing"
+      },
+      {
+        "id": "s-Literal",
+        "iri": "http://www.w3.org/2000/01/rdf-schema#Literal"
+      },
+      {
+        "id": "s-p",
+        "iri": "https://example.org/o#p"
+      },
+      {
+        "id": "s-q",
+        "iri": "https://example.org/o#q"
+      }
+    ],
+    "roles": [
+      {
+        "id": "Thing",
+        "kind": "class",
+        "subject": "s-Thing"
+      },
+      {
+        "id": "Literal",
+        "kind": "datatype",
+        "subject": "s-Literal"
+      },
+      {
+        "id": "p",
+        "kind": "data-property",
+        "subject": "s-p"
+      },
+      {
+        "id": "q",
+        "kind": "data-property",
+        "subject": "s-q"
+      }
+    ],
+    "expressions": [],
+    "constructs": [],
+    "occurrences": [
+      {
+        "id": "generic-p",
+        "kind": "class-node",
+        "targets": [
+          "Thing"
+        ],
+        "context": {
+          "kind": "property",
+          "properties": [
+            "p"
+          ]
+        }
+      },
+      {
+        "id": "datatype-p",
+        "kind": "datatype-node",
+        "target": "Literal",
+        "context": {
+          "kind": "property",
+          "properties": [
+            "p"
+          ]
+        }
+      },
+      {
+        "id": "edge-p",
+        "kind": "property-edge",
+        "properties": [
+          "p"
+        ],
+        "from": "generic-p",
+        "to": "datatype-p"
+      },
+      {
+        "id": "label-edge-p",
+        "kind": "label",
+        "edge": "edge-p",
+        "direction": "single"
+      },
+      {
+        "id": "generic-q",
+        "kind": "class-node",
+        "targets": [
+          "Thing"
+        ],
+        "context": {
+          "kind": "property",
+          "properties": [
+            "q"
+          ]
+        }
+      },
+      {
+        "id": "datatype-q",
+        "kind": "datatype-node",
+        "target": "Literal",
+        "context": {
+          "kind": "property",
+          "properties": [
+            "q"
+          ]
+        }
+      },
+      {
+        "id": "edge-q",
+        "kind": "property-edge",
+        "properties": [
+          "q"
+        ],
+        "from": "generic-q",
+        "to": "datatype-q"
+      },
+      {
+        "id": "label-edge-q",
+        "kind": "label",
+        "edge": "edge-q",
+        "direction": "single"
+      }
+    ]
+  }
+}

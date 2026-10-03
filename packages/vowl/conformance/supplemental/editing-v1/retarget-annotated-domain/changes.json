@@ -1,0 +1,7 @@
+[
+  {
+    "kind": "set-endpoint",
+    "construct": "c2",
+    "target": "r0"
+  }
+]

@@ -1,0 +1,98 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "direction": "single",
+        "edge": "supplement-renamed-2",
+        "kind": "label",
+        "id": "supplement-renamed-1"
+      },
+      {
+        "to": "supplement-renamed-5",
+        "from": "supplement-renamed-7",
+        "construct": "supplement-renamed-8",
+        "kind": "subclass-edge",
+        "id": "supplement-renamed-2"
+      },
+      {
+        "to": "supplement-renamed-6",
+        "from": "supplement-renamed-5",
+        "expression": "supplement-renamed-9",
+        "kind": "operator-edge",
+        "id": "supplement-renamed-3"
+      },
+      {
+        "to": "supplement-renamed-7",
+        "from": "supplement-renamed-5",
+        "expression": "supplement-renamed-9",
+        "kind": "operator-edge",
+        "id": "supplement-renamed-4"
+      },
+      {
+        "targets": [
+          "supplement-renamed-9"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-5"
+      },
+      {
+        "targets": [
+          "supplement-renamed-10"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-6"
+      },
+      {
+        "targets": [
+          "supplement-renamed-11"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-7"
+      }
+    ],
+    "constructs": [
+      {
+        "super": "supplement-renamed-9",
+        "sub": "supplement-renamed-11",
+        "kind": "subclass",
+        "id": "supplement-renamed-8"
+      }
+    ],
+    "expressions": [
+      {
+        "members": [
+          "supplement-renamed-10",
+          "supplement-renamed-11"
+        ],
+        "kind": "class-intersection",
+        "id": "supplement-renamed-9"
+      }
+    ],
+    "roles": [
+      {
+        "subject": "supplement-renamed-12",
+        "kind": "class",
+        "id": "supplement-renamed-10"
+      },
+      {
+        "subject": "supplement-renamed-13",
+        "kind": "class",
+        "id": "supplement-renamed-11"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "https://example.org/supplement#B",
+        "id": "supplement-renamed-12"
+      },
+      {
+        "iri": "https://example.org/supplement#A",
+        "id": "supplement-renamed-13"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

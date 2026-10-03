@@ -1,0 +1,31 @@
+{
+  "structural": {
+    "occurrences": [],
+    "constructs": [
+      {
+        "target": "urn:example:target",
+        "property": "supplement-renamed-2",
+        "kind": "annotation-domain",
+        "id": "supplement-renamed-1"
+      }
+    ],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "supplement-renamed-3",
+        "kind": "annotation-property",
+        "id": "supplement-renamed-2"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "https://example.org/supplement#p",
+        "id": "supplement-renamed-3"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

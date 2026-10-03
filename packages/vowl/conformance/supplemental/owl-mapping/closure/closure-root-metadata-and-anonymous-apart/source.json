@@ -1,0 +1,124 @@
+{
+  "structural": {
+    "ontology": {
+      "iri": "urn:owl-seed:root",
+      "versionIri": "urn:owl-seed:root:v1",
+      "imports": [
+        "urn:owl-seed:left",
+        "urn:owl-seed:right"
+      ],
+      "annotations": [
+        {
+          "predicate": "https://example.org/owl-seed#title",
+          "value": {
+            "kind": "typed",
+            "lexical": "root-only",
+            "datatype": "http://www.w3.org/2001/XMLSchema#string"
+          },
+          "annotations": []
+        }
+      ]
+    },
+    "subjects": [
+      {
+        "id": "s:A",
+        "iri": "https://example.org/owl-seed#A"
+      },
+      {
+        "id": "s:B",
+        "iri": "https://example.org/owl-seed#B"
+      },
+      {
+        "id": "s:title",
+        "iri": "https://example.org/owl-seed#title"
+      },
+      {
+        "id": "s:string",
+        "iri": "http://www.w3.org/2001/XMLSchema#string"
+      },
+      {
+        "id": "anonymous-root"
+      },
+      {
+        "id": "anonymous-left"
+      },
+      {
+        "id": "anonymous-right"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s:A"
+      },
+      {
+        "id": "B",
+        "kind": "class",
+        "subject": "s:B"
+      },
+      {
+        "id": "title",
+        "kind": "annotation-property",
+        "subject": "s:title"
+      },
+      {
+        "id": "string",
+        "kind": "datatype",
+        "subject": "s:string"
+      },
+      {
+        "id": "individual-root",
+        "kind": "individual",
+        "subject": "anonymous-root"
+      },
+      {
+        "id": "individual-left",
+        "kind": "individual",
+        "subject": "anonymous-left"
+      },
+      {
+        "id": "individual-right",
+        "kind": "individual",
+        "subject": "anonymous-right"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "member-root",
+        "kind": "class-membership",
+        "class": "A",
+        "individual": "individual-root"
+      },
+      {
+        "id": "member-left",
+        "kind": "class-membership",
+        "class": "A",
+        "individual": "individual-left"
+      },
+      {
+        "id": "member-right",
+        "kind": "class-membership",
+        "class": "A",
+        "individual": "individual-right"
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-0",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "node-1",
+        "kind": "class-node",
+        "targets": [
+          "B"
+        ]
+      }
+    ]
+  }
+}
