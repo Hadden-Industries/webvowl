@@ -1,6 +1,7 @@
 # Canonical VOWL application identity boundary proposal
 
-Status: preparation for the plan's SLICE-005 entry decision; no application implementation or owner acceptance is claimed.
+Status: owner accepted on 2 October 2026 after the Q1–Q10 walkthrough and final confirmation in the implementation conversation.
+Acceptance authorizes SLICE-005 candidate implementation; it does not claim completed implementation or qualification.
 The existing [ADR 0010](../adr/0010-rendered-graph-is-a-projection-not-the-store.md), as amended by [ADR 0012](../adr/0012-human-and-agent-visualization-action-parity.md), already permits generation-scoped occurrence references for arrangement and keeps experimental editing human-only.
 This proposal applies that boundary to the [approved package editing operation](../specs/2026-09-30-canonical-vowl-editing-amendment.md).
 
@@ -155,4 +156,49 @@ If application requirements instead require installing each captured artifact as
 That alternative needs separate feasibility evidence and an exact interface decision; it must not be implemented by matching equal local IDs or by guessing anonymous correspondence.
 The proposal currently retains the existing separate-export behavior and does not request that additional API.
 
-The plan's explicit owner acceptance of this boundary mapping and SLICE-005 implementation scope remains required before affected application source changes.
+## Owner acceptance and implementation requirements
+
+The owner accepted Q1–Q10 and confirmed the consolidated boundary on 2 October 2026.
+The accepted refinements are:
+
+- Explain inverse detachment before applying an endpoint edit, including an unannotated inverse relationship.
+  An annotated inverse still requires its separate exact deletion confirmation.
+- Conflicting occurrence placements reject the semantic edit atomically.
+  A usable reconciliation path is an acceptance requirement; if existing arrangement controls cannot provide one, return for a bounded interface decision before expanding them.
+- Complete scene state is an invariant of every accepted load and edit, including placements for hidden positionable occurrences.
+  Initialize new placements before acceptance and retain them when visibility changes.
+  Export captures that complete state and checks its consistency; missing placements are implementation defects, not an ordinary user repair workflow.
+- Reject ambiguous labels, shared-role renames and conversions without an exact assertion/annotation mapping.
+  Edit only the selected assertion, preserving other uses of shared expressions; a gesture on a default endpoint asserts only the explicitly requested relationship.
+
+The owner also authorized adoption and resumption of the existing paused HISEW execution under the current installation.
+Production cutover, profile freeze, publication and legacy retirement retain their separate gates.
+
+### Accepted placement reconciliation refinement
+
+The implementation entry inspection on 2 October 2026 found that `webVowlController.setVisualizationArrangement` supports exact coordinates and pin changes, but its current production caller is the WebMCP adapter.
+The human interface provides dragging and pick-and-pin, without an equivalent exact-coordinate or alignment control.
+The renderer also rejects independent movement of some property labels.
+Those controls do not establish a usable human path to exact agreement of coordinates, pin state and visibility for every proposed occurrence merge.
+The owner conditionally accepted the bounded interaction on 2 October 2026, requiring established UI/UX practice.
+The guidance check below supports proceeding with the stated interaction requirements.
+
+Accepted resolution:
+
+- Leave the first conflicting semantic edit unapplied and identify each occurrence merge that needs a choice.
+- Offer an explicit retry preview in which the human selects one predecessor's placement, pin state and visibility for each conflicting result.
+  Describe which other placements will be discarded and provide cancellation with no changes.
+- Bind the preview to the semantic document revision and the relevant scene state; a changed document or affected placement invalidates it and requires a refreshed preview.
+- Apply the confirmed semantic edit and the selected resulting scene together, atomically.
+  Do not first force existing occurrences into overlapping positions or override their movement restrictions.
+- Keep annotations and ontology deletion confirmations separate; choosing a placement grants no permission to remove semantic facts.
+
+This replaces exact pre-edit scene agreement with explicit human-selected reconciliation for conflicting merges.
+It adds only this narrowly scoped human interaction.
+
+The [Nielsen Norman Group usability heuristics](https://www.nngroup.com/articles/ten-usability-heuristics/) support visible choices, user control, error prevention and contextual recovery.
+[Google's Material communication guidance](https://codelabs.developers.google.com/codelabs/material-communication-guidance) supports clear decision text and action labels.
+The implementation must identify choices with recognizable entity/relationship labels and a visual placement preview, not canonical IDs or raw coordinates alone.
+Use an explicit action label such as “Apply edit” and a harmless “Cancel”; require a choice for each unresolved conflict and avoid confirmation when placements already agree.
+Follow the [WAI modal-dialog pattern](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/) for keyboard access, focus containment, Escape cancellation and focus restoration if a modal is used.
+These are design principles supporting the chosen interaction, not evidence that typical WebVOWL users have tested or preferred it.

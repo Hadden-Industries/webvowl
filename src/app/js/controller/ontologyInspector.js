@@ -1,5 +1,6 @@
 import {
   assertCurrentOntologyElementReference,
+  ontologyElementReferenceKey,
   truncateOntologyDerivedText,
   truncateResultCollection,
   WEB_VOWL_OPERATION_LIMITS,
@@ -118,20 +119,6 @@ function assertAgreeingLoadGeneration(
     );
   }
   return ontologyInspectionSnapshot.loadGeneration;
-}
-
-function ontologyElementReferenceKey(ontologyElementReference) {
-  if (typeof ontologyElementReference.iri === "string") {
-    return JSON.stringify([
-      ontologyElementReference.kind,
-      ontologyElementReference.iri,
-    ]);
-  }
-  return JSON.stringify([
-    ontologyElementReference.kind,
-    String(ontologyElementReference.loadGeneration),
-    ontologyElementReference.localId,
-  ]);
 }
 
 function createVisibleReferenceKeySet(visibleRenderedGraphSnapshot) {

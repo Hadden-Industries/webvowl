@@ -5,7 +5,7 @@ The following resolved runtime dependency closure retains its original grants an
 Distinct installed versions are listed separately.
 Dependencies are installed separately; these notices do not relicense them.
 
-owlapi is selected by the immutable dependency specifier `git+https://github.com/Hadden-Industries/owlapi.git#3097c6af1e7f47f97f5d90dd23915d83a5bb1489`.
+owlapi is selected by the exact native npm alias `npm:@hadden-industries/owlapi@0.1.0-rc.1`, preserving public `owlapi/*` imports.
 
 ## @digitalbazaar/http-client@4.4.0
 
@@ -1236,7 +1236,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ```
 
-## owlapi@0.1.0-rc.1
+## @hadden-industries/owlapi@0.1.0-rc.1
 
 LICENSE
 

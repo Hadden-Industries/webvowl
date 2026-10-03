@@ -8,10 +8,8 @@ import { createRenderedSvgExportClone } from "./renderedSvgExportClone.js";
 import { captureRenderedDrawing } from "./captureRenderedDrawing.js";
 import { serializeOntologyAsTurtle } from "./ontologyTurtleSerializer.js";
 import { createRenderedDrawingSnapshot } from "../../../app/js/controller/renderedDrawingSnapshot.js";
-import {
-  indexOntologyElementReferencesByVowlElementId,
-  ontologyElementReferenceKey,
-} from "../../../app/js/controller/vowlModelInspectionProjector.js";
+import { indexOntologyElementReferencesByVowlElementId } from "../../../app/js/controller/vowlModelInspectionProjector.js";
+import { ontologyElementReferenceKey } from "../../../app/js/controller/webVowlControllerContracts.js";
 import {
   createContinuousZoomRequest,
   createAppliedVisualizationView,

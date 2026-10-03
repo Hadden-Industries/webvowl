@@ -319,6 +319,17 @@ function assertPositiveLoadGeneration(loadGeneration) {
   }
 }
 
+/** Distinguish punned entities and generation-scoped anonymous references. */
+export function ontologyElementReferenceKey(reference) {
+  return typeof reference.iri === "string"
+    ? JSON.stringify([reference.kind, reference.iri])
+    : JSON.stringify([
+        reference.kind,
+        String(reference.loadGeneration),
+        reference.localId,
+      ]);
+}
+
 export function createOntologyElementReference({
   iri,
   kind,

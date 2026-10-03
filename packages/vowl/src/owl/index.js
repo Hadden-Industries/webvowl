@@ -1,4 +1,6 @@
-import { canonicalize, profiles } from "../index.js";
+import { canonicalize, profiles, inspectModel } from "../index.js";
+import { admitOwlModel } from "../modelAdmission.js";
+import { prepareCompatibleView } from "./compatibleLoading.js";
 import { fail, VowlError } from "../errors.js";
 import { optionRecord, ResourceBudget } from "../resourceBudget.js";
 import { canonicalizeWithBudget } from "../operationBudget.js";
@@ -26,6 +28,49 @@ const optionChecks = {
     }
   },
 };
+
+/** Open a qualified live OWL model; canonical identity is a separate operation. */
+export async function openOwl(input, options) {
+  const opts = optionRecord(options, [
+    "documentIri",
+    "mediaType",
+    "resolveImport",
+    "signal",
+    "limits",
+  ]);
+  const checks = {
+    documentIri: optionChecks.documentIri,
+    mediaType: optionChecks.mediaType,
+    resolveImport: optionChecks.resolveImport,
+  };
+  const budget = new ResourceBudget(opts, performance.now(), checks);
+  try {
+    const context = documentContext(opts.documentIri, opts.mediaType, budget);
+    const bytes = snapshotBytes(input, budget);
+    const prepared = await prepareCompatibleView(bytes, context, opts, budget);
+    return admitOwlModel(
+      inspectModel,
+      prepared.source,
+      prepared.retained,
+      opts.documentIri,
+      budget,
+    );
+  } catch (error) {
+    budget.check();
+    if (error instanceof VowlError) {
+      throw error;
+    }
+    throw new VowlError(
+      "DEPENDENCY_FAILURE",
+      "OWL live admission dependency failed",
+      {
+        details: { stage: "owl-live-admission" },
+      },
+    );
+  } finally {
+    budget.dispose();
+  }
+}
 
 /** A9 source-preserving OWL ingress. Acquisition is only through the explicit callback. */
 export async function fromOwl(input, options) {

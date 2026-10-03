@@ -1,0 +1,111 @@
+.canonical-merge-dialog {
+  overflow: auto;
+
+  box-sizing: border-box;
+  width: min(38rem, calc(100% - 2rem));
+  max-height: calc(100dvh - 2rem);
+  padding: 1.5rem;
+  border: 1px solid #777;
+  border-radius: 0.5rem;
+
+  font-family: "Open Sans", Helvetica, Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #222;
+
+  background: #fff;
+  box-shadow: 0 1rem 3rem rgb(0 0 0 / 30%);
+}
+
+.canonical-merge-dialog::backdrop {
+  background: rgb(0 0 0 / 45%);
+}
+
+.canonical-merge-dialog h2 {
+  margin-top: 0;
+  font-size: 1.25rem;
+}
+
+.canonical-merge-dialog fieldset {
+  min-width: 0;
+  margin-block: 1rem;
+  padding: 1rem;
+  border: 1px solid #aaa;
+}
+
+.canonical-merge-choice {
+  cursor: pointer;
+
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+
+  margin-block: 0.5rem;
+  padding: 0.5rem;
+}
+
+.canonical-merge-choice strong,
+.canonical-merge-choice span span {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.canonical-merge-preview {
+  display: block;
+
+  width: 100%;
+  max-height: 10rem;
+
+  color: #222;
+
+  background: #f4f4f4;
+}
+
+.canonical-merge-preview circle {
+  fill: #fff;
+  stroke: currentcolor;
+  stroke-width: 1;
+}
+
+.canonical-merge-preview .is-selected circle {
+  stroke-width: 4;
+}
+
+.canonical-merge-preview text {
+  fill: currentcolor;
+}
+
+.canonical-merge-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.canonical-merge-actions button {
+  cursor: pointer;
+
+  min-height: 2.75rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #777;
+  border-radius: 0.25rem;
+
+  font: inherit;
+  color: inherit;
+
+  background: #fff;
+}
+
+.canonical-merge-actions button[type="submit"]:enabled {
+  border: 2px solid var(--theme-color-accent, #d90);
+}
+
+.canonical-merge-actions button:disabled {
+  cursor: default;
+  color: #666;
+}
+
+.canonical-merge-dialog :focus-visible {
+  outline: 2px solid #222;
+  outline-offset: 3px;
+}

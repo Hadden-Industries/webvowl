@@ -164,11 +164,11 @@ export function applyChanges(source, changes, budget) {
 }
 
 /** Normalize only the A2/A5/B2 producer obligations, with no OWL entailment or layout. */
-export function normalizeDraft(source, budget) {
+export function normalizeDraft(source, budget, reservedHandles = []) {
   const model = source.structural;
   // A removed duplicate remains an alias. Its name cannot be issued to a new
   // aggregate or signature record later in this same normalization operation.
-  const usedIds = new Set();
+  const usedIds = new Set(reservedHandles);
   for (const collection of [...Object.keys(collections), "occurrences"]) {
     for (const record of model[collection]) {
       budget.check();

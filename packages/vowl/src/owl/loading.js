@@ -160,6 +160,7 @@ function loadingFailure(error, budget) {
 /** A fresh manager owns one closure; the caller callback is the only acquisition capability. */
 export async function loadClosure(bytes, context, options, budget, policy) {
   let boundaryFailure;
+  policy.observeSource?.(bytes, context);
   const manager = OWLManager.createOWLOntologyManager({
     documentLoader: {
       async load(_retrievalIri, request) {
@@ -223,6 +224,10 @@ export async function loadClosure(bytes, context, options, budget, policy) {
             budget,
             "/resolveImport",
           );
+          policy.observeSource?.(snapshot, importedContext, {
+            requestedIri: request.importIRI.value,
+            parentDocumentIri: request.importingDocumentIRI.value,
+          });
           return sourceFor(snapshot, importedContext);
         } catch (error) {
           boundaryFailure = error;
@@ -236,7 +241,7 @@ export async function loadClosure(bytes, context, options, budget, policy) {
   });
   const limits = budget.limits;
   const configuration = new OWLOntologyLoaderConfiguration({
-    parsingMode: "preserve",
+    parsingMode: policy.parsingMode ?? "preserve",
     loadAnnotationAxioms: true,
     collectWarnings: true,
     // Owning HTTP gating precedes the custom loader. No built-in fetcher is installed.
@@ -273,7 +278,9 @@ export async function loadClosure(bytes, context, options, budget, policy) {
     for (const { context: loadedContext } of loaded.documents) {
       budget.check();
       for (const diagnostic of loadedContext.diagnostics) {
-        if (diagnostic.code === "MISSING_IMPORT") {
+        if (policy.parsingMode === "compatible") {
+          policy.observeDiagnostic(diagnostic, loadedContext);
+        } else if (diagnostic.code === "MISSING_IMPORT") {
           policy.recover(
             "MAPPING_IMPORT_UNRESOLVED",
             "An authored import could not be resolved.",
@@ -288,7 +295,7 @@ export async function loadClosure(bytes, context, options, budget, policy) {
         }
       }
     }
-    return loaded;
+    return { ...loaded, manager };
   } catch (error) {
     if (boundaryFailure) {
       throw boundaryFailure;

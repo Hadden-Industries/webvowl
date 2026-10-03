@@ -199,7 +199,7 @@ export function unsupportedQuantifier(root, budget, wanted) {
   return undefined;
 }
 
-/** Build only through public, source-validated OWL objects. No parsing or OWL inference. */
+/** Build through public OWL objects and available source structure; no parsing or inference. */
 export function buildModel(loaded, budget, policy) {
   const structural = {
     ontology: { imports: [], annotations: [] },
@@ -268,7 +268,7 @@ export function buildModel(loaded, budget, policy) {
     return roles.get(key);
   };
   for (const { ontology, context } of loaded.documents) {
-    for (const item of context.sourceStructure.roles) {
+    for (const item of context.sourceStructure?.roles ?? []) {
       budget.check();
       const kind = roleTypes.get(item.type);
       if (!kind) {
@@ -439,6 +439,8 @@ export function buildModel(loaded, budget, policy) {
       policy.diagnostic(
         "MAPPING_EXCLUDED_AXIOM",
         `Excluded source constructor: ${excluded.get(value.kind)}; its annotations are excluded.`,
+        undefined,
+        { constructor: excluded.get(value.kind) },
       );
       return;
     }
@@ -447,6 +449,8 @@ export function buildModel(loaded, budget, policy) {
       policy.recover(
         "MAPPING_UNSUPPORTED_CONSTRUCT",
         `Omitted whole ${value.kind} containing ${unsupported.slice(3)}.`,
+        undefined,
+        { constructor: value.kind, unsupported: unsupported.slice(3) },
       );
       return;
     }
@@ -504,6 +508,8 @@ export function buildModel(loaded, budget, policy) {
       policy.recover(
         "MAPPING_UNSUPPORTED_CONSTRUCT",
         `Omitted whole source statement containing ${unsupported.slice(3)}.`,
+        undefined,
+        { constructor: "source-statement", unsupported: unsupported.slice(3) },
       );
       return;
     }
@@ -581,7 +587,7 @@ export function buildModel(loaded, budget, policy) {
     (value) => annotation(value, loaded.ontology),
   );
   for (const { ontology, context } of loaded.documents) {
-    for (const item of context.sourceStructure.roles) {
+    for (const item of context.sourceStructure?.roles ?? []) {
       budget.check();
       if (item.origin !== "declaration") {
         continue;
@@ -601,7 +607,7 @@ export function buildModel(loaded, budget, policy) {
     for (const value of ontology.getAxioms()) {
       axiom(value, ontology);
     }
-    for (const value of context.sourceStructure.statements) {
+    for (const value of context.sourceStructure?.statements ?? []) {
       statement(value, ontology);
     }
   }

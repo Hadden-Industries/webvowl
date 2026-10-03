@@ -33,6 +33,35 @@ The application supplies complete artifact state after reconciling operation-loc
 Commands are `insert`, `replace`, `remove`, `set-endpoint` and `set-ontology`; the amendment defines their closed shapes and annotation rules.
 Removal does not implicitly cascade and an ambiguous annotated aggregate edit fails.
 
+The compatible-view implementation now includes the canonical-origin live-model path on the root surface.
+`openCanonical(document, {signal, limits})` requires local canonical admission and returns `{model, correspondence}`.
+The opaque, immutable live token carries a revision; `inspectModel(model)` exposes frozen retained records, occurrences and support with original-source coverage explicitly unavailable.
+It conveys neither source-preservation evidence nor canonical encoding authority.
+
+`editModel(model, changes, {signal, limits})` reuses the five-operation normalizer and returns `{model, correspondence, created}` without running RDFC.
+`checkpointModel(model, {signal, limits})` returns a defensive session checkpoint; `readmitModel(checkpoint, {signal, limits})` validates its version, closed fields, normalized structure, complete projection and support references before returning `{model, correspondence}`.
+Readmission performs no network acquisition or canonicalization.
+The application must preserve and reconcile the complete scene alongside the checkpoint.
+
+`captureModel(model, {profile, visualization, signal, limits})` validates and canonicalizes a snapshot, returning `{document, correspondence}` without replacing live handles.
+The visualization field is required for artifact capture and forbidden for structural-content capture.
+Failed editing, recovery or capture leaves the previous model usable.
+`openOwl(bytes, {documentIri, mediaType, resolveImport, signal, limits})` on `vowl/owl` now admits a compatible live model and returns `{model, correspondence}` without RDFC.
+It retains the acquired closure bytes and historical parser/profile reports in a defensive checkpoint, with digests verified on recovery.
+Inspection exposes qualified interpretation and original assessment separately from current typed records; exhaustive statement-to-record provenance remains unavailable.
+Edits depending on unresolved source interpretation fail atomically while unrelated edits remain available.
+The root surface also exports the experimental `compatibleArtifactProfile` identifier, separately from the frozen v1 `profiles` inventory.
+`captureModel(model, {profile: compatibleArtifactProfile, visualization})` captures retained structure, complete scene and portable interpretation qualifications together.
+`decode`, `encode` and `openCanonical` support this profile; reopened artifacts remain editable through `editModel` and can be captured again.
+The frozen `edit(document, ...)` operation still returns structural content and therefore rejects qualified artifacts; use the live-model editing operations to retain qualifications.
+Explicit v1 capture of an OWL-origin or qualified model fails with `CAPTURE_QUALIFICATION_UNREPRESENTABLE` rather than discarding qualifications.
+Portable qualifications retain selected ontology identity, document/import relationships and typed assessment details, but omit acquired bytes, retrieval locations, digests and diagnostic prose.
+Reopened artifacts report original bytes and statement associations as unavailable; their claimed qualifications do not establish original-source authenticity.
+Public unparsed RDF statements are retained separately from typed OWL, including document-scoped anonymous identity, exact literal lexical text, datatype, language and any reported direction.
+They survive compatible capture and live reopening without acquiring an invented OWL interpretation or cross-document blank-node identity.
+Edits whose dependencies touch these unresolved statements remain guarded after reopening; unrelated edits remain available.
+This is not application cutover or completed compatibility qualification.
+
 The experimental OWL adapter is available on the second public surface:
 
 ```js
@@ -95,7 +124,7 @@ Limits affect acceptance, never successful bytes; cancellation and resource exha
 Unexpected standards-library failures are not replaced by another algorithm.
 The approved [A8 resource-policy amendment](../../docs/specs/2026-09-30-canonical-vowl-resource-policy-amendment.md) uses `min(B * B, rdfDeepIterations)` for RDFC work, retaining finite absolute limits and the same successful canonical bytes.
 
-The `schema` directory contains two canonical profile schemas and the closed legacy ingress shape, all mechanically generated JSON Schema 2020-12 artifacts.
+The `schema` directory contains the two frozen canonical profile schemas, the experimental compatible-artifact schema and the closed legacy ingress shape, all mechanically generated JSON Schema 2020-12 artifacts.
 Scalar domains, reference kinds, recursive identity, projection, artifact completeness and exact canonicality additionally require the semantic validator.
 Schema validation alone does not grant encoding admission.
 

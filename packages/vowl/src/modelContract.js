@@ -363,7 +363,7 @@ export function schemaFor(
   if (descriptor.reference || descriptor.id) {
     const result = { type: "string", ...(source ? {} : { minLength: 1 }) };
     if (descriptor.id && !source) {
-      result.pattern = `^${{ S: "s", R: "r", X: "x", K: "c", O: "o" }[descriptor.id]}(0|[1-9][0-9]*)$`;
+      result.pattern = `^${descriptor.idPrefix ?? { S: "s", R: "r", X: "x", K: "c", O: "o" }[descriptor.id]}(0|[1-9][0-9]*)$`;
     }
     return result;
   }

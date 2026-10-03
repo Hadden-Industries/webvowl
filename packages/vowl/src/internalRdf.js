@@ -22,8 +22,23 @@ const typeNames = {
 const type = named(namespaces.rdf + "type");
 const graph = { termType: "DefaultGraph", value: "" };
 
+function mappingContract(document) {
+  return {
+    descriptor: envelope(document.profile, true),
+    collections: Object.entries(categories).map(([collection, prefix]) => ({
+      records: document.structural[collection],
+      prefix,
+      type: typeNames[collection],
+    })),
+  };
+}
+
 /** Map an already validated typed profile. Private conformance tests may inspect A6 artifacts. */
-export function mapDataset(document, budget) {
+export function mapDataset(
+  document,
+  budget,
+  contract = mappingContract(document),
+) {
   const dataset = [];
   const primaryNodes = new Map();
   const encoded = new Set();
@@ -35,12 +50,12 @@ export function mapDataset(document, budget) {
   }
   const typed = (node, kind) =>
     emit(node, type, named(namespaces.mapping + kind));
-  for (const collection of Object.keys(categories)) {
-    for (const record of document.structural[collection]) {
+  for (const collection of contract.collections) {
+    for (const record of collection.records) {
       budget.check();
       const node = blank();
       primaryNodes.set(record.id, node);
-      typed(node, typeNames[collection]);
+      typed(node, collection.type);
     }
   }
   function encode(value, descriptor, root) {
@@ -115,17 +130,21 @@ export function mapDataset(document, budget) {
     }
     return literal(value, namespaces.xsd + "string");
   }
-  encode(
-    document,
-    envelope(document.profile, true),
-    named(namespaces.mapping + "root"),
-  );
+  encode(document, contract.descriptor, named(namespaces.mapping + "root"));
   return { dataset, primaryNodes, blankCount };
 }
 
 /** Label the complete A6 dataset before assigning or replacing any public identifier. */
-export async function issueIds(document, budget) {
-  const { dataset, primaryNodes, blankCount } = mapDataset(document, budget);
+export async function issueIds(
+  document,
+  budget,
+  { contract = mappingContract(document), refine } = {},
+) {
+  const mapped = mapDataset(document, budget, contract);
+  const { primaryNodes, blankCount } = mapped;
+  const dataset = refine
+    ? (await refine(mapped.dataset, budget)).dataset
+    : mapped.dataset;
   const canonicalIdMap = new Map();
   // The approved A8 amendment allows recursive work while retaining the absolute cap.
   const maxDeepIterations = Math.min(
@@ -160,8 +179,8 @@ export async function issueIds(document, budget) {
   budget.check();
   const replacements = new Map();
   const issued = new Set();
-  for (const [collection, prefix] of Object.entries(categories)) {
-    const ranked = document.structural[collection].map((record) => {
+  for (const { records, prefix } of contract.collections) {
+    const ranked = records.map((record) => {
       const label = canonicalIdMap.get(primaryNodes.get(record.id).value);
       if (
         typeof label !== "string" ||
@@ -178,7 +197,7 @@ export async function issueIds(document, budget) {
   }
   walkTyped(
     document,
-    envelope(document.profile, true),
+    contract.descriptor,
     (value, shape, _pointer, parent, field) => {
       budget.check();
       if (shape?.reference || shape?.id) {

@@ -73,6 +73,55 @@ const fileNameFromUrl = (url) => {
   return fileName ? decodeURIComponent(fileName) : undefined;
 };
 
+async function readBoundedBytes(response, limit, signal) {
+  if (response.body === null) {
+    return new Uint8Array();
+  }
+  const reader = response.body.getReader();
+  const chunks = [];
+  let length = 0;
+  const cancel = (reason) => {
+    void reader.cancel(reason).catch(() => {});
+  };
+  const abort = () => cancel(signal.reason);
+  signal?.addEventListener("abort", abort, { once: true });
+  try {
+    while (true) {
+      signal?.throwIfAborted();
+      const { done, value } = await reader.read();
+      signal?.throwIfAborted();
+      if (done) {
+        break;
+      }
+      length += value.byteLength;
+      if (length > limit) {
+        throw new ResourceLimitError(
+          "The remote ontology document byte limit was exceeded",
+          {
+            limit,
+            observed: length,
+            resource: "maxRemoteDocumentBytes",
+          },
+        );
+      }
+      chunks.push(value);
+    }
+    const bytes = new Uint8Array(length);
+    let offset = 0;
+    for (const chunk of chunks) {
+      bytes.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+    return bytes;
+  } catch (error) {
+    cancel(error);
+    throw error;
+  } finally {
+    signal?.removeEventListener("abort", abort);
+    reader.releaseLock();
+  }
+}
+
 export class WebVowlImportResolver {
   #baseUrl;
   #catalog;
@@ -101,6 +150,15 @@ export class WebVowlImportResolver {
   }
 
   async load(documentIri, { config = {}, signal } = {}) {
+    return this.#acquire(documentIri, config, signal, false);
+  }
+
+  /** Exact bounded source bytes for the canonical worker; no text round-trip. */
+  async loadBytes(documentIri, { config = {}, signal } = {}) {
+    return this.#acquire(documentIri, config, signal, true);
+  }
+
+  async #acquire(documentIri, config, signal, preserveBytes) {
     const normalized = IRI.create(documentIri);
     const requestUrl = resolveMixedContentSafeFetchUrl(
       normalized.value,
@@ -163,7 +221,15 @@ export class WebVowlImportResolver {
 
       const declaredLength = Number(response.headers?.get?.("content-length"));
       const limit = config.maxRemoteDocumentBytes ?? 33554432;
+      if (preserveBytes && (!Number.isSafeInteger(limit) || limit < 0)) {
+        throw new TypeError(
+          "The source byte limit must be a finite nonnegative integer.",
+        );
+      }
       if (Number.isFinite(declaredLength) && declaredLength > limit) {
+        if (preserveBytes && response.body) {
+          void response.body.cancel().catch(() => {});
+        }
         throw new ResourceLimitError(
           "The remote ontology document byte limit was exceeded",
           {
@@ -174,8 +240,13 @@ export class WebVowlImportResolver {
         );
       }
       let text;
+      let bytes;
       try {
-        text = await response.text();
+        if (preserveBytes) {
+          bytes = await readBoundedBytes(response, limit, deadline.signal);
+        } else {
+          text = await response.text();
+        }
       } catch (cause) {
         if (deadline.signal?.aborted || !(cause instanceof TypeError)) {
           throw cause;
@@ -185,7 +256,7 @@ export class WebVowlImportResolver {
           { cause, documentIRI: requestIri },
         );
       }
-      const observed = textBytes(text);
+      const observed = preserveBytes ? bytes.byteLength : textBytes(text);
       if (observed > limit) {
         throw new ResourceLimitError(
           "The remote ontology document byte limit was exceeded",
@@ -193,6 +264,14 @@ export class WebVowlImportResolver {
         );
       }
 
+      if (preserveBytes) {
+        return {
+          bytes,
+          documentIri: response.url || requestIri.value,
+          contentType: response.headers?.get?.("content-type") || undefined,
+          fileName: fileNameFromUrl(new URL(response.url || requestIri.value)),
+        };
+      }
       return new StringDocumentSource(text, {
         contentType: response.headers?.get?.("content-type") || undefined,
         documentIRI: requestIri,

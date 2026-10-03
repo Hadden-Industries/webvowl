@@ -1967,6 +1967,36 @@ describe("D3 rendered graph adapter", () => {
     expect(internals.locateRequests).toBe(0);
   });
 
+  test("focus distinguishes a class and property sharing an IRI", async () => {
+    const harness = createAdapterHarness();
+    const iri = "urn:punned";
+    const replacing = harness.renderedGraphRuntime.replaceVowlModel({
+      loadGeneration: 1,
+      vowlModel: {
+        header: {},
+        class: [{ id: "class", type: "owl:Class" }],
+        classAttribute: [{ id: "class", iri }],
+        property: [{ id: "property", type: "owl:ObjectProperty" }],
+        propertyAttribute: [
+          { id: "property", iri, domain: "class", range: "class" },
+        ],
+      },
+    });
+    harness.renderedGraphTestHarness.completeInitialPaint(1);
+    await replacing;
+    for (const kind of ["class", "property"]) {
+      const applying = harness.renderedGraphRuntime.applyVisualizationView({
+        loadGeneration: 1,
+        focus: [{ kind, iri }],
+      });
+      harness.renderedGraphTestHarness.completeVisualizationViewApplication(1);
+      await applying;
+      expect([
+        ...harness.renderedGraphInternalsFixture.currentHighlightIds,
+      ]).toEqual([kind]);
+    }
+  });
+
   test("replaces focus membership and reapplies retained focus after a language redraw", async () => {
     const harness = createAdapterHarness();
     await loadGeneration(harness, 1);
