@@ -1,72 +1,151 @@
 # WebVOWL performance and search implementation plan
 
-Status: detailed draft for owner review, 23 September 2026.
-Planning basis: [change-dossier.md](change-dossier.md), including its source corrections, proposed R2 route, invariants, requirements, acceptance criteria, quality scenarios and decisions.
-Source design: [performance and search catalogue](<../WebVOWL Performance and Search Improvements_ Catalogue and Applicability to Hadden-Industries_webvowl.md>).
+Status: revised draft for owner review, 5 October 2026.
+Reconciliation interval: inclusive `2026-09-23T00:00:00Z` through repository HEAD `0fbf00ef51f65f1235f4d3b24cc1706cd2a5ade8` and the working-tree snapshot identified in the change ledger below.
+Planning method: HISEW thin implementation planning; this documentation maintenance is R0, while the proposed implementation programme remains R2 and requires GATE-001.
 
-This plan covers ten independently reviewable delivery slices.
-It starts with graph-construction cost, continues through parser/filter work and bounded hidden-result navigation, and ends with measured search and memory improvements.
-It preserves the current application-owned ontology and renderer boundary.
-No implementation, configuration change, requirement acceptance, commit or publication is performed by this document.
+The [original dossier](change-dossier.md) supplies stable REQ/AC/QA/DEC identifiers and the [catalogue](<../WebVOWL Performance and Search Improvements_ Catalogue and Applicability to Hadden-Industries_webvowl.md>) supplies the original hypotheses.
+This revision records the proposed amendments to that dossier explicitly; it does not represent owner acceptance or rewrite historical evidence.
+The catalogue is now tracked, having been published with the original plan in commit `c6d3b8713018e9596134ed8021c86ae81bfafb67`.
 
-## Baseline and execution boundaries
+Canonical VOWL now owns the production application, admitted semantic records, occurrence topology, scene and export path.
+The surviving link-construction hotspot still warrants measurement and optimization, but the old parser and display-filter algorithms are bypassed on canonical loads.
+Search and memory work must use canonical sessions and exact semantic roles.
+Six original slices remain active proposals, four are withdrawn from the production programme, and one conditional canonical preparation slice is proposed.
+No performance gain or slice completion is claimed by this revision.
 
-The inspected target is `e70ffbab0326a709fb51228855a556147432db20`; the Legacy reference is `28e92c7220302c50aa32cebab977ab6e884d8887`.
-Use the dossier's hashes for the supplied catalogue and PDF.
-Refresh source evidence when execution begins; do not apply the catalogue's historical paths or assume the previous ESM migration still needs implementation.
+## Baseline, authority and reasoning order
 
-Before code changes, satisfy GATE-001 through HISEW: accept the exact requirements/route, capture the requirement snapshot and start an execution owned by the actual task/session in its selected admitted worktree.
-An implementation checkout must preserve all user-owned changes and obtain any required HISEW worktree adoption.
-The existing untracked catalogue remains source material; staging or committing it requires the corresponding user authorization.
+The pre-interval baseline is `e70ffbab0326a709fb51228855a556147432db20`, also the source baseline used by the original plan.
+The current target is `0fbf00ef51f65f1235f4d3b24cc1706cd2a5ade8`; `origin/main` and the observed remote main head agree.
+The Legacy reference `28e92c7220302c50aa32cebab977ab6e884d8887` and the dossier's paper/catalogue provenance remain historical algorithm references, not current correctness or timing oracles.
+All current-source claims below were checked against this checkout; reports of earlier tests and deployment retain their original evidential scope.
 
-All file assignments and new module names below are predictions, not instructions to modify already-compliant files.
-Existing test names are identified separately from proposed tests.
-The plan uses native ESM and existing dependencies; no package, lockfile, bundler, test, CI, hosting or policy change is presumed.
-If a slice needs configuration, stop that dependent change and present its exact file/setting and pipeline effect for the separate approval required by `AGENTS.md`.
+For every proposed change, use this ordered reasoning process:
 
-Use one integration owner for the programme: the implementer assigned when execution starts, accountable to Maksy.
-An independent reviewer owns checking semantic equivalence and the credibility of the evidence; assign the provider/person before R2 acceptance.
-Do not treat a module stub, a copied expected output or the implementation author's assertion as that review.
+1. **First principles:** identify the observable reader outcome, semantic invariants, true owner, work performed and live memory retained; remove unnecessary work only if the same facts and recoverable state survive.
+2. **Maintained modern best practice:** measure the actual production path, retain worker isolation for expensive canonical work, avoid repeated preparation and large main-thread clones, and assess whole-interaction responsiveness.
+3. **Authoritative specifications and guidelines:** check exact language/platform behavior, canonical contracts, resource accounting and accessibility interactions against the sources below.
+4. **Adopted practice:** apply the repository's ADRs, HISEW, tests, corpus storage and established UI/tool conventions; use Legacy/community techniques only when the higher-ranked evidence supports them.
 
-## Architecture and dependencies
+This is the order of engineering reasoning, not permission to override mandatory interoperability rules, explicit owner decisions or configuration boundaries.
+Binding constraints apply throughout.
+Popularity and historical benchmark results cannot establish correctness or benefit on the current application.
 
-Occurrence indexes belong near `linkCreator.js`, renderer materialization and display filters.
-They use the actual objects and arrays supplied for that invocation and are discarded when those objects are replaced.
-Application indexes belong to the accepted VOWL document/inspection revision and use the existing semantic-reference and document-target contracts.
-Only immutable requests/facts cross `RenderedGraphRuntime`; no live node, D3 object or renderer dictionary becomes the application's source of ontology truth.
+| Choice                                     | First-principles reason                                                            | Modern practice and authoritative evidence                                                                                                                                                           | Adopted application consequence                                                                                                                      |
+| ------------------------------------------ | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Optimize reachable work                    | Work on a bypassed path cannot improve production latency.                         | Measure phases and [main-thread long tasks](https://web.dev/articles/optimize-long-tasks), including work before and after a worker.                                                                 | Preserve SLICE-001; withdraw SLICE-002–005; measure canonical preparation before SLICE-011.                                                          |
+| Index by the owning identity               | Distinct occurrences or semantic roles must not collapse.                          | Native [ECMAScript Map/Set semantics](https://tc39.es/ecma262/multipage/keyed-collections.html#sec-map-objects); contracts define equality, ordering and lifetime.                                   | Renderer indexes use object identity; semantic indexes use `ontologyElementReferenceKey`, including `roleKind`; canonical IDs are revision-bound.    |
+| Retain bounded canonical operations        | Equivalent successful bytes do not justify unbounded work or loss of cancellation. | [RDF Dataset Canonicalization](https://www.w3.org/TR/rdf-canon/) and its poisoning considerations; [HTML worker processing](https://html.spec.whatwg.org/multipage/workers.html#terminate-a-worker). | Reuse the existing worker client, budgets, exact charge accounting and stale-result checks; no alternate canonicalizer or automatic budget increase. |
+| Preserve a complete document during reveal | A view change must not rewrite ontology meaning or occurrence identity.            | Current canonical core/projection/compatible-artifact contracts; APG [combobox interaction](https://www.w3.org/WAI/ARIA/apg/patterns/combobox/).                                                     | Temporary view state overlays admitted occurrences; details-only facts remain accessible; clear and failure restore ordinary scene state.            |
+| Measure memory ownership                   | Function counts and process samples do not prove retained-heap savings.            | [Chrome memory diagnosis](https://developer.chrome.com/docs/devtools/memory-problems), [User Timing](https://www.w3.org/TR/user-timing/) and actual retainer paths.                                  | Shared-method work stays a measured pilot; report worker/process/heap observations separately.                                                       |
 
-The main sequence is SLICE-001 → SLICE-002 → SLICE-003 → SLICE-004 → SLICE-005 → SLICE-006 → SLICE-007 → SLICE-008 → SLICE-009 → SLICE-010.
-This is a recommended review/release order, not a claim that every slice needs every predecessor.
+These primary sources were checked on 5 October 2026.
+The installed modern-web-guidance performance guide was also retrieved; its search reported a newer skill revision, which was not installed.
+Its general worker/yielding advice is subordinate to the actual contracts and measurements here.
+`scheduler.yield()` must be feature-detected if selected later; splitting preparation cannot introduce an asynchronous interruption inside the existing synchronous scene publication transaction.
+No scheduling polyfill, new dependency or browser-policy change is selected.
 
-| Slice     | Hard dependencies                                                                   | Work that may proceed independently after baseline acceptance                                                     |
-| --------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| SLICE-001 | GATE-001; relevant baseline and target calibration                                  | Parser/filter fixture design and search-contract review are read-only independent work.                           |
-| SLICE-002 | Baseline acceptance; parser oracle                                                  | Implementation can proceed independently of link indexing, but integrate and measure on one agreed base.          |
-| SLICE-003 | SLICE-002 integration to avoid concurrent parser ownership; merger oracle           | Subclass fixture preparation is independent.                                                                      |
-| SLICE-004 | SLICE-001 occurrence-incidence contract                                             | No shared mutation of link or runtime integration files during integration.                                       |
-| SLICE-005 | SLICE-001 incidence semantics; current filter/tidy contract                         | Can be reviewed separately from subclass logic; benchmark runs remain serial.                                     |
-| SLICE-006 | GATE-003; stable graph/filter base and document identity contracts                  | Search-index research/fixtures are independent; controller/runtime edits need one owner.                          |
-| SLICE-007 | Established search oracle and revision ownership; reconcile SLICE-006 result fields | Query preparation can be designed earlier, but integrate lifecycle and tool schemas together.                     |
-| SLICE-008 | Graph/parser/filter contracts stabilized; memory baseline                           | Pilot only, before authorizing expansion.                                                                         |
-| SLICE-009 | Qualified SLICE-008 and GATE-004                                                    | Constructor families can be inventoried independently; shared inheritance/callback migrations are serialized.     |
-| SLICE-010 | Accepted ownership inventory and GATE-005 for cache-policy changes                  | Retention diagnosis can start early; final evidence must include the added indexes/projection and memory cohorts. |
+HISEW applicability was inspected as personal/active and ready, using the session's actual installation and directory.
+Documentation execution `40ca9fc0-982c-4675-9445-eb4df21251f4` reuses the accepted documentation-only scope and the planning procedure.
+The configured evidence root is `C:/Users/maksy/.hi/w/e`; supporting audit material is under `operator-reports/performance-search-plan-20261005/` there.
+Historical `.sdlc/runtime` locations are not the destination for this revision.
 
-Parallel work is a dependency observation, not delegation authority.
-Never run a benchmark alongside another benchmark, build, test suite or bulk scan; ADR 0003 requires a quiescent measurement window.
+Before implementation, GATE-001 requires the owner's accepted requirements, amendments, risk route, test oracle and exact requirement snapshot, followed by an execution owned by the implementing session.
+The integration owner is the assigned implementer, accountable to Maksy; assign the independent semantic/performance/recovery reviewers before R2 acceptance.
+This draft neither supplies those approvals nor transfers authorizations from earlier canonical implementation sessions.
+Any required configuration change needs its exact file, setting, behavioral/pipeline impact and separate approval under `AGENTS.md`.
+All predicted new modules below are proposals, not permission to alter configuration or introduce an unnecessary abstraction.
+
+## Current architecture and material changes
+
+The production chain is `src/main.js` → `canonicalApplication.js` → `canonicalWebVowlController.js` → source acquisition/document session → worker-owned `vowl`, `vowl/owl` or named `vowl/migrate` admission → canonical inspection/scene/render projection → rendered runtime.
+`packages/vowl` is an existing private experimental workspace, and `owlapi` is already the public npm alias `@hadden-industries/owlapi@0.1.0-rc.1`.
+Neither recreating the retired converter nor adding a worker is a prerequisite.
+
+| Boundary                                       | Current owner and observed change                                                                                                                                                                        | Consequence for this programme                                                                                                                                        |
+| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Admission, canonicalization and retained facts | `packages/vowl/src/` implements strict model/byte admission, profiles, deterministic projection, compatible qualifications, source statements, OWL mapping/export and named historical migration.        | Optimize around these contracts; retain successful bytes, graph/record counts, exact source evidence, diagnostics and rejection behavior.                             |
+| Source and imports                             | `canonicalVowlSourceAcquisition.js` and relocated `importResolver.js` preserve bounded bytes, source context, public format metadata and controlled imports.                                             | Network time is a separate measured phase; do not move it into a renderer or recreate `ontologySourceLoader.js`.                                                      |
+| Accepted document and recovery                 | `canonicalVowlDocumentSession.js` owns admitted checkpoints, inspection, record tokens, scene reconciliation and transactional publication. Worker jobs copy inputs and terminate on completion/abort.   | Index lifetime includes load generation and document revision; preserve checkpoint ownership and failed-load/edit recovery.                                           |
+| Canonical view                                 | `canonicalVowlScene.js` and `canonicalVowlViewControls.js` operate on admitted occurrences, hidden-visibility closure and explicit degree.                                                               | Canonical automatic minimum degree is zero; the old automatic 50-node collapse and recursive solitary-subclass policy are not the production policy.                  |
+| Projection and rendering                       | `canonicalVowlRenderProjection.js` supplies exact occurrence rows to `canonicalRenderElements.js`; `renderedGraphInternals.js` bypasses the legacy parser/filter pipeline for those rows.                | Layer/loop construction and `storeLinksOnNodes` still run, so SLICE-001 remains relevant. Canonical view optimization must not generate new topology.                 |
+| Search and facts                               | `canonicalVowlInspectionProjector.js` already indexes construct relationships and stores n-ary relation groups once; `ontologyInspector.js` expands requested relationships and applies current ranking. | Reuse these indexes. Do not expand equivalence groups into quadratic pair lists or reimplement the already-completed preparation.                                     |
+| Search identity                                | Shared controller and WebMCP contracts now include `roleKind` and `ELEMENT_AMBIGUOUS`; anonymous references use generation-scoped record tokens.                                                         | Same-IRI different-role results remain distinct; coarse references resolve only when unambiguous. Canonical serialization IDs are not stable external search handles. |
+| Query cost                                     | `canonicalWebVowlController.snapshots()` calls `session.inspectOntology()`, which clones the inspection including retained facts; the inspector prepares merged records and label indexes again.         | Measure and address clone plus query preparation in SLICE-007; a fast isolated index benchmark cannot hide whole-query copying cost.                                  |
+| Editing/export                                 | Canonical editor commands, contextual occurrence bindings, prefix/display rules, facts dialogs and artifact services replaced the retired controller/editor/Turtle ownership.                            | Include datatype occurrence edits, merge/split choices, source restrictions, exact exports and failed replacement in regression/recovery evidence.                    |
+| Existing performance repair                    | Refinement hash batches, bounded scratch allocation, checkpoint accounting, next-task result delivery, operator adjacency and lexical namespace splitting already landed.                                | Keep these as the baseline; do not claim them again as this programme's implementation.                                                                               |
+
+The [candidate iteration amendment](../../plans/2026-10-04-canonical-vowl-candidate-iteration-amendment.md) permits experimental candidate evolution while deferring permanent profile/package publication.
+The later [cutover report](../../reviews/canonical-vowl-production-cutover-and-retirement.md) records production composition, deployment observation and retirement, with 9,315 tests across 145 suites on its source candidate and a three-engine six-example browser matrix.
+Those are historical reports, not checks rerun for this plan or proof of today's hosted state.
+Its verified previous-build backup was not a performed live rollback; an old pre-canonical reader is not a safe recovery target for newly exported canonical-only files.
+
+### Proposed dossier amendments and acceptance gates
+
+The original dossier remains an intact 23 September draft.
+At GATE-001, accept an explicit amendment or revise that dossier alongside this exact plan before capturing the implementation baseline.
+The following table is the proposed delta; unchanged identifiers keep their original meaning.
+
+| Original identifiers                         | Revised disposition for acceptance                                                                                                                                                                                                                                                                                                                                |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| REQ-001 / AC-001 / DEC-001                   | Retain ordered layer/loop/incidence equivalence and bounded passes, adding canonical drawing mount/revision coverage.                                                                                                                                                                                                                                             |
+| REQ-002–005 / AC-002–005 / DEC-002–003       | Withdraw from the production performance programme because their parser/merger/old-filter paths are bypassed. Preserve their historical definitions; no completion or equivalent canonical behavior is asserted.                                                                                                                                                  |
+| REQ-006 / AC-006 / DEC-004                   | Revise reveal to traverse admitted canonical occurrences with a transient view overlay; distinguish node, edge and label counts and handle roles/expressions without drawable occurrences. GATE-003 must accept this revised contract.                                                                                                                            |
+| REQ-007 / AC-007 / DEC-005–006               | Retain exact matching/ranking; update the oracle to canonical labels, role-aware identity and compressed n-ary groups. Include session cloning and first-query/index cost in acceptance.                                                                                                                                                                          |
+| REQ-008 / AC-008                             | Bind all state to canonical session/scene ownership and revision. Presentation changes can invalidate labels without a document revision, so a revision-only cache key is insufficient.                                                                                                                                                                           |
+| REQ-009 / AC-009 / DEC-007                   | Retain the measured shared-method pilot and expansion gate, with canonical bindings/drawing/edit/export as current consumers.                                                                                                                                                                                                                                     |
+| REQ-010 / AC-010 / DEC-008                   | Retain recovery-safe retirement of disposable state. Remove the former four-entry URL-cache assumption; the canonical implementation has no such cache owner.                                                                                                                                                                                                     |
+| REQ-011 / AC-011                             | Preserve UI/tool parity, 25-reference focus/request bounds and the 1,500-character WebMCP envelope; include exact `roleKind`, ambiguity and canonical facts.                                                                                                                                                                                                      |
+| REQ-012 / AC-012 / DEC-009                   | Retain measured/recoverable delivery; use current canonical candidate identity and a compatible recovery reader. Candidate approval is not stable publication.                                                                                                                                                                                                    |
+| QA-001–003                                   | Preserve zero unexplained semantic differences; recalibrate preparation measurements on canonical input/occurrences. The old 50-node/monotone-threshold scenario is withdrawn with REQ-005.                                                                                                                                                                       |
+| QA-004–009                                   | Retain bounds, responsiveness, lifecycle, memory, accessibility and recovery intent, updated to the active owners and measurement limits below. Proposed numerical targets still require GATE-002/003.                                                                                                                                                            |
+| Proposed REQ-013 / AC-013 / QA-010 / DEC-010 | Reuse immutable canonical preparation on presentation-only changes only after measuring a material cost. Preserve complete scene/record/occurrence facts, view closure, exact labels, transaction semantics and ownership isolation; prove lower measured work without retained-memory or responsiveness regression. This is the conditional SLICE-011 extension. |
+
+GATE-001 accepts this revised programme and route; GATE-002 calibrates fresh fixture/environment targets; GATE-003 accepts the revised reveal, caps and export policy; GATE-004 controls shared-method expansion; GATE-005 controls any actual retention/cache policy change; GATE-006 controls additional substring indexing/component selection.
+No gate is marked satisfied by this plan.
+REQ-013 and SLICE-011 require GATE-001 acceptance and GATE-002 evidence before implementation.
+Current native APIs and installed package capabilities are the reuse baseline; any added component requires current REU-01/VER-01/LIC-01 research, exact rights and consumer evidence.
+
+### Scope and ordering
+
+The outcome remains faster usable ontology loading, exact semantic search, bounded hidden-result navigation and lower justified retained allocation.
+There is no renderer rewrite, new canonical algorithm/profile, old-policy restoration, persistent search store, automatic resource-limit increase or AWS cache implementation in this programme.
+The [materialization-cache plan](../../plans/validated-ontology-materialization-cache-implementation-plan.md) is a separate draft with current uncommitted revisions; it concerns source-byte acquisition and import context, not a local semantic-search index or a replacement for canonical admission.
+Its presence is not evidence that a cache is implemented.
+
+Recommended order: baseline/calibration → SLICE-001 → SLICE-007 → SLICE-006 → SLICE-008 → SLICE-009 → SLICE-010.
+SLICE-011 follows a measured canonical preparation bottleneck and shares the session/projection ownership work with SLICE-007.
+Retention diagnosis can begin during baseline collection and need not wait for all other slices.
+
+| Slice         | Hard dependency                                                                   | Integration boundary                                                                                                                                    |
+| ------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| SLICE-001     | GATE-001/002; exact canonical occurrence/link oracle                              | Renderer link construction and both canonical/retained runtime paths.                                                                                   |
+| SLICE-002–005 | Withdrawn                                                                         | Do not allocate production implementation work to bypassed legacy algorithms.                                                                           |
+| SLICE-007     | Current inspector oracle and session ownership                                    | One owner for session/inspector contracts; integrate role-aware UI/WebMCP results together.                                                             |
+| SLICE-006     | GATE-003; canonical identity/scene base; qualify against any integrated SLICE-007 | One owner for controller, scene, runtime and action contracts. It can ship independently of search indexing if its oracle and measurements stand alone. |
+| SLICE-008     | Current canonical allocation baseline                                             | Isolated link-constructor pilot with real drawing consumers.                                                                                            |
+| SLICE-009     | Qualified SLICE-008 plus GATE-004                                                 | Coherent inheritance/callback cohorts; no incompatible intermediate chain.                                                                              |
+| SLICE-010     | Actual retention inventory; GATE-005 only for behavior changes                    | Session/checkpoint/source/renderer/index owners and the integrated workload.                                                                            |
+| SLICE-011     | Proposed REQ-013 acceptance and measured hotspot                                  | Serialize shared session/projection writes with SLICE-006/007; no duplicate preparation cache.                                                          |
+
+Independent fixture/research work is a dependency observation, not delegation authority.
+Benchmark runs remain serial and quiescent under ADR 0003; no concurrent build, test suite, bulk inventory or second benchmark.
 
 ## Delivery slices
 
 ### SLICE-001 — Load and refresh an identical graph with indexed link construction
 
 **Links:** REQ-001, REQ-008, REQ-012; AC-001, AC-008, AC-012; QA-001, QA-002, QA-006; DEC-001, DEC-009.
-**Deliverable:** a complete ontology-load/filter-refresh path with the same graph metadata and lower preparation work.
+**Deliverable:** a complete canonical load/view-refresh path with identical admitted drawing/link metadata and lower renderer preparation work.
 
 **Predicted files:** modify `src/webvowl/js/parsing/linkCreator.js` and `src/webvowl/js/runtime/renderedGraphInternals.js`; consider a renderer-local `src/webvowl/js/parsing/incidentLinkIndex.js` if extraction makes the shared incidence operation directly testable.
 Add proposed `linkCreator.test.js` and `incidentLinkIndex.test.js` alongside their subjects and proposed `util/benchmark-rendered-graph-preparation.mjs`; reuse `util/benchmarkEnvironment.mjs` and existing fixture-generation conventions.
-Existing `src/webvowl/js/elements/links/ArrowLink.test.js`, `BoxArrowLink.test.js`, `src/webvowl/js/parser.test.js` and runtime seam tests remain regression coverage.
+Existing link tests, `src/webvowl/js/parsing/canonicalRenderElements.test.js`, canonical render-projection tests and runtime seam/revision tests are the production regressions.
+The retained legacy parser tests cover the shared runtime fallback only; they are not the production admission oracle.
 
 - [ ] Record baseline phase timings/work counts and hand-enumerated graph descriptions before replacing the algorithm.
-      Record both initial load and filter refresh; the runtime rebuilds links at more than one site.
+      Record canonical initial mount and drawing/view revision separately; canonical refresh still reaches `refreshLinksAndLabels`, while the legacy fallback additionally uses `filterFunction`.
 - [ ] Keep current native Set membership by property ID and inverse assignment.
       Group links by unordered endpoint-object pairs with nested maps or an equivalent collision-free identity structure.
       Preserve link order and one shared ordered `layers()` array per group; assign `layerIndex()` in that order.
@@ -75,7 +154,7 @@ Existing `src/webvowl/js/elements/links/ArrowLink.test.js`, `BoxArrowLink.test.j
       Do not introduce a per-loop `findIndex`, numeric `layers`, concatenated-ID key or ID-based endpoint merge.
 - [ ] Initialize adjacency only for the supplied node objects, walk links once and append in input order.
       Append a self-loop once, replace old arrays on refresh, and do not mutate endpoints outside the supplied node collection.
-      Update both `filterFunction` and `refreshLinksAndLabels` through the owning operation.
+      Keep both callers correct through the owning incidence operation; measure canonical `refreshLinksAndLabels` and retain fallback regression coverage for `filterFunction`.
 - [ ] Verify empty/disconnected graphs, every link sharing a pair, all loops on one node, reversed endpoints, inverse pairs, duplicate IDs on distinct objects, IDs containing delimiters, repeated IRIs, mixed link kinds and repeated load/refresh.
 
 **Oracle/proof:** normalize object identity by fixture occurrence ordinal, not IRI; compare metadata and array-sharing assertions as well as serialized values.
@@ -84,190 +163,117 @@ Expected work is a bounded number of node/link passes plus group annotation, wit
 Deterministic work counts are the complexity gate; paired browser/Node timings substantiate benefit rather than replacing semantic tests.
 
 **Release/recovery:** release independently after its full relevant checks and browser load/refresh/export smoke.
-No saved schema changes; recovery is the previous qualified artifact plus reload after preserving edits.
+No canonical schema/byte change is intended; recovery requires the previous qualified canonical-capable artifact and preserved edits.
 Discard temporary maps after preparation; do not retain duplicate global indexes merely because construction was centralized.
 
-### SLICE-002 — Materialize the same parser result without repeated attribute scans
+### SLICE-002 — Withdraw legacy parser attribute indexing from production work
 
-**Links:** REQ-002, REQ-008; AC-002, AC-008; QA-001, QA-002; DEC-002.
-**Deliverable:** current source kinds produce the same parsed graph while avoiding per-record attribute scans and unused equal-property lookup.
+**Historical links:** REQ-002 / AC-002; DEC-002.
+`src/webvowl/js/parser.js` and its tests remain, but canonical drawing preparation bypasses that parser, including its repeated attribute and equal-property scans.
+`src/owl2vowl/test/vowlBuilder.webvowl.test.js`, the old converter-boundary test predicted here, has been retired.
+There is no accepted production performance benefit to implement or benchmark from this original slice.
+Keep the historical proposal available in Git; reopening it requires an identified supported caller, a new measured outcome and an explicit scope decision.
 
-**Predicted files:** `src/webvowl/js/parser.js`, existing `parser.test.js`, proposed `src/webvowl/js/parser.indexing.test.js`, and the graph-preparation benchmark from SLICE-001.
-Use existing `src/owl2vowl/test/vowlBuilder.webvowl.test.js` for the converter/parser boundary.
+### SLICE-003 — Withdraw legacy equivalent-range merger optimization
 
-- [ ] Build each class/datatype/property attribute map once for its collection.
-      Preserve strict-equality ID behavior for admitted input, first matching duplicate, absent attributes and base-field precedence; do not normalize IDs or overwrite an earlier entry.
-- [ ] Retain separate class/property construction where their responsibilities differ.
-      Share only the indexed attribute lookup if useful; a consolidation is not itself an acceptance goal.
-- [ ] Evaluate `getOtherEqualProperty` only when `propertyWasRerouted` is true, after the existing endpoint guards.
-      Preserve matching by IRI, or type/default label when IRIs are absent, and first-match order.
-- [ ] Cover missing/duplicate attributes, existing base values, class/datatype/property differences, equal labels with distinct IRIs, inverse restriction types, equivalent-node rerouting and no-rerouting graphs.
-      Preserve input-mutation behavior until its owner separately changes that contract.
+**Historical links:** REQ-003 / AC-003; DEC-002.
+`src/webvowl/js/parsing/equivalentPropertyMerger.js` still belongs to the legacy parser path.
+Canonical topology and equivalence projection are admitted before renderer materialization; the renderer must not regenerate them with the old merger.
+Do not port dynamic endpoint counts or Legacy's static endpoint sets into the canonical mapper by analogy.
+Any measured canonical projection cost belongs to a separately justified contract-preserving change, not a silent repurposing of REQ-003.
 
-**Oracle/proof:** explicit small fixtures establish first-match precedence and rerouting suppression; baseline differential corpus checks compare complete parser output.
-Assert one attribute-index build per collection and zero equal-property scans when no property was rerouted.
-Attribute association becomes expected O(B + A); equal-property lookup remains potentially quadratic when many properties reroute.
-Do not claim the entire parser is linear.
+### SLICE-004 — Withdraw recursive solitary-subclass filter optimization
 
-**Release/recovery:** independent parser release after converter, runtime and corpus regressions.
-Indexes are parse-local; no persistent migration, new dependency or retained snapshot is needed.
+**Historical links:** REQ-004 / AC-004; DEC-003.
+`src/shared/js/modules/subclassFilter.js` is unchanged in this interval, but canonical loads bypass the legacy filter loop.
+The active canonical view hides admitted subclass-edge occurrences and applies visibility closure; it does not run the original recursive solitary-subclass usefulness policy.
+Preserve the actual canonical semantics and tests in any view optimization.
+Restoring the old behavior would be a product decision requiring new requirements, not a performance repair.
 
-### SLICE-003 — Preserve equivalent-range merging with dynamic endpoint counts
+### SLICE-005 — Withdraw automatic 50-node threshold search
 
-**Links:** REQ-003; AC-003; QA-001, QA-002; DEC-002.
-**Deliverable:** equivalent-property merging preserves its current graph while eliminating the repeated endpoint-use scan identified during planning.
+**Historical links:** REQ-005 / AC-005; DEC-003.
+`src/shared/js/modules/nodeDegreeFilter.js` is unchanged, while the canonical controller reports automatic minimum degree zero and uses `prepareCanonicalVisibility` for explicit degree filtering.
+The old `[0, maximumDegree)` monotone search, 50-node budget, tidy predicate and empty-result fallback are therefore not the production optimization target.
+Do not add binary search or automatic collapse to satisfy a stale plan.
+Measure canonical degree/visibility preparation under SLICE-011 if it becomes significant; retain the present policy until a separately accepted behavior change.
 
-**Predicted files:** `src/webvowl/js/parsing/equivalentPropertyMerger.js`, proposed colocated `equivalentPropertyMerger.test.js`, parser integration tests and the preparation benchmark.
-This slice intentionally corrects the catalogue's recommendation to exclude the merger.
+### SLICE-006 — Reveal and clear a bounded canonical neighbourhood
 
-- [ ] Characterize the current sequence of range changes and hide decisions on small equivalent groups, shared domains/ranges, unresolved references, repeated equivalents and generated default ranges.
-- [ ] Build endpoint-use counts from the current raw properties.
-      After each actual range mutation, update the old/new contributions before answering whether that old endpoint is still used.
-      Count domain and range contributions consistently, including a property using the same endpoint twice.
-- [ ] Preserve processed-property behavior, mutation order, undefined guards, generated IDs and the existing cumulative hidden-node decision.
-      Do not replace sequential checks with one final-state sweep or copy Legacy's static endpoint sets.
-- [ ] Demonstrate that the indexed state equals a fresh endpoint scan after each step in adversarial test sequences and that output nodes/properties match the oracle.
+**Links:** amended REQ-006, REQ-008, REQ-011, REQ-012 / AC-006, AC-008, AC-011, AC-012 / QA-004, QA-006, QA-008, QA-009 / DEC-004, DEC-009.
+**Deliverable:** a reader or agent reveals a hidden representable entity's complete bounded depth-two neighbourhood, then restores the ordinary view without losing edits or saved scene state.
+GATE-003 must accept the amended semantics and caps before implementation.
 
-**Oracle/proof:** use a simple test-only scan of the live property list as the independent reference-count oracle, plus hand-checked expected merges.
-Measure work against property count and the number of actual equivalent visits; report those dimensions separately instead of promising a universal O(V + E) merger.
-Keep this slice separate from changes to the meaning of equivalence.
+**Predicted seams:** proposed `src/app/js/controller/canonicalSearchProjection.js` and tests; current `canonicalWebVowlController.js`, `canonicalVowlDocumentSession.js`, `canonicalVowlScene.js`, `canonicalVowlInspectionProjector.js`, `canonicalVowlRenderProjection.js`, shared controller/runtime contracts, `searchMenu.js`, WebMCP contracts/adapter and their actual colocated tests.
+Extend the supported runtime drawing transaction only where necessary; do not recreate the retired controller or document abstraction.
 
-**Release/recovery:** independent release after parser/converter/equivalence regressions; all state is local to the merge call.
-Unexpected changed hide decisions stop the slice for semantic review rather than being reclassified as an optimization.
+- [ ] Resolve exact semantic references through the current role-aware contract and session record tokens.
+      A class/expression seeds all its admitted drawable node occurrences; a property seeds every admitted edge occurrence carrying that role, both endpoints and the associated labels.
+      Same-IRI roles, inverse directions, equivalent groups and repeated datatype occurrences remain distinct where the canonical contract distinguishes them.
+- [ ] Build one adjacency index over the full admitted occurrence inventory for the current revision, with traversal in both directions.
+      Compute depth two and the induced eligible edge set; include required label/endpoint dependencies without manufacturing missing topology.
+      Detail-only roles/qualifications are inspectable facts and receive an explicit no-drawable-neighbourhood result.
+- [ ] Propose caps of 25 requested semantic references, 500 node occurrences, 1,000 edge occurrences, 2,000 label occurrences and 10,000 inspected adjacency entries.
+      Count seeding, repeated groups, dependency expansion and final induced-edge work; bound or account for index construction separately.
+      These revised units and the label cap require GATE-003 acceptance; the old term "property occurrence" is not interchangeable with a canonical edge containing multiple properties.
+      Exceeding any cap refuses before publishing state; do not silently truncate a neighbourhood.
+- [ ] Represent the temporary selection as session/controller-owned presentation state over the complete admitted document and ordinary scene.
+      Retain full scene placements, canonical IDs, runtime occurrence tokens, hidden closure and recovery checkpoint.
+      Do not canonicalize a subset, remove source/qualification facts, or make the renderer the semantic store.
+- [ ] Prepare the entire candidate view and use the current synchronous commit/rollback boundary to publish it.
+      Guard supersession, document revision, cancellation and disposal before effects; no awaited yield inside the publication transaction.
+- [ ] Enable a hidden result only when its full grouped selection is revealable within the accepted policy.
+      Preserve exact references, text-node/mark rendering, accessible names, keyboard movement, focus restoration and status announcements.
+      UI and WebMCP use the same controller operation and explicit completion/refusal result.
 
-### SLICE-004 — Apply solitary-subclass filtering through occurrence adjacency
+| Event                                                              | Required amended behavior                                                                                                                                                                                                                                                                              |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Reveal another result                                              | Replace the temporary view; retain the original ordinary restoration state, without stacking snapshots.                                                                                                                                                                                                |
+| Clear                                                              | Restore ordinary visibility, placement/pin/camera state through supported scene/runtime operations; preserve the accepted document. Identical coordinates after resumed simulation are not promised.                                                                                                   |
+| Ordinary filter, prefix, language, display, layout or edit request | Successfully clear the transient view first, then execute the current canonical operation. Prefix/display changes matter even without a semantic revision.                                                                                                                                             |
+| Global Reset                                                       | Clear the transient state, then apply the current controller reset contract and its tests; do not reinstate the retired filter policy.                                                                                                                                                                 |
+| Load, semantic revision or disposal                                | Retire transient state and indexes; a failed replacement restores the last accepted scene and selected occurrence context. No cross-generation reference reuse.                                                                                                                                        |
+| Abort or failed drawing publication                                | Preserve/restore the accepted ordinary view and report the error; a stale completion cannot resurrect a retired view.                                                                                                                                                                                  |
+| Drawing export                                                     | SVG/LaTeX represents the currently displayed view, subject to existing format capabilities.                                                                                                                                                                                                            |
+| Canonical or semantic export                                       | Proposed policy: export the complete accepted document with ordinary persistent scene state; omit the temporary reveal overlay. Preserve compatible qualifications and exact retained source assertions, and retain existing export restrictions. GATE-003 must accept this canonical-artifact policy. |
+| Share                                                              | Preserve existing revision/source restrictions; do not serialize the transient view as ordinary filters or an implicit new URL format.                                                                                                                                                                 |
 
-**Links:** REQ-004, REQ-008; AC-004, AC-008; QA-002, QA-003; DEC-003.
-**Deliverable:** toggling the existing solitary-subclass filter returns the same ordered graph with less relationship discovery work.
+**Oracle/proof:** independently enumerate node/edge/label identities on chains, cycles, hubs, disconnected components, punning, inverse/equivalent groups, contextual datatypes and detail-only facts.
+Test below/equal/above every cap, stale references, malformed roles, render failure, edit conflicts and a replacing load that fails.
+Verify UI/tool parity and export → reopen on the production build in supported browsers; existing focus-only tests do not prove hidden reveal.
+**Release/recovery:** ship controller/session/runtime/UI/tool contracts together; retire transient state on clear/revision/disposal and retain a qualified canonical-capable recovery artifact.
 
-**Predicted files:** `src/shared/js/modules/subclassFilter.js`, its existing `subclassFilter.test.js`, and benchmark/filter integration coverage.
-The current filter remains a display operation over supplied occurrences.
+### SLICE-007 — Reuse canonical semantic search preparation
 
-- [ ] Index the supplied properties by endpoint object once per invocation.
-      Preserve property order and the existing direction of descendant traversal through `rdfs:subClassOf`.
-- [ ] Use the adjacency lists for usefulness checks and native sets for removal membership while retaining input-order output arrays.
-      Keep per-start visited state correct on diamonds/cycles; any memoization needs its own proof of independence from traversal state.
-- [ ] Use a bounded-stack or iterative traversal for long chains only after demonstrating the same traversal semantics.
-      Include chains, branching, multiple inheritance, cycles, `owl:Thing`, disjoint/set-operator relations and a descendant with a non-subclass property.
-- [ ] Run combinations with earlier visibility filters so the index is built from the graph supplied at that point, not a stale full-ontology cache.
+**Links:** amended REQ-007, REQ-008, REQ-011 / AC-007, AC-008, AC-011 / QA-005, QA-006, QA-008 / DEC-005, DEC-006.
+**Deliverable:** repeated complete searches avoid redundant snapshot copying and preparation while returning the current ordered semantic answer.
 
-**Oracle/proof:** hand-built expected retained graphs plus current-filter differential results; record adjacency discovery and subsequent traversal work separately.
-Indexing removes repeated whole-property scans, but repeated per-root reachability can still be superlinear.
-Do not copy the paper's worst-case formula without deriving it for the implemented traversal.
+**Predicted seams:** current `ontologyInspector.js`, `canonicalVowlDocumentSession.js`, `canonicalVowlInspectionProjector.js`, `canonicalWebVowlController.js`, `vowlDisplayProjector.js`, `ontologySearchPager.js` and their tests; proposed session-owned `ontologySearchIndex.js` only if a coherent reusable seam is justified; proposed `util/benchmark-ontology-search.mjs` using the existing environment guard.
 
-**Release/recovery:** independently releasable filter behavior; discard invocation indexes and restore the previous artifact if qualified semantics change.
+- [ ] Freeze a canonical oracle for all searchable kinds and roles, punned IRIs, anonymous expressions, equivalent n-ary groups, labels in multiple languages, exact/prefix/infix/IRI matches, no matches, whitespace, short strings and Unicode.
+      Keep `query.trim().toLowerCase()`, the current five ranks, kind ordering and identity tie-breaking; compare complete ordered results, including equal-rank role distinctions.
+      Local IDs do not become new searchable text.
+- [ ] Measure the full call through controller `snapshots()` and `session.inspectOntology()`, including its retained-facts clone, inspector record merge, normalization, group matching, sorting and final serialization.
+      Establish build/first-query cost and allocations separately from warmed queries.
+- [ ] Prepare immutable semantic search data once per accepted session revision at the owning boundary.
+      Reuse the existing construct indexes and single-copy `relationGroups`; preserve equivalent-label semantics without materializing all pairwise relationships.
+      A cache keyed only by the identity of the freshly cloned inspection is ineffective.
+- [ ] Keep mutable state private and prevent consumers from changing cached semantic records.
+      Return bounded owned result values; do not expose a live mutable document to avoid a clone.
+      Revision/generation invalidation retires semantic preparation; prefix, language and label-selection changes refresh presentation data, and focusability is derived from current visible facts.
+      Separate these lifetimes rather than making one stale global dictionary.
+- [ ] Preserve UI grouping of all matching references by display label before six displayed groups, and preserve hidden-match reporting.
+      Keep WebMCP's current request/result bounds, exact `roleKind`, total counts, offsets, eight continuation records and stale generation/revision/language checks.
+      Broad queries remain output-sensitive; do not retain corpus-sized arrays for each continuation or silently drop identities to fit an envelope.
+- [ ] Benchmark end-to-end query latency and retained heap on both admitted canonical documents and isolated synthetic inspector records.
+      A 100k-record inspector fixture is not proof that a corresponding full canonical document loads/captures within default limits.
 
-### SLICE-005 — Choose the existing automatic degree with fewer trials
-
-**Links:** REQ-005, REQ-008; AC-005, AC-008; QA-002, QA-003; DEC-003.
-**Deliverable:** initial automatic collapse and subsequent explicit degree changes preserve the current policy while avoiding repeated degree calculation.
-
-**Predicted files:** `src/shared/js/modules/nodeDegreeFilter.js`, existing `nodeDegreeFilter.test.js`, existing `src/shared/js/util/filterTools.js` as a read/verification dependency, and runtime/controller setting tests.
-Changing the tidy policy is outside this slice.
-
-- [ ] Cache datatype-excluding link degrees for one initialization/threshold calculation and for each later filter invocation as appropriate.
-      Rebuild when the supplied occurrence adjacency changes; an initialization cache cannot silently serve a changed graph.
-- [ ] Prove that the retained-node count from the actual `filterNodesAndTidy` operation is non-increasing over the candidate interval.
-      Compare all thresholds on exhaustive small fixtures, including literal ranges retained by another surviving property.
-- [ ] If the proof holds, use monotone search for the first satisfying integer threshold in `[0, maximumDegree)`, keeping the current zero fallback when none exists.
-      Avoid re-materializing candidate graphs where an exactly equivalent counting operation is established; otherwise reuse the real predicate with logarithmically fewer calls.
-- [ ] Preserve the limit of 50, ties, maximum equal to zero/one, explicit zero, requested-value clamping, disabled filtering, new-document automatic selection and the empty-output fallback.
-      A result at `maximumDegree` must not silently become a new candidate.
-
-**Oracle/proof:** compare automatic/minimum/maximum values and final ordered outputs to the sequential baseline for every generated small case.
-Assert bounded threshold-predicate calls after the monotonicity proof, and report complexity as degree preparation plus O(log D) predicate evaluations; include the actual tidy cost instead of assuming it is linear.
-If monotonicity fails for admitted inputs, stop the threshold replacement and replan; degree-count reuse can still be assessed on its own merits.
-
-**Release/recovery:** no slider limit, saved-setting meaning or configuration change.
-Current controller tests must show menus and WebMCP report the degree actually applied.
-
-### SLICE-006 — Reveal and clear a bounded hidden-result neighbourhood
-
-**Links:** REQ-006, REQ-008, REQ-011, REQ-012; AC-006, AC-008, AC-011, AC-012; QA-004, QA-006, QA-008, QA-009; DEC-004, DEC-009.
-**Deliverable:** a reader or agent selects a hidden representable class/property, sees its complete bounded depth-two neighbourhood, and returns to the ordinary view without losing filter choices.
-GATE-003 applies to the behavior and caps below.
-
-**Predicted files:** proposed `src/app/js/controller/searchProjection.js` and `searchProjection.test.js`; existing `webVowlController.js`, `webVowlControllerContracts.js`, `renderedGraphRuntimeContracts.js`, `ontologyInspector.js` and their tests; `src/webvowl/js/runtime/d3RenderedGraphAdapter.js`, `renderedGraphInternals.js` and runtime tests; `src/app/js/menu/searchMenu.js` and its tests; `src/app/js/webmcp/webMcpToolContracts.js`, `webMcpAdapter.js` and corresponding tests; `src/index.html` only for a needed explicit clear/status control; `docs/webmcp.md` and relevant help text.
-Update `src/app/test/inMemoryRenderedGraphAdapter.js` and `renderedGraphRuntimeContract.js` with the same legitimate seam contract, not a separate semantic implementation.
-
-**Proposed application contract:** `showSearchNeighborhood` accepts existing ontology-element references and an abort signal; `clearSearchProjection` removes only the temporary projection.
-Proposed tools `show_search_neighborhood` and `clear_search_projection` call these controller operations.
-A frozen `searchProjection` state fact identifies the load generation, document revision, requested references, depth and observed counts; `null` denotes the ordinary view.
-Do not repurpose `view.focus`, `isFocusable` or `resetVisualization` to mean projection selection.
-If a new result capability flag is needed, its name must denote eligibility for reveal rather than present visibility, and it must not promise success before budget validation.
-
-- [ ] Build canonical adjacency from the accepted VOWL document records, resolving endpoints and equivalent occurrence mappings with existing application contracts.
-      Use record identity for graph traversal and semantic references for the user's request; never merge all equal-IRI occurrences into one graph node.
-- [ ] For a class, seed all relevant record occurrences; for a property, seed both endpoint occurrences and retain the requested property.
-      Traverse both directions to depth two with visited sets and a queue head index.
-      Include every eligible property whose two endpoints are in the selected occurrence set, including parallel edges, self-loops and edges between depth-two boundary nodes.
-      Preserve source ordering.
-- [ ] Prototype the mapping into the renderer's existing materialized occurrence/representative model before widening the feature. Distinguish a filtered-out drawable record from an unsupported/non-renderable semantic entity.
-      Missing endpoints, unresolved occurrence mappings or changes to equivalence/set-operator drawing semantics require a reviewed decision; they cannot be hidden by a partial projection.
-- [ ] Enforce the accepted node/property/adjacency-visit/reference caps during construction and before runtime mutation.
-      Stop with a useful refusal if any cap is exceeded, including all occurrences of an oversized seed.
-      Do not silently truncate, ignore a seed or report a partial neighbourhood as complete.
-- [ ] Extend the legitimate runtime seam to apply/clear an immutable record selection while retaining the full source model as the renderer's input.
-      Reuse the graph's preparation path.
-      The controller must not pass a subset back through the ordinary ontology-load operation, because doing so would replace canonical state and identity generation.
-- [ ] Stage a candidate projection and commit its state only after runtime success for the same generation/revision and current operation sequence.
-      Retain the previous accepted view for failure recovery; suppress stale results on load, edit, clear, newer reveal or disposal.
-- [ ] Route visible-result selection through current focus behavior and hidden-result selection through reveal, preserving grouping of equal display labels.
-      An oversized group receives explicit refusal, not an arbitrary first entity.
-      Provide keyboard-operable clear/status feedback and keep text-node label rendering.
-- [ ] Implement the same operations and outcomes in WebMCP with existing schema validation, exact references, cancellation and result-budget handling.
-      Report actual accepted counts and completion, not only that a request was queued.
-
-**Lifecycle decisions to implement together:**
-
-| Event                                                              | Required behavior                                                                                                                                                                                                                                                                     |
-| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Reveal another result                                              | Replace the temporary selection; retain the original ordinary-view restoration state rather than stacking projections.                                                                                                                                                                |
-| Clear search projection                                            | Restore ordinary filtering and the captured ordinary view/arrangement through supported runtime operations; preserve the document and edits. Never promise identical resumed simulation coordinates after time has advanced.                                                          |
-| Change ordinary filters, language, modes or layout while projected | Exit the temporary view successfully, then apply the ordinary request through its current controller path. This draft chooses an explicit exit rather than an implicit mixed filtering policy.                                                                                        |
-| Existing global Reset                                              | Clear the temporary projection, then perform the accepted ADR 0012 reset: visualization defaults, cleared focus/selection, resumed layout, retained ontology/language.                                                                                                                |
-| New load, revision or disposal                                     | Retire the projection and its indexes; no references or captured restoration state cross the new generation/revision. Before an accepted human edit, clear the projection and route the edit through the full document owner.                                                         |
-| Abort or render failure                                            | Keep or restore the last accepted graph and ordinary state; surface the operation error. A stale completion cannot reapply the view.                                                                                                                                                  |
-| Export or share                                                    | Drawing/SVG export represents the current visible projection; semantic VOWL/Turtle export still represents the full accepted document including edits. Transient neighbourhoods are not silently serialized as saved ordinary filters or share-link settings; document that omission. |
-
-**Oracle/proof:** independently enumerate expected vertex and induced-edge sets for chains, cycles, hubs, disconnected components, multiple occurrences per IRI, anonymous records, inverse/equivalent properties, datatype and set-operator fixtures.
-Test every limit at below/equal/above boundaries and ensure refusals change neither state nor rendered graph.
-Use real controller/runtime contract integration for generation/revision races; mocked D3 output cannot prove projection correctness.
-Exercise UI and tools in a real production browser, including hidden property reveal, clear, reset, cancellation, edited-document export and stale-reference refusal.
-
-**Release/recovery:** ship UI, controller, runtime, schemas, help and action-parity tests together.
-No persistent schema change or temporary compatibility alias is selected.
-Before publication, rehearse failure/clear and previous-artifact restore with a recoverable edited document.
-
-### SLICE-007 — Reuse semantic search preparation without changing matching
-
-**Links:** REQ-007, REQ-008, REQ-011; AC-007, AC-008, AC-011; QA-005, QA-006, QA-008; DEC-005, DEC-006.
-**Deliverable:** repeated searches avoid rebuilding the same merged records and label indexes, while every established query returns the same ordered semantic answer.
-
-**Predicted files:** proposed `src/app/js/controller/ontologySearchIndex.js` and its tests; existing `ontologyInspector.js`, `webVowlController.js` and their tests; `searchMenu.js` only if its result adapter needs revision; `src/app/js/webmcp/ontologySearchPager.js` and `webMcpSearchPagination.test.js`; proposed `util/benchmark-ontology-search.mjs` using the existing environment guard.
-
-- [ ] Freeze an oracle covering all searchable kinds, all labels regardless of display language, repeated-identity aliases, equivalent-class labels, exact/prefix/infix matches, IRI matches, no matches, whitespace, Unicode and short queries.
-      Anonymous local IDs are not newly searchable just because they are identity keys.
-- [ ] Materialize existing semantic-record merging, normalized searchable text and equivalent-label/reference indexes once per accepted document revision.
-      Preserve `query.trim().toLowerCase()`, the current five ranks, kind rank and identity `localeCompare` ordering; add no tokenization, fuzzy matching, accent folding or Unicode normalization.
-- [ ] Bind index ownership to the accepted snapshot/generation/revision.
-      Reuse immutable semantic data across visibility-only changes, but compute `isFocusable` from current visible facts and presentation labels from the current language.
-      Rebuild or retire on accepted edits, replacement, failure recovery and disposal as appropriate.
-- [ ] Keep exact total counts and offset behavior.
-      UI continues grouping all references for each display label before presenting six groups.
-      WebMCP retains request limits, exact-identity envelope behavior, eight retained continuation records and stale generation/revision/language checks.
-      Do not cache ontology-sized result arrays per continuation.
-- [ ] Benchmark index construction plus first query, warmed query distributions, common/one-character queries and retained heap. Compare complete ordered answers to the frozen oracle, including language/filter changes between queries and pages.
-
-**Oracle/proof:** the current inspector supplies differential evidence; hand-enumerated ranking cases independently establish why it is correct.
-The selected first step indexes semantic preparation, not a new prefix-only lookup algorithm.
-Candidate scanning and large-result ranking can remain proportional to the corpus/result size; disclose that bound.
-If the accepted latency target remains unmet, GATE-006 requires a current supported-component comparison and explicit selection before additional substring indexing.
-An optional n-gram candidate filter must prove completeness with the existing substring predicate, account for short queries and Unicode code-unit behavior, and earn its retained-memory cost; it is not pre-approved by this plan.
-
-**Release/recovery:** the unchanged search contract allows independent rollout after integration with any new reveal capability field.
-Indexes remain transient; invalidation drops references and regenerates from the current document.
-No serialized trie, dependency addition or versioned search-storage format is selected.
+**Oracle/proof:** current canonical inspector results plus independent hand-enumerated ranking/ambiguity cases, randomized differential queries and visibility/language/prefix/edit races.
+Account for relation-group visits, all snapshot copies, first query and result size.
+The proposal first indexes preparation; it does not promise constant-time substring matching or select a trie, fuzzy search or Unicode normalization.
+GATE-006 requires current native/reused-component research and owner selection before adding another candidate index.
+**Release/recovery:** no persistent index format; drop retired references and rebuild from the admitted session.
+Integrate new reveal fields only if SLICE-006 is present, without making index delivery depend on it.
 
 ### SLICE-008 — Qualify shared methods through a link-constructor pilot
 
@@ -275,6 +281,7 @@ No serialized trie, dependency addition or versioned search-storage format is se
 **Deliverable:** one complete link creation/drawing/update/export path uses shared behavior with demonstrated allocation savings.
 
 **Predicted files:** `src/webvowl/js/elements/links/PlainLink.js`, its direct `ArrowLink.js`/`BoxArrowLink.js` consumers only as required, proposed `PlainLink.test.js`, existing link tests and proposed `util/benchmark-rendered-occurrence-memory.mjs`.
+Include canonical occurrence bindings, projected inverse directions and scene drawing/export in the real pilot path.
 Select the exact pilot method cohort after the inventory; do not convert all constructors to classes by text substitution.
 
 - [ ] Inventory prototype and own methods, enumerable fields, getter/setter return behavior, detached callbacks, receiver assumptions, constructor `.apply` calls and consumers that reflect or clone the pilot object.
@@ -301,7 +308,8 @@ Delete experimental variants when the accepted implementation is chosen, retaini
 **Deliverable:** the selected node/property/label families consume less memory while rendering, editing and exporting the same document.
 
 **Predicted files:** `src/webvowl/js/elements/BaseElement.js`, `nodes/BaseNode.js`, `properties/BaseProperty.js`, `links/Label.js`, `links/linkPart.js`, `forceLayoutNodeFunctions.js` and only the implementation subclasses actually affected by the inventory.
-Add focused contract tests beside each changed family; extend runtime editing/configuration/export and controller document tests.
+Add focused contract tests beside each changed family; extend canonical session/scene/editor/drawing-export and actual runtime tests.
+Renderer objects remain drawing occurrences; canonical semantic records, contextual datatype identities and source facts stay in their current owners.
 
 - [ ] Reconcile the pilot method/state inventory against the complete inheritance and callback graph.
       Distinguish semantic document data from occurrence state and retain renderer ownership.
@@ -321,174 +329,274 @@ If a shared-method change requires an obsolete-contract bridge, stop for a speci
 No saved-document ABI change is intended.
 A required change to stored/exported fields reopens the baseline and migration design.
 
-### SLICE-010 — Retire disposable sources and indexes while preserving recovery
+### SLICE-010 — Retire disposable canonical state while preserving recovery
 
-**Links:** REQ-008, REQ-010, REQ-012; AC-008, AC-010, AC-012; QA-006, QA-007, QA-009; DEC-008.
-**Deliverable:** repeated load/navigation/reveal/edit/dispose cycles retain only state with an explicit live owner; any selected cache-policy change is measured and recoverable.
+**Links:** amended REQ-008, REQ-010, REQ-012 / AC-008, AC-010, AC-012 / QA-006, QA-007, QA-009 / DEC-008.
+**Deliverable:** repeated load/query/reveal/edit/export/dispose cycles retain only explicitly owned live state.
 
-**Predicted files:** `src/app/js/controller/webVowlController.js`, `ontologySourceLoader.js`, `vowlDocument.js`, the new search/projection indexes and their tests; `src/webvowl/js/runtime/renderedGraphInternals.js`/`d3RenderedGraphAdapter.js` only where a demonstrated retired reference remains; the memory benchmark.
+**Predicted seams:** `canonicalVowlDocumentSession.js`, `canonicalVowlWorkerClient.js`, `canonicalVowlWorkerOperations.js`, `canonicalVowlSourceAcquisition.js`, inspection/render projectors, search/reveal indexes and current runtime teardown, each with its existing tests.
+No four-entry URL cache exists in this canonical ownership path; the retained `hasReusedCachedVisualization` compatibility field is not evidence of a cache implementation.
 
-- [ ] Capture a retention inventory for source text/buffers, accepted document, prior-load recovery document, four-entry URL-navigation cache, inspection/search indexes, projection restoration state, renderer clones, listeners and pending operations.
-      Identify each owner and release event from actual heap paths.
-- [ ] Remove demonstrably redundant references at successful completion, supersession, replacement, clear or disposal.
-      Retain the accepted document and failure-recovery state until their real owner no longer needs them.
-      Guard asynchronous completion against resurrecting retired caches.
-- [ ] If the four-entry cache dominates memory, propose a specific admission/eviction policy with a byte-estimation method, bound, reload semantics and treatment of edited snapshots.
-      Obtain GATE-005 acceptance before changing behavior.
-      Do not use repeated whole-document serialization or an unmeasured 50 MB string cutoff as the solution.
-- [ ] Test URL revisit with reuse requested, cache miss, concurrent load cancellation, failed-load restoration, accepted human edits, semantic export and index disposal.
-      No cache eviction may discard the only recoverable edited document.
-- [ ] Measure ten repeated load/reveal/clear/dispose cycles and retained heap paths.
-      Separate expected live cache occupancy from leaked retired generations; record whether peaks arise from source parsing, snapshots, renderer occurrences or indexes.
+- [ ] Inventory acquired root/import bytes, retained source statements, accepted inspection/checkpoint, previous-document recovery, per-job request copies, worker results, scene projections, exported bytes/blobs, renderer bindings/listeners and proposed indexes.
+      Include `retainedFacts` and render-projection inspection clones in actual heap paths.
+- [ ] Reconcile the copy/ownership proof with SLICE-007 and SLICE-011 before introducing another retained index.
+      Remove demonstrably redundant retired references at completion, supersession, replacement, clear and disposal; never drop the only recoverable edited document or its exact source evidence.
+- [ ] Verify terminal worker results cannot start later import acquisition; abort/deadline/disposal terminate the job and detach owned listeners.
+      Preserve copied accepted checkpoints when transferable request buffers are detached.
+- [ ] Test failed replacement, aborted editing/capture/export, URL reload, view changes during pending edits, selected occurrence restoration, merge/split conflict choices and exact canonical/source export.
+      A retention optimization cannot relax compatible-profile restrictions or falsely claim source equivalence.
+- [ ] Measure ten repeated cycles at equal admitted/live graph sizes and document expected live occupancy separately from retired generations.
+      Record a no-change result where no removable retention is found.
 
-**Oracle/proof:** behavioral recovery fixtures and native heap/allocation inspection establish both safety and benefit.
-Use WeakMap/GC observations as supporting evidence; deterministic tests assert ownership release, not that GC runs within an arbitrary timeout.
-If no removable retention is demonstrated, record a no-change result for that owner instead of manufacturing cleanup.
+**Oracle/proof:** deterministic ownership/recovery assertions plus actual browser allocation/retainer analysis; no fixed-time garbage-collection assertion.
+GATE-005 applies if a measured case requires a new cache admission/eviction policy or different recovery lifetime.
+The separate AWS materialization plan and any persistent browser store remain outside scope.
+**Release/recovery:** transient cleanup needs no data backfill; preserve a compatible reader and recovery checkpoints, and test the affected export/reload route before release.
 
-**Release/recovery:** transient-index cleanup needs no backfill.
-A cache-policy change must ship with documentation and a recovery exercise; persistent storage or durable schema work is outside this baseline and requires replanning.
+### SLICE-011 — Conditionally reuse canonical preparation for ordinary view changes
 
-## Traceability and catalogue coverage
+**Proposed links:** REQ-013 / AC-013 / QA-010 / DEC-010; REQ-008, REQ-012 / AC-008, AC-012 / QA-006, QA-007, QA-009.
+**Deliverable:** a measured slow filter/language/prefix/display path performs less repeated canonical preparation while producing exactly the current scene, inspection and drawing.
+This extension requires GATE-001/002 acceptance; if profiling finds no material cost, retain the existing implementation and record that disposition.
 
-| Slice     | REQ / AC / QA / DEC                                                                                                     | Falsifiable proof                                                                                 | Release and cleanup implication                                                                     |
-| --------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| SLICE-001 | REQ-001, REQ-008, REQ-012 / AC-001, AC-008, AC-012 / QA-001, QA-002, QA-006 / DEC-001, DEC-009                          | Ordered link/incidence equivalence, sharing assertions, bounded work and initial/refresh timing.  | First independent delivery; native Set grouping is retained, not reimplemented; release local maps. |
-| SLICE-002 | REQ-002, REQ-008 / AC-002, AC-008 / QA-001, QA-002 / DEC-002                                                            | First-match attribute and rerouting oracle; no unused equal-property scan.                        | Parser-local maps, same element APIs.                                                               |
-| SLICE-003 | REQ-003 / AC-003 / QA-001, QA-002 / DEC-002                                                                             | Sequential merge/hide equivalence and counts checked after each mutation.                         | Adds the catalogue's incorrectly excluded hotspot; no persistent index.                             |
-| SLICE-004 | REQ-004, REQ-008 / AC-004, AC-008 / QA-002, QA-003 / DEC-003                                                            | Filter outputs on recursive/pathological graphs and prior-filter combinations.                    | Invocation-scoped occurrence adjacency; no canonical model migration.                               |
-| SLICE-005 | REQ-005, REQ-008 / AC-005, AC-008 / QA-002, QA-003 / DEC-003                                                            | Exhaustive threshold equivalence, monotonicity proof and reduced predicate calls.                 | Preserve the 50-node policy, user settings and fallback.                                            |
-| SLICE-006 | REQ-006, REQ-008, REQ-011, REQ-012 / AC-006, AC-008, AC-011, AC-012 / QA-004, QA-006, QA-008, QA-009 / DEC-004, DEC-009 | Independent neighbourhood sets; caps, atomic failure, lifecycle, UI/tool parity and export proof. | Coherent contract release; retire projection state on revision/clear/dispose.                       |
-| SLICE-007 | REQ-007, REQ-008, REQ-011 / AC-007, AC-008, AC-011 / QA-005, QA-006, QA-008 / DEC-005, DEC-006                          | Exact query/ranking/pagination equivalence plus build/query/heap measurements.                    | Revision-owned preparation index; prefix trie not selected; later candidates require GATE-006.      |
-| SLICE-008 | REQ-009, REQ-012 / AC-009, AC-012 / QA-001, QA-007 / DEC-007                                                            | Actual link behavior, method sharing, state isolation and heap benefit.                           | Releasable pilot; GATE-004 controls expansion.                                                      |
-| SLICE-009 | REQ-009, REQ-008, REQ-012 / AC-009, AC-008, AC-012 / QA-001, QA-006, QA-007 / DEC-007                                   | Per-family contracts, rendering/editing/export and full allocation evidence.                      | Coherent inheritance cohorts; remove migration scaffolding, preserve legitimate callbacks.          |
-| SLICE-010 | REQ-008, REQ-010, REQ-012 / AC-008, AC-010, AC-012 / QA-006, QA-007, QA-009 / DEC-008                                   | Retention paths, navigation/edit recovery and repeated-cycle evidence.                            | Reject an arbitrary 50 MB transplant; require accepted cache policy and preserve recovery state.    |
+**Predicted seams:** `canonicalVowlDocumentSession.updateView`, canonical inspection/render projectors, `canonicalVowlViewControls.js`, `canonicalVowlScene.js`, `vowlDisplayProjector.js` and their current tests.
 
-Every catalogue recommendation has a disposition: layers/loops/incidence are SLICE-001; existing property membership is a verified no-change item; attributes and short-circuiting are SLICE-002; equivalent merging is SLICE-003; subclass and degree work are SLICE-004/005; hidden navigation and indexing are SLICE-006/007; object allocation is SLICE-008/009; retained-source/cache work is SLICE-010.
-The representation and semantics of Legacy code are not adopted merely because the algorithm is useful.
+- [ ] Separate time and allocations for visibility/degree calculation, semantic projection, label/principal selection, full inspection copies, renderer materialization and synchronous publication.
+      Existing operator adjacency, label/construct indexing and refinement batching are already implemented baseline behavior.
+- [ ] Reuse only revision-stable facts at their current owner, and invalidate display-dependent values for prefix/label-selection/display changes.
+      Keep the current explicit degree policy, datatype-excluding edge counts, occurrence direction/identity and hidden closure.
+      Do not substitute the legacy solitary-subclass or automatic-collapse algorithms.
+- [ ] Compare the entire admitted inspection, scene, drawing rows, tokens and persistent exports against the current implementation, including an edit completing after a view change.
+      Preserve the session's stable document identity and synchronous before-commit/rollback behavior.
+- [ ] Demonstrate that any saved work exceeds index build, extra retained memory and invalidation cost on the accepted workload.
+      Share preparation with SLICE-007 where the ownership and lifetime match; do not create competing caches.
 
-## Evidence protocol and test-oracle ownership
+**Oracle/proof:** complete differential canonical projection/scene fixtures, cold/warm view timings, allocations and transactional failure races.
+**Release/recovery:** independently qualify the complete view-change path; no schema, budget, profile, source mapping or stored-byte change is intended.
+Any such change requires re-baselining and separate compatibility evidence.
 
-The implementation owner retains one evidence record per candidate/slice with source SHA and dirty-state digest, fixture hashes/generator revision, exact commands/runtime/dependency identity, outputs, raw measurements and limitations.
-An independent reviewer checks expected behavior and whether the candidate actually meets the accepted criteria.
-Do not rewrite a golden result solely because the new implementation produces it.
-Retain a simple baseline or mathematical oracle only in test/evidence scope; it is not a shipped compatibility implementation.
+## Traceability and catalogue disposition
 
-Mock genuine external boundaries such as network fetch, browser scheduling, cancellation signals and the declared renderer port in controller unit tests.
-Exercise real parsing, indexing, ranking, traversal and filter logic in their tests.
-The in-memory runtime checks application orchestration, while the actual D3 adapter/browser checks geometry and visible results; neither substitutes for the other.
+| Slice     | Requirement / acceptance / quality / decision                             | Proof and release implication                                                                                             |
+| --------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| SLICE-001 | REQ/AC-001, 008, 012; QA-001, 002, 006; DEC-001, 009                      | Ordered canonical link/incidence equivalence, sharing and bounded work; renderer-local indexes retired after preparation. |
+| SLICE-002 | Historical REQ/AC-002; QA-001, 002; DEC-002                               | Withdrawn production work; legacy parser bypass is the disposition, not implementation acceptance.                        |
+| SLICE-003 | Historical REQ/AC-003; QA-001, 002; DEC-002                               | Withdrawn merger work; canonical topology remains package-owned.                                                          |
+| SLICE-004 | Historical REQ/AC-004; QA-002, 003; DEC-003                               | Withdrawn old subclass policy; current canonical visibility is the oracle.                                                |
+| SLICE-005 | Historical REQ/AC-005; QA-002, 003; DEC-003                               | Withdrawn 50-node threshold optimization; no implicit behavior restoration.                                               |
+| SLICE-006 | REQ/AC-006, 008, 011, 012; QA-004, 006, 008, 009; DEC-004, 009            | Exact bounded canonical neighbourhood, atomic refusal, UI/tool/export parity and compatible recovery.                     |
+| SLICE-007 | REQ/AC-007, 008, 011; QA-005, 006, 008; DEC-005, 006                      | Complete current query oracle and clone/build/query/heap evidence; transient revision-owned preparation.                  |
+| SLICE-008 | REQ/AC-009, 012; QA-001, 007; DEC-007                                     | Real canonical link behavior, shared identity and allocation benefit; GATE-004 controls expansion.                        |
+| SLICE-009 | REQ/AC-009, 008, 012; QA-001, 006, 007; DEC-007                           | Per-family state/receiver/interaction/export equivalence and heap evidence; coherent consumer migration.                  |
+| SLICE-010 | REQ/AC-008, 010, 012; QA-006, 007, 009; DEC-008                           | Retainer paths and failed-load/edit/source recovery; actual policy changes require GATE-005.                              |
+| SLICE-011 | Proposed REQ/AC-013; QA-010; DEC-010, plus lifecycle/release requirements | Identical canonical view transactions with measured work savings and bounded retention, or an evidenced no-change result. |
 
-### Corpus and measurement design
+Every catalogue idea has a disposition: layers/loops/incidence remain SLICE-001; ID-based native Set property membership already exists and stays unchanged; legacy attribute/rerouting/merger/subclass/automatic-degree ideas are withdrawn; hidden navigation/search are revised SLICE-006/007; shared behavior remains SLICE-008/009; retention becomes canonical SLICE-010.
+SLICE-011 addresses a newly observed canonical preparation seam conditionally.
+Historical paper results and Legacy output do not replace current canonical conformance.
 
-Use `src/app/data/foaf.json`, `goodrelations.json`, `ontovibe.json` and `benchmark.json` as checked-in reference inputs, alongside relevant converter fixtures.
-Record bytes/hashes and actual class/property/link counts at each representation; entities, document records, links and rendered occurrences are different units.
-Exercise all four source kinds: `ontology-document-iri`, `ontology-text`, `vowl-json-url` and `vowl-model`.
+## Evidence, workloads and verification
 
-Generate reproducible fixtures for empty/disconnected graphs, chains, dense parallel pairs, many self-loops, high-degree hubs, repeated IRIs/IDs, equivalent groups, cycles/diamonds, datatypes and set operators.
-The linear-work series is 1k, 2k, 4k, 8k and 16k graph units with explicit V/E counts; memory/search workloads additionally use 1k, 10k and 100k records/occurrences as appropriate.
-Generated topology and labels must have fixed seeds and documented distributions.
+Retain exact source HEAD/tree and dirty-input hashes, package/lockfile identities, fixture hashes, browser/runtime versions, commands, outputs, raw measurements and limitations under the configured external evidence root.
+The implementation owner proposes the change; an independent reviewer checks the semantic oracle and benefit at the R2 review point.
+Mock only genuine network, scheduling, worker transport and renderer-port boundaries in unit tests; package projection, admission and canonical expected bytes require real implementations and independent fixtures.
 
-FOAF/ENVO/YAGO numbers from the paper motivate the workload range.
-No exact ENVO/YAGO fixture or current Hadden measurement was established by this planning task.
-If those datasets become acceptance inputs, acquire the exact versions with retained provenance/rights, convert reproducibly and hash the resulting bytes before comparing candidates.
-Synthetic data does not establish the paper's reported speedup or real-ontology capacity.
+The corpus is now logical, not a list of physical loose files.
+Use `readCorpusArtifact` from `packages/vowl/conformance/storage.mjs`, its manifests and [storage contract](../../../packages/vowl/conformance/STORAGE.md).
+The consolidation preserved 7,227 original byte artifacts in 64 bundles; absence of a loose path is not a missing logical case.
+Do not generate new golden bytes from the candidate, discard historical failing resource cases or overwrite producer evidence to obtain a pass.
 
-Use the repository-selected runtime and existing quiescent-machine guard.
-Collect baseline and candidate sequentially on the same machine/browser, with one warm-up and at least five recorded timed runs per phase/input; retain every sample and report median and spread.
-Use a fixed query suite with enough repetitions to make p50/p95 meaningful, documenting its exact sample count and whether indexes are cold or warm.
-Do not run source scans or other tests while timing.
-Corroborate a suspected breach as ADR 0003 requires; retain discarded contaminated runs and the evidence of contamination.
+### Workload and resource baseline
 
-Record separately: source read/conversion, renderer parse, link metadata, adjacency, each filter, projection construction/application, index build, query/ranking, render-ready time and total load time.
-Record visible and semantic counts beside every speed result.
-Measure cold/warm startup, drag/zoom responsiveness and peak/retained heap where affected; a faster preparation phase can expose D3/SVG layout as the next bottleneck.
-Budget a later renderer redesign only through a new decision, not as automatic expansion of this programme.
+Measure acquisition/import wait, worker startup and input copy, admission/mapping/refinement, worker transfer/result delivery, scene/inspection/render projection, link/incidence preparation, first usable draw, query/view interaction, capture/export and recovery separately.
+Measure the complete user operation as well as each optimized phase.
+Keep serialized fixtures small enough to be admitted under existing limits, and label larger isolated synthetic tests explicitly.
 
-A timer sampler cannot observe a transient synchronous heap peak while the main thread is blocked.
-Use browser allocation/heap tooling for memory claims and distinguish sampled heap, retained heap and process memory.
-Neither changing `var` nor adding `class` syntax is itself memory evidence.
+Current defaults in `packages/vowl/src/resourceBudget.js` are 32 MiB input, 100,000 primary records, 1,500,000 embedded values, depth 128, 1 MiB per string, 16 MiB total strings, 1,000,000 RDF quads, 100,000 deep iterations and 10,000 ms per operation.
+The existing RDFC bound is `min(B * B, rdfDeepIterations)`; all charge units, upper overrides, deadlines and fail-closed behavior remain constraints.
+Increasing these defaults, skipping charges or caching an unchecked document is not a performance optimization under this plan.
 
-### Verification matrix
+The [canonical qualification report](../../reviews/canonical-vowl-slice006-qualification.md) includes initial failures and later approved repairs.
+Its final 24-run matrix uses the approved embedded-work default; do not report the initial connected-2,000 rejection or disconnected-WebKit deadline as the final outcome.
+The final connected/disconnected 2,000-class fixtures meet that report's accepted host-specific objectives: load plus capture below ten seconds, heartbeat gaps below 100 ms and sampled private browser memory below 2 GiB in Chromium, Firefox and WebKit.
+Connected times were 6.170/7.775/8.565 seconds and disconnected times 2.784/3.593/4.470 seconds respectively.
+These are single sampled runs per fixture/engine, not percentiles, exact heap peaks, INP, a universal 2,000-class capacity or Safari certification.
 
-Commands below are planned execution checks, not results obtained while writing this plan.
-Use local installed tools and the selected development runtime; record exact versions and lockfile identity without updating configuration.
-New test/benchmark paths become runnable only after their slice creates them.
+Use those two exact fixtures as retained regression cases, together with all six shipped examples, named historical migration, compatible/partial/detail-only inputs, punned roles, anonymous/high-symmetry graphs, long strings, deep rejection, dense parallel/loop shapes and interrupted operations.
+The earlier paper's ENVO and memory figures remain historical; large real-input qualification still needs exact rights/provenance and admitted current artifacts.
 
-| Scope                        | Check                                                                                                                                                                                                                                                    | Evidence required                                                                                                                                                                                                        |
-| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Target identity              | `git status --short --branch`; `git rev-parse HEAD`; `node --version`; `npm --version`; `npm ls --depth=0`                                                                                                                                               | Explain dirty inputs and dependency/environment mismatches before comparison.                                                                                                                                            |
-| Fast graph/parser feedback   | `npm test -- --runInBand --runTestsByPath src/webvowl/js/parser.test.js src/webvowl/js/elements/links/ArrowLink.test.js src/webvowl/js/elements/links/BoxArrowLink.test.js` plus the slice's proposed tests once added                                   | Real contracts, not only source-pattern assertions.                                                                                                                                                                      |
-| Filter feedback              | `npm test -- --runInBand --runTestsByPath src/shared/js/modules/subclassFilter.test.js src/shared/js/modules/nodeDegreeFilter.test.js`                                                                                                                   | Current filter policy plus newly added adversarial and threshold cases.                                                                                                                                                  |
-| Semantic/controller feedback | `npm test -- --runInBand --runTestsByPath src/app/js/controller/ontologyInspector.test.js src/app/js/controller/vowlModelInspectionProjector.test.js src/app/js/controller/webVowlController.test.js src/app/js/controller/ontologySourceLoader.test.js` | Search results, ownership, edits, load/revision/cancellation and recovery.                                                                                                                                               |
-| Runtime and UI               | `npm test -- --runInBand --runTestsByPath src/webvowl/js/runtime/d3RenderedGraphAdapter.test.js src/webvowl/js/runtime/renderedGraphSeamConformance.test.js src/webvowl/js/runtime/renderedGraphEditing.test.js src/app/js/menu/searchMenu.test.js`      | Actual adapter integration and menu contracts; new projection contracts included.                                                                                                                                        |
-| Agent parity                 | `npm test -- --runInBand --runTestsByPath src/app/js/webmcp/webMcpToolContracts.test.js src/app/js/webmcp/webMcpAdapter.test.js src/app/js/webmcp/webMcpSearchPagination.test.js src/app/js/webmcp/webMcpDetailConsistency.test.js`                      | Input/result bounds, exact identities, stale continuations and completed effects.                                                                                                                                        |
-| Architecture                 | `npm test -- --runInBand --runTestsByPath src/renderedGraphDecoupling.architecture.test.js src/productionModuleFormat.architecture.test.js src/productionGraph.architecture.test.js src/owlapiConsumerBoundary.architecture.test.js`                     | Ownership/dependency constraints still hold; no renderer semantic-store regression or ESM rollback.                                                                                                                      |
-| Complete relevant suite      | `npm test -- --runInBand`                                                                                                                                                                                                                                | Run on the frozen candidate after focused checks; retain actual failures, coverage and skipped prerequisites.                                                                                                            |
-| Quality/tooling              | `npm run lint`; `npm run format:check`; `npm run test:setup`; `npm run test:prose` as required by the candidate/pipeline                                                                                                                                 | Correct formatting/lint first; no broad formatter writes over user-owned files.                                                                                                                                          |
-| Production build             | `npm run build`; then `node util/verify-webvowl-lazy-parser-chunks.mjs`                                                                                                                                                                                  | Production artifact and lazy parser boundaries. Inspect artifact-producing test behavior before reusing on-disk output.                                                                                                  |
-| Real browser                 | Serve the production build with `npm run preview`; compare a separate cold `npm run dev` run where relevant                                                                                                                                              | Load, filter, degree, visible/hidden class/property search, clear, global reset, keyboard/touch, drag, zoom, language, editing, supported export and reload. Record browser, console/network errors and measured phases. |
-| Performance and memory       | Slice benchmark entry points plus native browser performance/allocation tooling                                                                                                                                                                          | ADR 0003-compliant raw evidence and accepted QA targets; deterministic work counts where possible.                                                                                                                       |
-| Native security review       | Scope the selected native reviewer to changed untrusted-input, resource-limit, DOM, controller and WebMCP boundaries                                                                                                                                     | Actual reviewed target and dispositions; no generic clean-security claim from ordinary tests.                                                                                                                            |
-| Hosted acceptance            | Owner-authorized deployment of the qualified artifact and a smoke/recovery exercise                                                                                                                                                                      | Exact SHA/artifact identity, hosted behavior and restored previous artifact; CI/build do not establish these.                                                                                                            |
+GATE-002 must accept fresh paired measurements and targets for each selected optimization.
+Retain the dossier's proposed 25% targeted median improvement, small-corpus regression tolerance of the larger of 10% or 25 ms, warmed search p95 at most 100 ms on an agreed isolated 100k-record fixture, and 20% per-occurrence retained-allocation pilot benefit only as calibration proposals.
+They are not measured achievements or default-admission promises.
+Deterministic visit/copy counts establish eliminated work; repeated paired timing and allocation evidence establish benefit.
+GC timing, a timer sampler during synchronous work and a single heartbeat run cannot establish a peak-memory or percentile claim.
 
-The registered HISEW R2 requirement is profile `full`, currently `npm run build` with a 600-second declaration timeout.
-Other current declarations are `focused` → `npm run lint` and `affected` → `npm run test`, also 600 seconds.
-Reinspect applicability, policy, binding and verification gaps at execution time; use the selected engine's governed verification for its required profile and retain additional product evidence explicitly.
-Do not relabel an ordinary test transcript as an engine receipt or change the registered profiles to make this plan easier to run.
-The existing declarations do not prove that full tests, performance or browser acceptance happened.
+Local diagnostics retain bounded aggregate durations, counts, generation/revision and sanitized error codes, without ontology/query contents or remote telemetry.
+Clear collected User Timing entries after use.
+Optional performance APIs require feature detection and browser trace alternatives.
+Any future yielding happens during preparatory work with cancellation/staleness checks, never halfway through synchronous publication.
 
-Finish authorized formatting, inspect the complete diff including untracked new files, freeze the candidate and run final checks once.
-A later edit requires a scope-based decision about which evidence is stale; repeated whole-suite runs without changed inputs add no assurance.
+### Current verification commands
 
-## Compatibility, trust, observation and release
+Commands below are planned implementation checks, not results of this documentation revision.
+Use installed tools; do not refresh locks or install runtimes implicitly.
+Proposed test files become runnable only after their slice creates them.
 
-Existing VOWL documents, saved ordinary settings, semantic references and source APIs remain the compatibility baseline.
-There is no database backfill, persistent search schema or automatic data migration.
-Transient maps rebuild on load/revision; an interrupted implementation resumes from its last qualified slice and retained evidence, after reconciling the actual working tree.
-Runtime interruption uses operation/generation ownership and accepted-document recovery, not process memory as a durable checkpoint.
+| Scope                        | Current check / evidence                                                                                                                                                                                                                                                                                                                                                                                     |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Identity and environment     | `git status --short --branch`, `git rev-parse HEAD`, `node --version`, `npm --version`, `npm ls --depth=0`; bind dirty inputs and exact lock identity.                                                                                                                                                                                                                                                       |
+| Canonical package and corpus | `npm run test:vowl`; `node packages/vowl/scripts/verify-corpus-storage.mjs`; add `--against-git` for changes affecting storage/provenance and retain its checkpoint requirement.                                                                                                                                                                                                                             |
+| Load/view/recovery           | `npm test -- --runInBand --runTestsByPath src/app/js/controller/canonicalVowlDocumentSession.test.js src/app/js/controller/canonicalWebVowlController.test.js src/app/js/controller/canonicalVowlWorker.test.js src/app/js/controller/canonicalVowlSourceAcquisition.test.js src/app/js/controller/canonicalVowlScene.test.js src/app/js/controller/canonicalVowlViewControls.test.js`.                      |
+| Semantic/search/display      | `npm test -- --runInBand --runTestsByPath src/app/js/controller/ontologyInspector.test.js src/app/js/controller/canonicalVowlInspectionProjector.test.js src/app/js/controller/canonicalVowlRenderProjection.test.js src/app/js/controller/vowlDisplayProjector.test.js src/app/js/controller/webVowlControllerContracts.test.js src/app/js/menu/searchMenu.test.js`.                                        |
+| Renderer                     | `npm test -- --runInBand --runTestsByPath src/webvowl/js/parsing/canonicalRenderElements.test.js src/webvowl/js/runtime/d3RenderedGraphAdapter.test.js src/webvowl/js/runtime/renderedGraphSeamConformance.test.js src/webvowl/js/runtime/renderedGraphEditing.test.js src/webvowl/js/elements/links/ArrowLink.test.js src/webvowl/js/elements/links/BoxArrowLink.test.js`; add the new SLICE-001/008 tests. |
+| UI and agent parity          | Existing `webMcpToolContracts.test.js`, `webMcpAdapter.test.js`, `webMcpSearchPagination.test.js`, `webMcpDetailConsistency.test.js`, sidebar/input/export and canonical editor/drawing-export suites, selected with `--runTestsByPath`. Verify roles, ambiguity, result envelopes and actual completion.                                                                                                    |
+| Architecture                 | `npm test -- --runInBand --runTestsByPath src/renderedGraphDecoupling.architecture.test.js src/productionModuleFormat.architecture.test.js src/productionGraph.architecture.test.js src/owlapiConsumerBoundary.architecture.test.js src/testRunnerScope.architecture.test.js src/app/js/webmcp/webMcpArchitecture.test.js`.                                                                                  |
+| Frozen candidate             | `npm test -- --runInBand`, `npm run lint`, `npm run format:check`, applicable `npm run test:setup` and `npm run test:prose`, then `npm run build` and `node util/verify-webvowl-lazy-parser-chunks.mjs`. Rebuild after tests that replace build output.                                                                                                                                                      |
+| Production browser           | Serve the exact normal production artifact with `npm run preview`; qualify actual canonical load/view/search/edit/export/reopen, cancellation, clear/reset, keyboard/touch and failure recovery. The isolated `canonical` mode is additional evidence, not a substitute for production composition.                                                                                                          |
+| Performance/memory           | Accepted slice benchmarks under `util/benchmarkEnvironment.mjs` discipline, production browser traces/allocation tools and the retained canonical resource cases; keep timing windows quiescent.                                                                                                                                                                                                             |
+| Security and recovery        | Route-selected review of untrusted input, role/reference validation, resource limits, worker races, DOM text and exported/source facts; separately authorized hosted smoke and compatible-artifact recovery. Ordinary lint/tests do not establish those outcomes.                                                                                                                                            |
 
-New requests reuse authoritative controller/runtime/WebMCP validators.
-Reject unsupported fields, stale references and excessive work before rendering effects; never evaluate a query as a regular expression or construct label HTML.
-Keep the current text-node/mark-element approach in the search menu.
-Scope the security review to graph/index resource exhaustion, pathological labels/queries, stale-operation races, output bounds and any new trust-boundary behavior.
-No remote telemetry, new service or browser permission is selected.
+HISEW profiles were reinspected: `focused` runs `npm run lint`, `affected` runs `npm run test`, and `full` runs `npm run build`, each with a declared 600-second timeout.
+Coverage/input ordering is declared unknown, not verified by the engine.
+R2 still requires its governed full profile plus the relevant product evidence; a build receipt does not establish the complete tests, browser matrix, performance or recovery.
 
-Local observations answer: which phase dominates, how many graph facts survived, whether the search index repays its build cost, whether a reveal refused because of limits, and which generation retains memory.
-Use aggregate counts, durations and stable operation/error names; omit document content and query text.
-Bound diagnostic buffers and clear collected User Timing entries.
-Long Animation Frame evidence is optional and feature-detected; use native performance traces where it is unavailable.
+The repository now selects proportional CI checks for documentation-only changes through `util/selectCiChecks.mjs` and `util/checkDocumentation.mjs`, while preserving required application/CodeQL gates and full checks for non-documentation inputs.
+This does not change local HISEW profile declarations.
+The pre-existing dirty `skills-lock.json` is a non-documentation input; never claim the complete workspace would select documentation-only CI or stage it with this plan.
+For this documentation task, check the edited file's formatting, links, commands, ledger coverage and diff, then run the registered focused profile and report unrelated failures accurately.
 
-Maksy accepts release; the implementation owner is the responsible first-release observer until another named owner accepts handoff.
-Assign the actual human/provider before publication rather than treating this role label as completed staffing.
-For each slice, qualify local production preview, retain the previous deployable artifact, obtain independent review, then use the separately authorized repository delivery and hosting path.
-The first graph/parser/filter releases do not depend on shipping search or object-model changes.
+## Compatibility, observation, release and replanning
 
-Abort release on unexplained semantic differences, stale state, lost edits/recovery, missing critical browser evidence, unresolved security findings, or corroborated breaches of the accepted resource/performance budgets.
-For a deployed regression, preserve/export active edits, restore the known qualified artifact through the demonstrated hosting route, and verify load/filter/search/export on that artifact.
-If rollback cannot preserve an edited or newly serialized state, contain the affected action and plan a forward fix; do not claim restoration is safe until demonstrated.
-No flag service, deployment-script change or force push is implied.
+Canonical semantic records, source qualifiers, named historical ingress, role-aware references and current scene/export contracts are the compatibility baseline.
+All proposed indexes are transient; no database backfill or persistent-search migration is planned.
+Interruption resumes from the last qualified slice after checking actual checkout state and retained evidence; process memory is not a durable checkpoint.
 
-Cleanup covers new temporary benchmark fixtures/processes, obsolete migration-only methods, retired index references/listeners and abandoned experimental code.
-Retain reviewed evidence, source/license provenance and the accepted baseline.
-Deleting branches/worktrees or user-owned files requires its own lifecycle/authorization; neither planning nor successful tests supplies it.
+Search input stays literal text, with current query/ref/result validators and resource checks.
+No regular-expression query evaluation, label HTML, full-IRI truncation or stale-token reuse is permitted.
+Native security assessment, independent semantic/performance review and actual keyboard/assistive-technology observations remain implementation obligations where the accepted route requires them.
+Existing browser accessibility probes do not certify all WCAG interactions.
 
-## Unknowns, cheapest experiments and replanning
+Maksy owns acceptance and release; the assigned implementation owner observes the first authorized release until another named observer accepts handoff.
+Qualify each independently releasable slice with exact source/build identity, preserve the previous compatible canonical artifact and rehearse failed publication/recovery with an edited document.
+Experimental candidate identification and compatibility disclosure continue under the 4 October amendment; immutable profile/package publication is a separate deferred decision.
+Existing notices, source rights and distribution limitations remain attached to the six examples and any newly selected benchmark source.
 
-| Unknown                                          | Cheapest discriminating evidence                                                                                             | Owner / consequence                                                                                           |
-| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| Dominant current loading phase                   | Instrument one existing medium fixture and the synthetic doubling series before optimizing.                                  | Implementer; move a lower-value slice later if its hotspot is insignificant, with owner agreement.            |
-| Supported pathological identity/attribute inputs | Existing schema/parser tests plus explicit duplicate/missing-ID fixtures.                                                    | Semantic reviewer; preserve admitted behavior and do not broaden/restrict input silently.                     |
-| Degree predicate monotonicity                    | Exhaustively compare thresholds on small graphs with datatype tidy and shared ranges.                                        | Algorithm reviewer; failure blocks binary-search selection, not honest degree-cache measurements.             |
-| Canonical record-to-renderer projection fidelity | One hidden class, one inverse/equivalent property and one repeated-IRI fixture through the real seam.                        | Architecture reviewer and Maksy; inability to preserve induced relations reopens DEC-004 before full UI work. |
-| Usable neighbourhood caps                        | Construct exact depth-two results for typical selections and a hub; measure counts, refusal frequency and render/clear time. | Maksy; accept or revise GATE-003 values before implementation of that policy.                                 |
-| Benefit of materialized search                   | Benchmark the existing query corpus with/without repeated preparation, including build/heap cost.                            | Implementer/reviewer; GATE-006 controls any larger indexing project.                                          |
-| Viability of shared methods                      | Pilot a representative PlainLink cohort and inspect real receiver/heap evidence.                                             | Memory reviewer/Maksy; failed benefit or contract proof blocks SLICE-009 expansion.                           |
-| Safe retention savings                           | Heap paths during a failed load and edited-document navigation cycle.                                                        | Recovery reviewer/Maksy; do not evict state without an accepted owner/recovery rule.                          |
-| Representative large real input                  | Pin and hash a rights-reviewed ENVO/YAGO artifact or another owner-accepted large ontology.                                  | Maksy; disclose synthetic-only evidence until qualified, rather than asserting paper-scale results.           |
+Abort on unexplained canonical bytes/facts/occurrence differences, stale state, lost edits or source evidence, changed resource admission, unresolved material review findings or corroborated workload regressions.
+Prefer containment/forward repair when an older artifact cannot read the affected files.
+Do not claim live restoration from an unexercised backup or treat previous deployment authorization as current permission.
 
-Replan when the target architecture changes; a new dependency/configuration is necessary; matching/ranking/filter semantics would change; occurrence identities would be collapsed; budgets reject the intended workload too often; a baseline hotspot disappears; sharing requires a shim; or recovery requires a persistent schema change.
-Rebaseline requirements and route before expanding into owlapi, a renderer rewrite, workers, persistent storage or a new public protocol meaning.
-If a proposed target conflicts with semantic completeness or recovery, those hard constraints prevail until the owner accepts a revised outcome.
+| Unknown                                  | Cheapest discriminating experiment                                                                                        | Decision owner / consequence                                                                    |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Current dominant load/interaction cost   | Phase profile one shipped example and the exact connected/disconnected 2,000-class cases, then bounded topology variants. | Implementer/Maksy: prioritize measured work; do not revive bypassed slices.                     |
+| Search clone versus matching cost        | Compare complete controller query with inspector-only timing and counted clone/preparation work.                          | Implementer/reviewer: choose one session-owned preparation seam for SLICE-007/011.              |
+| Reveal representation and caps           | Hand-enumerate canonical occurrence/label dependencies for a punned entity, inverse edge, contextual datatype and hub.    | Maksy/semantic reviewer: accept GATE-003 units and export policy before implementation.         |
+| View-preparation reuse value             | Compare repeated prefix/language/filter/display changes at equal revision, including an overlapping edit.                 | Maksy/reviewer: accept SLICE-011 only with material evidence and a safe lifetime.               |
+| Shared-method benefit                    | Pilot actual canonical link cohorts and inspect allocation/retainer paths.                                                | Maksy/memory reviewer: GATE-004 decides expansion.                                              |
+| Retired state versus legitimate recovery | Failed replacement/edit/capture followed by heap-owner inspection and successful recovery/export.                         | Recovery reviewer: preserve necessary snapshots; GATE-005 governs behavioral retention changes. |
+| Representative larger documents          | Pin rights-reviewed source bytes, closure context, topology and canonical workload; retain rejection outcomes.            | Maksy: no paper-scale capacity claim without admitted current evidence.                         |
 
-Planning is complete when this document and dossier are consistent, source-grounded and reviewable.
-Implementation acceptance requires the accepted baseline, completed slice evidence and reviews.
-Release readiness additionally requires the actual delivery/observation/recovery evidence; these are separate claims.
+Replan when canonical contracts/identities change, the adjacent cache changes acquisition context, new configuration/dependencies are needed, current hotspots disappear, index memory outweighs saved work, caps reject intended tasks, export compatibility changes, or worker/cancellation/recovery ownership must change.
+Refresh the inventory if HEAD, refs, input documents or pre-existing working-tree hashes change before acceptance.
+New semantics, budget increases, persistent state, additional supported dialects or a renderer rewrite require explicit re-baselining.
+Planning completion means a consistent reviewable proposal and auditable reconciliation; implementation and release acceptance require their own evidence.
+
+## Exhaustive repository change reconciliation
+
+The audit enumerates the complete retained ref/reflog history before applying the inclusive cutoff to both author and committer timestamps.
+It does not rely on a first-parent log, a net diff alone or path-limited searches.
+Every selected commit is compared with every parent using raw full blob identities, modes and rename old/new paths; first-parent binary patches are retained.
+The pre-cutoff mainline tip, current refs, remote head observations, net diff, initial index/worktree status, all nonignored untracked inputs and their hashes are retained.
+
+Coverage: **26 commits** (23 reachable from current refs, all also ancestors of HEAD; three reflog-only pre-squash originals), **18,676 parent-relative change records**, **9,240 distinct historical paths**, and **three additional pre-existing working-tree paths**.
+The baseline-to-HEAD net diff is 2,010 records: 1,923 additions, 49 modifications, 35 deletions and three renames.
+Seven merge commits have exactly their second parent's tree, so none introduces an unaccounted merge resolution.
+The three reflog originals have the same trees as their corresponding squash commits; they are recorded separately without claiming extra landed functionality.
+
+The complete [machine ledger](../../../../../.hi/w/e/operator-reports/performance-search-plan-20261005/repository-change-ledger.json), [path-by-path accounting](../../../../../.hi/w/e/operator-reports/performance-search-plan-20261005/path-accounting.md) and [reproduction script](../../../../../.hi/w/e/operator-reports/performance-search-plan-20261005/inventory.mjs) are retained in the configured external evidence store.
+Machine-ledger SHA-256: `faf05a721791ea1760faa65a4a184402205298beea9caf42aacf36a9db066957`.
+Every historical path maps to exactly one group below and to every commit/parent event that touched it; the detailed accounting lists exact paths, including all bundled-away members.
+The evidence links are local to this host; preserve or transfer that evidence directory with a cross-host handoff.
+
+“Exhaustive” here covers the repository history recoverable from every local ref and reflog and every current nonignored working change at the recorded observation.
+Remote heads were checked without changing refs; the origin/upstream heads corresponding to local remote-tracking refs agree.
+Ignored build/dependency caches, pruned objects and unavailable historical remote refs cannot establish source changes and are not claimed as audited history.
+Uncommitted edits lack reliable change timestamps, so all three were included conservatively.
+No changed source/configuration/test/evidence path in that universe is omitted as merely unrelated.
+
+### Commit dispositions
+
+| Commit                  | Parent change records | Disposition                                                                                                                                          |
+| ----------------------- | --------------------: | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `02464992126a` (reflog) |                     3 | Original plan/dossier/catalogue draft; reflog copy of the subsequent squash.                                                                         |
+| `c6d3b8713018`          |                     3 | Publishes the initial performance/search baseline and source catalogue.                                                                              |
+| `1d4df48515e9` (reflog) |                    16 | Proportional CI implementation; reflog copy of the subsequent squash.                                                                                |
+| `3de1040c6069`          |                    16 | Adds CI/documentation selection, protected CodeQL verdict and tooling/tests.                                                                         |
+| `af9c601fae08` (reflog) |                     1 | CI documentation diagram; reflog copy of the subsequent squash.                                                                                      |
+| `4c7211e5a08f`          |                     1 | Documents proportional check selection and its boundaries.                                                                                           |
+| `8b84cb21530c`          |                     1 | Introduces canonical profiles/conformance design; replaces prior future-architecture assumptions.                                                    |
+| `354ed3af8c1e`          |                 1 / 0 | Integration of 8b84cb21530c; merge tree equals that parent, with no additional resolution change.                                                    |
+| `d5f0d2ac2ac9`          |                     5 | Adds canonical core/projection contracts, decisions and research synthesis.                                                                          |
+| `1c64045bf572`          |                 5 / 0 | Integration of d5f0d2ac2ac9; merge tree equals that parent, with no additional resolution change.                                                    |
+| `244ca05bf904`          |                     1 | Adds the canonical implementation programme and acceptance sequencing.                                                                               |
+| `4f1970e5b6c9`          |                 1 / 0 | Integration of 244ca05bf904; merge tree equals that parent, with no additional resolution change.                                                    |
+| `4cac26e920cb`          |                 8,957 | Adds canonical core/OWL/migration, corpus, package/tooling and contract amendments; new semantic authority.                                          |
+| `3c06af70f364`          |                 7,346 | Consolidates 7,227 loose artifacts into 64 bundles with byte-preserving inventory and consumer changes.                                              |
+| `13e33a137a24`          |                    11 | Derives format selection from public owlapi metadata; removes duplicated format admission assumptions.                                               |
+| `d77183ffa4c4`          |                    70 | Adds compatible artifact/source preservation, source/editor foundations and canonical acquisition/session seams.                                     |
+| `ef4926b2de06`          |                    94 | Integrates canonical workers, scene, drawing, inspection, role-aware tools, editing/export and qualification UI.                                     |
+| `62fc931c28a1`          |                     3 | Bounds lexical namespace splitting and retains regression/evidence; preserve as baseline repair.                                                     |
+| `1d91eb30ba12`          |             1,921 / 0 | Integration of 62fc931c28a1; merge tree equals that parent, with no additional resolution change.                                                    |
+| `2bba8c5511e9`          |                    10 | Qualifies bounded workloads; improves refinement/checkpoint/task/scene work and accepts embedded-work amendment.                                     |
+| `9e69b1c75bf5`          |                    90 | Switches production to canonical, regenerates examples/notices, repairs editing/recovery/accessibility, retires obsolete owners and records cutover. |
+| `4aa7cb2d5c7e`          |               100 / 0 | Integration of 9e69b1c75bf5; merge tree equals that parent, with no additional resolution change.                                                    |
+| `d291c38e7026`          |                     8 | Updates dependency/security/tooling inputs and formatter edge cases; changes comparison environment.                                                 |
+| `56a9913adec2`          |                 8 / 0 | Integration of d291c38e7026; merge tree equals that parent, with no additional resolution change.                                                    |
+| `17a235d65982`          |                     2 | Updates html-validate manifest/lock to 11.16.1; validation environment change.                                                                       |
+| `0fbf00ef51f6`          |                 2 / 0 | Integration of 17a235d65982; merge tree equals that parent, with no additional resolution change.                                                    |
+
+### Complete path-group dispositions
+
+Counts are distinct historical paths, including retired paths; working-tree additions are counted separately.
+G08 has no historical changes: the old shared filters were inspected because unchanged files can become inapplicable when callers change.
+
+| Group                              | Historical paths / present at HEAD | Changes and plan disposition                                                                                                                                                                                                                                                                                                                                                                                              |
+| ---------------------------------- | ---------------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| G01-conformance                    |                      8,951 / 1,724 | Logical fixtures, independent producers, manifests, supplemental protocol/editing/resource/migration/compatible cases, storage reader and provenance. Preserve all expected bytes and logical cases via the corpus reader; 7,227 loose artifacts were consolidated into 64 bundles. Retain historical counterevidence; no corpus case is treated as removed coverage. Links: All active slices: semantic/resource oracle. |
+| G02-canonical-core                 |                            37 / 37 | 37 core, OWL, migration, live-model/editing, snapshot, source and resource modules. Current semantic/byte authority; preserve mapping/profile/source facts and charges. Existing batching/accounting repairs are baseline; no replacement mapper planned. Links: 001, 006–011: boundary/regression.                                                                                                                       |
+| G03-canonical-tests                |                            40 / 40 | Package unit, corpus, resource and real-browser harness files. Use current conformance, compatible/source/editing and worker/recovery oracles; observed historical results are not reruns. Links: All active slices: proof.                                                                                                                                                                                               |
+| G04-canonical-tools                |                              5 / 5 | Browser probes/vectors, schema generation, notices and corpus-storage verification. Reuse supported verification entry points; do not regenerate goldens or overwrite rights evidence. Links: Evidence/release.                                                                                                                                                                                                           |
+| G05-package-contracts              |                              9 / 9 | Workspace manifest, schemas, licence and third-party notices, README. Existing experimental workspace/dependency boundary; exact schema/config changes need approval; preserve source rights and candidate qualification. Links: Compatibility and REU/VER/LIC gates.                                                                                                                                                     |
+| G06-application-controller         |                            58 / 47 | Canonical sessions/controllers/acquisition/worker/scene/view/search/editor/export modules and tests; retired old owners and relocated resolver. Use exact current owners and role-aware contracts; withdraw old parser/filter assumptions, include clone cost and recovery. Links: 001, 006, 007, 010, 011; 002–005 withdrawn.                                                                                            |
+| G07-renderer                       |                              8 / 6 | Canonical element materialization, adapter/internals/editing tests; removed Turtle serializer. Keep renderer a projection; link/incidence work survives. Preserve transactional revisions, occurrence context and export ownership. Links: 001, 006, 008–011.                                                                                                                                                             |
+| G09-webmcp                         |                              3 / 3 | Tool schemas/tests and architecture ownership test. Preserve roleKind validation, ELEMENT_AMBIGUOUS, existing envelope/pagination and parity. Links: 006, 007.                                                                                                                                                                                                                                                            |
+| G10-menus                          |                              1 / 1 | Export menu format/capability behavior. Preserve canonical artifact/semantic export capability and menu state in reveal and memory tests. Links: 006, 008–010.                                                                                                                                                                                                                                                            |
+| G11-examples-and-notices           |                              3 / 3 | Experimental candidate identifier and example/source notices. Retain exact candidate, attribution and distribution limitations; no new rights inference. Links: Fixtures/release.                                                                                                                                                                                                                                         |
+| G12-retired-converter              |                             28 / 4 | Old converter/constants/builder package/tests, moved import resolver, retained historical helper/catalog/differential files. Do not recreate removed production owners or run deleted tests; retain named historical migration/comparison evidence. Links: 002–003 withdrawn; current verification map.                                                                                                                   |
+| G13-composition-and-ui             |                            19 / 19 | Canonical composition, input/loading/sidebar/dialogs/export adapter, CSS and in-memory test adapter. Preserve source/format choices, editing confirmations/reconciliation, facts and accessible UI flows on the production composition. Links: 006–011 integration/browser proof.                                                                                                                                         |
+| G14-architecture-and-entry         |                            14 / 14 | Production/isolated entrypoints, six canonical examples, HTML and five architecture tests. Benchmark production canonical path; preserve corpus, accessible toolbar names, package boundary, discovery and lazy parser/worker build coverage. Links: Baseline/all active slices.                                                                                                                                          |
+| G15-canonical-specifications       |                            11 / 11 | Core/design/projection plus camera, editing, protocol, resource, compatible-view, embedded-work and compatible-artifact contracts. These supersede old ownership/identity/budget assumptions; candidate release sequencing is amended separately. Links: Dossier amendments and all semantic gates.                                                                                                                       |
+| G16-review-and-qualification       |                            24 / 24 | 24 tracked review/qualification/rights/compatibility/release records, plus the pre-existing untracked cache assessment. Read reports by candidate and chronology, including failed then repaired probes; cache assessment is a separate draft input. Links: Evidence, workload, rights, recovery and adjacent scope.                                                                                                      |
+| G17-adjacent-plans                 |                              3 / 3 | Canonical programme, compatibility repair and candidate-iteration plans; pre-existing modified cache plan. Canonical cutover is present, stable publication deferred; source-materialization cache remains proposed and separately owned. Links: Ordering/authority/compatibility.                                                                                                                                        |
+| G18-original-planning              |                              3 / 3 | Original dossier, plan and catalogue publication. Keep provenance and stable IDs; apply this explicit draft amendment without pretending original R2 acceptance. Links: Entire plan reconciliation.                                                                                                                                                                                                                       |
+| G19-ci-documentation               |                              1 / 1 | Proportional CI explanation/diagram. Docs-only selection is conditional; it does not change HISEW profiles or justify skipping product proof. Links: Verification guidance.                                                                                                                                                                                                                                               |
+| G20-ci-policy-and-tests            |                              4 / 4 | Three workflows and security-workflow tests. Account for selection, fail-closed required gates, CodeQL blocking verdict and action update; preserve current pipeline with no configuration edits. Links: Verification/approval boundary.                                                                                                                                                                                  |
+| G21-tooling                        |                            13 / 12 | CI/doc tool selection/checks/tests, example regeneration, formatter fixes and retired converter benchmark. Use current commands and logical corpus; avoid deleted benchmark paths and preserve Markdown literal semantics. Links: Current verification/benchmark plan.                                                                                                                                                    |
+| G22-configuration-and-dependencies |                              5 / 5 | Root manifest/lock, Python requirements/lock and Vite configuration; pre-existing skills-lock edits. Freeze updated dependency/tool identities for comparisons; current canonical mode and configured outDir are baseline. No upgrade/configuration change is proposed. Links: Environment/authority/check selection.                                                                                                     |
+
+The [dependency-entry ledger](../../../../../.hi/w/e/operator-reports/performance-search-plan-20261005/dependency-entry-ledger.json) retains every changed transitive and platform package record alongside the complete patches.
+Material changes include the npm owlapi alias and vowl workspace; URI/canonicalization/admission dependencies; Vite 8.3.2, dependency-cruiser 18.5.0, Prettier 3.9.9, html-validate 11.16.1, Ruff 0.16.10, Snapper 0.11.7; and CodeQL action 4.38.2.
+These are repository declarations/lock observations, not claims that this task installed or proved latest/safe versions.
+Vite now has an isolated canonical output/entry mode and preserves mtimes using the resolved output directory; the normal production entry also uses canonical composition.
+The formatter handles quoted numbering/list boundaries without changing literal content.
+
+### Pre-existing working-tree inputs
+
+| Input                                                                                                                           | Initial SHA-256                                                    | Disposition                                                                                                                                                                                                                  |
+| ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `docs/plans/validated-ontology-materialization-cache-implementation-plan.md` (modified)                                         | `eb23e3528b31e540557d50eb95f42a0323590a9aaed32e5dbcd36ae883ac91df` | Revised cache draft targets canonical acquisition and public owlapi, exact bytes/context, bounded managed imports and separate AWS deployment gates; coordinate future acquisition/memory work without implementing it here. |
+| `docs/reviews/Validated Ontology Materialisation Cache_ deep-research assessment and recommended plan revisions.md` (untracked) | `6e3197eddb494fd06942c5eb3b7005bec7a8c5bb546adfb0e087f7f1eb5c7b1a` | Untracked deep-research cache assessment; contextual proposal, not implemented cache behavior or source authority over canonical contracts.                                                                                  |
+| `skills-lock.json` (modified)                                                                                                   | `8e34791088ef5c603f06d55dd231ad779fd82d4d9781f5db696998d209a6d215` | Removes brainstorming, committing-to-git and writing-plans entries; user-owned configuration preserved, no product runtime change. It prevents a docs-only claim about the whole dirty workspace.                            |
+
+All three inputs are preserved byte-for-byte by this task.
+The update itself changes only this implementation plan; its original bytes and original dossier hashes are retained with the audit.
+A changed hash or new ref/input invalidates this reconciliation snapshot and requires a bounded refresh before implementation acceptance.
