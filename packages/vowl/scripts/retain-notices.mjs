@@ -9,6 +9,10 @@ const packages = new Map();
 
 async function collect(name, parent) {
   const require = createRequire(join(parent, "package.json"));
+  const parentManifest = JSON.parse(
+    await readFile(join(parent, "package.json"), "utf8"),
+  );
+  const declaredSpecifier = parentManifest.dependencies?.[name];
   let entry;
   try {
     entry = require.resolve(`${name}/package.json`);
@@ -22,7 +26,13 @@ async function collect(name, parent) {
       const candidate = JSON.parse(
         await readFile(join(directory, "package.json"), "utf8"),
       );
-      if (candidate.name === name) {
+      // npm aliases resolve by the local dependency key but retain the owning
+      // package's real name in its manifest and license notices.
+      if (
+        candidate.name === name ||
+        declaredSpecifier === `npm:${candidate.name}` ||
+        declaredSpecifier?.startsWith(`npm:${candidate.name}@`)
+      ) {
         manifest = candidate;
         break;
       }
@@ -51,8 +61,8 @@ for (const name of Object.keys(manifest.dependencies).sort()) {
   await collect(name, packageRoot);
 }
 let notices =
-  "# Third-party notices\n\nThe package's authored code is AGPL-3.0-only. The following resolved runtime dependency closure retains its original grants and notices. Distinct installed versions are listed separately. Dependencies are installed separately; these notices do not relicense them.\n";
-notices += `\nowlapi is selected by the immutable dependency specifier \`${manifest.dependencies.owlapi}\`.\n`;
+  "# Third-party notices\n\nThe package's authored code is AGPL-3.0-only.\nThe following resolved runtime dependency closure retains its original grants and notices.\nDistinct installed versions are listed separately.\nDependencies are installed separately; these notices do not relicense them.\n";
+notices += `\nowlapi is selected by the exact native npm alias \`${manifest.dependencies.owlapi}\`, preserving public \`owlapi/*\` imports.\n`;
 const ordered = [...packages.values()].sort((left, right) => {
   const a = `${left.manifest.name}@${left.manifest.version}`;
   const b = `${right.manifest.name}@${right.manifest.version}`;
@@ -98,7 +108,7 @@ for (const { directory, manifest: dependency } of ordered) {
     ) {
       throw new Error("The pinned saxes license evidence changed.");
     }
-    notices += `\n## ${dependency.name}@${dependency.version}\n\nThe installed tarball omits its license file. This text is retained from [the immutable v6.0.1 source](https://raw.githubusercontent.com/rubensworks/saxes/0f36739ccb43a87c50408e1e713382cda09e0b05/LICENSE), SHA-256 \`0fac2374380621b22e6b50451057721a9c52935b02d16d106a9f04897f061d0e\`.\n\n\`\`\`text\n${license.toString("utf8").trimEnd()}\n\`\`\`\n`;
+    notices += `\n## ${dependency.name}@${dependency.version}\n\nThe installed tarball omits its license file.\nThis text is retained from [the immutable v6.0.1 source](https://raw.githubusercontent.com/rubensworks/saxes/0f36739ccb43a87c50408e1e713382cda09e0b05/LICENSE), SHA-256 \`0fac2374380621b22e6b50451057721a9c52935b02d16d106a9f04897f061d0e\`.\n\n\`\`\`text\n${license.toString("utf8").trimEnd()}\n\`\`\`\n`;
     continue;
   }
   notices += `\n## ${dependency.name}@${dependency.version}\n`;
