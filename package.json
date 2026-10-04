@@ -23,7 +23,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-compat": "^7.0.2",
     "globals": "^17.12.0",
-    "html-validate": "^11.16.0",
+    "html-validate": "^11.16.1",
     "jest": "^30.5.2",
     "prettier": "^3.9.9",
     "stylelint": "^17.15.0",
