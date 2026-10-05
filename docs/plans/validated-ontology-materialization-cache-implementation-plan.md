@@ -1,85 +1,56 @@
 # Validated Ontology Materialization Cache Implementation Plan
 
-> **Status:** Deferred architecture and implementation blueprint; no implementation begins until the predecessor Phase 20 completion gate is evidenced.<br>
-> **Research baseline:** 25 August 2026.<br>
-> **Predecessor:** [Canonical standalone `owlapi` implementation plan](https://github.com/Hadden-Industries/owlapi/blob/main/docs/implementation-plan.md), especially §17.27, “Phase 20 — qualify and publish production-recommended `owlapi@0.1.0`.”<br>
-> **Related ontology-lifecycle programme:** [Standalone `owlapi` ontology-lifecycle capability plan](https://github.com/Hadden-Industries/owlapi/blob/main/docs/ontology-lifecycle-capability-implementation-plan.md).
-> This cache does not absorb that programme’s imports-closure query, merger, mutation, or storage responsibilities.<br>
-> **Execution rule:** Implement each cache phase in order, preserve the RED → GREEN → REFACTOR discipline for observable changes, and stop at every configuration, deployment, publication, commit, and push approval gate.<br>
-> **Goal:** Allow WebVOWL to resolve an ontology document or any document in its import closure when a browser cannot retrieve the source because of CORS or mixed-content policy, while serving every subsequent successful resolution from a validated, content-addressed, transparently reported CloudFront/S3 cache.<br>
-> **Architecture:** Keep ordinary reads on a CloudFront → private S3 data plane.
-> Invoke a small CloudFront → Lambda Function URL → DynamoDB/SQS control plane only for a previously unknown or refresh-due source document.
-> Validate the exact stored representation with the same public `owlapi` npm package and loader profile used by WebVOWL before publishing any catalog mapping.<br>
-> **Technology:** Native ESM JavaScript, the public `owlapi` npm package, browser Fetch/Web Crypto/AbortSignal, OASIS XML Catalogs 1.1, AWS CDK v2 in Python, CloudFront pay-as-you-go, private S3, Lambda Function URLs protected by CloudFront origin access control, Lambda on Node.js 24, DynamoDB on-demand capacity, SQS Standard, AWS WAF, CloudFront standard logging v2, CloudWatch, Athena, and Route 53 under the existing account-owned configuration.<br>
-> **Spec:** The normative architecture, contracts, and acceptance criteria are contained in this document.
-> The two linked standalone `owlapi` plans remain authoritative for the package boundary and release lineage.
+> **Status:** Revised draft implementation plan, 5 October 2026; implementation and release require the acceptance gates below.<br>
+> **Original proposal:** [Codex discussion: validated ontology materialization cache](codex://threads/01a034b3-1c88-7a82-8b49-3a319c8b459a).<br>
+> **Revision basis:** [Deep-research assessment and recommended plan revisions](../reviews/Validated%20Ontology%20Materialisation%20Cache_%20deep-research%20assessment%20and%20recommended%20plan%20revisions.md), reconciled with WebVOWL commit `0fbf00ef51f65f1235f4d3b24cc1706cd2a5ade8`, its installed package, and the public npm registry on 5 October 2026.<br>
+> **Package baseline:** `@hadden-industries/owlapi@0.1.0-rc.1`, consumed through WebVOWL's existing native npm alias `owlapi`; neither stable `0.1.0` nor an unpublished `rc.2` is a prerequisite.<br>
+> **Purpose:** Let WebVOWL acquire public ontology documents and imports despite browser CORS or mixed-content restrictions, while preserving exact source bytes, parser context, managed import graphs, consumer outcomes, bounded work and the existing website's availability.<br>
+> **Architecture:** Ordinary reads use CloudFront → private S3.
+> Admission, retrieval, validation, refresh and publication use a bounded Lambda/DynamoDB/SQS control plane.
+> Byte identity, document validation, closure qualification and consumer admission are separate contracts.<br>
+> **Planning method:** HISEW thin implementation planning.
+> The requirements, quality scenarios, decisions and vertical slices below are a draft revision for owner acceptance, not a record that implementation or production acceptance has occurred.<br>
+> **Authority:** This revision authorizes no configuration changes, source implementation, AWS mutation, package publication, commit or push.
+> The exact-change approval rules in §2.4 remain in force.
 
 ---
 
 ## 1. Decision summary
 
-This plan makes the following decisions deliberately and treats them as implementation constraints rather than suggestions:
+The assessment rebases the existing design onto the canonical application and public package; it does not replace the S3/DynamoDB/SQS/CloudFront architecture.
+The following decision IDs identify the proposed revised baseline throughout this plan.
 
-1. **Start only after Phase 20.**
-   The retired WebVOWL-local `src/owlapi-js/` tree is not an implementation target and must remain absent.
-   Its Phase 19D1 removal does not relax this programme's start gate: at the starting checkpoint, WebVOWL must already consume the exact accepted production registry artefact through public `owlapi` entry points only.
-2. **Use the installed `owlapi` package in both runtimes.**
-   WebVOWL uses it to parse user-requested documents and imports; the materialization worker uses the same exact package coordinate and validation profile to decide whether bytes are eligible for publication.
-3. **Keep network policy outside `owlapi`.** `owlapi` remains free of ambient networking.
-   WebVOWL supplies its application-owned document loader.
-   The Lambda worker supplies a separately controlled, SSRF-resistant representation retriever.
-4. **Materialize documents, not collapsed closures.**
-   The service stores one validated ontology document per artifact.
-   WebVOWL and `owlapi` continue to traverse the import graph.
-   This service enables closure resolution but does not merge, flatten, rewrite, or publish a closure as one ontology.
-5. **Use the existing CloudFront distribution.**
-   Do not create a dedicated production distribution unless a later, separately approved cost or isolation review overturns this decision.
-   Add more-specific cache and API behaviours ahead of the existing `ontology/*` behaviour.
-6. **Remain on CloudFront pay-as-you-go.**
-   Do not enroll the distribution in a flat-rate plan.
-   Route 53 remains independently managed.
-   The design relies on CloudFront’s account-wide always-free allocation before ordinary pay-as-you-go charges.
-7. **Use a dedicated private artifact bucket behind the existing distribution.**
-   Separating worker-written material from the static website bucket produces a narrower write boundary without adding a fixed monthly charge.
-8. **Use immutable content-addressed artifact IRIs.**
-   A validated representation is stored at a path derived from its SHA-256 digest and is never overwritten.
-   It is safe to cache for one year with `immutable`.
-9. **Use an OASIS XML Catalog as the public mapping projection.**
-   DynamoDB is the authoritative control-plane registry; generated OASIS XML Catalog files are its CDN-served read model.
-   WebVOWL does not query DynamoDB for normal resolution.
-10. **Keep seed and dynamic mappings distinct.**
-    The existing `ONTOLOGY_CATALOG` and the resources under `/ontology/external/` become a curated, immutable seed catalog.
-    Dynamic materializations can add exact source mappings but can never override a seed entry.
-11. **Validate before publishing.**
-    A successful HTTP response, plausible media type, `.owl` suffix, or `owl:Ontology` declaration is not sufficient.
-    Publication requires a successful parse through the public `owlapi` manager using the defined finite-resource profile.
-12. **Retain the source document IRI as parser context.**
-    The CloudFront artifact IRI is a retrieval location only.
-    It must never become the base IRI used to resolve relative ontology content.
-13. **Treat the service as an anonymous public fetch capability.**
-    SSRF prevention, bounded work, idempotency, negative caching, application quotas, queue concurrency, WAF rate limiting, takedown, and provenance are mandatory launch requirements.
-14. **Keep normal responses out of Lambda.**
-    Lambda never streams ontology bytes to viewers.
-    It writes validated artifacts to S3 and returns only small state/error responses or a redirect to the immutable artifact.
-15. **Collect minimized operational evidence.**
-    Use selected-field CloudFront standard logs v2, low-cardinality CloudWatch metrics, private Athena reports, and public per-artifact provenance.
-    Do not log request bodies, raw viewer IP addresses, cookies, referrers, user agents, or raw source IRIs in application logs.
-16. **Protect the budget without disabling the website.**
-    Replace cache-related use of the current whole-distribution shutdown model with a materialization kill switch, quotas, reserved concurrency, WAF, alarms, and a USD 10 monthly feature budget.
-    Existing cached artifacts and the website remain readable when new materialization is disabled.
+| Decision | Revised constraint                                                                                                                                                                                                                                    |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| DEC-001  | Pin the same exact public `owlapi` coordinate and integrity in both consumers. The existing native npm alias is supported; mutable tags, private imports and local source fallbacks are not. Qualify any later RC as a coordinated dependency change. |
+| DEC-002  | Integrate at canonical source/import acquisition, before worker-owned document admission. Preserve the `vowl/owl` and document-session contracts; do not recreate retired converter/controller/Turtle-writer paths.                                   |
+| DEC-003  | Keep exact acquired bytes, requested IRI, effective origin retrieval IRI and parser document IRI distinct. Deduplicate only byte objects; validation evidence includes context, exact package, parser and policy.                                     |
+| DEC-004  | Track acquisition, document validation, root-specific closure qualification, publication and consumer admission separately. Use public managed closure/profile APIs; never flatten the authoritative source documents.                                |
+| DEC-005  | Derive syntax identities, media types, aliases and parser candidates from public `OWLDocumentFormats`. Version application preference ordering, decoding and loader policies; do not maintain a second format catalogue.                              |
+| DEC-006  | Application acquisition owns all networking. Document validation has no import retrieval; closure loading uses only the injected controlled loader. Deny ambient fetch, remote JSON-LD contexts and XML external entities.                            |
+| DEC-007  | Keep one existing pay-as-you-go CloudFront distribution, private dedicated artifact S3 origin and OAC-protected Function URL control plane. Route 53 remains independently managed. Hits require no Lambda/DynamoDB/SQS call.                         |
+| DEC-008  | Treat durable catalog publication as the reader-visible commit point. Conditional leases, source generations, immutable checksum-verified objects and fenced publication make duplicate/reordered SQS work safe.                                      |
+| DEC-009  | Preserve source validators and HTTP variation/revalidation metadata. Only representations admitted for durable republication receive the immutable lifetime. Conditional refresh never launders changed cache restrictions.                           |
+| DEC-010  | Generate seed-first OASIS catalogs and source-specific resolution evidence from one committed model. A compact JSON lookup projection is optional and must be generated from that same model.                                                         |
+| DEC-011  | Minimize logs, use an explicit egress/security decision, preserve source rights/takedown controls, and contain cost by disabling new work rather than the shared website or published data plane.                                                     |
+| DEC-012  | Qualify direct and cached acquisition against the same installed package, logical corpus and canonical workloads. Preserve a tested direct-only bypass and known-good deployment throughout rollout.                                                  |
+
+Public `owlapi` loading, source evidence, managed graph and profile APIs are reused as native consumer capabilities.
+The residual custom work is controlled acquisition, immutable storage, contextual evidence, publication and operations.
+No compatibility shim or parser implementation is proposed; the native npm alias is the package producer's documented installation contract.
 
 ### 1.1 Why the TTLs are not uniformly one day
 
 A one-day TTL is a reasonable first intuition for stable public ontologies, but it conflates three different resources:
 
-| Resource                                  | Mutability              | Selected browser/edge policy                                            | Reason                                                                                                                                  |
-| ----------------------------------------- | ----------------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Content-addressed ontology artifact       | Immutable               | `public, max-age=31536000, immutable`                                   | The path changes when bytes change, so revalidation provides no correctness benefit.                                                    |
-| Immutable seed/dynamic catalog generation | Immutable               | `public, max-age=31536000, immutable`                                   | A generation is identified by its digest and is never edited.                                                                           |
-| Stable root catalog                       | Mutable pointer         | `public, max-age=300, stale-while-revalidate=300, stale-if-error=86400` | New mappings must become discoverable promptly, but the last good root remains useful during a transient origin failure.                |
-| Upstream source freshness                 | Mutable external state  | Revalidate active sources every 30 days with conditional requests       | Origin polling is a control-plane concern, not a CDN-object TTL. The last validated artifact remains available during refresh failures. |
-| Invalid-ontology result                   | Mutable negative result | 24-hour retry suppression                                               | Prevent repeated expensive parsing without making a rejection permanent.                                                                |
-| Transient retrieval failure               | Transient               | 15-minute retry suppression                                             | Reduce request amplification while allowing recovery.                                                                                   |
+| Resource                                  | Mutability              | Selected browser/edge policy                                                 | Reason                                                                                                                                  |
+| ----------------------------------------- | ----------------------- | ---------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Content-addressed ontology artifact       | Immutable               | `public, max-age=31536000, immutable`                                        | The path changes when bytes change, so revalidation provides no correctness benefit.                                                    |
+| Immutable seed/dynamic catalog generation | Immutable               | `public, max-age=31536000, immutable`                                        | A generation is identified by its digest and is never edited.                                                                           |
+| Stable root catalog                       | Mutable pointer         | `public, max-age=300, stale-while-revalidate=300, stale-if-error=86400`      | New mappings must become discoverable promptly, but the last good root remains useful during a transient origin failure.                |
+| Upstream source freshness                 | Mutable external state  | Default 30-day conditional refresh, subject to source eligibility/directives | Origin checks are separate from digest-object lifetimes; changed restrictions override ordinary last-known-good retention (§7.5/§12.3). |
+| Invalid-ontology result                   | Mutable negative result | 24-hour retry suppression                                                    | Prevent repeated expensive parsing without making a rejection permanent.                                                                |
+| Transient retrieval failure               | Transient               | 15-minute retry suppression                                                  | Reduce request amplification while allowing recovery.                                                                                   |
 
 This is more liberal than a one-day object TTL where immutability permits it, and more responsive where a mutable catalog pointer requires it.
 
@@ -87,82 +58,76 @@ This is more liberal than a one-day object TTL where immutability permits it, an
 
 ## 2. Mandatory starting checkpoint
 
-Cache Phase 0 may inspect and record evidence, but no production or test implementation may begin until every item below is true.
+The old Phase 20/stable-release gate and deferred `0.2.0` lifecycle assumptions are superseded by this checkpoint.
+SLICE-001 establishes the package and semantic contracts before storage or infrastructure implementation.
 
-### 2.1 Phase 20 evidence
+### 2.1 Exact public package adoption
 
-The implementer must verify the completion evidence required by §17.27.6 of the predecessor plan:
-
-- npm `latest` resolves to the accepted production cutover coordinate—normally `owlapi@0.1.0`, or only the exact corrective/contingency patch recorded by Phase 20;
-- the registry tarball, source tag, provenance, integrity, SBOM, release evidence, and immutable GitHub release agree;
-- WebVOWL declares that exact registry coordinate and resolves it through its committed lockfile;
-- WebVOWL has no maintained package copy, workspace/local/Git dependency, resolver alias, or source-tree fallback;
-- imports use only approved public specifiers such as `owlapi`, `owlapi/apibinding`, `owlapi/model`, `owlapi/io`, and `owlapi/formats`; and
-- all Phase 20 WebVOWL tests, development build, production build, production ontology corpus, and import-aware workloads pass.
-
-The normal coordinate is `0.1.0`, but this plan must read the recorded Phase 20 production cutover coordinate rather than assuming that the extraordinary contingency branches did not run.
-
-### 2.2 Relationship to the expected `owlapi@0.2.0` lifecycle programme
-
-The ontology-lifecycle capability plan normally targets `owlapi@0.2.0`, or the next available zero-minor if an intervening incompatible correction consumes that coordinate.
-This cache does **not** require the closure-query, merger, mutation, or storer slice in that release.
-Therefore:
-
-- the cache may start after Phase 20 even if the lifecycle programme has not started;
-- if WebVOWL has already accepted a later production `owlapi` release when Cache Phase 0 begins, both WebVOWL and the Lambda validator use that exact accepted coordinate;
-- the Lambda deployment must never lag on a parser version that WebVOWL no longer uses; and
-- if the accepted public document-loader/source contract cannot preserve the source document IRI while retrieving bytes from an artifact IRI, implementation stops.
-  The missing general capability is proposed through the canonical `owlapi` public-surface and zero-major release process and published before WebVOWL integration.
-  No private or deep import is an acceptable workaround.
-
-This cache plan accepts an exact already-published `owlapi` coordinate; it does not itself allocate or require a new package version.
-If it discovers a genuine package defect or missing general capability, that work follows a separately approved package change and the then-current zero-major version policy before cache integration resumes.
-
-### 2.3 Package boundary invariants
-
-The future code must satisfy all of the following:
-
-```javascript
-// Allowed examples; the exact symbol placement is read from the accepted API.
-import { OWLManager, StringDocumentSource } from "owlapi";
-import { OWLOntologyLoaderConfiguration } from "owlapi/model";
-import {
-  ResourceLimitError,
-  SecurityPolicyError,
-  UnloadableImportError,
-} from "owlapi/io";
-```
-
-It must contain none of the following:
+Read-only verification on 5 October 2026 found one published version, `0.1.0-rc.1`, with both npm `latest` and `next` pointing to it.
+WebVOWL's manifest declares `"owlapi": "npm:@hadden-industries/owlapi@0.1.0-rc.1"`; its lockfile and the registry agree on:
 
 ```text
-../../owlapi-js/
-src/owlapi-js/
-owlapi/internal/
-an unexported syntax parser path
-an owlapi repository sibling path
-an npm link, workspace, file:, Git, or mutable-tag dependency
+sha512-uDv9Omh2l2zxAjpVeQi4UxXEad/cRiKQUJT5RhxR3WtaAjPL3gAoOha9dPRhH6o2zlBdeg50g8EIVQgtt8RGqA==
 ```
 
-The package remains a deep module: the application supplies document resolution policy through the stable loader seam; the validator supplies bytes through `StringDocumentSource`; neither caller reaches parser registries, RDF translators, format detectors, or other internal engines.
+The [immutable rc.1 release](https://github.com/Hadden-Industries/owlapi/releases/tag/v0.1.0-rc.1) permits independent downstream production acceptance and identifies source commit `59131be0c1dc3a634e8433b06d2949051c051c0a`.
+This observation is not cache qualification and does not prove that a future Lambda runtime satisfies the package's Node patch-version requirements.
+
+Before implementation, retain the exact coordinate, integrity, public export map, release/source identity, applicable engine versions, consumer locks, format metadata and resolved loader-policy fingerprints.
+Verify the same package in an isolated installed-package Node consumer and the existing browser worker.
+Do not require a moving npm tag to remain unchanged; qualification is bound to immutable package bytes.
+
+### 2.2 Already available capabilities and later releases
+
+Use the published public manager/source/configuration/error APIs, `OWLDocumentFormats`, manager-owned graph loading and closure queries, source/parser metadata and asynchronous `OWL2DLProfile` reports.
+Storage/lifecycle APIs already available in the RC do not make reserialization part of this source cache.
+Derived Functional Syntax or RDF/XML output, if later approved, has a separate namespace, digest and derivation provenance.
+
+The assessment describes rc.2 as planning, and the registry check found no rc.2 artifact.
+No slice relies on its proposed Java-parity work.
+A later public version is adopted only by pinning its exact integrity in both runtimes, recomputing policy/validation identities, rerunning the same qualification matrix and revalidating retained bytes as necessary.
+Existing bytes are not invalidated or redownloaded merely because their validation software changes.
+
+A public byte-oriented `owlapi` source and a producer-owned policy fingerprint remain optional producer improvements.
+Version 1 uses the existing public text source behind the strict decoding contract in §11.4 and an application-owned canonical policy fingerprint.
+Do not claim a new release is required unless a concrete installed-package fixture demonstrates a missing required public capability.
+
+### 2.3 Public package and consumer boundaries
+
+The installed RC exports `.`, `apibinding`, `model`, `io`, `formats`, `profiles` and `util`.
+Existing public specifiers include `owlapi/apibinding`, `owlapi/model`, `owlapi/io`, `owlapi/formats` and `owlapi/profiles` through the native alias.
+The browser already receives exact bytes through `canonicalVowlSourceAcquisition` and passes them to `vowl/owl` in its worker.
+Do not move manager construction into the UI or replace the canonical byte contract with a main-thread `StringDocumentSource` path.
+
+Reject source-tree copies, `file:`, workspace, Git or linked runtime dependencies, private/deep imports, bundler aliases to implementation files and duplicate package versions.
+The exact native npm alias to the public scoped artifact is explicitly allowed.
+Use consumer-native schema/API validation rather than copying the package's parser or format grammar.
 
 ### 2.4 Configuration and external-state approval gate
 
-This document is authorization to create this plan only.
-It is not authorization to change configuration or external AWS state.
+This document is a proposed plan revision only.
+Before changing configuration, present the exact file, setting, smallest diff and behavioural/pipeline impact for the repository owner's explicit approval.
+This covers either repository's manifests/locks, `cdk.json`, `requirements.txt`, `app.py`, CDK modules, Lambda packaging, verification profiles, test/build/lint/hosting/CSP/deployment configuration and runtime endpoint configuration.
 
-Before future implementation changes any of the following, the implementer must present the exact diff, settings, behavioural impact, deployment impact, and smallest viable change for explicit approval:
+AWS resources, permissions, WAF actions, logging, budget controls, seed upload, catalog publication and production enablement require their own exact external-state approval.
+Do all nonmutating preparation first so the approved proposal is concrete and reviewable.
+Reuse already granted authority only for its exact scope; plan acceptance does not approve those effects.
+Commits require explicit authority; pushing requires separate authority.
 
-- either repository’s `package.json` or lockfile;
-- `amazon-aws/cdk.json`, `requirements.txt`, `app.py`, CDK stack/construct files, Lambda packaging configuration, or deployment scripts;
-- WebVOWL build, test, lint, browser, hosting, Content Security Policy, or deployment configuration;
-- CloudFront behaviours, origins, cache/origin-request/response-header policies, logging, custom errors, or distribution association;
-- S3, DynamoDB, SQS, Lambda, WAF, CloudWatch, Athena, EventBridge, SNS, IAM, Route 53, AWS Budgets, or cost-allocation resources;
-- npm publication or an `owlapi` public-surface change; and
-- a commit, tag, push, release, deployment, seed upload, catalog publication, or production feature enablement.
+### 2.5 HISEW route, purpose and acceptance status
 
-Commit steps later in this plan are proposed review checkpoints.
-Repository policy still requires explicit authorization before each commit and separate authorization before any push.
+The supplied plan and assessment form the draft dossier being revised.
+No retained accepted task/risk baseline was found in the current HISEW worktree state.
+The IDs in §20 are therefore proposed traceability, not invented historical approvals.
+
+The proposed implementation route is **R2**: public network and publication contracts, persistent generations, cross-system concurrency, privacy, financial controls and shared-distribution availability are material.
+The repository owner accepts the baseline and assigns the infrastructure integration owner and production observer before implementation.
+Required future lenses are semantic/package parity, SSRF/security/privacy, concurrency/publication, AWS operability/cost and licence/republication review; scoped native security assessment and independent assurance belong to implementation qualification.
+This synthesis does not run a security scan or certify those gates.
+
+The beneficiary remains a WebVOWL user opening public ontologies reliably.
+Reassess whenever a proposed optimization changes parser meaning, source rights, consumer limits, site availability or the USD 10 operating target.
+No locally faster cache result compensates for a different ontology or an unsafe outbound request.
 
 ---
 
@@ -171,11 +136,11 @@ Repository policy still requires explicit authorization before each commit and s
 ### 3.1 In scope
 
 - Exact source-document mapping from an ontology/import IRI to a validated immutable artifact IRI.
-- Curated migration of the current WebVOWL ontology catalog and `/ontology/external/` seed material.
+- Curated migration of the last accepted historical WebVOWL ontology mappings and current approved `/ontology/external/` seed material.
 - A browser loader that attempts catalog, direct HTTPS-capable retrieval, and then materialization in that order.
 - Top-level IRI loading and transitive import loading through the same application-owned loader.
 - Server-side bounded retrieval of public HTTP(S) representations that browsers cannot read because of CORS or mixed-content policy.
-- Syntax/structural acceptance through the public `owlapi` manager using the same package coordinate and compatible parsing policy as WebVOWL.
+- Context-bound document validation, source-preservation qualification and managed closure/profile evidence through the exact public `owlapi` package, with consumer admission recorded separately.
 - Content-addressed S3 storage, provenance, registry state, OASIS catalog projection, revalidation, and last-known-good behaviour.
 - One existing pay-as-you-go CloudFront distribution, one new private S3 origin, and one protected Lambda Function URL control-plane origin.
 - One narrowly scoped WAF rate-based rule, initially in count mode.
@@ -187,13 +152,16 @@ Repository policy still requires explicit authorization before each commit and s
 
 - A general-purpose anonymous CORS proxy that returns arbitrary upstream bytes.
 - HTML, images, scripts, archives, SPARQL endpoints, authenticated resources, cookies, or user-supplied request headers.
-- Ontology consistency checking, satisfiability, entailment, reasoner execution, OWL profile classification as an acceptance gate, or a requirement for an explicit `owl:Ontology` declaration.
-- Server-side import traversal, closure collapse, `OWLOntologyMerger`, storage through the ontology-lifecycle storer APIs, or a universal-ontology publication workflow.
+- Ontology consistency checking, satisfiability, entailment, reasoner execution or a requirement for an explicit `owl:Ontology` declaration.
+  OWL 2 DL profile qualification is in scope for the route that claims it; it is not a proof of logical consistency.
+- Closure collapse, `OWLOntologyMerger`, rewriting origin bytes through storer APIs, or a universal-ontology publication workflow.
+  Bounded controlled import acquisition and root-specific closure qualification are in scope.
 - Automatic alias creation from a parsed ontology IRI, version IRI, namespace, redirect target, `owl:sameAs`, or HTTP canonical link.
 - Remote JSON-LD context retrieval or XML external-entity retrieval during validation.
 - User accounts, API keys, per-user quotas, billing, or a paid service tier.
 - A new CloudFront flat-rate plan, a new production distribution, or transfer of Route 53 management.
-- Lambda response streaming, API Gateway, a NAT Gateway, a Lambda VPC attachment, ElastiCache, RDS, OpenSearch, Kinesis, Firehose, or a continuously running server.
+- Lambda response streaming, API Gateway, ElastiCache, RDS, OpenSearch, Kinesis, Firehose or a continuously running server.
+  VPC/NAT or a controlled egress service is not assumed; §12.8 requires a costed security decision before deployment.
 - A browser-to-DynamoDB lookup path or a Lambda invocation on catalog/artifact hits.
 - A complete browser implementation of every OASIS catalog entry type.
   WebVOWL consumes the exact safe profile generated by this service: `uri`, `nextCatalog`, `xml:base`, and foreign-namespace metadata.
@@ -207,183 +175,141 @@ Repository policy still requires explicit authorization before each commit and s
 
 ## 4. Domain language and naming registry
 
-The service crosses OWL, browser, HTTP, CDN, storage, and queue boundaries.
-Generic terms such as “URL,” “cache file,” “proxy request,” and “ontology ID” are too ambiguous.
-Production code, schemas, tests, metrics, logs, and documentation must use the following vocabulary consistently.
+| Term / field                                      | Exact meaning                                                                                                                                                         |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Requested document IRI / `requestedDocumentIri`   | The exact accepted logical IRI supplied to acquisition; the source/catalog key, retained independently of transport serialization.                                    |
+| Retrieval IRI / `retrievalIri`                    | The parsed HTTP(S) request target, with any browser HTTPS upgrade and fragment removal performed only for transport.                                                  |
+| Effective retrieval IRI / `effectiveRetrievalIri` | The final upstream origin IRI after validated redirects, never the cache object URL.                                                                                  |
+| Parser document IRI / `parserDocumentIri`         | The explicit source context passed to `owlapi` for relative-reference resolution. The direct and cached paths use the same context-selection policy.                  |
+| Artifact IRI / `artifactIri`                      | The immutable CloudFront location of published representation bytes; it is not a parser base.                                                                         |
+| Ontology/version IRI                              | An identifier declared by the ontology, retained as metadata and never inferred as a dynamic alias.                                                                   |
+| Source key / `sourceKey`                          | Lowercase SHA-256 of the exact accepted requested IRI's UTF-8 bytes. It is not a byte digest or secret.                                                               |
+| Materialization ID / `materializationId`          | Version 1's public request/status identifier, equal to `sourceKey`; source generation still fences each job.                                                          |
+| Artifact digest / `artifactSha256`                | SHA-256 of the exact representation bytes after HTTP content decoding and before character decoding.                                                                  |
+| Validation identity / `validationIdentity`        | Digest of the canonical tuple of bytes, parser context, public format identity, package version/integrity, loader-policy fingerprint and validation-contract version. |
+| Resolution identity / `resolutionIdentity`        | Digest of an immutable source-generation binding to an artifact, parser/format context and its validation evidence.                                                   |
+| Closure digest / `closureDigest`                  | Digest of a root identity, exact member validation identities, resolved direct-import edges and qualification policy; not a merged ontology digest.                   |
+| Loader profile / `loaderProfileFingerprint`       | Digest of canonical, fully resolved stage-specific parser/decoder/limit/format policy. Document and closure modes are distinguished.                                  |
+| Catalog generation / `catalogGenerationSha256`    | Digest of the deterministic committed mapping model, including evidence bindings; generated XML/optional JSON have their own verified object checksums.               |
+| Publication                                       | Making a committed document mapping or qualification manifest discoverable. It never implies every source sharing the same bytes has passed validation.               |
+| Last-known-good                                   | A previously published source binding whose retention remains allowed by the republication policy; refresh failure alone does not replace it.                         |
 
-| Term / code name                                          | Meaning                                                                                                                                               | Must not mean                                                 |
-| --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| **source document IRI** / `sourceDocumentIri`             | The exact absolute HTTP(S) IRI WebVOWL or `owlapi` asked the application loader to resolve. It is the catalog lookup key and parser document context. | The S3/CloudFront artifact location or a parsed ontology IRI. |
-| **browser retrieval IRI** / `browserRetrievalIri`         | The concrete HTTPS-capable IRI the browser first attempts, after the existing safe HTTP→HTTPS upgrade rule.                                           | A new logical alias.                                          |
-| **upstream retrieval IRI** / `upstreamRetrievalIri`       | The concrete IRI the worker requests. It may start with the HTTPS candidate and, when permitted, fall back to the original HTTP source.               | The materialized artifact IRI.                                |
-| **effective upstream IRI** / `effectiveUpstreamIri`       | The final public HTTP(S) IRI after the worker’s validated redirect chain.                                                                             | An automatically published catalog alias.                     |
-| **artifact IRI** / `artifactIri`                          | The immutable CloudFront IRI of validated, content-addressed representation bytes.                                                                    | The base IRI passed to `owlapi`.                              |
-| **ontology IRI** / `ontologyIri`                          | The logical ontology IRI declared by the parsed `OWLOntologyID`, when present.                                                                        | The HTTP retrieval location merely because it was requested.  |
-| **version IRI** / `versionIri`                            | The version IRI declared by the parsed ontology, when present.                                                                                        | An S3 object version or application release version.          |
-| **source key** / `sourceKey`                              | Lowercase hexadecimal SHA-256 of the canonical source-document-IRI serialization.                                                                     | A secret, user identity, or content digest.                   |
-| **materialization ID** / `materializationId`              | The public request/status identifier. Version 1 uses the same 64 hexadecimal characters as `sourceKey`.                                               | An incrementing ID that can collide across regions.           |
-| **artifact digest** / `artifactSha256`                    | Lowercase hexadecimal SHA-256 of the exact representation bytes stored in S3 after HTTP content coding has been removed.                              | A digest of decoded JavaScript text or the source IRI.        |
-| **catalog generation digest** / `catalogGenerationSha256` | SHA-256 of one deterministic immutable dynamic catalog generation.                                                                                    | The artifact digest of any ontology.                          |
-| **validation profile** / `validationProfileId`            | Versioned identity of the exact `owlapi` coordinate, public loader configuration, byte/text decoding rule, and service limits used for acceptance.    | A claim of logical consistency or full OWL conformance.       |
-| **artifact**                                              | An immutable validated representation stored once by content digest.                                                                                  | A mutable source alias.                                       |
-| **materialization**                                       | The bounded operation that retrieves, validates, stores, registers, and projects one source document.                                                 | Import-closure merger or format conversion.                   |
-| **registry**                                              | The DynamoDB control-plane state for sources, artifacts, leases, failures, and refresh.                                                               | The normal client lookup mechanism.                           |
-| **catalog projection**                                    | The deterministic OASIS XML read model generated from accepted registry state.                                                                        | An independently maintained source of truth.                  |
-| **seed entry**                                            | A curated mapping migrated from the existing catalog/external corpus and published in an immutable seed generation.                                   | Any first-seen dynamic source.                                |
-| **dynamic entry**                                         | An exact source mapping admitted by the materialization service.                                                                                      | An alias inferred from parsed content.                        |
-| **last-known-good artifact**                              | The latest previously validated artifact retained when refresh fails.                                                                                 | An unvalidated response retained because it looked plausible. |
+### 4.1 Identity and transport contract
 
-### 4.1 Canonicalization contract
+`identifyOntologySource` validates a string of at most 4,096 UTF-8 bytes through the public IRI contract and the platform URL parser.
+Reject malformed Unicode, user-info, unsupported schemes/ports, forbidden hosts and ambiguous transport forms rather than repairing them.
+Preserve the accepted logical string for `requestedDocumentIri`, exact catalog lookup and `sourceKey`.
+Do not use `URL.href` as the registry identity, sort query parameters, equate HTTP and HTTPS, fold path case, normalize Unicode, or infer equality from percent-encoding or a trailing slash.
 
-`canonicalizeSourceDocumentIri(value)` performs only transport-safe, standards-based normalization:
+Keep a separately serialized retrieval URL for WHATWG URL/IDNA processing and removal of the fragment at the HTTP boundary.
+Two logical source keys may intentionally reach the same transport URL; that permits byte deduplication, not identity or validation-record merging.
+Shared fixtures prove exact Node/browser identity agreement and cover IDN, Unicode, escaped/unescaped path segments, query order, default ports and fragments.
+[RFC 3986](https://www.rfc-editor.org/rfc/rfc3986.html#section-6.2) distinguishes syntax normalization from broader resource equivalence; this plan chooses conservative exact identity.
 
-1. Require a string no longer than 4,096 UTF-8 bytes.
-2. Parse with the WHATWG `URL` implementation used by Node.js 24.
-3. Require `http:` or `https:`.
-4. Reject a username, password, non-default port, or empty hostname.
-5. Remove the fragment from the retrieval component because HTTP never transmits it, while retaining the original fragment-bearing source document IRI as parser context if the accepted `owlapi` contract permits it.
-6. Use the URL serializer’s lowercase scheme/host, IDNA processing, default-port removal, and percent-encoding rules.
-7. Preserve path and query semantics; do not sort query parameters, remove a trailing slash, collapse distinct percent-encodings beyond the URL serializer, or equate HTTP with HTTPS.
+### 4.2 Parser context and validation identity
 
-The function returns an immutable record:
+The current direct remote acquisition returns the final origin `response.url` as `documentIri`.
+The initial cache policy preserves that behaviour: absent a separately explicit source-context override, `parserDocumentIri` is the effective upstream origin IRI selected by the same upgrade/redirect policy.
+An explicit local/caller document base is retained under its existing consumer contract.
+The requested logical IRI is always retained separately.
+Do not unconditionally substitute the requested IRI for an established redirect-derived base, and never use the CloudFront response URL as a base.
+Authored syntax-level base declarations are still interpreted by the owning parser.
 
-```javascript
-{
-  sourceDocumentIri,
-  retrievalIriWithoutFragment,
-  sourceKey,
-}
+The validation identity is a domain-separated SHA-256 of a deterministic canonical record containing:
+
+```text
+artifactSha256, parserDocumentIri, formatId,
+owlapiPackageName, owlapiPackageVersion, owlapiPackageIntegrity,
+loaderProfileFingerprint, validationContractVersion
 ```
 
-The API, worker, seed importer, catalog publisher, client tests, and reporting joins use one shared set of canonicalization fixtures.
-The browser may have an independent implementation, but cross-runtime fixtures must prove byte-for-byte agreement for every accepted and rejected case.
+Use an unambiguous canonical JSON serialization with fixed schema, encoding and field treatment; not string concatenation with an informal delimiter.
+Retain the canonical policy bytes alongside their hash.
+The fingerprint includes resolved defaults, decoding, source-context selection, stage, format metadata, resource ceilings and profile mode; timestamps, signals and invocation IDs are excluded.
+Same bytes under two parser bases must produce distinct validation identities and may produce different relative IRIs.
 
 ---
 
 ## 5. Current-state migration anchors
 
-The implementation starts from the post-Phase-20 tree, not today’s tree.
-These current files are nevertheless important migration evidence and must be reconciled during Cache Phase 0:
+These paths were inspected at WebVOWL `0fbf00e` on 5 October 2026.
+They replace the retired converter file map; recheck them at implementation start rather than recreating historical owners.
 
-| Current path                                                  | Current responsibility                                                                                                                             | Planned disposition after Phase 20 and this cache plan                                                                                                                                                       |
-| ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `src/owl2vowl/js/constants.js`                                | Defines `ONTOLOGY_BASE_URL` and the static `ONTOLOGY_CATALOG`.                                                                                     | Export seed entries into the curated seed manifest, remove the runtime mapping object after parity evidence, and retain only semantically named stable endpoint configuration if still needed.               |
-| `src/owl2vowl/js/importResolver.js`                           | Combines static IRI mapping, browser fetch, limits, and `StringDocumentSource` creation.                                                           | Replace with the deeper `WebVowlOntologyDocumentLoader`; do not retain a second mapper/fetch path.                                                                                                           |
-| `src/owl2vowl/js/index.js`                                    | Creates the ontology manager, injects the current resolver as both mapper and loader, and calls installed public `owlapi` exports.                 | Continue to use only installed `owlapi` exports and inject one application-owned loader through the accepted manager option.                                                                                 |
-| `src/app/js/loadingModule.js`                                 | Fetches a top-level IRI independently, then passes text into `owl2vowl.loadWithImports`.                                                           | Route top-level ontology-document retrieval through the same loader used for imports so CORS fallback and document-IRI preservation cannot diverge. JSON/VOWL-JSON loading remains separate.                 |
-| `src/shared/js/util/resolveFetchUrl.js`                       | Upgrades an HTTP retrieval target to HTTPS when WebVOWL itself is on HTTPS.                                                                        | Retain its behaviour for unrelated JSON paths or replace ontology use with the more precise `selectBrowserRetrievalIri` owned by the loader module.                                                          |
-| Retired `src/owlapi-js/**`                                    | Historical staging implementation removed by the Phase 19D1 pre-registry consumer cutover.                                                         | Keep it absent. This plan must not add, edit, import, restore, or test against it.                                                                                                                           |
-| `amazon-aws/infrastructure/stack.py`                          | Owns the current distribution, imported/static origin behaviour, static bucket, a whole-distribution cost cutoff, and unrelated account resources. | Preserve deployed identities; add cohesive validated-cache stacks/constructs and the narrow distribution behaviours without replacing the existing distribution, certificate, DNS records, or static bucket. |
-| `amazon-aws/CloudFront/Functions/RewriteOntologyURI.js`       | Rewrites extensionless requests under the broad `ontology/*` behaviour.                                                                            | Leave existing behaviour unchanged. More-specific catalog/artifact/API behaviours must not associate this rewrite function.                                                                                  |
-| `amazon-aws/Lambda/Functions/DisableCloudFrontOnCostLimit.js` | Can disable the entire distribution after the configured ceiling.                                                                                  | Do not use it as the cache feature kill switch. Reconcile it in the cost-control migration so a cache budget event cannot take down the website or existing ontology artifacts.                              |
+| Existing owner                                                                                                     | Responsibility and planned seam                                                                                                                                                                                                        |
+| ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/app/js/controller/canonicalVowlSourceAcquisition.js`                                                          | Owns exact bounded bytes, public format selection and root/import acquisition. Inject cache resolution here; preserve the worker's `{ bytes, documentIri, mediaType }` contract.                                                       |
+| `src/app/js/controller/importResolver.js`                                                                          | Current `WebVowlImportResolver.loadBytes` performs controlled browser fetch and returns redirect context. Refactor its identity/retrieval distinction behind the acquisition owner; retire only superseded paths after consumer proof. |
+| `src/app/js/controller/canonicalVowlDocumentSession.js`                                                            | Owns session cancellation, worker admission, source/export ownership and stale-result handling. Cache work participates in the same session lifecycle.                                                                                 |
+| `src/app/js/controller/canonicalVowlWorkerClient.js`, `canonicalVowlWorker.js`, `canonicalVowlWorkerOperations.js` | Own worker messages and `vowl/owl` operations; preserve deadlines and model authority.                                                                                                                                                 |
+| `src/app/js/canonicalApplication.js`, `src/canonical-main.js`                                                      | Current application composition and bootstrap; inject the acquisition dependency and approved bypass/configuration here.                                                                                                               |
+| `src/app/js/loadingModule.js`, `ontologyLifecycle.js`                                                              | Existing UI/lifecycle consumers; change only the integration needed for canonical acquisition and status.                                                                                                                              |
+| `packages/vowl/src/owl/loading.js`, `policy.js`, `compatibleLoading.js`                                            | Consumer-owned format, fatal UTF-8, managed-closure and source/profile behaviour. These are contract evidence, not permission to fork or alter the canonical mapper for the cache.                                                     |
+| `packages/vowl/conformance/storage.mjs`, `packages/vowl/test/independentCorpus.js`                                 | Logical corpus/member readers and frozen pins; reuse them instead of copying the pre-consolidation fixture tree.                                                                                                                       |
+| `src/shared/js/util/resolveFetchUrl.js`                                                                            | Retain unrelated retrieval behaviour; do not route canonical JSON or generic URLs into ontology materialization.                                                                                                                       |
+
+The old `src/owl2vowl/js` converter/constants/resolver and local `src/owlapi-js` trees are retired.
+There is no future task to edit or delete those absent files.
+The current canonical resolver is a different, live owner and must not be deleted by a stale path/symbol checklist.
+
+The `amazon-aws` stack, ontology rewrite function and whole-distribution cost cutoff remain historical infrastructure anchors from the original plan.
+SLICE-001 must inspect their current owners, logical IDs and live settings read-only before an exact configuration proposal; this revision does not claim fresh AWS inventory.
 
 ### 5.1 Seed baseline
 
-The seed baseline is the union of:
-
-- every exact key/value mapping exported by the last accepted `ONTOLOGY_CATALOG` before removal;
-- every object actually referenced under `https://haddenindustries.com/ontology/external/`;
-- the externally hosted mapping currently represented by the catalog, such as a pinned W3C namespace resource, after the same validation and provenance process; and
-- any additional `/ontology/external/` object explicitly approved as a seed despite not being referenced by the JavaScript catalog.
-
-Unreferenced S3 objects are inventory findings, not automatic public mappings.
-Missing objects, redirects, duplicate content, invalid documents, and mappings whose logical/source IRI differs from their current retrieval IRI must be resolved explicitly in the seed evidence.
+Recover the last accepted historical `ONTOLOGY_CATALOG` and its provenance without restoring it into production source.
+Reconcile every former logical mapping, referenced `/ontology/external/` object and separately approved extra seed against a fresh read-only inventory.
+Record exact requested/retrieval/parser IRIs, byte digest, rights, parser metadata, validation identity and curated aliases.
+Unreferenced objects, missing sources, duplicate bytes, changed redirects and unsupported encodings require individual dispositions.
+Dynamic entries cannot override seed names.
+The importer distinguishes inventory, locally validated staging and approved publication; none is evidence of the next stage.
 
 ---
 
 ## 6. Target architecture
 
-### 6.1 Request/data flow
+### 6.1 Observable acquisition path
 
 ```text
-WebVOWL UI / owl2vowl composition root
-                    │
-                    ▼
-       WebVowlOntologyDocumentLoader
-                    │
-        ┌───────────┼─────────────────────┐
-        │           │                     │
-        ▼           ▼                     ▼
- OASIS catalog   direct fetch     materialization client
- CloudFront/S3   source HTTPS     POST/GET through CloudFront
-        │           │                     │
-        │           │                     ▼
-        │           │       OAC-protected Lambda Function URL
-        │           │                     │
-        │           │              DynamoDB registry
-        │           │                     │
-        │           │                    SQS
-        │           │                     │
-        │           │                     ▼
-        │           │       ontology materialization worker
-        │           │       ┌─────────────┴─────────────┐
-        │           │       ▼                           ▼
-        │           │  SSRF-safe fetch        public npm `owlapi`
-        │           │       │                 validation profile
-        │           │       └─────────────┬─────────────┘
-        │           │                     ▼
-        │           │       content-addressed private S3
-        │           │                     │
-        │           │           catalog projection queue
-        │           │                     │
-        │           │                     ▼
-        │           │       immutable OASIS generation + root
-        └───────────┴─────────────────────┘
-                    │
-                    ▼
- StringDocumentSource(text, {
-   documentIRI: original source document IRI,
-   contentType,
-   fileName,
- })
-                    │
-                    ▼
-       public `owlapi` manager → VOWLBuilder
+canonical document/import session
+  → application source acquisition
+      → session/catalog binding → CloudFront/private S3
+      → controlled direct origin retrieval
+      → materialization API → DynamoDB/SQS → controlled worker retrieval
+                                                → private staging + document validation
+                                                → immutable artifact/evidence + source commit
+                                                → generated catalog publication
+  → exact bounded bytes + origin parser context + public format metadata
+  → worker-owned vowl/owl and public owlapi managed document graph
+  → source/closure profile assessment and consumer admission
+  → canonical model/projection under existing resource policy
 ```
 
-### 6.2 Data plane versus control plane
+Byte retrieval changes location; it does not change source semantics, import identity, parser policy or projection rules.
+The closure qualifier reuses the same controlled acquisition interface and public manager graph; it does not become a generic proxy or an alternative ontology implementation.
 
-| Plane               | Components                                                                                                 | Invoked when                                                           | Design constraint                                                                       |
-| ------------------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| Data plane          | Existing CloudFront distribution, dedicated private artifact S3 origin, immutable artifact/catalog objects | Every catalog or artifact read                                         | No Lambda, DynamoDB, or SQS dependency on a hit.                                        |
-| Browser direct path | User agent → source origin                                                                                 | No catalog entry exists and browser policy permits the source response | `credentials: "omit"`; never use `mode: "no-cors"`; returned response must be readable. |
-| Control plane       | CloudFront API behaviour, Lambda Function URL, API Lambda, DynamoDB, SQS, worker Lambda, catalog publisher | New source, retryable rejected source, refresh, administrative action  | Finite work, idempotent state, no ontology bytes returned by Lambda.                    |
-| Operations plane    | CloudFront logs v2, CloudWatch metrics/alarms/dashboard, Athena, SNS, cost controls                        | Asynchronously                                                         | No high-cardinality CloudWatch dimensions or sensitive request fields.                  |
+### 6.2 Plane and owner boundaries
 
-### 6.3 Deep module boundaries
+| Plane                  | Owner and invariant                                                                                                                                                |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Data                   | CloudFront/private S3 serves immutable byte objects, resolution records, validation/closure evidence and catalog generations without Lambda/DynamoDB/SQS on hits.  |
+| Browser acquisition    | One session-scoped acquisition owner supplies bytes/context to root and import consumers, with cancellation and aggregate limits.                                  |
+| Control                | API, registry, queues and worker own bounded admission, retrieval, validation and conditional promotion; Lambda returns small state/error/redirect responses only. |
+| Semantic qualification | The installed `owlapi` owns parsing/managed closure/profile APIs; the `vowl` consumer owns canonical/compatible admission.                                         |
+| Operations             | Minimized logs, metrics, reports, quarantine, refresh, cost and rollback controls operate asynchronously.                                                          |
 
-The architecture uses four intentional seams:
+### 6.3 Deep module seams
 
-1. **`owlapi` document-loader interface** — accepted public package seam.
-   WebVOWL supplies one object implementing `load(documentIRI, { config, signal })`.
-   The cache policy is hidden behind that small interface.
-2. **Materialization HTTP contract** — browser/control-plane seam. It exposes only submission/status/error/redirect semantics, not DynamoDB state or worker internals.
-3. **Registry interface** — API/worker/catalog seam.
-   Conditional state transitions, leases, negative-cache rules, and catalog eligibility are implemented in one cohesive module.
-4. **Catalog projection contract** — control-plane/data-plane seam.
-   DynamoDB state becomes immutable OASIS generations and one short-lived stable root.
+Use four cohesive seams: byte acquisition with explicit source context, the materialization HTTP contract, a registry that owns transitions rather than raw table operations, and a deterministic catalog/evidence projection.
+Clock, DNS/connector, Fetch and AWS clients are genuine external test boundaries.
+Do not mock `owlapi`, duplicate its grammar or introduce an interface for every internal helper.
 
-Production modules may accept a clock, random source, fetch implementation, DNS resolver, or AWS client through construction for deterministic tests, but the project must not create an interface for every internal function.
-A seam is justified only where there is a real platform boundary or a production and test implementation.
+### 6.4 Catalog scale
 
-### 6.4 Why DynamoDB is not the browser catalog
-
-A browser-to-key/value lookup would add an API/Lambda/DynamoDB request, latency, abuse surface, and regional dependency to every import.
-The mapping set is public and read-heavy, so a generated static catalog is the deeper and cheaper interface:
-
-```text
-DynamoDB registry (authoritative mutable control state)
-                 │ deterministic projection
-                 ▼
-OASIS XML Catalog generation (immutable public read model)
-                 │ CloudFront/S3
-                 ▼
-WebVOWL in-memory exact-Iri Map
-```
-
-The initial catalog profile is capped at 25,000 entries and 8 MiB across the root plus followed catalogs.
-If measured catalog acquisition/parsing exceeds 100 ms p95 in the accepted browser benchmark or the cap is approached, a separately approved generated index/sharding design is required.
-The response is not to put DynamoDB on the normal read path.
+The initial OASIS profile remains capped at 25,000 entries and 8 MiB across followed catalogs.
+Measure acquisition/parsing at 1,000, 10,000 and 25,000 entries; target p95 ≤100 ms and no main-thread task >250 ms on the accepted benchmark.
+A compact JSON index is a conditional optimization when those measurements justify it.
+It is generated from the same committed mapping model and generation, has no independent edit path, and must match OASIS resolution exactly.
+Do not replace static reads with a browser-to-DynamoDB lookup.
 
 ---
 
@@ -391,81 +317,77 @@ The response is not to put DynamoDB on the normal read path.
 
 ### 7.1 Catalog hit
 
-1. `owlapi` calls `WebVowlOntologyDocumentLoader.load(documentIRI, { config, signal })`.
-2. The loader normalizes the input through the accepted public `IRI` contract and retains it as `sourceDocumentIri`.
-3. The loader coalesces catalog acquisition with any in-progress acquisition for the page.
-4. The catalog resolver performs an exact source-document-IRI lookup.
-   It does not perform prefix rewriting, trailing-slash guessing, scheme aliasing, ontology-ID inference, or case folding.
-5. On a hit, the loader fetches the artifact IRI with `credentials: "omit"`, the caller’s abort signal, the finite byte limit, and no cache-busting query.
-6. The catalog-supplied `source` query token is preserved for access-log attribution but ignored by the CloudFront cache key and S3 origin request.
-7. The loader returns a public `StringDocumentSource` whose `documentIRI` is the original `sourceDocumentIri`, never `response.url` and never the artifact IRI.
+1. Retain `requestedDocumentIri` and perform exact lookup in the session map or bounded seed-first catalog.
+2. Load the entry's immutable resolution record and verify its source key, artifact digest, parser context, public format identity, validation identity and policy compatibility.
+3. Fetch the immutable artifact with omitted credentials, cancellation and the same byte/aggregate limits as direct acquisition; verify its SHA-256 over content-decoded bytes.
+4. Return exact bytes and the recorded origin `parserDocumentIri`/media type to the canonical acquisition owner.
+   Never infer syntax or base from the digest path or its `application/octet-stream` header.
+5. Run ordinary worker-owned package admission.
+   A server qualification is evidence, not a bypass of browser limits or semantic checks.
 
-No control-plane call occurs.
+No control-plane call occurs on a complete catalog hit.
+A corrupt, incompatible or incomplete binding is not usable cache evidence; report a sanitized cache diagnostic and follow the controlled direct path, without accepting mismatched bytes.
 
-### 7.2 Catalog miss followed by direct success
+### 7.2 Direct success
 
-1. The loader selects `browserRetrievalIri`.
-   When WebVOWL runs in an HTTPS secure context and the source uses HTTP, it attempts the equivalent HTTPS IRI first; it never deliberately causes active mixed content.
-2. The loader performs one readable CORS fetch with `credentials: "omit"` and the caller’s signal.
-3. It checks `Response.ok`, `Content-Length` when present, then enforces the 33,554,432-byte limit while consuming the body.
-4. A readable HTTP error is an upstream result, not evidence of CORS.
-   The loader returns a typed load failure and does not hide it behind proxy fallback.
-5. A successful response becomes a `StringDocumentSource` using `sourceDocumentIri` as document context and the source path’s last segment as `fileName` hint.
-6. `owlapi` performs the actual syntax/ontology parse. A directly readable document is not written to the shared cache in version 1 because the stated use case is CORS/mixed-content fallback, not indiscriminate mirroring.
+Use the existing HTTPS-capable direct policy with `credentials: "omit"`, bounded exact bytes and the caller's signal.
+Align direct and worker Accept negotiation to the same metadata-derived request policy and record its exact values; characterize the current browser's implicit Accept behaviour before changing it.
+Different negotiated representations are not a semantic-equivalence pass merely because they share a requested IRI.
+Preserve requested, initial retrieval and effective origin IRIs separately and select parser context as §4.2 requires.
+Public format metadata selects an exact format or requests an explicit user choice before worker admission; ambiguity is not permission to guess.
+Readable HTTP errors, parsing failures, unsupported encodings, security/resource limits and cancellation are typed outcomes, not materialization triggers.
+Directly readable documents are not automatically mirrored in version 1.
 
-### 7.3 Catalog miss followed by materialization
+### 7.3 Materialization fallback and first caller
 
-The loader invokes materialization only when direct retrieval cannot produce a readable response because:
+Fallback is allowed only when direct browser acquisition cannot produce a readable response because of network/CORS/mixed-content restrictions.
+Do not claim every Fetch rejection proves CORS.
+Serialize the narrow submission once, hash its exact UTF-8 bytes for `x-amz-content-sha256`, and submit without credentials.
+Pending requests return 202 with `Location` and `Retry-After`.
+Poll one request at a time using cancellable recursive delays: valid `Retry-After`, otherwise 1/2/4/8 seconds with ±20% jitter and an 8-second ceiling, within a 60-second total client budget.
+Limit concurrent submissions to four and coalesce identical session requests without leaking one caller's cancellation into another caller's retained work.
 
-- Fetch rejects with its network/CORS failure class after the request was actually attempted;
-- the source is HTTP while the application is HTTPS and the HTTPS-upgraded candidate cannot be read; or
-- browser policy prevents the attempt before a readable response exists.
+Once a source binding is committed, 303 redirects to its immutable artifact with `source` and `binding` digest tokens.
+Fetch may follow automatically; the final service URL supplies the immutable binding identity, whose S3 resolution record supplies parser context and format.
+The first caller verifies that record and the bytes before worker admission, then remembers the complete binding in its session.
+It need not wait for catalog propagation.
+Do not rely on reading an intermediate redirect's headers or on a mutable source-provenance document that could race a refresh.
 
-Abort, caller cancellation, a local resource limit, a readable 4xx/5xx response, an unsupported scheme, or a programming error never triggers materialization fallback.
+### 7.4 Document and closure qualification
 
-The sequence is:
+Every imported document follows the same acquisition contract and retains its own parser context.
+An isolated parse can establish `DOCUMENT_VALIDATED` while imports are unresolved.
+Closure qualification uses `loadOntologyGraphFromOntologyDocument`, public managed graph queries and an `OWL2DLProfile` instance's `checkOntology` method under the pinned closure policy.
+Cycles, shared imports and diamonds remain a graph of separate documents.
+Record requested direct-import edges and their resolved member validation identities, not just an unordered bag of byte digests.
 
-1. Serialize the exact JSON request body once.
-2. Compute SHA-256 over those UTF-8 bytes with `crypto.subtle.digest`.
-3. Send `POST /ontology/materializations` with `Content-Type: application/json`, `x-amz-content-sha256`, `credentials: "omit"`, and the caller’s signal.
-4. A new/idempotent pending request returns `202 Accepted`, `Location` of its status resource, and `Retry-After`.
-5. Poll with a cancellable recursive timeout, not `setInterval`.
-   Honor a valid server `Retry-After`; otherwise use 1, 2, 4, then 8 seconds with ±20% jitter and an 8-second ceiling.
-6. A ready status returns `303 See Other` to the immutable artifact.
-   Browser Fetch follows the redirect; the client verifies that the final response IRI is an HTTPS IRI under `/ontology/cache/artifacts/sha256/` on the configured service origin.
-7. The loader consumes the bounded artifact response, records an in-memory exact mapping for the rest of the page session, and returns a `StringDocumentSource` with the original `sourceDocumentIri`.
-8. The asynchronous catalog publisher makes the mapping available to future sessions.
-   The first caller does not wait for the stable catalog root’s edge TTL.
+Missing imports, unsupported source evidence, incomplete checks, profile violations and consumer resource rejection remain distinct outcomes.
+Only a complete accepted report can claim `CLOSURE_VALIDATED` for its named profile.
+Document mappings may be published before closure qualification; their evidence explicitly says `DOCUMENT_VALIDATED` and makes no OWL 2 DL or consumer-admission claim.
+The canonical structural route requires its full source/closure checks.
+The existing compatible view route may retain qualified diagnostics; this cache must neither relabel that as OWL 2 DL success nor silently tighten the direct-path admission contract.
 
-The materialization wait budget is 60 seconds.
-A pending operation beyond that budget produces a retryable `UnloadableImportError`; it is not polled indefinitely in the background.
+Server closure qualification is resumable and separately budgeted: resolve missing members through ordinary quota-controlled document jobs, persist the exact member/edge manifest, and replay the manager with only pinned locally available bytes.
+Do not hold a document worker while serially downloading a maximum-size closure or assume the 60-second document-job budget covers unbounded closure work.
+An incomplete closure never blocks publication of an otherwise eligible document or disables its previous complete binding.
 
-### 7.4 Import-closure behaviour
+### 7.5 Refresh and last-known-good
 
-The application creates the public `owlapi` manager with this loader and the accepted immutable configuration.
-WebVOWL’s import-aware path explicitly sets `remoteImports: true` because the caller—not package capability detection—authorizes document resolution.
-The package continues to own:
+The 30-day schedule is a default source check interval, not permission to ignore response caching/republication restrictions.
+Persist validators, selected request headers, `Vary`, cache directives, status, effective URI and acquisition time.
+Prefer `If-None-Match`; use `If-Modified-Since` where appropriate for the same selected representation.
+A 304 is acceptable only with a matching stored source variant and durable byte object; update permitted metadata and freshness without pretending a new parse occurred.
+If software, decoder, parser base, format or profile changed, revalidate retained bytes under a new identity even after a 304.
 
-- import declaration interpretation;
-- direct/transitive traversal;
-- duplicate and cycle handling;
-- maximum import count and depth;
-- missing-import `throw` versus structured-diagnostic behaviour; and
-- the returned structural ontologies/import graph.
+A 200 computes a new digest and validation identity; unchanged bytes may reuse evidence only when the entire validation tuple matches.
+Changed `Vary`, format hints, effective parser context or restrictions require a new binding/disposition.
+Never forward validators learned from an unrelated resource or across a changed redirect target without establishing representation identity.
+Missing backing bytes, inconsistent validators or ambiguous 304 metadata trigger a bounded unconditional retry or typed failure, not fabricated success.
 
-The application loader owns only how one requested document is resolved.
-The cache worker validates only that one document and does not fetch its imports.
-
-### 7.5 Refresh and last-known-good behaviour
-
-1. A daily scheduler selects registry entries whose `nextRevalidationAt` is due, capped at 100 sources per UTC day.
-2. It conditionally changes `READY` or `STALE` to `REVALIDATING` while leaving the active artifact/catalog mapping readable.
-3. The worker sends `If-None-Match` and/or `If-Modified-Since` when trustworthy source validators were recorded.
-4. `304 Not Modified` updates freshness/provenance and returns to `READY` without a new artifact or catalog generation.
-5. New valid bytes produce a new artifact digest, atomically promote the registry pointer, retain the prior artifact, and enqueue one catalog-projection event.
-6. A transient retrieval or validation failure changes the control state to `STALE` and schedules bounded retry, but the last-known-good artifact stays mapped.
-7. Automatic refresh never deletes a previously accepted mapping merely because a source is temporarily offline or changed to invalid bytes.
-8. Only an explicit quarantine/takedown action removes a mapping from new catalog generations. Previously cached edge/browser copies expire under their immutable URL contract; emergency CloudFront invalidation is separately authorized and reserved for security/legal incidents.
+Transient retrieval/validation failures preserve an eligible last-known-good binding.
+New `private`/`no-store`, loss of durable republication eligibility, quarantine or takedown removes future mappings and enters the containment process; it is not an ordinary stale fallback.
+Old immutable edge/browser copies cannot be recalled by updating a catalog.
+Record that limitation and obtain incident-specific invalidation/object-access action when required.
 
 ---
 
@@ -479,12 +401,14 @@ The cache worker validates only that one document and does not fetch its imports
 | `GET /ontology/materializations/{materializationId}`                                              | API Lambda                           | Disabled; `no-store`             | Observe pending/rejected/ready state.          |
 | `OPTIONS /ontology/materializations` and `OPTIONS /ontology/materializations/{materializationId}` | API Lambda / response headers policy | Disabled                         | CORS preflight.                                |
 | `GET\|HEAD /ontology/cache/artifacts/sha256/{artifactSha256}`                                     | Artifact S3 origin                   | One year immutable               | Fetch validated representation bytes.          |
-| `GET\|HEAD /ontology/cache/provenance/sources/{sourceKey}.json`                                   | Artifact S3 origin                   | Generation-aware; one day        | Inspect public source/provenance metadata.     |
+| `GET\|HEAD /ontology/cache/provenance/sources/{sourceKey}.json`                                   | Artifact S3 origin                   | Five minutes; validators         | Inspect public source/provenance metadata.     |
 | `GET\|HEAD /ontology/catalog-v001.xml`                                                            | Artifact S3 origin                   | Five minutes plus stale controls | Stable OASIS catalog root.                     |
 | `GET\|HEAD /ontology/catalogs/seed/v1/catalog-v001.xml`                                           | Artifact S3 origin                   | One year immutable               | Curated seed catalog generation.               |
 | `GET\|HEAD /ontology/catalogs/dynamic/sha256/{catalogGenerationSha256}/catalog-v001.xml`          | Artifact S3 origin                   | One year immutable               | Dynamic exact-source mapping generation.       |
 
-Both hexadecimal path parameters are exactly 64 lowercase ASCII hexadecimal characters.
+Artifact, source, resolution, validation and closure digests are exactly 64 lowercase ASCII hexadecimal characters.
+Add GET/HEAD paths under `/ontology/cache/`: `resolutions/sha256/{resolutionIdentity}.json`, `validations/sha256/{validationIdentity}.json` and `closures/sha256/{closureDigest}.json`, served by S3 with immutable policies.
+The mutable source-provenance view uses a five-minute revalidated policy; it is never the parser-context authority for an older artifact.
 Path decoding, extra segments, encoded slashes, dot segments, upper-case digests, or unexpected suffixes fail closed.
 
 ### 8.2 Submission request
@@ -493,7 +417,7 @@ The version 1 body is intentionally narrow:
 
 ```json
 {
-  "sourceDocumentIri": "http://example.org/ontology"
+  "requestedDocumentIri": "http://example.org/ontology"
 }
 ```
 
@@ -532,12 +456,14 @@ The examples use descriptive values; production schemas require the exact digest
 ```http
 HTTP/1.1 303 See Other
 Cache-Control: no-store
-Location: https://haddenindustries.com/ontology/cache/artifacts/sha256/64-hex-characters?source=64-hex-characters
+Location: https://haddenindustries.com/ontology/cache/artifacts/sha256/64-hex-characters?source=64-hex-characters&binding=64-hex-characters
 ```
 
 The redirect target is built only from validated registry fields.
 A caller cannot provide it.
-Fetch follows the redirect to the S3/CloudFront data plane, so Lambda returns no ontology body and incurs no response-streaming charge.
+Fetch follows the redirect to the S3/CloudFront data plane, so Lambda returns no ontology body.
+The final URL retains the `binding` digest; the client fetches its immutable resolution record and validates context, format, profile and byte identity before admission.
+READY means a durable document binding is available; catalog publication and closure qualification may still be pending.
 
 ### 8.5 Error response
 
@@ -555,6 +481,10 @@ Fetch follows the redirect to the S3/CloudFront data plane, so Lambda returns no
 
 Messages are bounded and never echo the source IRI, upstream body, response headers, parser excerpt, stack trace, IP address, or AWS identifier.
 Machine clients use `code`, never message matching.
+Preserve separate bounded decoding/unsupported-encoding, ambiguous-format, source-assessment, incomplete-closure, profile and consumer-resource outcomes; a consumer-limit failure must not be reported as `ONTOLOGY_DOCUMENT_INVALID`.
+Only document-materialization failures appear on this API; closure/consumer results live in their own qualification/session evidence.
+The document taxonomy also includes `SOURCE_ENCODING_UNSUPPORTED`, `SOURCE_DECODING_FAILED` and `ONTOLOGY_FORMAT_AMBIGUOUS` as 422 outcomes, with no automatic client retry and the same bounded 24-hour suppression as document rejection.
+Retain package resource/deadline failures as limit/timeout outcomes rather than relabeling them syntax-invalid.
 
 | HTTP status | Stable code                                                              | Meaning / retry policy                                                                                                                                              |
 | ----------: | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -595,9 +525,10 @@ The artifact/catalog/provenance policy adds:
 Access-Control-Allow-Methods: GET, HEAD, OPTIONS
 Access-Control-Allow-Headers: *
 Access-Control-Expose-Headers: content-type, etag,
-  x-ontology-artifact-sha256, x-ontology-validation-profile
+  x-amz-meta-artifact-sha256
 ```
 
+Context-specific validation/profile claims are available only from the immutable resolution/evidence records, not artifact response headers.
 No response sends `Access-Control-Allow-Credentials`.
 Browser requests always use `credentials: "omit"`.
 With wildcard origin and no credentials, no origin-reflecting code or `Vary: Origin` cache fragmentation is needed.
@@ -610,109 +541,88 @@ Artifact/catalog responses also use a restrictive response CSP suitable for non-
 
 ## 9. Registry and state-machine contract
 
-### 9.1 DynamoDB table
+### 9.1 Separate records and immutable identities
 
-The `ValidatedOntologyRegistryTable` uses DynamoDB Standard, on-demand capacity, point-in-time recovery, deletion protection, AWS-owned encryption, and a string partition key named `registryKey`.
-It deliberately starts without a GSI; the expected mapping set is small, API operations are point reads, and bounded scheduled scans are cheaper and simpler than speculative indexes.
-Add an index only after measured scan cost/latency justifies a separately approved schema change.
+Retain DynamoDB Standard on-demand capacity, point-in-time recovery, deletion protection, AWS-owned encryption and string partition key `registryKey`.
+Start without a speculative GSI; bounded scans and point operations must be measured before proposing indexes.
+The record families are:
 
-Source records use `registryKey = SOURCE#{sourceKey}` and contain only fields with a defined owner:
+| Record key                        | Owned fields and invariant                                                                                                                                                                                                                                                     |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `SOURCE#{sourceKey}`              | Exact requested IRI; retrieval/effective IRIs; generation; acquisition state; active/previous resolution identities; origin validators/cache/variation metadata; next refresh; lease/fencing token; attempts; curation; quarantine. Mutable control state, not semantic proof. |
+| `VALIDATION#{validationIdentity}` | Byte digest, parser IRI, public format/parser metadata, exact package/integrity, canonical loader policy/fingerprint, validation-contract version, document result, source-preservation qualification, bounded diagnostics and validated time. Immutable contextual evidence.  |
+| `RESOLUTION#{resolutionIdentity}` | Source key/generation, artifact and validation identities, parser/format context and acquisition/republication provenance. An immutable binding safe for old and new readers during refresh.                                                                                   |
+| `CLOSURE#{closureDigest}`         | Root validation identity, every member identity, resolved direct-import edges, profile/policy, report digest, completion/source assessment and qualification time. Consumer admission is separately identified.                                                                |
+| `CONTROL#SERVICE`                 | Materialization/refresh/closure enablement, approved quotas and monotonic policy revision.                                                                                                                                                                                     |
+| `QUOTA#UTC#YYYY-MM-DD`            | Newly admitted source keys and bounded closure/revalidation work counters; polling and idempotent submissions do not increment new-source quota.                                                                                                                               |
+| `CATALOG#CURRENT`                 | Desired/committed projection revision, immutable generation/model digest, object checksums and root ETag.                                                                                                                                                                      |
 
-```javascript
-{
-  registryKey: "SOURCE#…",
-  schemaVersion: 1,
-  sourceKey,
-  sourceDocumentIri,
-  retrievalIriWithoutFragment,
-  materializationState,
-  curation: "SEED" | "DYNAMIC",
-  activeArtifactSha256,
-  previousArtifactSha256,
-  artifactByteLength,
-  artifactContentType,
-  artifactStoredAt,
-  ontologyIri,
-  versionIri,
-  effectiveUpstreamIri,
-  upstreamEtag,
-  upstreamLastModified,
-  upstreamRetrievedAt,
-  validatedAt,
-  validationProfileId,
-  validationDiagnosticCodes,
-  nextRevalidationAt,
-  lastFailureCode,
-  lastFailureAt,
-  retryAfter,
-  leaseOwner,
-  leaseExpiresAt,
-  attemptCount,
-  catalogEligible,
-  quarantinedAt,
-  quarantineReasonCode,
-  createdAt,
-  updatedAt
-}
-```
+Large bounded closure/report bodies belong in private S3 evidence with digest references; do not assume a graph manifest fits DynamoDB's item limit.
+Publish only a bounded sanitized qualification summary at the public closure path; its full retained report has a separate private digest reference when disclosure/size policy requires it.
+An existing validation identity is immutable: verify the same canonical inputs and outcome before reuse, retain repeated-attempt timestamps separately, and treat contradictory results as an invariant failure rather than overwriting evidence.
+Emit optional fields only when known.
+Never persist raw parser excerpts or source bodies in table/log diagnostics.
+`schemaVersion`, `validationContractVersion`, readable `validationProfileId` and cryptographic `loaderProfileFingerprint` have distinct roles.
 
-Absent optional fields are omitted; they are not represented by empty strings, zero timestamps, or invented sentinel IRIs.
-Raw parser messages and upstream bodies never enter DynamoDB.
+### 9.2 State dimensions
 
-Control records share the table only where transactional coupling is valuable:
+These are related dimensions, not one misleading linear state enum:
+
+| Dimension          | States and meaning                                                                                                                                                                |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Acquisition        | `PENDING → FETCHED`; refresh may be `REVALIDATING`, with typed transient/terminal failure and retry windows. `FETCHED` means bytes exist privately, not that they may be served.  |
+| Document evidence  | `UNVALIDATED → DOCUMENT_VALIDATED` or a typed rejection/incomplete result for the exact validation identity. Parsing alone does not prove source preservation or imports closure. |
+| Closure evidence   | `UNASSESSED / INCOMPLETE / REJECTED / CLOSURE_VALIDATED`, rooted in exact member/edge and profile identities. It cannot be promoted by a document-only job.                       |
+| Publication        | `UNPUBLISHED → PUBLISHED` only after durable accepted document binding and catalog generation/root publication. A document publication need not have a closure-qualified claim.   |
+| Freshness/access   | `CURRENT / REVALIDATING / STALE / QUARANTINED`; last-known-good is a separately retained active binding, never an overwritten artifact.                                           |
+| Consumer admission | `NOT_EVALUATED / ADMITTED / REJECTED / INCOMPLETE` with consumer version/policy and reason, independent of ontology validity.                                                     |
+
+The public API may use `READY` as a transport disposition once a durable eligible resolution/artifact exists, before catalog propagation.
+It is not a synonym for `CLOSURE_VALIDATED` or `PUBLISHED` and is not a Boolean validity field.
+Quarantine fences jobs and removes future publication eligibility for that source even if its shared bytes are valid elsewhere.
+Negative results are keyed to the attempted generation/policy; no negative result overwrites a previous admissible binding.
+
+### 9.3 Fenced leases, outbox and at-least-once work
+
+Submission atomically admits a source generation, increments quota only when appropriate and records enqueue intent.
+SQS send is outside the DynamoDB transaction; an outbox/reconciler retries unsent intent so a crash after admission cannot lose work.
+Messages carry source key, generation, policy revision and work kind, never caller credentials or arbitrary parser options.
+
+Before network work, acquire a conditional lease with unique owner and monotonic fencing token for the exact generation.
+The initial document lease is 90 seconds; renew only while the invocation has safe remaining time.
+Every promotion checks expected generation, token, unexpired lease, policy and non-quarantined state.
+A late/reordered worker can leave an orphan object but cannot replace a newer binding.
+Duplicates observe durable state or an active lease without performing another fetch; recovery does not depend on that duplicate message surviving.
+
+Use a 60-second document worker timeout, SQS visibility at least six times that timeout, batch size one, partial batch response, reserved/event-source concurrency two and a 14-day DLQ.
+Reconcile expired leases and unsent publication events; cap document attempts at three per cycle.
+Closure jobs have independently bounded deadlines/attempts/concurrency and share admission, cost and kill-switch controls.
+Bounded durable checkpoints preserve completed member identities across interruption; no attempt resumes a stale source generation blindly.
+
+### 9.4 Publication commit point and recovery
+
+The order is:
 
 ```text
-CONTROL#SERVICE
-QUOTA#UTC#YYYY-MM-DD
-CATALOG#CURRENT
+admit generation + enqueue intent
+  → lease → controlled retrieve → digest → immutable private staging
+  → document validation → optional separately identified closure qualification
+  → checksum-verified immutable public artifact + immutable evidence/binding
+  → conditional source-generation commit + durable catalog-dirty intent
+  → immutable complete catalog generation → compare-and-swap stable root
 ```
 
-- `CONTROL#SERVICE` contains `materializationEnabled`, the approved daily quota, and a monotonic policy revision.
-- `QUOTA#UTC#YYYY-MM-DD` counts only newly admitted source keys, not idempotent submissions or polls.
-- `CATALOG#CURRENT` records the last projected registry revision, generation digest, entry count, and root ETag.
+The public artifact namespace receives only document-validated bytes; staging is excluded from CloudFront permissions.
+A context's invalid result cannot become valid merely because identical bytes were published under another context.
+Catalog publication reads committed bindings and verifies every referenced object/record.
+It records a stable desired revision before projection, rechecks that revision before root CAS, and serializes publisher ownership.
+When the registry/root stores cannot change atomically, reconcile by reading both revisions and the root ETag after any interruption; never claim atomicity across DynamoDB and S3.
+Quarantine racing a projection invalidates its desired revision and requires republishing; emergency access containment remains a separate incident action.
 
-### 9.2 State machine
-
-```text
-virtual MISSING
-      │ conditional submit + daily quota transaction
-      ▼
-   PENDING ───────────────► REJECTED
-      │ worker lease           │ retryAfter reached
-      ▼                        └──────────────► PENDING
-    READY ───── scheduled refresh ─────► REVALIDATING
-      ▲                                      │
-      │ valid/304                            ├── valid new/same bytes ─► READY
-      │                                      └── transient/invalid ───► STALE
-      │                                                                   │
-      └──────────────── successful retry/revalidation ────────────────────┘
-
-READY | REVALIDATING | STALE | REJECTED
-      └── explicit administrative action ──► QUARANTINED
-```
-
-State invariants:
-
-- `PENDING` has a finite lease and no catalog-eligible artifact unless it is a refresh represented as `REVALIDATING`.
-- `READY` has one active artifact, successful validation evidence, and `catalogEligible: true`.
-- `REVALIDATING` and `STALE` retain the last-known-good active artifact and remain catalog eligible unless quarantined.
-- `REJECTED` has no newly published artifact.
-  A prior ready source uses `STALE`, not `REJECTED`.
-- `QUARANTINED` is never catalog eligible, regardless of any retained S3 object.
-- A dynamic record cannot overwrite a seed record’s exact source key.
-- State changes use conditional expressions on expected state/revision/lease.
-  At-least-once SQS delivery must have the same effect as one delivery.
-- DynamoDB TTL may clean expired negative/control ephemera, but correctness never depends on prompt TTL deletion.
-
-### 9.3 Leases and concurrency
-
-- A submission transaction creates `PENDING`, increments the daily counter only for a new source key, and sends one SQS message after the durable state exists.
-- The worker conditionally acquires a 90-second lease using a unique invocation ID.
-- Another worker that sees an unexpired lease acknowledges its duplicate message without retrieval.
-- A worker may renew once before expiry only while the Lambda still has at least 15 seconds remaining.
-- The SQS visibility timeout is six times the worker Lambda timeout; batch size is one; partial batch response is enabled; maximum event-source concurrency is two.
-- A DLQ retains failed messages for 14 days and alarms on the first visible message.
-- A reconciliation schedule finds expired `PENDING`/`REVALIDATING` leases and re-enqueues them with an attempt ceiling of three before a sanitized transient failure state is recorded.
+Inject failure after every boundary, including SQS send, private/final object put, evidence write, source commit, dirty intent, generation put and root update.
+Recovery must expose old-complete or new-complete bindings, never a missing object, mismatched parser context or unqualified claim.
+DynamoDB TTL is cleanup only, never a correctness mechanism.
+Orphan cleanup is reference-aware and separately approved; retain old generations/evidence through rollback and incident retention windows.
 
 ---
 
@@ -731,121 +641,92 @@ State invariants:
 - a credential-free CORS rule allowing only GET/HEAD from any origin, the required preflight headers, and a one-day preflight age;
 - no automatic deletion of current artifact or immutable catalog-generation objects;
 - 90-day expiry for noncurrent versions of mutable pointer/provenance objects after rollback evidence exists; and
-- an OAC-scoped read policy for the existing CloudFront distribution only.
+- an OAC-scoped read policy restricted to published artifact/evidence/catalog prefixes for the existing distribution, excluding private staging and internal evidence.
 
-The worker role can write artifact/provenance prefixes and read only what it must reconcile.
+The worker role can write its staging/artifact/evidence/provenance prefixes and read only the exact objects needed for validation and reconciliation.
 The catalog publisher can read registry state and write only catalog prefixes.
 Neither role can change the bucket policy, CloudFront distribution, WAF, or unrelated static assets.
 
 ### 10.2 Key layout
 
 ```text
+ontology/private-staging/sha256/{artifactSha256}
 ontology/cache/artifacts/sha256/{artifactSha256}
+ontology/cache/resolutions/sha256/{resolutionIdentity}.json
+ontology/cache/validations/sha256/{validationIdentity}.json
+ontology/cache/closures/sha256/{closureDigest}.json
 ontology/cache/provenance/sources/{sourceKey}.json
 ontology/catalog-v001.xml
 ontology/catalogs/seed/v1/catalog-v001.xml
 ontology/catalogs/dynamic/sha256/{catalogGenerationSha256}/catalog-v001.xml
 ```
 
-No extension is appended to an artifact digest.
-`.owl`, `.rdf`, `.ttl`, and `.jsonld` are syntax hints, not stable truth, and the accepted public `owlapi` manager may accept content despite an absent or misleading source suffix.
+The staging prefix and unsanitized internal evidence are private to narrowly scoped worker roles and have no CloudFront read grant or behaviour.
+Approved expiry of unreferenced staging follows the maximum recovery window; lifecycle cleanup cannot remove active inputs.
+Public evidence is bounded, sanitized and free of viewer/request information.
+No source filename is used as an object key.
 
-### 10.3 Artifact write contract
+### 10.3 Byte object and publication write contract
 
-1. Retrieve representation bytes after HTTP transfer/content-coding removal and before JavaScript text decoding.
-2. Enforce 33,554,432 bytes while streaming; cancel the upstream body immediately on overflow.
-3. Compute SHA-256 over those exact stored bytes.
-4. Decode for `StringDocumentSource` with the same UTF-8 semantics used by the WebVOWL response reader.
-5. Validate through public `owlapi`.
-6. `PutObject` with `If-None-Match: *` and S3’s SHA-256 checksum field at the digest key.
-   A precondition failure is a deduplication hit, not an overwrite instruction.
-7. On a deduplication hit, `HeadObject` with checksum retrieval enabled and reconcile size plus SHA-256 checksum.
-   Do not treat the S3 ETag as a cryptographic content digest.
-   Any impossible mismatch fails closed and emits a security alarm.
-8. Store a conservative recognized ontology/RDF media type only when trustworthy; otherwise use `application/octet-stream` and let `owlapi` sniff from bytes/text.
-   Never preserve `text/html` merely because a server supplied it.
-9. Set the immutable cache headers and the validation profile response metadata.
-10. Promote the registry only after the S3 write/read-after-write verification succeeds.
+1. Retrieve once under §12, bound encoded and content-decoded streams, and hash exact content-decoded bytes before character decoding.
+2. Conditionally put private staging using `If-None-Match: *` and S3 SHA-256 checksum metadata.
+   Record `FETCHED` only after integrity verification.
+3. Select format and decode under the pinned policy; validate the same bytes/context through public `owlapi`.
+   A failed context remains unpublished even on a global byte-dedup hit.
+4. Conditionally write the accepted exact bytes to the final artifact key and verify checksum/length.
+   A precondition failure is deduplication, not permission to overwrite; missing or inconsistent checksum fails closed.
+5. Persist immutable validation and resolution records before conditionally promoting the source generation.
+   The publisher exposes only that durable state.
 
-The bucket policy enforces conditional writes on the artifact prefix.
-Catalog pointer writes use their separate `If-Match` contract and are not blocked by the artifact-prefix policy.
+S3 ETag is a validator, not a content SHA-256.
+Store only context-independent facts on a shared byte object: digest, length, checksum and neutral delivery metadata.
+Use `application/octet-stream`, no origin `Content-Encoding` after decoding, and the immutable lifetime for the admitted public artifact.
+Origin content type/encoding, format, timestamps, source IRI, validation/profile and republication policy live in per-acquisition/per-validation records, not semantic headers on the byte object.
+Do not let the first source to upload shared bytes determine another source's parser selection or validation claim.
 
-### 10.4 Public provenance
+Canonical source export retains the acquired bytes.
+Any separately approved derived serialization uses a distinct derived-artifact namespace, own digest and a link to exact source/validation inputs; it never replaces source bytes.
 
-Each source key has a bounded JSON provenance document containing:
+### 10.4 Source-specific resolution and provenance
 
-```javascript
-{
-  schemaVersion: 1,
-  sourceKey,
-  sourceDocumentIri,
-  effectiveUpstreamIri,
-  artifactIri,
-  artifactSha256,
-  artifactByteLength,
-  contentType,
-  ontologyIri,
-  versionIri,
-  retrievedAt,
-  validatedAt,
-  validationProfileId,
-  validationDiagnosticCodes,
-  curation: "SEED" | "DYNAMIC",
-  freshness: "CURRENT" | "STALE",
-  sourceValidators: {
-    etag,
-    lastModified
-  },
-  sourceCode: {
-    repository,
-    revision,
-    owlapiVersion
-  }
-}
+An immutable resolution record contains source key/generation, requested/retrieval/effective/parser IRIs, artifact IRI/digest/length, public format identity, original content type/encoding, decoding policy, validation identity and exact loader/package/contract identity.
+It also records acquisition time/status, request-variant fingerprint, validators/republication disposition, source-preservation result and optional qualified closure identity.
+Its own `resolutionIdentity` binds all those fields.
+
+The mutable source-provenance document is a short-lived discoverability view, not the authoritative context for an artifact fetched from an older catalog.
+Link exact immutable resolution/validation/closure records from it, with curation, freshness, declared ontology/version identifiers and corresponding-source revision.
+Every catalog entry and READY redirect identifies an immutable resolution record, so refresh cannot race the client's parser metadata.
+A server qualification never authorizes skipping the local consumer's checks.
+
+Requested/effective IRIs are intentional public provenance for eligible public sources.
+Reject credential-bearing/session-dependent sources under the publication policy; never leak their query strings via rejection logs.
+Known secrets, raw parser text, viewer identifiers, headers and private evidence never enter public records.
+
+### 10.5 OASIS model and publication
+
+Retain OASIS XML Catalogs 1.1 with exact `uri` mappings, bounded `nextCatalog`, `group` and `xml:base` usage, and seed-before-dynamic resolution.
+The stable root points to immutable seed/dynamic generations.
+Each mapping's target has this shape, with all parameters validated as lowercase SHA-256 digests:
+
+```text
+https://haddenindustries.com/ontology/cache/artifacts/sha256/{artifactSha256}?source={sourceKey}&binding={resolutionIdentity}
 ```
 
-Only actually known optional fields are emitted.
-The provenance document contains no viewer/request data.
-Because the service is intended to be transparent, source and effective retrieval IRIs are public metadata; application and access logs still use `sourceKey` to minimize routine disclosure.
+The query identifies resolution evidence for consumers and does not affect artifact bytes, cache keys or S3 requests.
+Foreign-namespace metadata may carry the same binding/profile identifiers where OASIS permits it; ordinary resolvers still obtain the byte object.
+Browser consumers require the context-bearing resolution record and do not treat XML URI mapping alone as semantic qualification.
+An independent OASIS consumer validates standards conformance; browser-specific metadata never becomes a nonstandard replacement grammar.
 
-### 10.5 OASIS XML Catalog profile
+Build one deterministic committed model sorted by exact requested IRI, with verified artifact, resolution, validation and any claimed closure identities.
+Never infer names from ontology/version/redirect identifiers or let dynamic entries override curated seeds.
+Use UTF-8/LF, deterministic XML serialization and escaping, no DTD and no timestamps in immutable mapping content.
+If JSON is justified by measurement, emit it from this same model, with the same generation and exact lookup/precedence semantics.
+Neither representation is independently editable.
 
-The stable root uses the OASIS namespace and `nextCatalog` in seed-before-dynamic order:
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog"
-         xml:base="https://haddenindustries.com/ontology/">
-  <nextCatalog catalog="catalogs/seed/v1/catalog-v001.xml"/>
-  <nextCatalog catalog="catalogs/dynamic/sha256/CATALOG_DIGEST/catalog-v001.xml"/>
-</catalog>
-```
-
-`CATALOG_DIGEST` denotes the formally defined 64-character `catalogGenerationSha256`; generation code writes its actual value and no literal marker remains in a produced file.
-
-Each mapping is an exact `uri` entry:
-
-```xml
-<uri name="http://example.org/ontology"
-     uri="https://haddenindustries.com/ontology/cache/artifacts/sha256/ARTIFACT_DIGEST?source=SOURCE_KEY"/>
-```
-
-The three symbolic values in the example are substituted only with validated lowercase digest values from the registry.
-XML escaping is applied after URI serialization.
-
-Projection rules:
-
-- Seed catalog generations are curated, versioned, immutable, and reviewed as deployment data.
-- Dynamic generations contain every catalog-eligible dynamic source mapping, sorted by Unicode code-point comparison of `sourceDocumentIri`, then `sourceKey` as an impossible-tie guard.
-- A dynamic source colliding with any seed source is excluded and raises an invariant failure.
-- Multiple curated seed names may point to the same artifact; dynamic alias inference is forbidden.
-- Declared ontology/version IRIs are provenance only and never become `uri` names automatically.
-- The publisher serializes UTF-8 with LF line endings, exactly one XML declaration, double-quoted attributes, deterministic indentation, and no timestamp inside the immutable dynamic catalog.
-  This makes identical mapping state produce identical bytes/digest.
-- `generatedAt`, registry revision, entry count, and publisher revision belong in registry/provenance evidence, not in digest-unstable catalog content.
-- The publisher writes the immutable generation with `If-None-Match: *`, verifies it, then replaces the stable root with `If-Match` against the last observed root ETag.
-  A conflict causes bounded read/recompute/retry, never a blind overwrite.
-- A root update is not considered complete until a fresh S3 read, CloudFront read after TTL/explicit canary route, XML parse, and representative seed/dynamic resolution all pass.
+Put and checksum-verify the complete immutable generation and every referenced object before a conditional stable-root update using its last observed ETag.
+Conflicts cause bounded read/recompute/retry; stale projection events cannot roll the root back.
+Verify root readback, XML/optional JSON parity and representative resolutions through S3 and CloudFront after propagation.
+Short-lived mutable roots/provenance carry validators; immutable evidence and generation paths can use long lifetimes.
 
 ### 10.6 Browser catalog safety profile
 
@@ -858,8 +739,9 @@ Projection rules:
 - cycle detection by absolute catalog IRI;
 - exact-name lookup and first-match OASIS ordering;
 - a structured diagnostic for duplicate names; a conflicting duplicate fails the catalog acquisition rather than picking nondeterministically;
-- no DTD, external entity, stylesheet, XInclude, script, or foreign network retrieval; and
-- abort propagation through every catalog fetch.
+- no DTD, external entity, stylesheet, XInclude, script, or foreign network retrieval;
+- abort propagation through every catalog fetch; and
+- validated binding digests and matching immutable context evidence before browser parser admission.
 
 Catalog failure is degradable: the loader continues to direct retrieval and materialization.
 A malformed catalog must not make all ontology loading fail.
@@ -868,98 +750,89 @@ A malformed catalog must not make all ontology loading fail.
 
 ## 11. Ontology validation contract
 
-### 11.1 Definition of “valid” for this service
+### 11.1 Claims and their proof
 
-A representation is valid for publication when all of the following are true:
+`DOCUMENT_VALIDATED` means the admitted exact byte representation has been decoded and parsed under its context-bound document policy, with exact original bytes retained and source-preservation qualification/diagnostics recorded.
+It does not claim that every original source construct was represented losslessly, that imports resolved, or that the closure is OWL 2 DL.
+Keep a successful parse, source assessment `valid`/`invalid`/`unverified`, profile result and consumer admission as separate fields.
+If the owning API cannot establish a requested preservation claim, record it as unverified; do not infer it from parser metadata or the ability to serialize an ontology.
 
-1. The source request and every redirect passed the retrieval security policy.
-2. The bounded upstream response produced between 1 and 33,554,432 stored representation bytes.
-3. Those bytes decoded according to the versioned validation profile without an unhandled decoding failure.
-4. The accepted public `owlapi` manager successfully loaded the root `StringDocumentSource` under the exact configuration below.
-5. The manager returned a structurally usable `OWLOntology` through a public API.
-6. No resource, security, cancellation, document-load, unsupported-construct, syntax, aggregate-unparsable, or internal invariant error escaped.
-7. The successful state, package coordinate, profile ID, byte digest, and bounded diagnostic-code set were recorded.
+`CLOSURE_VALIDATED` requires complete managed import resolution and a complete passing public profile/source report for the named qualification policy over all exact members/edges.
+Unverified checks cannot be converted into a pass by dropping diagnostics.
+`PUBLISHED` means the corresponding durable mapping/evidence was exposed in a catalog; it says which validation level is asserted.
+No state claims consistency, satisfiability, entailment, freshness forever or publisher endorsement.
 
-This means “accepted by the same safe parser semantics WebVOWL uses.”
-It does **not** mean the ontology is logically consistent, satisfiable, OWL DL, in a particular OWL profile, semantically complete, authoritative, current, or endorsed by Hadden Industries.
+### 11.2 Versioned loader policies
 
-An explicit `owl:Ontology` declaration is not required because valid/useful RDF graphs can describe OWL entities and axioms without one.
-Conversely, the presence of `owl:Ontology` does not bypass parsing.
+Freeze canonical resolved policy JSON and a fingerprint for each stage.
+Use the same exact stage policy in Node and browser parity tests; do not pretend document-only and closure jobs have identical `remoteImports` settings.
 
-### 11.2 Validation profile version 1
+| Policy                       | Required semantics                                                                                                                                                                                                                                                                               |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `webvowl-source-document-v1` | Exact source retention and a fresh public manager/source with exact format. Use the selected public parsing mode, record it and its diagnostics, disable import retrieval and remote JSON-LD contexts, deny external XML resources. Imports remain declarations and incomplete closure evidence. |
+| `webvowl-managed-closure-v1` | The selected canonical/compatible consumer mode, managed graph loading and public asynchronous source/profile report. `remoteImports: true` permits calls to the supplied document loader; no ambient fetcher is installed. Remote contexts/external entities remain denied.                     |
+| Consumer admission           | The existing `vowl` package version, operation/profile and bounded work policy. Record separately from ontology qualification; changing acquisition must not tighten, relax or bypass that contract.                                                                                             |
 
-The initial profile is named `webvowl-compatible-document-v1` and has these fixed service ceilings:
+The current canonical package uses `preserve` mode on the structural mapping route and `compatible` mode for compatible ingress.
+Record those actual public values rather than inventing a `source-preserving` configuration enum.
+Do not use a compatible document parse as proof that the strict structural route passed.
+Cross-runtime fixtures must demonstrate the chosen document mode, source diagnostics and closure report for each supported route.
 
-```javascript
-{
-  parsingMode: "compatible",
-  remoteImports: false,
-  remoteJsonLdContexts: false,
-  missingImportHandling: "diagnostic",
-  maxRemoteDocumentBytes: 33_554_432,
-  maxImportCount: 256,
-  maxImportDepth: 32,
-  maxRedirects: 0,
-  maxRetries: 0,
-  collectWarnings: true,
-  sourceLocations: false,
-}
-```
+The starting hard service ceilings remain 33,554,432 representation bytes per document, 256 imports and depth 32.
+Closure aggregate input/work/depth/time ceilings also apply; a count limit is not permission to acquire 256 maximum-size documents.
+Read the installed `OWLOntologyLoaderConfiguration` defaults/public copy API and the actual consumer budget, record all resolved limits, and use the lower applicable ceiling.
+Capture decoder/base policy, metadata-derived format inventory, parser mode, import behaviour, profile mode, retries, redirects, schema/contract version and public errors in the fingerprint.
+Finite lower consumer limits remain authoritative on cache hits.
 
-Additional parser resource limits are not duplicated here.
-They come from the accepted immutable `OWLOntologyLoaderConfiguration` defaults/public copying API for the exact installed package and are captured in the profile evidence.
-If Phase 20’s stable package freezes a lower ceiling, the service adopts the lower value; it never raises the published package’s safety limit to make the cache accept more.
+### 11.3 Exact package and runtime parity
 
-`missingImportHandling: "diagnostic"` is necessary because validation is intentionally document-local: import declarations remain in the ontology, but their absence from this validation manager does not make the document invalid.
-`remoteImports: false` and `remoteJsonLdContexts: false` ensure that validation cannot recursively turn package parsing into network authority.
+Qualification must prove the same installed public coordinate/integrity and stage policy in both runtime bundles, with one package copy and only public exports.
+The exact native npm alias is permitted.
+Compare parser selection, typed outcome, ontology/import identifiers, source evidence/diagnostics and qualification report for identical bytes, parser IRI and public format metadata.
+Equal version strings or matching lockfile snippets alone are not proof.
 
-### 11.3 Exact package parity
+Use `OWLDocumentFormats` to enumerate public formats, media/extension aliases and candidate selection; application Accept preferences are a versioned ordering over that metadata, not a copied syntax list.
+If metadata selects zero or multiple formats, retain typed ambiguity/rejection and the current explicit user-selection flow.
+The anonymous service cannot ask a human during a worker deadline and must not guess or cycle through private parsers.
+Parser recognition, successful parse and source/profile qualification are distinct outcomes.
 
-At build and deployment time, `verifyOwlapiRuntimeParity` must fail unless:
+### 11.4 Exact bytes and character decoding
 
-- WebVOWL’s production lockfile and the Lambda application lockfile resolve the same exact root `owlapi` version;
-- both resolve public npm-registry tarballs with recorded integrity;
-- neither uses a local/workspace/Git/alias/deep path;
-- the worker bundle contains that coordinate once;
-- both runtime smoke tests report the same package version and profile ID; and
-- representative accepted/rejected fixture digests produce the same outcome and accepted public error code in browser and Node.js 24.
+The artifact digest covers bytes after HTTP content decoding and before character decoding.
+Request `Accept-Encoding: identity`, still bound both compressed and decompressed work, and record the actual origin encoding/media type separately.
+Do not hash a JavaScript string or recompressed transfer, and do not content-decode twice.
 
-The comparison is semantic, not an assumption that two lockfile text snippets happen to look alike.
+The current `vowl/owl` source boundary uses `new TextDecoder("utf-8", { fatal: true })`.
+Version 1 therefore accepts only source representations compatible with that strict UTF-8 contract.
+Keep exact bytes, record BOM handling and the applicable syntax/media encoding rules, and reject malformed UTF-8 or conflicting/unsupported charset/XML declarations with a typed decoding/encoding result.
+Do not use replacement-character `Response.text()` semantics, silently transcode UTF-16/legacy charsets, or interpret an arbitrary server header as permission to alter bytes.
 
-### 11.4 Stored bytes and text decoding
+Non-UTF-8 seed/input cases receive an explicit unsupported-encoding disposition; they do not halt all cache implementation or create a dependency on an unpublished package.
+Expanding encoding support requires a separate, consumer-compatible decoder policy and cross-runtime qualification, with exact original bytes retained and a new validation identity.
+A public byte-source API could simplify that future work but is not a version 1 prerequisite.
 
-The service stores representation bytes after HTTP content-coding removal.
-It requests `Accept-Encoding: identity`, but it still enforces the post-decoding byte limit because an upstream may ignore that request header.
+### 11.5 Managed closure manifests and consumer suitability
 
-The validator and browser reader both use streaming UTF-8 decoding equivalent to Fetch `Response.text()` for the supported initial contract.
-The worker hashes/stores bytes, not the resulting JavaScript string.
-This preserves content addressing and makes the browser parse the same representation it validated.
+Build the graph through the public manager; retain the root validation identity, each member's validation identity and parser IRI, and every resolved direct-import edge, including shared/cyclic structure.
+Canonicalize the bounded manifest deterministically and record profile/report digests, source assessment, unresolved imports, package/policy identities and qualification time.
+A successful root parse cannot fill absent member identities.
+Changes to any member, parser context, edge, package or policy require a new closure qualification; byte objects may still be reused.
 
-If the seed corpus demonstrates a required valid non-UTF-8 source that the accepted public `StringDocumentSource` cannot represent faithfully, the cache implementation pauses.
-A general byte/document-source capability must be added to `owlapi` through its public-surface and zero-major release process; the worker must not invent a private decoder path or silently transcode a source with changed semantics.
+Run the public asynchronous OWL 2 DL report over the entire managed closure, including source constructs excluded from a particular visualization.
+Keep profile violations, incomplete checks, unsupported preservation and resource exhaustion distinguishable.
+The current compatible view may admit retained diagnostic content without claiming strict structural qualification.
+Record `consumerAdmissionPolicy` and `consumerAdmissionResult` independently; an ontology exceeding display/work limits is not thereby a syntactically invalid source.
+Bind admission evidence to the exact closure, `vowl` version, operation/profile and resource-policy identity; a server-only `owlapi` report leaves browser consumer admission `NOT_EVALUATED`.
+Changing consumer limits does not rewrite historical ontology qualification or prove a new admission result.
 
-### 11.5 Parsed metadata
+### 11.6 Isolation and failure hygiene
 
-After successful validation, the worker may read only accepted public ontology methods to record:
-
-- ontology IRI and version IRI, when declared;
-- import-declaration count;
-- axiom/entity counts useful for coarse operational validation; and
-- bounded diagnostic codes.
-
-It does not serialize the ontology, compare serialization text, expose private parser identities, or treat declared identifiers as aliases.
-If a desired metadata field is unavailable through the accepted public API, omit it rather than deep-importing an internal module.
-
-### 11.6 Validation isolation and failure hygiene
-
-- Create a fresh manager for each worker job so ontology IDs, document state, or parser diagnostics cannot leak across sources.
-- Pass the original source document IRI into `StringDocumentSource`; never pass the artifact key.
-- Do not include upstream bytes or long excerpts in thrown/logged errors.
-- Normalize expected `owlapi` errors to the stable service failure taxonomy while retaining the original error as an in-memory `cause` only.
-- Treat an unexpected exception as `INTERNAL_VALIDATION_FAILURE`, fail closed, and alarm.
-  Do not misclassify it as an invalid ontology.
-- Do not write an artifact before validation merely to simplify retry.
-  The only exception is bounded ephemeral `/tmp` spooling inside the invocation when streaming memory evidence justifies it; that temporary representation is never public and is removed at invocation completion.
+Use a fresh manager per document/closure qualification job and an external no-network trap to prove parser isolation.
+All closure acquisition is through the controlled loader; the package gets no caller credentials or unbounded fetch authority.
+Source context always comes from the immutable resolution binding or the direct acquisition policy.
+Normalize supported public errors without message matching or private imports; unexpected exceptions fail closed as internal validation failures and alarm.
+Bound diagnostics and retain causes only in protected engineering evidence with redaction.
+Private staging may precede validation; the final CloudFront-readable artifact prefix may not.
 
 ---
 
@@ -1003,48 +876,41 @@ Every control below is a launch requirement, not a later hardening list.
    For each redirect, parse, canonicalize, DNS-resolve, classify, and connect again under the same policy.
 10. Permit at most three redirects and reject a redirect loop, relative location that cannot be resolved, scheme downgrade outside the explicitly allowed original-HTTP fallback, or missing/overlong `Location`.
 
-The worker runs outside a VPC.
-A VPC plus NAT Gateway would add fixed cost without replacing application-layer SSRF controls.
-IAM remains narrow so successful SSRF cannot use the worker role to mutate unrelated services.
+The original cost model assumed a worker outside a VPC.
+That assumption is subject to the explicit network-egress decision in §12.8; URL/DNS checks and least-privilege IAM are not evidence of independent network-layer filtering.
 
-### 12.3 HTTP request policy
+### 12.3 HTTP request, variation and revalidation policy
 
-Every upstream request is a GET with:
+Every upstream request is a controlled GET with an Accept value generated from the pinned public format metadata and recorded application preference order, `Accept-Encoding: identity` and a stable service user agent/policy contact.
+Do not embed a copied syntax/media-type list in the retriever.
+Never forward Authorization, Cookie, referrer, caller headers or viewer address; no automatic retry belongs in the HTTP client.
 
-```text
-Accept: application/rdf+xml, text/turtle, application/ld+json,
-  application/owl+xml, text/owl-functional, text/owl-manchester,
-  application/n-triples, application/n-quads, application/trig,
-  text/plain;q=0.8, application/octet-stream;q=0.5, */*;q=0.1
-Accept-Encoding: identity
-User-Agent: HaddenIndustries-ValidatedOntologyCache/1
-```
+Starting budgets are DNS 3 seconds, connection/TLS 5 seconds, headers 10 seconds, complete retrieval 30 seconds, at most three redirects, 33,554,432 decoded bytes, and one HTTPS candidate plus only the explicitly permitted original-HTTP fallback.
+Bound encoded bytes, decompression expansion and CPU/time independently.
+The document worker starts at 2,048 MiB ARM64 and 60 seconds, subject to measured runtime/package headroom.
+Closure qualification has its own bounded resumable budget rather than multiplying this envelope without accounting.
 
-The user agent includes a stable public policy/provenance IRI when the chosen HTTP library permits it. The request sends no `Authorization`, `Cookie`, referer, caller headers, forwarded viewer address, or browser user agent. It performs no automatic retry; SQS/state policy owns retries.
+A new representation requires a complete accepted 200 response; reject 204, 206, authentication challenges and range/session-dependent bodies.
+Handle 304 only as a conditional-refresh result under §7.5.
+Persist `ETag`, `Last-Modified`, relevant `Cache-Control`, `Vary`, response status, effective URI, acquisition time and the versioned selected request headers/variant fingerprint.
 
-Budgets:
+Version 1 admits `Vary` only over service-controlled, fixed representation-selection inputs such as Accept and Accept-Encoding, with exact values captured and compared on reuse.
+Reject `Vary: *`, caller-dependent/unknown variation and credentials/session dependence.
+A changed Accept preference or package metadata changes the request-policy fingerprint and requires variant reconciliation, even if source key and byte digest happen to match.
+Origin validators are scoped to that source variant and target; a 304 does not bypass restriction/metadata updates or semantic requalification.
 
-- DNS resolution: 3 seconds;
-- TCP/TLS connection: 5 seconds;
-- headers/first byte: 10 seconds;
-- complete upstream retrieval: 30 seconds;
-- representation bytes: 33,554,432;
-- redirect count: 3;
-- one HTTPS candidate plus, only for an original HTTP source, one explicitly policy-checked HTTP fallback;
-- Lambda worker timeout: 60 seconds; and
-- worker memory initial setting: 2,048 MiB on ARM64, subject to Cache Phase 2 benchmark evidence but never reduced below the package’s accepted large-document safety envelope without proof.
-
-The response must be a complete 2xx representation.
-Reject 204, 206, authentication challenges, and range-dependent content.
-Record 301/308 targets as provenance but never publish them as aliases.
+The service republishes admitted immutable source snapshots rather than claiming its digest URL is the origin's current response.
+If origin directives require per-use validation or a shorter lifetime that is incompatible with public immutable republication, reject automatic publication unless a separately curated rights/policy decision permits the snapshot.
+Do not override `no-cache`, `must-revalidate`, `s-maxage` or changed restrictions by applying the default 30-day refresh interval.
+Conditional refresh and metadata merging follow [RFC 9111](https://www.rfc-editor.org/rfc/rfc9111.html#section-4.3.4); a source's absent cache directives are not proof of legal republication permission.
 
 ### 12.4 Republishing/admissibility policy
 
 The worker rejects a response from automatic publication when:
 
 - `Cache-Control` contains `no-store` or `private`;
-- `Vary: *` is present;
-- a successful response sets cookies or is evidently session/authentication dependent;
+- `Vary: *`, unsupported variation, or a response lifetime/revalidation restriction incompatible with durable republication is present;
+- a successful response sets cookies, contains a credential-bearing source query, or is session/authentication dependent;
 - terms/denylist/takedown policy blocks the source;
 - the effective source changes to a forbidden domain/address;
 - the response is too large, empty, or not accepted by `owlapi`; or
@@ -1059,10 +925,10 @@ This document is engineering guidance, not legal advice; the AGPL and third-part
 
 ### 12.5 Cache-poisoning controls
 
-- Publish only the exact `sourceDocumentIri` that was submitted or explicitly curated as a seed name.
+- Publish only the exact `requestedDocumentIri` that was submitted or explicitly curated as a seed name.
 - Store parsed ontology/version IRIs and effective redirects as metadata only.
 - Do not let a dynamic source overwrite a seed source key.
-- Validate and store the same byte sequence; never re-fetch between validation and S3 write.
+- Validate and publish the same byte sequence from memory/private staging; never re-fetch between validation and final artifact write.
 - Address artifacts by SHA-256 and require conditional writes.
 - Build catalog entries only from registry state that references an existing verified artifact and accepted validation profile.
 - Verify S3 artefact digest/length before registry promotion and during scheduled integrity sampling.
@@ -1097,7 +963,7 @@ Use one CloudFront-scope WebACL named `PublicWebDeliveryWebAcl` with default all
 - production action after evidence: `BLOCK` with a small JSON 429 response; and
 - CloudWatch metrics enabled, sampled requests disabled, no full WAF request logging at initial launch.
 
-The threshold allows one browser to materialize a maximum-size 256-document import closure without immediately blocking itself.
+The starting threshold is intended to accommodate a 256-document import closure, but retries, shared client addresses and browser acquisition cadence require measured verification before BLOCK mode.
 Poll GETs are excluded from this rule because applying the same low limit to submissions and status reads would punish legitimate closures.
 
 The API additionally enforces:
@@ -1112,6 +978,18 @@ The API additionally enforces:
 
 WAF rate limiting is approximate availability protection, not exact accounting.
 DynamoDB transitions and the daily quota remain authoritative for work admission.
+
+---
+
+### 12.8 Network-egress decision and security ownership
+
+Before live deployment, the infrastructure/security owner must compare a controlled egress layer or independently enforced network destination policy with the original outside-VPC design.
+Probe whether it blocks cloud metadata/private/special-purpose destinations independently of application URL checks while preserving validated DNS-to-connection pinning and TLS identity.
+Retain the exact controls, residual failure modes, operational ownership and fixed/request costs.
+
+If an independently enforced egress design is not feasible within the operating target, the owner must explicitly accept the residual risk or revise cost/topology before deployment.
+The implementation plan does not silently waive this assessment, claim that IAM blocks network destinations, or automatically install VPC/NAT infrastructure.
+The scoped security review covers redirects, IPv4/IPv6/rebinding, context/import recursion, staging/publication permissions, URL privacy, quotas and recovery under the selected topology.
 
 ---
 
@@ -1142,15 +1020,16 @@ The Function URL itself is not public.
 
 ### 13.3 Behaviour registry
 
-| Path pattern                  | Origin             | Allowed methods                                  | Cache/origin details                                                                                                      |
-| ----------------------------- | ------------------ | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
-| `ontology/materializations`   | API                | All at CloudFront; API permits POST/OPTIONS only | `CachingDisabled`; forward body plus only required CORS/content hash/content type headers; no cookies/query.              |
-| `ontology/materializations/*` | API                | All at CloudFront; API permits GET/OPTIONS only  | Same; API validates exact path/digest.                                                                                    |
-| `ontology/cache/artifacts/*`  | artifact S3        | GET/HEAD/OPTIONS                                 | Custom immutable policy; no cookies, headers, or query in the cache key. Viewer `source` query remains available to logs. |
-| `ontology/cache/provenance/*` | artifact S3        | GET/HEAD/OPTIONS                                 | One-day policy, ETag-aware.                                                                                               |
-| `ontology/catalog-v001.xml`   | artifact S3        | GET/HEAD/OPTIONS                                 | Min 0, default 300, max 86,400; honor origin stale directives.                                                            |
-| `ontology/catalogs/*`         | artifact S3        | GET/HEAD/OPTIONS                                 | Immutable policy.                                                                                                         |
-| Existing `ontology/*`         | existing static S3 | Existing                                         | No change.                                                                                                                |
+| Path pattern                                                                                | Origin             | Allowed methods                                  | Cache/origin details                                                                                                                           |
+| ------------------------------------------------------------------------------------------- | ------------------ | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ontology/materializations`                                                                 | API                | All at CloudFront; API permits POST/OPTIONS only | `CachingDisabled`; forward body plus only required CORS/content hash/content type headers; no cookies/query.                                   |
+| `ontology/materializations/*`                                                               | API                | All at CloudFront; API permits GET/OPTIONS only  | Same; API validates exact path/digest.                                                                                                         |
+| `ontology/cache/artifacts/*`                                                                | artifact S3        | GET/HEAD/OPTIONS                                 | Custom immutable policy; no cookies, headers, or query in the cache key. Only digest tokens are used by clients; raw query logging is omitted. |
+| `ontology/cache/provenance/*`                                                               | artifact S3        | GET/HEAD/OPTIONS                                 | Five-minute mutable policy, ETag-aware.                                                                                                        |
+| `ontology/cache/resolutions/*`, `ontology/cache/validations/*`, `ontology/cache/closures/*` | artifact S3        | GET/HEAD/OPTIONS                                 | Immutable context/evidence, no query/cookie cache-key variation; separate ordered behaviours.                                                  |
+| `ontology/catalog-v001.xml`                                                                 | artifact S3        | GET/HEAD/OPTIONS                                 | Min 0, default 300, max 86,400; honor origin stale directives.                                                                                 |
+| `ontology/catalogs/*`                                                                       | artifact S3        | GET/HEAD/OPTIONS                                 | Immutable policy.                                                                                                                              |
+| Existing `ontology/*`                                                                       | existing static S3 | Existing                                         | No change.                                                                                                                                     |
 
 No cache-specific behaviour associates `RewriteOntologyURI.js`.
 CloudFront’s current distribution-wide custom 404 remains for legacy paths; the API contract avoids 404 so a status miss cannot inherit its five-minute custom-error TTL.
@@ -1165,26 +1044,28 @@ All other viewer headers stay at the edge.
 
 - Artifact identity is wholly in the path digest.
   Ignore all query strings, headers, and cookies.
-- The optional `source` query is observability attribution only.
-  A caller may spoof it, so reports label source-level counts “attributed,” not authoritative.
+- `source` and `binding` digest query tokens identify client resolution evidence only; they are omitted from cache keys, S3 requests and raw access-log fields.
+  A caller can spoof them, so the client verifies the binding against its requested source and artifact digest; reports cannot infer authoritative source-level viewer counts.
 - The root catalog path is stable and has no version query convention.
 - Immutable generations are versioned in the path, not through invalidation or query cache busting.
 - API responses are never cached, including errors and redirects.
 - Set CloudFront minimum TTL to zero on mutable/API paths so origin `no-store` and revalidation directives cannot be overridden by a positive minimum.
 
-### 13.5 Origin response metadata
+### 13.5 Byte and context response metadata
 
-Artifact responses include:
+The shared artifact response has invariant byte-oriented metadata:
 
 ```text
+Content-Type: application/octet-stream
 Cache-Control: public, max-age=31536000, immutable
-ETag: S3-managed representation ETag
-X-Ontology-Artifact-SHA256: 64-hex digest
-X-Ontology-Validation-Profile: webvowl-compatible-document-v1
+ETag: S3-managed representation validator
+x-amz-meta-artifact-sha256: 64-hex digest
 ```
 
-The SHA-256 and profile may be stored as S3 object metadata and promoted through a CloudFront response-headers policy or origin response.
-Tests must prove headers are present on cache hits and misses and do not vary by source query.
+Do not attach a source's media type, parser base, qualification status or validation-profile header to an object deduplicated by bytes alone.
+The immutable resolution record supplies those contextual facts, including original representation media/encoding and decoding policy.
+The browser checks the digest itself; S3 metadata/checksum validation provides an independent storage integrity check.
+Verify delivery/CORS exposure on both CDN hits and misses without assuming a response-header policy can dynamically translate arbitrary S3 metadata.
 
 ---
 
@@ -1192,7 +1073,8 @@ Tests must prove headers are present on cache hits and misses and do not vary by
 
 ### 14.1 Stack dependency graph
 
-The current application creates the global stack before the regional stack and passes the distribution into regional resources.
+The original infrastructure inspection found the global stack created before the regional stack, with the distribution passed into regional resources.
+Reconfirm that ownership and deployed logical IDs during SLICE-001; this draft does not establish current AWS state.
 A new regional origin needed by the global distribution would create a cycle if it also tried to install distribution-scoped access policies.
 Use this acyclic order:
 
@@ -1250,7 +1132,7 @@ Avoid names such as `utils.py`, `helpers.py`, `common.py`, `services.py`, or `re
 | `OntologyMaterializationDeadLetterQueue` | Standard, managed encryption, 14-day retention | Alarm on first message.                                                                                    |
 | `OntologyCatalogProjectionQueue`         | Standard, managed encryption                   | Coalesces registry changes; publisher concurrency one and batching window 60 seconds.                      |
 | `OntologyMaterializationApiFunction`     | Node 24 ARM64, 256 MiB, 5 seconds              | Function URL uses `AWS_IAM`; small JSON only.                                                              |
-| `OntologyMaterializationWorkerFunction`  | Node 24 ARM64, 2,048 MiB, 60 seconds           | Outside VPC; bundles exact `owlapi`; reserved/max event concurrency two.                                   |
+| `OntologyMaterializationWorkerFunction`  | Node 24 ARM64, 2,048 MiB, 60 seconds           | Egress topology pending §12.8; exact `owlapi`; concurrency two.                                            |
 | `OntologyCatalogProjectionFunction`      | Node 24 ARM64, 512 MiB, 30 seconds             | Deterministic scan/generation/root CAS; concurrency one.                                                   |
 | `OntologyRevalidationSchedulerFunction`  | Node 24 ARM64, 256 MiB, 30 seconds             | Daily bounded due-source scan/enqueue.                                                                     |
 | `OntologyUsageReportFunction`            | Node 24 ARM64, 256 MiB, 30 seconds             | Starts/finalizes private Athena reports asynchronously.                                                    |
@@ -1277,7 +1159,7 @@ Lambda/Applications/ValidatedOntologyCache/
     api/
       ontologyMaterializationApi.js
     materialization/
-      canonicalizeSourceDocumentIri.js
+      identifyOntologySource.js
       ontologyMaterializationRegistry.js
       safeOntologyRepresentationRetriever.js
       validateOntologyDocument.js
@@ -1288,6 +1170,8 @@ Lambda/Applications/ValidatedOntologyCache/
       publishOntologyCatalogProjection.js
     revalidation/
       scheduleOntologyRevalidations.js
+    qualification/
+      qualifyOntologyClosure.js
     reporting/
       ontologyCacheUsageReport.js
     observability/
@@ -1297,20 +1181,27 @@ Lambda/Applications/ValidatedOntologyCache/
 ```
 
 The application manifest is private, uses `type: "module"`, exact runtime dependencies, Node’s built-in test runner, and no install/lifecycle scripts. Bundle each handler with CDK `NodejsFunction`/esbuild in ESM mode for Node 24/ARM64, without minification or source maps, and include exact AWS SDK v3 clients rather than relying accidentally on the runtime’s mutable SDK version.
-Only the worker bundle includes `owlapi` and parser dependencies.
+Only document-validation and closure-qualification bundles include `owlapi` and parser dependencies; both use the same exact accepted package.
+The prospective closure handler is `src/qualification/qualifyOntologyClosure.js`; contextual records are owned by the registry/evidence modules, not a second ontology graph implementation.
 
 Creating this manifest/lockfile, adding exact esbuild/AWS SDK/network dependency versions, and changing CDK bundling are configuration changes requiring the approval gate in §2.4. A dependency is accepted only after licence, maintenance, vulnerability, browser/Node compatibility where applicable, bundle content, and lockless/locked resolution review.
 
-WebVOWL's current repository licence and the planned `owlapi` package are AGPL-3.0-only at planning time.
+WebVOWL and the installed `owlapi` RC declare AGPL-3.0-only at this revision's inspection time.
 A network-deployed worker bundle that incorporates `owlapi` therefore must not reach a live environment until the project owner has completed an appropriate licence review and recorded the compliant corresponding-source mechanism for the exact deployed revision.
 At minimum, `THIRD_PARTY_NOTICES.md` identifies every bundled component and licence, `LICENSES/AGPL-3.0-only.txt` preserves the applicable licence text, and `CORRESPONDING_SOURCE.md` identifies the immutable WebVOWL/worker and `owlapi` source revisions, build inputs, scripts, and user-facing source-access location.
 Those files are evidence outputs, not a substitute for the review, and the review decides whether further material must be included in corresponding source.
 The public transparency surface links the source-access location for every live worker revision.
 
+A separately bounded `OntologyClosureQualificationFunction` and queue consume pinned member evidence after document jobs complete.
+Their initial 60-second/2,048-MiB envelope and concurrency one must be benchmarked against the accepted closure budget; timeout records incomplete evidence rather than relaxing limits.
+Both work kinds share the feature kill switch, quota accounting, DLQ/reconciliation and cost envelope.
+Add these resources only in an approved exact stack diff.
+
 ### 14.5 IAM policy boundaries
 
 - API: point read/update/transaction on registry/control/quota keys and `SendMessage` to materialization queue; no S3 object write/read, catalog publication, CloudFront, WAF, or arbitrary DynamoDB table access.
-- Worker: receive/delete/visibility on its queue through event integration; exact registry transition access; write/read-head on artifact/provenance prefixes; send catalog-dirty messages; no catalog-root write, distribution update, or source credential access.
+- Worker: receive/delete/visibility through its queue integration; fenced registry transitions; restricted staging/artifact/evidence/provenance reads/writes; durable catalog-dirty intent; no root/distribution update or source credential access.
+- Closure qualifier: read pinned member/evidence objects, request missing members only through controlled admission, write bounded closure evidence and conditionally attach it to the matching identities; no arbitrary fetcher or mutable source rewrite.
 - Catalog publisher: bounded registry scan/read; write/head/get only catalog prefixes; update only `CATALOG#CURRENT`; no upstream networking permission beyond ordinary Lambda egress, and code performs none.
 - Revalidation scheduler: read due state and enqueue existing source keys; cannot fetch or publish.
 - Report function/Athena workgroup: read selected log/report prefixes and a projection of registry metadata; write report/query-result prefixes; no artifact mutation.
@@ -1345,7 +1236,11 @@ Lambda writes one-line JSON events with a fixed schema and bounded values:
   eventTime,
   awsRequestId,
   sourceKey,
-  materializationState,
+  acquisitionState,
+  documentValidation,
+  closureQualification,
+  publicationState,
+  consumerAdmission,
   outcomeCode,
   attempt,
   durationMs,
@@ -1381,7 +1276,6 @@ sc-bytes
 cs-method
 cs(Host)
 cs-uri-stem
-cs-uri-query
 sc-status
 time-taken
 x-edge-result-type
@@ -1391,7 +1285,9 @@ cache-behavior-path-pattern
 ```
 
 Omit `c-ip`, cookies, `User-Agent`, referrer, protocol headers, TLS fingerprint-like data, and country unless a later documented operational need and privacy review justifies one.
-Disable cookie logging globally.
+Disable cookie logging globally and omit `cs-uri-query`: a viewer can append an arbitrary secret to any path, even if the API ignores it.
+Selecting the whole query field and filtering it later would already have retained that secret.
+Any future source-attribution pipeline must extract only validated fixed-shape digest tokens before persistence, be separately privacy/cost reviewed and receive exact configuration approval.
 Use text/JSON delivery initially; do not select Parquet conversion until measured Athena scan savings exceed its vended-log conversion charge and the exact configuration receives approval.
 
 CloudFront standard logs are distribution-wide.
@@ -1454,7 +1350,7 @@ Daily reports answer:
 - total distribution versus cache-path requests/bytes;
 - artifact hit/miss/error and CloudFront result types;
 - API submission, pending poll, ready redirect, rejection, and quota volumes;
-- attributed artifact reads by `sourceKey` query token;
+- artifact reads by digest/path, with source mappings reported separately; no precise viewer-source attribution is claimed when multiple sources share bytes;
 - unique new materializations and validation outcomes;
 - artifact/source/catalog counts and stored bytes;
 - queue/worker latency percentiles derived from structured event timestamps;
@@ -1462,7 +1358,9 @@ Daily reports answer:
 - validation profile/package-version distribution; and
 - projected month-end cost by service/driver.
 
-The `source` token is caller-controlled and public, so attribution reports call it “viewer-attributed source,” reconcile it with valid registry keys, and group invalid/spoofed values separately.
+Raw query logging is not selected.
+The optional client `source` token is caller-controlled, so reports do not claim observed per-source viewer counts.
+Use byte-object/path traffic for costs and registry/qualification events for source work; any later sanitized attribution remains explicitly non-authoritative.
 
 `OntologyUsageReportFunction` starts a parameterized Athena query and returns; it does not poll while billed.
 Athena state-change events invoke the same function in finalize mode to validate the query identity, fetch bounded aggregate rows, and write versioned JSON/CSV. Repeated events are idempotent by report date/query execution ID.
@@ -1485,7 +1383,7 @@ At launch, transparency consists of:
 - documented validation profile and limits;
 - source-code/revision links for the worker and `owlapi`;
 - cache/admissibility/takedown policy and contact;
-- explicit statement that publication means parser acceptance, not consistency or endorsement; and
+- explicit document/closure/publication/admission meanings and source-preservation limitations, without claiming consistency or endorsement; and
 - documented refresh/last-known-good semantics.
 
 Do not expose DynamoDB records, internal failure text, source denylist rationale that would weaken security, viewer traffic logs, or cost-control credentials.
@@ -1497,7 +1395,7 @@ Do not expose DynamoDB records, internal failure text, source denylist rationale
 ### 16.1 Pricing baseline and accounting boundary
 
 Prices and free allocations change.
-Cache Phase 0 must reproduce the estimate in the official AWS Pricing Calculator for the actual account, payer, regions, existing free-tier consumption, and preceding 90 days of distribution traffic before any resource is created.
+SLICE-001 must reproduce the estimate in the official AWS Pricing Calculator for the actual account, payer, regions, existing free-tier consumption, and preceding 90 days of distribution traffic before any resource is created.
 
 The 25 August 2026 planning baseline uses these public rates/allocations:
 
@@ -1527,8 +1425,8 @@ incremental total =
   + WAF request charge for all shared-distribution requests
   + CloudFront requests above remaining account allowance
   + CloudFront egress above remaining account allowance
-  + S3 artifact/provenance/catalog/log storage and requests
-  + Lambda requests and GB-seconds above remaining account allowance
+  + S3 artifact/staging/resolution/validation/closure/catalog/log storage and requests
+  + document and closure Lambda requests and GB-seconds above remaining account allowance
   + SQS requests above remaining account allowance
   + DynamoDB reads/writes/storage/backups
   + CloudFront standard-log delivery/storage
@@ -1541,7 +1439,8 @@ Do not treat a forecast as a hard real-time circuit breaker: AWS billing/usage d
 
 ### 16.3 Scenario estimates
 
-The following are directional planning ranges, not quotes.
+The following are historical directional planning ranges, not current quotes or approval evidence.
+They predate the explicit closure/evidence and egress work in this revision; SLICE-001 must recalculate those additional storage, requests and compute/network costs.
 They assume the account still has its CloudFront/Lambda/SQS/CloudWatch free allocations, average stored ontology size near 1 MiB, one WAF rule, no managed rule group, selected-field compressed logs, and low report scan volume.
 
 | Scenario                | Shared distribution requests / transfer | New materializations / retained data | WAF estimate |                                                  Other cache services | Expected incremental total |
@@ -1562,12 +1461,12 @@ Use layered limits rather than a single destructive switch:
 
 1. **Admission:** 500 new source keys per UTC day; idempotent hits do not count.
 2. **Edge abuse:** one WAF rule at 300 submissions per source IP per five minutes.
-3. **Compute:** worker reserved/event-source concurrency two, one SQS message per invocation, 60-second timeout, three-attempt ceiling.
+3. **Compute:** document-worker concurrency two, separately bounded closure concurrency one, one message per invocation, finite deadlines/attempts and quota-accounted missing-member admission.
 4. **Storage:** 32 MiB artifact ceiling, deterministic deduplication, catalog entry/byte ceiling, orphan/integrity report.
 5. **Query/logging:** 1 GiB Athena cutoff, bounded selected log fields, finite retention, no real-time logs.
 6. **Budget warnings:** notify at USD 7 actual, USD 9 forecast, and USD 10 actual incremental monthly cost, using current AWS Budgets/Cost Explorer capabilities selected at approval time.
 7. **Feature kill:** the limit action sets `CONTROL#SERVICE.materializationEnabled = false`.
-   New unknown sources receive 403; READY artifacts/catalogs and the rest of the distribution remain available.
+   New unknown sources receive 403; refresh/closure scheduling also observes the approved stop policy so background work cannot evade containment. Published artifacts/catalogs and the rest of the distribution remain available.
 8. **Operator review:** identify WAF versus traffic versus storage/compute driver, then explicitly re-enable, retune, or keep disabled.
    Never reset a counter or budget automatically merely because a Lambda retried.
 
@@ -1577,7 +1476,7 @@ Attribute path-level requests and bytes from selected CloudFront logs, apply the
 
 ### 16.5 Migration of the current whole-distribution cost cutoff
 
-The current `DisableCloudFrontOnCostLimit` path evaluates a configured CloudFront ceiling every minute and can disable the entire distribution.
+The historical `DisableCloudFrontOnCostLimit` path evaluated a configured CloudFront ceiling every minute and could disable the entire distribution; SLICE-001 must verify its current configuration and ownership.
 Before WAF/cache production enablement:
 
 - record its exact present behaviour, cost, alarms, and failure modes;
@@ -1586,7 +1485,7 @@ Before WAF/cache production enablement:
 - replace cache-triggered distribution disablement with the materialization kill switch;
 - reduce cost-check cadence/API usage to the minimum supported by billing-data freshness;
 - keep any genuine whole-site emergency action disabled or alert-only unless separately approved with a documented recovery path; and
-- test that a simulated cache budget breach leaves website, seed catalog, catalog root, and READY artifact GETs healthy.
+- test that a simulated cache budget breach leaves website, seed catalog, catalog root, and published artifact GETs healthy.
 
 Because this changes an existing safety control, it is a distinct configuration/deployment approval checkpoint and cannot be smuggled into the cache stack diff.
 
@@ -1594,215 +1493,87 @@ Because this changes an existing safety control, it is a distinct configuration/
 
 ## 17. WebVOWL integration architecture
 
-### 17.1 Application-owned deep module
+### 17.1 Canonical acquisition seam
 
-Create one cohesive module rooted at:
+Extend the existing `createCanonicalVowlSourceAcquisition` composition with one session-scoped cache-aware acquisition dependency.
+Root `remote()` and `createImportContext().resolveImport()` use the same policy, mapping state and operation accounting.
+The external acquisition result retains exact bytes plus requested/retrieval/effective/parser IRIs, public media/format metadata, binding identity and sanitized resolution diagnostics.
+The existing consumer boundary receives only its supported `{ bytes, documentIri, mediaType }` fields, where `documentIri` is the explicit parser context.
+Keep additional provenance in the acquisition/session owner unless an independently approved consumer API change is needed.
 
-```text
-src/ontology-loading/
-  webVowlOntologyDocumentLoader.js
-  webVowlOntologyDocumentLoader.test.js
-  oasisXmlOntologyCatalog.js
-  oasisXmlOntologyCatalog.test.js
-  boundedOntologyResponse.js
-  boundedOntologyResponse.test.js
-  ontologyMaterializationClient.js
-  ontologyMaterializationClient.test.js
-  ontologyLoadingConfiguration.js
-```
+The worker continues to invoke public `vowl/owl` operations, and that package continues to own `owlapi` manager construction, parsing, closure semantics and canonical mapping.
+The cache does not insert parsed ontology objects into the session or maintain a parallel parser/mapper.
+The current import resolver's `getDocumentIRI` and `loadBytes` must be characterized so transport remapping does not erase the logical request or turn a cache URL into the parser base.
 
-The only production interface supplied to `owlapi` is the object returned by:
+### 17.2 Precedence, bypass and typed outcomes
 
-```javascript
-createWebVowlOntologyDocumentLoader({
-  catalogIri,
-  materializationCollectionIri,
-  fetchImpl,
-  cryptoImpl,
-  resolutionObserver,
-})
-```
+Normal mode is session binding → OASIS binding → direct controlled retrieval → eligible materialization fallback → typed outcome.
+The approved direct-only bypass skips catalog/session cache and materialization for both roots and imports while retaining direct URL policy, exact bytes, limits and cancellation.
+It is an operator/build composition setting, not an arbitrary query-string endpoint or SSRF-policy override.
 
-It exposes:
+Unsupported encoding/format, readable HTTP errors, parser/profile failures, cancellation and local resource limits never cause a proxy retry.
+A corrupt or stale-policy catalog entry is a cache-specific diagnostic; safe direct acquisition may still succeed.
+Human format selection occurs before worker admission or through the existing explicit pending-format continuation; it cannot consume the worker parse deadline indefinitely.
 
-```javascript
-{
-  async load(documentIRI, { config, signal } = {}) {
-    // returns public owlapi StringDocumentSource
-  }
-}
-```
+### 17.3 Session, source and resource ownership
 
-`resolutionObserver` is an application composition hook, not part of `owlapi`.
-It receives bounded state events for user-visible progress without receiving response bodies or AWS state.
-The factory defaults to standard platform implementations; tests inject deterministic ones.
+Preserve original-source byte export, retained RDF/source evidence and current semantic exports as distinct session responsibilities.
+Copy/transfer byte ownership under the existing worker protocol; never round-trip bytes through text just to integrate the cache.
+Every cache/catalog/poll/import operation participates in the existing cancellation and stale-result protocol.
+A late response cannot replace a newer document, revive an expired worker operation or charge input bytes twice.
+Conversely, cached/import-coalesced bytes cannot evade aggregate input, import-count/depth, work, heap or deadline limits.
 
-### 17.2 Loader precedence and error boundary
+Local file/text and canonical/legacy JSON paths retain their current entry points.
+Only their ontology imports may use the shared controlled acquisition owner.
+Do not send VOWL JSON, arbitrary downloads or semantic export requests to the materialization service.
 
-The implementation order is exact:
+### 17.4 User-facing state and diagnostics
 
-```text
-in-memory mapping
-  → fetched OASIS catalog exact mapping
-  → direct browser retrieval / HTTPS-upgraded candidate
-  → materialization submission/status/immutable artifact
-  → typed failure
-```
+Map bounded acquisition events to the existing accessible loading status: catalog lookup, direct retrieval, pending materialization, acquired document, incomplete imports, profile assessment and consumer limit/failure.
+Show the distinction between a valid document and an incomplete/unsuitable closure without claiming that a resource-budget rejection makes the ontology invalid.
+Retain typed package/service codes and expose the catalog generation and cache/bypass mode in diagnostic details.
+Do not show source excerpts, raw server internals or AWS identifiers.
 
-Only browser network/CORS/mixed-content inability crosses from direct retrieval to materialization.
-An `owlapi` parser failure occurs after the loader returns the document and therefore never triggers a second retrieval path.
-This preserves the package rule that only genuine `ParserMismatchError` allows syntax fallback; network fallback must not hide recognized syntax/resource/security errors.
+### 17.5 Catalog performance and configuration
 
-### 17.3 Top-level document and imports use one loader
+Coalesce catalog fetches, reuse browser HTTP validators, parse a bounded immutable map once per session and keep speculative prefetch off the critical render path.
+Use the current worker seam for expensive catalog processing if measurements require it; the optional JSON projection must satisfy §6.4 and §10.5.
+No new scheduler/polyfill/storage layer is assumed.
 
-Refactor the post-Phase-20 composition so:
-
-- `loadingModule.from_IRI_URL` asks the document loader for the top-level `StringDocumentSource` rather than calling `fetch` directly;
-- the same loader instance is passed into `OWLManager.createOWLOntologyManager` for imports;
-- the root source’s original document IRI and file-name/content-type hints flow into the manager unchanged;
-- VOWL-JSON URL loading remains a separate JSON concern and never enters the ontology materialization service;
-- file upload/direct text remains local, but imports discovered inside it may use the shared loader when `remoteImports: true`; and
-- cancellation from a new load/unload action aborts direct fetch, API poll, artifact fetch, and package import traversal through one signal.
-
-The application must not fetch the top-level document into a string and then create a second loader for imports.
-One resolution session should coalesce catalog state and exact-source operations.
-
-### 17.4 `owlapi` construction
-
-After Phase 20, the composition is conceptually:
-
-```javascript
-import {
-  OWLManager,
-  OWLOntologyLoaderConfiguration,
-} from "owlapi";
-
-import { createWebVowlOntologyDocumentLoader } from
-  "../../ontology-loading/webVowlOntologyDocumentLoader.js";
-
-const documentLoader = createWebVowlOntologyDocumentLoader({
-  catalogIri: "https://haddenindustries.com/ontology/catalog-v001.xml",
-  materializationCollectionIri:
-    "https://haddenindustries.com/ontology/materializations",
-});
-
-const manager = OWLManager.createOWLOntologyManager({ documentLoader });
-
-const configuration = OWLOntologyLoaderConfiguration.defaults()
-  .withParsingMode("compatible")
-  .withMissingImportHandling("diagnostic")
-  .withRemoteImports(true)
-  .withRemoteJsonLdContexts(false);
-```
-
-The exact import locations and copying method names come from the accepted public API.
-A public-registry consumer test owns this example.
-Do not make the loader an `OWLOntologyIRIMapper`: it must receive the original requested document IRI, consult the catalog internally, retrieve a different artifact IRI, and return a source whose `documentIRI` remains original.
-Mapping at the manager level would otherwise risk making the content-addressed artifact IRI the base for relative IRIs.
-
-### 17.5 Progress and user-visible diagnostics
-
-The loader emits these internal event names:
-
-```text
-CATALOG_LOOKUP_STARTED
-CATALOG_HIT
-DIRECT_RETRIEVAL_STARTED
-DIRECT_RETRIEVAL_UNAVAILABLE
-MATERIALIZATION_SUBMITTED
-MATERIALIZATION_PENDING
-MATERIALIZED_ARTIFACT_RETRIEVAL_STARTED
-ONTOLOGY_DOCUMENT_RETRIEVED
-ONTOLOGY_DOCUMENT_RETRIEVAL_FAILED
-```
-
-The loading UI maps them to concise accessible status text.
-It does not show an indeterminate spinner with no explanation for an entire materialization wait, and it does not claim the source is invalid before server validation completes.
-Status updates use the existing live loading region and respect reduced motion; this phase adds no decorative animation.
-
-### 17.6 Catalog acquisition performance
-
-- Start one low-priority catalog prefetch after WebVOWL becomes interactive when network state permits.
-- If a user requests an ontology first, promote by awaiting/coalescing the same request; do not start a duplicate.
-- Rely on browser HTTP cache/ETag plus CloudFront’s five-minute root policy.
-- Parse once into a frozen `Map` for the resolution session.
-- Do not block first contentful paint or graph interactions on catalog availability.
-- Measure fetch + XML parse.
-  If a main-thread task exceeds 250 ms or p95 exceeds the 100 ms module budget, move only catalog parsing to the application’s accepted dedicated-worker seam or initiate the separately approved generated-index design.
-  Do not add a scheduler polyfill merely for this work.
-
-### 17.7 Runtime configuration
-
-`ontologyLoadingConfiguration.js` owns stable public endpoint IRIs and application limits.
-It does not contain source mappings.
-It exports immutable, semantically named values such as:
-
-```text
-ONTOLOGY_CATALOG_IRI
-ONTOLOGY_MATERIALIZATION_COLLECTION_IRI
-MAX_ONTOLOGY_REPRESENTATION_BYTES
-MATERIALIZATION_WAIT_TIMEOUT_MS
-MAX_CONCURRENT_MATERIALIZATION_SUBMISSIONS
-```
-
-Endpoint configuration must support the production hostname and a test-injected origin without reading arbitrary query-string overrides.
-Third-party builds can supply their own loader configuration at composition time.
+Endpoint IRIs, bypass mode and finite limits are proposed configuration at the existing composition boundary.
+Any new `ontologyLoadingConfiguration.js`, build setting, CSP `connect-src` change or browser harness/dependency change requires exact approval under §2.4.
+Third-party deployments can inject approved service origins without accepting arbitrary viewer-supplied endpoints.
 
 ---
 
 ## 18. Cross-repository file map
 
-Paths below are prospective owners to validate against the post-Phase-20 tree.
-If Phase 20 legitimately relocates an owner, Cache Phase 0 records the new exact path while preserving these module names/responsibilities.
-It must not recreate the retired tree merely to match this list.
+New paths below are predictions, not instructions to create every file before a vertical slice proves a need.
+Resolve ownership and exact configuration approval before edits; do not create forwarding files or restore retired owners to match a historical plan.
 
 ### 18.1 WebVOWL repository
 
-**Create:**
+Likely new cohesive internals under `src/ontology-loading/`:
 
 ```text
-src/ontology-loading/webVowlOntologyDocumentLoader.js
-src/ontology-loading/webVowlOntologyDocumentLoader.test.js
-src/ontology-loading/oasisXmlOntologyCatalog.js
-src/ontology-loading/oasisXmlOntologyCatalog.test.js
-src/ontology-loading/boundedOntologyResponse.js
-src/ontology-loading/boundedOntologyResponse.test.js
-src/ontology-loading/ontologyMaterializationClient.js
-src/ontology-loading/ontologyMaterializationClient.test.js
-src/ontology-loading/ontologyLoadingConfiguration.js
-src/ontology-loading/ontologyLoading.integration.test.js
-src/ontology-loading/fixtures/catalog-root.xml
-src/ontology-loading/fixtures/catalog-seed.xml
-src/ontology-loading/fixtures/catalog-dynamic.xml
-docs/ontology-cache/execution-baseline.md
-docs/ontology-cache/operator-behaviour.md
+cachedOntologySourceAcquisition.js
+oasisXmlOntologyCatalog.js
+ontologyMaterializationClient.js
+ontologyResolutionEvidence.js
+ontologySourceIdentity.js
+ontologyLoadingConfiguration.js
 ```
 
-**Modify after Phase 20:**
+Reuse the current bounded byte reader where practical; extracting it requires characterization rather than a second implementation.
+Place focused acquisition/catalog/identity/parity tests beside the owning modules.
+Extend existing `canonicalVowlSourceAcquisition`, `importResolver`, `canonicalVowlDocumentSession`, worker and application composition tests.
+Update `src/productionGraph.architecture.test.js` and `src/testRunnerScope.architecture.test.js` only for actual new ownership.
+Use the existing logical conformance readers and browser resources harness; do not copy physical corpus trees.
+Inspect mapper code as contract evidence and change it only for a separately accepted consumer requirement, not to make cache integration convenient.
 
-```text
-src/owl2vowl/js/index.js
-src/owl2vowl/js/index.test.js
-src/owl2vowl/js/constants.js
-src/owl2vowl/js/constants.test.js
-src/app/js/loadingModule.js
-src/app/js/loadingModule.test.js
-src/app/js/ontologyLifecycle.js
-src/app/js/ontologyLifecycle.test.js
-src/main.js or the post-Phase-20 application composition root
-src/productionGraph.architecture.test.js
-src/testRunnerScope.architecture.test.js
-```
-
-**Delete only after parity gates:**
-
-```text
-src/owl2vowl/js/importResolver.js
-src/owl2vowl/js/importResolver.test.js
-```
-
-`src/owlapi-js/**` is not listed because Phase 19D1 already removed the WebVOWL-local package tree.
-This plan never modifies or restores it, and its absence does not change the Phase 20 registry-backed starting gate.
+Keep workflow evidence in the configured external HISEW task store.
+User/operator documentation may live in `docs/ontology-cache/` when it has a product audience; do not write engine receipts or temporary reviews into repository documentation directories.
+Existing absent converter files have no deletion task, and the live canonical resolver is removed only if all its consumers have migrated and approval/scope permits that cleanup.
 
 ### 18.2 `amazon-aws` repository
 
@@ -1821,7 +1592,7 @@ Lambda/Applications/ValidatedOntologyCache/THIRD_PARTY_NOTICES.md
 Lambda/Applications/ValidatedOntologyCache/CORRESPONDING_SOURCE.md
 Lambda/Applications/ValidatedOntologyCache/LICENSES/AGPL-3.0-only.txt
 Lambda/Applications/ValidatedOntologyCache/src/api/ontologyMaterializationApi.js
-Lambda/Applications/ValidatedOntologyCache/src/materialization/canonicalizeSourceDocumentIri.js
+Lambda/Applications/ValidatedOntologyCache/src/materialization/identifyOntologySource.js
 Lambda/Applications/ValidatedOntologyCache/src/materialization/ontologyMaterializationRegistry.js
 Lambda/Applications/ValidatedOntologyCache/src/materialization/safeOntologyRepresentationRetriever.js
 Lambda/Applications/ValidatedOntologyCache/src/materialization/validateOntologyDocument.js
@@ -1830,19 +1601,23 @@ Lambda/Applications/ValidatedOntologyCache/src/materialization/ontologyMateriali
 Lambda/Applications/ValidatedOntologyCache/src/catalog/oasisXmlCatalogProjection.js
 Lambda/Applications/ValidatedOntologyCache/src/catalog/publishOntologyCatalogProjection.js
 Lambda/Applications/ValidatedOntologyCache/src/revalidation/scheduleOntologyRevalidations.js
+Lambda/Applications/ValidatedOntologyCache/src/qualification/qualifyOntologyClosure.js
 Lambda/Applications/ValidatedOntologyCache/src/reporting/ontologyCacheUsageReport.js
 Lambda/Applications/ValidatedOntologyCache/src/observability/writeStructuredOperationalEvent.js
 Lambda/Applications/ValidatedOntologyCache/test/**
 validated-ontology-cache/contracts/ontology-materialization-request.v1.schema.json
 validated-ontology-cache/contracts/ontology-materialization-error.v1.schema.json
 validated-ontology-cache/contracts/ontology-artifact-provenance.v1.schema.json
+validated-ontology-cache/contracts/ontology-resolution.v1.schema.json
+validated-ontology-cache/contracts/ontology-validation.v1.schema.json
+validated-ontology-cache/contracts/ontology-closure-qualification.v1.schema.json
+validated-ontology-cache/contracts/ontology-loader-policy.v1.schema.json
 validated-ontology-cache/contracts/ontology-seed-manifest.v1.schema.json
 validated-ontology-cache/contracts/ontology-usage-report.v1.schema.json
 validated-ontology-cache/seeds/ontology-seed-manifest.v1.json
 validated-ontology-cache/reporting/cloudfront-cache-usage.sql
 validated-ontology-cache/reporting/materialization-outcomes.sql
 scripts/stage_validated_ontology_seed_catalog.mjs
-docs/validated-ontology-cache/execution-baseline.md
 docs/validated-ontology-cache/operations-runbook.md
 docs/validated-ontology-cache/cache-and-takedown-policy.md
 ```
@@ -1865,1140 +1640,177 @@ package-lock.json
 Lambda/Functions/DisableCloudFrontOnCostLimit.js
 ```
 
-### 18.3 Canonical `owlapi` repository
+### 18.3 Public `owlapi` boundary
 
-No `owlapi` source change is expected.
-Cache Phase 0 records:
-
-- exact installed coordinate and tarball integrity;
-- accepted public loader/source/config/error methods used by browser and worker;
-- installed-package Node/browser fixtures proving source-document-IRI preservation; and
-- the validation-profile configuration.
-
-If that proof fails, open a separately scoped capability in the canonical package repository, update its Public API Surface Registry/capability evidence, publish it under the then-current zero-major release policy, and make both consumers accept the registry artefact.
-This cache plan does not prescribe a speculative package version and never edits a copy inside WebVOWL.
+No producer source change is required by this plan.
+SLICE-001 records the exact installed coordinate/integrity, public source/configuration/format/graph/profile/error APIs, Node/browser contract proof and loader fingerprints.
+Byte-source and producer-policy fingerprint improvements remain optional upstream requests, not invented current capabilities or release prerequisites.
+If a required public contract fails a concrete fixture, retain that evidence and replan the affected slice with the producer owner; do not patch a copy, deep-import internals or guess a future version.
 
 ---
 
 ## 19. Test strategy and fixtures
 
-### 19.1 Methodology
+### 19.1 Oracle ownership and external boundaries
 
-Use the predecessor plan’s test classification:
+Use characterization for preserved acquisition behaviour and a failing behavioural regression before implementing a new source/security/publication contract.
+Pure relocation remains GREEN → GREEN; do not manufacture a failing test for unchanged behaviour.
+Infrastructure changes use native CDK assertions/synthesis/diff and the approved configuration route.
+Each slice has a falsifiable result; avoid microscopic implementation-mirroring tests.
 
-| Change                                                  | Required sequence                                                                            |
-| ------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| Protect current mapping/fetch behaviour before refactor | Characterization tests, then explicit required-behaviour tests.                              |
-| Pure file/module relocation with identical behaviour    | GREEN → GREEN.                                                                               |
-| New materialization/catalog/security/caching behaviour  | RED → GREEN → REFACTOR.                                                                      |
-| Defect discovered during implementation                 | Minimal failing regression before production change.                                         |
-| Configuration/infrastructure addition                   | Failing CDK assertion/synthesis policy test before construct change, then `cdk diff` review. |
+Use the real exact installed `owlapi` and `vowl` consumers in Node and browser workers.
+Independent expected bytes, identity tuples, import graphs, profile results and semantic outputs come from reviewed fixtures/specification and retained logical corpus oracles, not from the implementation under test.
+Mock only genuine external seams: HTTP/DNS/connector, clock, scheduling and AWS client operations.
+Local protocol servers and connection-recording adapters must not weaken production SSRF rules to admit loopback test URLs.
 
-Tests compare structural ontology/VOWL results, state transitions, HTTP contracts, catalog mappings, byte digests, and RDF/OWL semantics—not incidental serialized ontology text.
+### 19.2 Metadata-driven matrix and adversarial cases
 
-### 19.2 Shared contract fixture corpus
+Enumerate every public parser/format identity and alias from `OWLDocumentFormats`, with independently expected selection, accepted/rejected examples and ambiguity cases.
+This metadata-driven coverage replaces the copied syntax list; named regressions remain explicit:
 
-Create checked-in, licence-reviewed, small fixtures for:
+- DL numeric lexical preservation; KRSS1 unsupported right-identity rejection; RDF/XML base/declaration context; denied JSON-LD remote contexts and XML external entities.
+- Exact UTF-8 bytes/BOM, malformed encodings, conflicting charset/declarations, Unicode, content decoding and compressed-expansion limits.
+- Same bytes under different document bases, redirects and HTTP upgrades, query/percent-encoding distinctions, declared identifiers and forbidden inferred aliases.
+- Cycles, diamonds, duplicate/shared imports, transitive declarations, missing members, incomplete source/profile checks and consumer limits separate from ontology validity.
+- DNS mixed answers, every prohibited IPv4/IPv6 range, rebinding, each redirect hop, unsafe downgrades, credential/session requests, timeout and cancellation with zero forbidden connections.
+- 200/304, variant/validator mismatch, changed `Vary`/cache restrictions, same bytes with changed metadata/policy, origin outage and last-known-good versus quarantine.
+- SQS duplicates/reordering, expired leases, stale generation/quarantine races, lost enqueue/dirty sends and crashes at every §9.4 persistence boundary.
+- XML/optional JSON parity, seed precedence, catalog cycles/limits, malformed/DTD/entity input, missing evidence and stable-root CAS conflicts.
+- Quotas, WAF, staging isolation, checksums, byte/validation dedup distinctions and immutable rollback.
 
-- all accepted source-IRI canonicalization cases, including IDN, percent encoding, query, fragment, default port, HTTP/HTTPS distinction;
-- rejected schemes, credentials, explicit alternate ports, IP literals, malformed URLs, overlong values;
-- public DNS with mixed public/private answers;
-- IPv4, IPv6, IPv4-mapped IPv6 special ranges;
-- safe/unsafe redirect chains and loops;
-- readable CORS success/error, Fetch rejection, abort, timeout, length header overflow, streamed overflow;
-- valid RDF/XML, Turtle, JSON-LD with local context, OWL/XML, Functional, Manchester, N-Triples, N-Quads, TriG, DL, KRSS1, and KRSS2 documents supported by the accepted package;
-- invalid syntax, parser mismatch exhaustion, resource failure, remote JSON-LD context, external entity attempt, and import declarations with remote imports disabled;
-- same bytes from two curated source IRIs;
-- source content changing valid→valid, valid→invalid, 304, timeout, and 404;
-- OASIS `uri`, `nextCatalog`, `xml:base`, ordering, cycles, malformed XML, DTD, duplicate conflict, entry/byte/depth limits;
-- SQS duplicate delivery, expired lease, worker crash after S3 write/before registry promotion, catalog publisher CAS conflict;
-- seed versus dynamic collision; and
-- WAF/API/daily quota boundary values.
+Read logical members through `packages/vowl/conformance/storage.mjs` and the existing pinned corpus helpers.
+Do not reconstruct the removed physical fixture tree or compute expected semantic answers from the same cache/parser execution being tested.
+Large hostile cases are deterministically generated under finite bounds.
 
-Large/adversarial fixtures are generated deterministically at test time where storing them would bloat the repository, but generation code itself is reviewed and bounded.
+### 19.3 Cross-runtime and browser qualification
 
-### 19.3 Browser verification
+For identical `(bytes, parserDocumentIri, formatId, exact package, stage policy)`, compare parser identity, typed result, import declarations, source evidence and qualification status in Node/Lambda and browser workers.
+Then run each qualification corpus through direct-origin and cached acquisition and compare managed graph, semantic result, retained original bytes and canonical bytes where the selected contract requires deterministic bytes.
+Acquisition/provenance differences must not change model meaning.
 
-Unit tests mock Fetch semantics, but completion additionally requires real current supported browsers because CORS, redirect, preflight, body hashing, HTTP cache, abort, and opaque-response behaviour are browser-owned.
+Extend the existing canonical 2,000-class workloads in Chromium, Firefox and WebKit.
+Keep the current measured consumer budgets, cancellation, stale-result rejection, memory/work ceilings and source-export ownership.
+A cache hit does not authorize raising the embedded-work budget or skipping downstream admission.
+Record the actual runtime versions and tested resource policies rather than treating historical qualification as a fresh pass.
 
-Use the accepted WebVOWL development server and browser tooling to verify:
+Real browser evidence includes cross-origin CORS/preflight, exact POST body hash, automatic 303 follow plus immutable binding retrieval, HTTP cache/304, query exclusion, digest verification, cancellation at each acquisition stage, CSP and direct-only bypass.
+Any browser harness/dependency change requires exact configuration approval.
 
-- Chromium, Firefox, and WebKit-equivalent behaviour available under the project’s post-Phase-20 supported matrix;
-- cross-origin WebVOWL host against the production-like CloudFront endpoint;
-- preflight and `x-amz-content-sha256` POST;
-- wildcard CORS with `credentials: "omit"` and rejection with credentials included;
-- automatic 303 follow to artifact;
-- catalog root/generation caching and revalidation;
-- source query excluded from artifact cache key;
-- cancellation while direct fetching, pending, and artifact fetching;
-- CSP `connect-src` documentation; and
-- no main-thread catalog task over the agreed budget.
+### 19.4 Integration and production evidence boundaries
 
-If WebVOWL lacks an already approved automated multi-browser harness after Phase 20, record reproducible DevTools network/console/performance evidence rather than adding an unapproved dependency.
-Automation can be proposed through the configuration gate.
+Node tests and CDK assertions establish local contracts, not live IAM/OAC/CDN behaviour.
+Use approved test accounts/endpoints for live canaries only after the exact deployment diff is approved.
+Verify no direct Function URL/staging access, no forbidden connection, no control-plane activity on hits, old/new catalog completeness, source-context equivalence, kill-switch isolation and report/cost reconciliation.
+Do not contact unrelated ontology publishers merely to create load.
 
-### 19.4 AWS/local integration harness
-
-The Lambda tests use Node’s built-in `node:test`, local HTTP servers bound only to loopback for client simulation, deterministic DNS/HTTP adapters, and AWS SDK client fakes at explicit seams.
-Tests must not weaken production SSRF code merely so a loopback fixture can be reached; the production retriever is tested with an injected connector that records the validated address.
-
-CDK tests use `aws_cdk.assertions` and Python `unittest` from the repository `.venv`.
-They assert synthesized resources/policies and never contact AWS.
-
-Live AWS canary tests occur only after explicit deployment approval.
-They use controlled public fixture hosts representing:
-
-- readable CORS source;
-- valid source without CORS;
-- safe redirect;
-- invalid ontology;
-- oversized/slow bounded response; and
-- a forbidden DNS/address target that must fail before connection.
-
-No canary requests third-party ontology hosts without consent or an operational need.
+The final implementation route selects the full applicable WebVOWL/AWS suites, package-boundary tests, native formatting/lint/build, CDK synth/nag/diff, installed-bundle audit, licence/SBOM evidence, browser matrix and live canaries.
+HISEW profiles `focused`, `affected` and `full` currently invoke `npm run lint`, `npm run test` and `npm run build` in this worktree; those labels do not establish AWS, browser or release coverage.
+Recheck current profile applicability before execution; additions/changes to profile configuration need approval.
 
 ---
 
-## 20. Detailed implementation sequence
-
-Each cache phase has one completion gate.
-Do not overlap production implementation across phases merely because files live in different repositories: package version, validation profile, schemas, infrastructure, seed evidence, and client behaviour form one compatibility chain.
-
-Every “commit checkpoint” below is a suggested atomic boundary.
-Execute it only after the user authorizes a commit; execute a push only after separate authorization.
-
-### Cache Phase 0 — establish the post-Phase-20 execution baseline
-
-#### Task 0.1 — prove the predecessor gate
-
-**Files**
-
-- Create `docs/ontology-cache/execution-baseline.md` in WebVOWL.
-- Create `docs/validated-ontology-cache/execution-baseline.md` in `amazon-aws` only after that repository’s documentation write is approved.
-
-**Evidence interface**
-
-Record a machine-checkable/human-readable table containing:
-
-```text
-phase20CompletionRecord
-owlapiVersion
-owlapiTarballIntegrity
-owlapiSourceTag
-owlapiSourceCommit
-webvowlCommit
-webvowlLockfileIntegrity
-acceptedNodeVersions
-acceptedBrowserMatrix
-publicDocumentLoaderContract
-publicStringDocumentSourceContract
-publicLoaderConfigurationContract
-publicErrorCodesUsed
-```
-
-**Steps**
-
-1. Add a failing boundary assertion that detects any `src/owlapi-js`, local, alias, workspace, Git, or deep `owlapi` import in production WebVOWL.
-2. Run that focused boundary test and confirm it fails only if the post-Phase-20 tree violates the prerequisite.
-3. Inspect the installed package’s five public entry points and the accepted Phase 20 API evidence; record the exact symbols this plan will use.
-4. Add an installed-package contract test that constructs a manager with an injected document loader, returns a `StringDocumentSource` whose document IRI differs from its retrieval location, and proves relative IRIs resolve against the source document IRI.
-5. Run the focused test, full Jest suite, development build, production build, and representative import-aware corpus.
-6. Record commands, versions, fixture digests, and results in the baseline; do not paste mutable registry HTML or depend on an expiring CI log.
-
-**Verification commands**
-
-```powershell
-npm test -- --runInBand src/productionGraph.architecture.test.js
-npm test -- --runInBand
-npm run build:dev
-npm run build
-```
-
-**Completion gate**
-
-The exact accepted package is a real third-party-style dependency; the source/retrieval IRI test passes through public exports; all current gates are green.
-Otherwise this cache programme is blocked at the package seam.
-
-**Suggested commit checkpoint:** `docs: record validated ontology cache execution baseline`
-
-#### Task 0.2 — measure account and distribution baseline
-
-**Files**
-
-- Update the two execution-baseline documents only; no AWS resource change.
-
-**Steps**
-
-1. Read the preceding 90 complete days of CloudFront requests, bytes, geography, cache hit rate, existing CloudFront Function invocation count, Lambda/SQS/CloudWatch/DynamoDB free-tier consumption, and current monthly spend.
-2. Record the current distribution ID, behaviours, origins, OACs, WAF association, logging state, custom errors, certificate, aliases, and stack logical IDs without exposing account secrets in the repository.
-3. Inspect the current whole-distribution cost cutoff: cadence, metric/API source, threshold, SNS action, Lambda cost, and exact disable/recovery behaviour.
-4. Recreate quiet/growth/budget-edge scenarios in the official AWS Pricing Calculator using `eu-west-1` regional and global CloudFront/WAF prices.
-5. Record assumptions and exported calculator evidence.
-   Mark WAF charges against total distribution requests.
-6. Confirm quiet and observed-baseline scenarios remain below USD 10.
-   If not, stop for architecture review before resource creation.
-
-**Completion gate**
-
-There is a reproducible cost baseline, enough remaining account-wide allowance is known, and the shared-distribution decision is economically valid for observed traffic.
-
-**Suggested commit checkpoint:** `docs: baseline ontology cache traffic and cost`
-
-#### Task 0.3 — obtain exact configuration approvals
-
-**Files/settings requiring presentation before change**
-
-- `amazon-aws/Lambda/Applications/ValidatedOntologyCache/package.json` and `package-lock.json`: private ESM package, exact `owlapi`, AWS SDK, HTTP/DNS/IP-classification, and esbuild/test dependencies/scripts.
-- `amazon-aws/Lambda/Applications/ValidatedOntologyCache/THIRD_PARTY_NOTICES.md`, `CORRESPONDING_SOURCE.md`, and `LICENSES/AGPL-3.0-only.txt`: reviewed notices, immutable deployed-source/build mapping, and applicable licence text; deployment remains blocked until the AGPL/network-use review approves the complete source-access mechanism.
-- `amazon-aws/package.json` and `package-lock.json`: only the exact root bundling/test command additions demonstrably required.
-- `amazon-aws/cdk.json`: one namespaced `validated-ontology-cache` context object containing enabled state, quotas, worker concurrency, WAF threshold/action, report retention, budget thresholds, and stable public paths.
-- `amazon-aws/app.py`: acyclic stack instantiation order and cross-region references.
-- `amazon-aws/infrastructure/stack.py`: exact integration point into the existing distribution and removal/replacement of obsolete cdk-nag suppressions.
-- New CDK/Lambda/configuration/schema/seed files listed in §18.2.
-- Any WebVOWL `package.json`, lockfile, CSP, hosting, test, or browser-harness change; the preferred client design adds no runtime dependency beyond the already accepted `owlapi` package.
-
-**Steps**
-
-1. Present exact versions, licences, bundle sizes, transitive production graph, corresponding-source scope/access mechanism, scripts, CDK context values, CloudFormation resources, monthly estimate, and rollback impact.
-2. Separate application source/schema/data approval from live AWS deployment approval.
-3. Separate WAF association/action, logging, budget alert, email subscription, seed upload, and production enablement approvals.
-4. Record accepted settings in the execution baselines.
-
-**Completion gate**
-
-Every configuration file and external-state mutation has an exact approval.
-If an item is rejected, revise the design before implementation rather than changing it indirectly.
-
-No commit checkpoint exists for an approval conversation alone.
-
-### Cache Phase 1 — freeze shared contracts and seed evidence
-
-#### Task 1.1 — define schemas and canonicalization fixtures
-
-**Files**
-
-- Create the five JSON Schemas under `validated-ontology-cache/contracts/`.
-- Create `Lambda/Applications/ValidatedOntologyCache/src/materialization/canonicalizeSourceDocumentIri.js`.
-- Create focused Node tests/fixtures.
-- Create the equivalent WebVOWL fixture test under `src/ontology-loading/` without production client code yet.
-
-**Interfaces**
-
-```javascript
-canonicalizeSourceDocumentIri(value)
-validateMaterializationRequest(value)
-validateArtifactProvenance(value)
-```
-
-**Steps**
-
-1. Write shared JSON fixtures for every §4.1 accepted/rejected case and expected `sourceDocumentIri`, `retrievalIriWithoutFragment`, and `sourceKey`.
-2. Add failing Node tests for canonicalization, exact JSON members, byte limits, Unicode, and stable error codes.
-3. Run the focused tests and confirm the missing implementation is the failure.
-4. Implement canonicalization and schema validation with no network or AWS dependency.
-5. Run Node tests to green and refactor only while fixtures remain unchanged.
-6. Add a WebVOWL-side fixture consumer test using browser URL/Web Crypto-compatible primitives; confirm identical output.
-7. Run focused WebVOWL tests to green.
-8. Validate every example payload/provenance document in this plan against the schemas after substituting real fixture digests.
-
-**Verification commands**
-
-```powershell
-node --test Lambda/Applications/ValidatedOntologyCache/test/canonicalizeSourceDocumentIri.test.js
-npm test -- --runInBand src/ontology-loading/sourceDocumentIriContract.test.js
-```
-
-**Completion gate**
-
-Node and browser implementations agree for the complete fixture corpus; schemas reject unknown members and unbounded strings; no source IRI is logged on failure.
-
-**Suggested commit checkpoint:** `test: define ontology materialization contracts`
-
-#### Task 1.2 — freeze the curated seed manifest
-
-**Files**
-
-- Create `validated-ontology-cache/seeds/ontology-seed-manifest.v1.json`.
-- Create `scripts/stage_validated_ontology_seed_catalog.mjs` initially in read-only/dry-run mode.
-- Add seed-manifest tests.
-
-**Interfaces**
-
-```javascript
-readOntologySeedManifest(path)
-inventoryOntologySeedSources({ manifest, currentCatalog, s3Inventory })
-```
-
-**Steps**
-
-1. Export the last accepted `ONTOLOGY_CATALOG` into normalized source/retrieval pairs without editing the constant.
-2. Acquire an S3 inventory/list of the existing `/ontology/external/` prefix through a read-only approved AWS call.
-3. Add a failing test that reports missing references, duplicate source names, invalid IRIs, unreferenced objects, and seed/dynamic-ownership ambiguity.
-4. Implement the dry-run inventory and generate the human-review table.
-5. Classify every finding explicitly.
-   Do not make unreferenced objects public by default.
-6. Add expected source keys and curated alias relationships.
-   Artifact digests remain absent until Phase 9’s validation/staging operation; the schema distinguishes `DISCOVERED` dry-run evidence from `STAGED` publication evidence without an informal null/sentinel.
-7. Prove two runs over identical input produce identical manifest bytes/order.
-
-**Completion gate**
-
-Every current catalog key and referenced seed representation has one disposition; no dynamic mapping mechanism depends on future JavaScript source edits.
-
-**Suggested commit checkpoint:** `data: inventory curated ontology cache seeds`
-
-### Cache Phase 2 — implement the safe retrieval and validation core
-
-#### Task 2.1 — implement SSRF-safe representation retrieval
-
-**Files**
-
-- Create `safeOntologyRepresentationRetriever.js` and focused tests/fixtures.
-- Create any narrowly owned IP-range data module under `materialization/`; do not create a generic utility directory.
-
-**Interface**
-
-```javascript
-createSafeOntologyRepresentationRetriever({
-  dnsResolver,
-  httpDispatcherFactory,
-  clock,
-  policy,
-}).retrieve({
-  sourceDocumentIri,
-  conditionalHeaders,
-  signal,
-})
-```
-
-Return an immutable result discriminated as `NOT_MODIFIED` or `REPRESENTATION`; representation includes exact bytes, effective upstream IRI, bounded headers, and timing evidence.
-
-**Steps**
-
-1. Add failing tests for every prohibited scheme/address/port/credential form, mixed DNS answer, DNS rebinding connector, redirect hop, downgrade, timeout, status, content-coding, byte limit, abort, cookie/private/no-store/Vary rejection, and safe success.
-2. Confirm tests fail because the retriever does not exist, not because fixtures accidentally contact the network.
-3. Implement URL admission and generated special-range classification.
-4. Implement request-scoped validated DNS lookup wired into the actual connection dispatcher.
-5. Implement manual redirects and budgets.
-6. Implement streaming size enforcement and bounded header normalization.
-7. Run the entire adversarial set and verify forbidden cases record zero connection attempts.
-8. Add property/fuzz cases for URL normalization and IP textual forms, bounded by a fixed seed/run count.
-9. Run dependency audit/licence review and inspect the production bundle for unexpected networking code.
-
-**Verification command**
-
-```powershell
-node --test Lambda/Applications/ValidatedOntologyCache/test/safeOntologyRepresentationRetriever.test.js
-```
-
-**Completion gate**
-
-No unsafe target connects, every redirect is revalidated, every resource is bounded, and successful requests expose no caller credentials/data.
-
-**Suggested commit checkpoint:** `feat: add bounded ontology representation retrieval`
-
-#### Task 2.2 — implement public-`owlapi` document validation
-
-**Files**
-
-- Create `validateOntologyDocument.js` and focused tests.
-- Add cross-runtime fixtures and package-parity test.
-
-**Interface**
-
-```javascript
-validateOntologyDocument({
-  representationBytes,
-  sourceDocumentIri,
-  contentType,
-  fileName,
-  signal,
-})
-```
-
-Return immutable accepted metadata or throw a normalized typed error.
-It never fetches.
-
-**Steps**
-
-1. Write failing tests for every supported representative syntax, invalid syntax, remote import declaration, remote JSON-LD context, XML external entity, byte/resource limit, compatible diagnostic, abort, and unexpected invariant error.
-2. Add a no-network trap and confirm every validation test makes zero outbound request.
-3. Import only accepted public `owlapi` specifiers and implement the exact profile in §11.2.
-4. Hash/record the resolved profile and package version.
-5. Parse with a fresh manager and extract only public metadata.
-6. Normalize public `owlapi` errors to service codes without message matching.
-7. Run focused Node tests and the same semantic fixtures through WebVOWL’s installed package.
-8. Compare ontology IDs/import counts/acceptance and stable error codes; never compare incidental serializer text.
-9. Inspect the worker bundle to prove a single exact `owlapi` coordinate and no private path.
-
-**Verification commands**
-
-```powershell
-node --test Lambda/Applications/ValidatedOntologyCache/test/validateOntologyDocument.test.js
-npm test -- --runInBand src/ontology-loading/owlapiValidationParity.test.js
-```
-
-**Completion gate**
-
-Browser and worker agree on accepted/rejected fixtures, validation performs no network, and source document IRI is parser context.
-
-**Suggested commit checkpoint:** `feat: validate cache artifacts with public owlapi`
-
-### Cache Phase 3 — implement durable state, artifact storage, and worker orchestration
-
-#### Task 3.1 — implement registry transitions
-
-**Files**
-
-- Create `ontologyMaterializationRegistry.js` and state-machine tests.
-
-**Interface**
-
-```javascript
-createOntologyMaterializationRegistry({ dynamoDocumentClient, tableName, clock })
-```
-
-Methods are named for transitions, not raw database verbs:
-
-```text
-submitSourceMaterialization
-readMaterialization
-acquireMaterializationLease
-renewMaterializationLease
-recordMaterializationRejection
-promoteValidatedArtifact
-beginSourceRevalidation
-recordNotModified
-recordStaleSource
-quarantineSource
-listCatalogEligibleSources
-listDueRevalidations
-reconcileExpiredLeases
-```
-
-**Steps**
-
-1. Write failing tests for every state transition/invariant, idempotent duplicate, quota transaction, seed collision, lease race/expiry, last-known-good failure, quarantine, retry window, and conditional conflict.
-2. Implement exact DynamoDB expressions with expected-state/revision conditions.
-3. Ensure source strings are parameters/data, never interpolated into expressions or logs.
-4. Return domain results; keep DynamoDB attribute maps internal.
-5. Test transaction cancellation reasons and normalize them without exposing AWS internals to the API.
-6. Run a concurrency test with multiple identical submissions/workers and prove one admission/active promotion.
-
-**Verification command**
-
-```powershell
-node --test Lambda/Applications/ValidatedOntologyCache/test/ontologyMaterializationRegistry.test.js
-```
-
-**Completion gate**
-
-The executable state machine matches §9, retries are safe, and no public handler issues ad hoc table updates.
-
-**Suggested commit checkpoint:** `feat: add ontology materialization registry`
-
-#### Task 3.2 — implement content-addressed artifact repository
-
-**Files**
-
-- Create `ontologyArtifactRepository.js` and tests.
-
-**Interface**
-
-```javascript
-createOntologyArtifactRepository({ s3Client, bucketName, publicBaseIri })
-```
-
-Methods:
-
-```text
-storeValidatedArtifact
-verifyArtifact
-writeSourceProvenance
-readCatalogRootVersion
-```
-
-**Steps**
-
-1. Add failing tests for digest/key generation, exact bytes, conditional create with S3 SHA-256 checksum metadata, dedup `HeadObject` checksum/size agreement, absent or mismatched checksum failure, cache/content headers, provenance schema, and forbidden overwrite.
-2. Implement local SHA-256, S3 checksum submission/retrieval, and conditional writes; never infer digest equality from an ETag.
-3. Separate artifact, provenance, and catalog prefixes in the interface/policies.
-4. Verify returned public IRIs use HTTPS, configured hostname, and exact path grammar.
-5. Run tests and inspect that no source-provided filename/header reaches an S3 key or unsafe response header.
-
-**Verification command**
-
-```powershell
-node --test Lambda/Applications/ValidatedOntologyCache/test/ontologyArtifactRepository.test.js
-```
-
-**Completion gate**
-
-Validated bytes are immutable/deduplicated, provenance is source-specific, and overwrite/collision anomalies fail closed.
-
-**Suggested commit checkpoint:** `feat: store immutable validated ontology artifacts`
-
-#### Task 3.3 — implement materialization worker
-
-**Files**
-
-- Create `ontologyMaterializationWorker.js`, handler export, structured logger, and integration tests.
-
-**Steps**
-
-1. Write failing orchestration tests for successful new artifact, content dedup, invalid source, forbidden source, transient failure, oversized source, duplicate SQS event, crash boundary after S3 write, refresh 304, refresh new valid, refresh invalid/stale, quarantine race, and catalog-dirty emission.
-2. Compose registry → safe retriever → validator → artifact repository in that order.
-3. Check remaining Lambda time before retrieval, validation, and promotion; stop safely before lease loss.
-4. Emit one bounded structured event for each terminal transition.
-5. Use partial-batch response and acknowledge only terminal/idempotently persisted outcomes.
-6. Run integration tests with fake AWS clients and no live network.
-7. Benchmark small/medium/32 MiB-boundary valid and adversarial fixtures in an isolated Node 24 ARM64-equivalent environment.
-   Record wall time and peak heap; confirm 2,048 MiB/60 seconds has headroom.
-
-**Verification commands**
-
-```powershell
-node --test Lambda/Applications/ValidatedOntologyCache/test/ontologyMaterializationWorker.test.js
-node --test Lambda/Applications/ValidatedOntologyCache/test/ontologyMaterializationWorker.resource.test.js
-```
-
-**Completion gate**
-
-Every failure leaves a coherent retryable/terminal state, only validated bytes become READY, and at-least-once delivery is harmless.
-
-**Suggested commit checkpoint:** `feat: orchestrate validated ontology materialization`
-
-### Cache Phase 4 — implement the materialization API
-
-#### Task 4.1 — implement submission/status/CORS contract
-
-**Files**
-
-- Create `api/ontologyMaterializationApi.js` and contract tests.
-
-**Interfaces**
-
-Lambda Function URL handler plus internal pure functions:
-
-```text
-routeOntologyMaterializationRequest
-submitOntologyMaterialization
-readOntologyMaterializationStatus
-createMaterializationHttpResponse
-```
-
-**Steps**
-
-1. Add failing table-driven tests for exact methods/paths, preflight, body encoding/hash agreement, schema errors, kill switch, quota, idempotent PENDING, READY 303, each REJECTED mapping, STALE/REVALIDATING last-good redirect, quarantine, unknown 410, headers, and log redaction.
-2. Confirm malformed paths are rejected before DynamoDB access.
-3. Implement body limit before JSON parse and unknown-member rejection.
-4. Canonicalize and transact admission through the registry interface.
-5. Enqueue only after successful new/retry admission; reconcile a send failure by marking/scheduling recovery rather than leaving invisible work.
-6. Generate absolute public locations from configured trusted base IRI, never request `Host`/forwarded headers.
-7. Add OPTIONS responses and wildcard credential-free CORS.
-8. Run contract tests and snapshot only stable JSON/header fields, excluding AWS request IDs/timestamps.
-
-**Verification command**
-
-```powershell
-node --test Lambda/Applications/ValidatedOntologyCache/test/ontologyMaterializationApi.test.js
-```
-
-**Completion gate**
-
-The HTTP contract in §8 is executable, API bodies remain small/no-store, and no direct Function URL/public AWS detail leaks.
-
-**Suggested commit checkpoint:** `feat: expose ontology materialization control API`
-
-### Cache Phase 5 — implement deterministic catalog projection
-
-#### Task 5.1 — implement OASIS serialization
-
-**Files**
-
-- Create `catalog/oasisXmlCatalogProjection.js` and tests/fixtures.
-
-**Interface**
-
-```javascript
-createOasisXmlCatalogProjection({ seedCatalogIri, publicBaseIri })
-  .projectDynamicCatalog(catalogEligibleSources)
-  .projectRootCatalog(dynamicCatalogIri)
-```
-
-**Steps**
-
-1. Add failing tests for namespace, XML escaping, deterministic ordering/bytes/digest, seed-first root, duplicate conflicts, same-artifact aliases, no timestamp, empty dynamic set, cap enforcement, and hostile Unicode/XML characters.
-2. Implement a narrow XML serializer; do not construct catalog XML with unsafe string interpolation.
-3. Validate produced files against the OASIS XML Catalog 1.1 schema/DTD in a non-networked test setup, while production parsing does not fetch a DTD.
-4. Parse produced catalogs with WebVOWL’s planned safe catalog reader and a second independent OASIS-capable implementation when available.
-5. Repeat projection with shuffled input and prove identical bytes/digest.
-
-**Verification command**
-
-```powershell
-node --test Lambda/Applications/ValidatedOntologyCache/test/oasisXmlCatalogProjection.test.js
-```
-
-**Completion gate**
-
-Identical registry state produces identical conformant catalog bytes; seed precedence and exact mapping are proven.
-
-**Suggested commit checkpoint:** `feat: project OASIS ontology catalogs`
-
-#### Task 5.2 — implement catalog publication
-
-**Files**
-
-- Create `publishOntologyCatalogProjection.js` and integration tests.
-
-**Steps**
-
-1. Add failing tests for dirty-event coalescing, unchanged no-op, immutable generation conditional write, root `If-Match`, CAS conflict retry, worker duplicate, missing artifact, seed collision, cap breach, partial failure, and current-registry record.
-2. Read catalog-eligible sources through the registry interface and verify referenced artifacts.
-3. Write/verify immutable generation before root.
-4. Update root and `CATALOG#CURRENT` with revision/ETag conditions.
-5. Ensure a failed root promotion leaves the previous root valid and the new immutable generation harmless/unreferenced.
-6. Emit bounded projection outcome metrics/events.
-
-**Verification command**
-
-```powershell
-node --test Lambda/Applications/ValidatedOntologyCache/test/publishOntologyCatalogProjection.test.js
-```
-
-**Completion gate**
-
-Publication is deterministic, atomic at the stable-root boundary, convergent under duplicates, and rollbackable.
-
-**Suggested commit checkpoint:** `feat: publish immutable ontology catalog generations`
-
-### Cache Phase 6 — synthesize the AWS data/control plane
-
-#### Task 6.1 — add regional data stack
-
-**Files**
-
-- Create `regional_data_stack.py` and CDK assertion tests.
-- Update approved Lambda package/config files.
-
-**Steps**
-
-1. Write failing CDK assertions for every regional resource/settings in §14.3, retention, encryption, public-access block, concurrency, timeouts, event source, DLQs, schedules, IAM scope, log retention, PITR/deletion protection, and resource tags.
-2. Run the focused unittest and confirm failure before constructs exist.
-3. Implement the stack without a distribution reference.
-4. Bundle handlers reproducibly from the approved lockfile and assert each bundle’s dependency inventory; only the worker includes `owlapi`.
-5. Run CDK assertions, cdk-nag, and synthesis.
-6. Inspect synthesized policies/templates for wildcards, public Function URL, public bucket, KMS/NAT/fixed-cost surprises, or resource replacement.
-
-**Verification commands**
-
-```powershell
-.venv\Scripts\python.exe -m unittest tests.infrastructure.test_validated_ontology_cache_stacks.RegionalDataStackTest
-npx cdk synth
-```
-
-**Completion gate**
-
-The regional template is least-privilege, bounded, private, tagged, and acyclic before any deployment.
-
-**Suggested commit checkpoint:** `infra: define validated ontology cache data plane`
-
-#### Task 6.2 — add global delivery construct and regional bindings
-
-**Files**
-
-- Create `global_delivery_construct.py` and `regional_access_bindings_stack.py`.
-- Modify `app.py` and the smallest approved integration point in `infrastructure/stack.py`.
-- Extend CDK tests.
-
-**Steps**
-
-1. Snapshot/synthesize the pre-change stacks and retain logical-ID/template evidence.
-2. Add failing assertions for exact behaviours, origins, cache policies, response headers, OACs, no rewrite association, Function URL permissions, S3 read policy, and stack dependency direction.
-3. Implement the data → global → bindings ordering.
-4. Preserve existing distribution/aliases/certificate/DNS/static origin and current `ontology/*` semantics.
-5. Add the more-specific behaviours and response policies.
-6. Synthesize and run `cdk diff` read-only.
-   Treat replacement/removal of an existing material resource as a failure.
-7. Confirm API path does not inherit custom 404 caching and artifact query is absent from cache/origin policy.
-8. Confirm direct Function URL invocation lacks permission while CloudFront OAC has both required scoped Lambda actions.
-
-**Verification commands**
-
-```powershell
-.venv\Scripts\python.exe -m unittest tests.infrastructure.test_validated_ontology_cache_stacks.GlobalDeliveryTest
-.venv\Scripts\python.exe -m unittest tests.infrastructure.test_validated_ontology_cache_stacks.RegionalBindingsTest
-npx cdk synth
-npx cdk diff
-```
-
-**Completion gate**
-
-The synthesized change adds only approved cache/logging/WAF/monitoring resources and in-place distribution properties; existing resources are not replaced.
-
-**Suggested commit checkpoint:** `infra: route ontology cache through existing CloudFront`
-
-### Cache Phase 7 — implement refresh, reporting, monitoring, and cost controls
-
-#### Task 7.1 — implement bounded revalidation scheduling
-
-**Files**
-
-- Create `revalidation/scheduleOntologyRevalidations.js` and tests.
-
-**Steps**
-
-1. Write failing tests for due/not-due, 100/day cap, deterministic pagination, seed/dynamic eligibility, stale priority, quarantine exclusion, conditional transition, duplicate schedule invocation, and queue failure reconciliation.
-2. Implement one daily bounded scan and state transition/enqueue.
-3. Ensure no source IRI enters scheduler logs/messages when `sourceKey` suffices; worker reads the durable record.
-4. Run focused tests and a simulated 25,000-entry cost/read-capacity estimate.
-
-**Verification command**
-
-```powershell
-node --test Lambda/Applications/ValidatedOntologyCache/test/scheduleOntologyRevalidations.test.js
-```
-
-**Completion gate**
-
-Refresh work is finite, idempotent, and cannot starve first-time materializations.
-
-**Suggested commit checkpoint:** `feat: schedule bounded ontology revalidation`
-
-#### Task 7.2 — implement reporting and minimized logging
-
-**Files**
-
-- Create SQL, report function, structured-event module, schemas, and tests.
-- Create `monitoring_construct.py` assertions.
-
-**Steps**
-
-1. Add failing tests for log redaction/field allowlist, SQL partition/path filters, spoofed source tokens, daily/monthly aggregation, query byte cutoff, state-change idempotency, missing EventBridge-event reconciliation through bounded `GetQueryExecution`, result validation, and report schema.
-2. Implement structured event writer and prove it truncates/rejects unknown/high-risk fields.
-3. Implement Athena start/finalize flow without billed polling, including daily reconciliation of an incomplete query record before any replacement query is started.
-4. Add selected-field CloudFront logging v2, private partitions, and lifecycle policies.
-5. Add native-metric dashboard and eight initial alarms; assert no high-cardinality custom dimension.
-6. Run sample queries over synthetic partitioned logs and reconcile counts manually.
-7. Calculate delivery/storage/query cost at quiet/growth/budget-edge volumes.
-
-**Verification commands**
-
-```powershell
-node --test Lambda/Applications/ValidatedOntologyCache/test/ontologyCacheUsageReport.test.js
-.venv\Scripts\python.exe -m unittest tests.infrastructure.test_validated_ontology_cache_stacks.MonitoringTest
-```
-
-**Completion gate**
-
-Reports answer the required usage/cost questions, selected logs omit viewer-identifying fields, and the estimated observability bill remains bounded.
-
-**Suggested commit checkpoint:** `feat: report ontology cache usage and cost`
-
-#### Task 7.3 — replace cache-related destructive cost enforcement
-
-**Files**
-
-- Modify the approved current cost-enforcement CDK/Lambda path minimally.
-- Add cost-policy tests and runbook.
-
-**Steps**
-
-1. Characterize the current function with tests before changing it.
-2. Add a failing test showing an ontology-cache budget event must disable new materialization but leave the distribution enabled.
-3. Implement warning/forecast/limit notifications and the registry kill-switch update.
-4. Remove cache-budget authority to call `cloudfront:UpdateDistribution`; retain any separately approved site-wide emergency policy in alert-only or explicitly scoped form.
-5. Reduce evaluation cadence to match billing-data freshness and record the monitoring API’s own monthly cost.
-6. Simulate USD 7/USD 9/USD 10 events and recovery; prove idempotency and no automatic re-enable.
-7. Update operations runbook with explicit human re-enable checks.
-
-**Completion gate**
-
-A cache cost event cannot disable the website/catalog/artifact data plane; alerts and kill switch are tested and recoverable.
-
-**Suggested commit checkpoint:** `fix: isolate ontology cache cost containment`
-
-### Cache Phase 8 — implement the WebVOWL loader
-
-#### Task 8.1 — implement bounded response reading
-
-**Files**
-
-- Create `boundedOntologyResponse.js` and tests.
-
-**Interface**
-
-```javascript
-readBoundedOntologyResponse(response, {
-  maxBytes,
-  sourceDocumentIri,
-  signal,
-})
-```
-
-Return exact bytes/text plus safe content/file hints, or throw the public `owlapi` resource/load error appropriate to the accepted API.
-
-**Steps**
-
-1. Add failing tests for content length, streamed exact limit/one-byte overflow, missing body, abort, reader cancel, invalid status, content type, file-name decoding, and UTF-8 parity.
-2. Implement streaming consumption with early cancel and no quadratic concatenation.
-3. Ensure errors do not trigger parser fallback or materialization when the source was readable.
-4. Run tests under Node’s web APIs and a real browser fixture.
-
-**Verification command**
-
-```powershell
-npm test -- --runInBand src/ontology-loading/boundedOntologyResponse.test.js
-```
-
-**Completion gate**
-
-The browser cannot allocate beyond the configured representation envelope without a typed failure.
-
-**Suggested commit checkpoint:** `feat: read bounded ontology responses`
-
-#### Task 8.2 — implement safe OASIS catalog reader
-
-**Files**
-
-- Create `oasisXmlOntologyCatalog.js`, fixtures, and tests.
-
-**Interface**
-
-```javascript
-createOasisXmlOntologyCatalog({ catalogIri, fetchImpl, limits })
-  .resolve(sourceDocumentIri, { signal })
-```
-
-It coalesces acquisition and also supports `remember(sourceDocumentIri, artifactIri)` for a session-local newly materialized mapping.
-
-**Steps**
-
-1. Add failing tests for exact mappings, seed/dynamic order, relative `nextCatalog`, XML base, cycles, same-origin path restriction, abort, file/entry/byte limits, malformed/DTD/entity input, duplicate conflict, fetch failure degradation, and session mapping.
-2. Implement feature-detected DOM parsing with explicit namespace checks and no external resolution.
-3. Freeze the resulting map and diagnostic set.
-4. Add deterministic acquisition/parse performance tests at 1,000, 10,000, and 25,000 entries.
-5. Verify generated backend catalogs resolve identically.
-
-**Verification command**
-
-```powershell
-npm test -- --runInBand src/ontology-loading/oasisXmlOntologyCatalog.test.js
-```
-
-**Completion gate**
-
-The reader safely consumes the generated OASIS profile, fails degradably, and meets catalog size/performance budgets.
-
-**Suggested commit checkpoint:** `feat: resolve OASIS ontology catalog mappings`
-
-#### Task 8.3 — implement materialization client
-
-**Files**
-
-- Create `ontologyMaterializationClient.js` and tests.
-
-**Interface**
-
-```javascript
-createOntologyMaterializationClient({
-  collectionIri,
-  fetchImpl,
-  cryptoImpl,
-  clock,
-  random,
-  limits,
-}).materialize(sourceDocumentIri, { signal, onStateChange })
-```
-
-Return a bounded final artifact response plus its verified artifact IRI.
-
-**Steps**
-
-1. Add failing tests for exact body bytes/hash, missing Web Crypto/secure context, preflight-relevant headers, 202/Retry-After parsing, recursive backoff/jitter, 303 automatic follow, final-origin/path verification, every error code, 410 resubmission semantics, abort, 60-second total budget, coalescing, four-submission semaphore, and no credentials.
-2. Implement SHA-256 with Web Crypto and manual lowercase hex conversion compatible with the frozen browser matrix; feature-detect newer helpers rather than requiring them.
-3. Implement one Fetch operation at a time and recursive delay with cancellation.
-4. Accept only HTTPS service endpoints and final artifact path grammar.
-5. Normalize service errors into public `owlapi` document/security/resource errors without message matching.
-6. Run unit and real-browser preflight/redirect tests.
-
-**Verification command**
-
-```powershell
-npm test -- --runInBand src/ontology-loading/ontologyMaterializationClient.test.js
-```
-
-**Completion gate**
-
-The client satisfies the Function URL OAC body-hash contract, never spins/overlaps, and propagates cancellation/errors correctly.
-
-**Suggested commit checkpoint:** `feat: request validated ontology materialization`
-
-#### Task 8.4 — implement the deep document loader
-
-**Files**
-
-- Create `webVowlOntologyDocumentLoader.js`, configuration, tests, and integration test.
-
-**Steps**
-
-1. Write failing precedence tests for in-memory/catalog hit, direct success, HTTP→HTTPS, direct readable error, Fetch rejection fallback, mixed-content fallback, abort/no fallback, resource failure/no fallback, materialization success, pending timeout, source-document-IRI preservation, content hints, concurrent coalescing, and progress events.
-2. Implement the sole `load` interface by composing the three internal modules.
-3. Use `credentials: "omit"` everywhere and no `no-cors` request.
-4. Return only public `StringDocumentSource` values from the installed package.
-5. Add an architecture test prohibiting browser materialization policy inside `owlapi`, use as IRI mapper, a second ontology fetch path, or import from the retired source tree.
-6. Run focused, integration, full Jest, lint/format, development, and production builds.
-
-**Verification commands**
-
-```powershell
-npm test -- --runInBand src/ontology-loading/webVowlOntologyDocumentLoader.test.js
-npm test -- --runInBand src/ontology-loading/ontologyLoading.integration.test.js
-npm run lint
-npm run format:check
-npm run build:dev
-npm run build
-```
-
-**Completion gate**
-
-The loader is a deep application module behind the accepted public `owlapi` seam, with one deterministic precedence/error policy and no duplicate mapping/fetch logic.
-
-**Suggested commit checkpoint:** `feat: add cache-aware ontology document loader`
-
-### Cache Phase 9 — integrate WebVOWL top-level/import loading and retire the static runtime catalog
-
-#### Task 9.1 — route root and imports through one loader
-
-**Files**
-
-- Modify the post-Phase-20 `src/owl2vowl/js/index.js`, application composition root, `loadingModule.js`, lifecycle/UI tests, and architecture tests.
-
-**Steps**
-
-1. Characterize current top-level IRI, static catalog import, missing import diagnostic, cancellation, and VOWL semantic outputs.
-2. Add failing tests proving top-level CORS fallback and an imported CORS fallback use the same loader/session.
-3. Inject one loader from the application composition root into top-level retrieval and `OWLManager`.
-4. Preserve local file/direct input and VOWL-JSON loading semantics.
-5. Wire bounded progress events into existing accessible loading status.
-6. Abort the previous resolution session when a new ontology load begins.
-7. Run all current production corpus/differential/VOWL snapshot tests and inspect changes; no output change is accepted merely because retrieval location changed.
-
-**Verification commands**
-
-```powershell
-npm test -- --runInBand src/app/js/loadingModule.test.js
-npm test -- --runInBand src/owl2vowl/js/index.test.js
-npm test -- --runInBand src/owl2vowl/test/productionCorpus.test.js
-npm test -- --runInBand
-```
-
-**Completion gate**
-
-One loader owns root/import network policy; VOWL semantic outputs and non-remote workflows remain green.
-
-**Suggested commit checkpoint:** `refactor: unify WebVOWL ontology document loading`
-
-#### Task 9.2 — replace runtime `ONTOLOGY_CATALOG`
-
-**Files**
-
-- Modify `constants.js`/tests and architecture tests.
-- Delete `importResolver.js`/test only at the final green step.
-
-**Steps**
-
-1. Add a failing architecture test that production code contains no `ONTOLOGY_CATALOG` mapping object and no export of a mutable/runtime catalog object.
-2. Prove the staged seed catalog resolves every former key to a semantically equivalent validated artifact.
-3. Remove `ONTOLOGY_CATALOG`, its mapping-only helpers/exports, and resolver construction.
-4. Retain `ONTOLOGY_BASE_URL` only if another responsibility uses it; otherwise replace it with the exact stable endpoint names in `ontologyLoadingConfiguration.js`.
-5. Delete the superseded resolver and tests.
-6. Run all WebVOWL tests/builds and source scans for the old symbol/path.
-
-**Verification commands**
-
-```powershell
-rg -n "ONTOLOGY_CATALOG|WebVowlImportResolver|src/owlapi-js|\.\./\.\./owlapi-js" src
-npm test -- --runInBand
-npm run build
-```
-
-**Completion gate**
-
-No dynamic mapping requires a WebVOWL source release; all former seed behaviour is served through the catalog/data plane.
-
-**Suggested commit checkpoint:** `refactor: replace bundled ontology mapping with OASIS catalog`
-
-### Cache Phase 10 — validate and stage the seed catalog
-
-#### Task 10.1 — make the seed importer executable and safe
-
-**Files**
-
-- Complete `stage_validated_ontology_seed_catalog.mjs`, manifest, tests, and seed catalog generation.
-
-**Interface/commands**
-
-The script has explicit modes:
-
-```text
---dry-run
---stage-to-local-directory
---apply-to-approved-aws-account
-```
-
-Apply mode requires exact account/region/bucket/table confirmation, a reviewed manifest digest, and a separate live mutation approval.
-It does not infer target from ambient defaults alone.
-
-**Steps**
-
-1. Add failing tests for wrong account/region, manifest digest mismatch, invalid seed, content change, duplicate bytes, curated alias, dry-run no writes, conditional S3 write, seed registry collision, and partial failure recovery.
-2. Use the same canonicalizer, safe retriever, validator, artifact repository, and OASIS projector as production; do not create a permissive seed-only path.
-3. In dry-run, fetch/validate all approved sources, calculate digests/provenance, and report differences without AWS writes.
-4. Review invalid/moved/licence/takedown findings individually.
-5. Stage locally and run WebVOWL/independent OASIS resolution against the generated seed catalog.
-6. After explicit approval, write artifacts/provenance/seed registry records conditionally, publish immutable `seed/v1`, and publish the stable root only after complete verification.
-7. Update the manifest from `DISCOVERED` to `STAGED` with exact artifact digests/evidence through a reviewed source change; never regenerate silently after upload.
-
-**Verification commands**
-
-```powershell
-node --test Lambda/Applications/ValidatedOntologyCache/test/stageValidatedOntologySeedCatalog.test.js
-node scripts/stage_validated_ontology_seed_catalog.mjs --dry-run
-node scripts/stage_validated_ontology_seed_catalog.mjs --stage-to-local-directory
-```
-
-**Completion gate**
-
-Every seed mapping resolves from a conformant catalog to bytes accepted by the exact runtime profile; production apply evidence is complete and replay-safe.
-
-**Suggested commit checkpoint:** `data: publish validated ontology seed catalog evidence`
-
-### Cache Phase 11 — dark deploy and live canary
-
-#### Task 11.1 — deploy infrastructure with materialization disabled
-
-**Prerequisites**
-
-- Explicit deployment approval for exact `cdk diff`.
-- Backup/recovery evidence for affected distribution/configuration.
-- `materializationEnabled = false` initial state.
-- WAF rule action `COUNT`.
-- No production WebVOWL build references the endpoint yet.
-
-**Steps**
-
-1. Deploy regional data stack.
-2. Verify bucket/table/queues/functions/logs privately; direct Function URL access fails.
-3. Deploy global distribution changes.
-4. Wait for CloudFront propagation and verify existing website/ontology paths before adding bindings.
-5. Deploy regional access bindings and verify OAC reads/invokes.
-6. Verify WAF count metrics, selected CloudFront log delivery, dashboard, alarms, and no sensitive fields.
-7. Apply seed catalog through its separately approved command.
-8. Fetch every stable/immutable path from multiple edge locations where practical; inspect cache headers/hit transitions.
-9. Run full current website smoke tests and compare CloudFormation drift/diff.
-
-**Completion gate**
-
-New data plane is healthy, control plane rejects new work by design, existing distribution behaviour is unchanged, and cost/log evidence matches projection.
-
-No automatic commit or push follows a deployment.
-
-#### Task 11.2 — enable controlled canary materialization
-
-**Steps**
-
-1. Explicitly enable materialization for the approved canary window.
-2. Run controlled no-CORS valid source; prove 202 → pending → 303 → artifact, validation/provenance, catalog dirty event, immutable generation, and stable root update.
-3. Run invalid, forbidden, oversized, timeout, redirect, duplicate, and concurrent canaries.
-4. Verify source-document-IRI/relative-IRI semantics in parsed VOWL output.
-5. Verify direct Function URL remains inaccessible and SSRF forbidden canary makes no connection.
-6. Verify CloudFront artifact second read is a hit and invokes no API/worker/DynamoDB.
-7. Verify a new browser session resolves the source from the OASIS catalog without materialization.
-8. Trigger/simulate budget kill; confirm new work stops while reads/site remain.
-9. Return materialization to disabled until WebVOWL rollout approval.
-
-**Completion gate**
-
-All live contracts and security/cost controls match local evidence; no unexpected spend, sensitive log field, or resource drift remains.
-
-### Cache Phase 12 — WebVOWL rollout and WAF enforcement
-
-#### Task 12.1 — release WebVOWL with the loader enabled
-
-**Steps**
-
-1. Build from a clean install resolving the exact accepted `owlapi` package.
-2. Run full tests/build/corpus and real-browser matrix.
-3. Deploy WebVOWL only after separate approval.
-4. Enable materialization and observe an initial bounded rollout window.
-5. Compare direct, catalog, and materialization rates; confirm no loop repeatedly submits a ready source.
-6. Verify source attribution query does not fragment artifact cache.
-7. Verify no material increase in LCP/INP or initial main-thread work; catalog prefetch remains non-blocking.
-8. Record first-day and first-seven-day cost/usage/security evidence.
-
-**Completion gate**
-
-Production WebVOWL resolves representative root/import CORS failures through the cache while all local/direct/seed behaviours remain green.
-
-**Suggested commit checkpoint (only after code review, before deployment as authorized):** `feat: enable validated ontology cache resolution`
-
-#### Task 12.2 — tune and enforce WAF rule
-
-**Steps**
-
-1. Keep COUNT for at least seven full days including a 256-import closure test.
-2. Report per-IP count distribution only through WAF aggregate/safe sampling evidence; do not retain viewer IPs in application reports.
-3. Confirm 300/5-minute threshold does not block legitimate workloads and is low enough to limit bursts.
-4. Present exact Count→Block diff and observed false-positive/cost evidence for approval.
-5. Change only the rule action to BLOCK.
-6. Verify 429 response/Retry-After, ordinary API use, website/static paths, and metrics.
-7. Monitor for one additional complete week; roll back to COUNT if verified legitimate traffic is blocked.
-
-**Completion gate**
-
-The anonymous submission path has enforced edge rate protection with measured threshold evidence and no managed-rule cost expansion.
-
-### Cache Phase 13 — operational hardening and programme completion
-
-#### Task 13.1 — exercise refresh, quarantine, recovery, and reports
-
-**Steps**
-
-1. Run conditional 304, valid content change, invalid content change/last-known-good, transient failure, expired lease, DLQ redrive, and catalog CAS conflict drills.
-2. Quarantine a controlled canary source; publish new catalog; prove new sessions no longer map it and submissions receive 403.
-3. Roll the stable catalog root back to its previous S3 version/generation and forward again without editing immutable generations.
-4. Disable/re-enable materialization through the runbook, with explicit operator checks.
-5. Generate daily/monthly reports and reconcile them against CloudFront/WAF/Lambda/SQS/DynamoDB/S3 billing metrics.
-6. Review raw-log lifecycle and prove no excluded sensitive fields.
-7. Run S3 artifact-integrity sampling and registry/catalog referential-integrity report.
-8. Recalculate projected monthly cost from observed traffic and record budget headroom.
-
-**Completion gate**
-
-An operator other than the implementer can execute the documented drills from durable evidence without source-code guesswork.
-
-**Suggested commit checkpoint:** `docs: finalize ontology cache operations runbook`
-
-#### Task 13.2 — final verification and handoff
-
-**Steps**
-
-1. Run every focused/full suite and build from clean dependency installs in both repositories.
-2. Run CDK synth, cdk-nag, read-only diff/drift checks, bundle inventory, dependency audit, and licence/NOTICE/SBOM reconciliation.
-3. Run browser and live canary matrices.
-4. Search for retired source-tree imports/catalog symbols, unresolved template markers, debug logging, raw source-IRI logging, unbounded timers/retries, `no-cors`, credentials, private/deep `owlapi` imports, and permissive IAM.
-5. Reconcile this document’s file/interface/resource names with implemented names and record any approved deviation.
-6. Record production resource IDs, package versions/digests, catalog generation, seed manifest digest, validation profile, WebVOWL revision, cost baseline, WAF action, and rollback points.
-7. Pause for final review/commit authorization.
-   Do not mark complete while a required deployment, evidence record, or operational action remains.
-
-**Completion gate**
-
-Every §23 definition-of-done condition has dated evidence, the operator handoff is accepted, and no configuration/deployment/publication/commit/push approval is inferred or left unresolved.
-
-**Suggested commit checkpoint:** `docs: close validated ontology cache implementation`
+## 20. Traceable vertical delivery plan
+
+The following IDs express the supplied assessment as a draft, falsifiable baseline.
+They are not backdated approvals or claims that these tests have run.
+The repository owner accepts the requirements and names an integration owner before implementation; that owner coordinates package, schema, client and AWS compatibility across repositories.
+
+### 20.1 Requirements and acceptance criteria
+
+| Requirement                                                                  | Acceptance criterion                                                                                                                                                                                           | Supporting decisions |
+| ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| REQ-001: Use a real exact public package without a speculative release gate. | AC-001: Registry/lock/bundle integrity, exports, public format inventory and stage-policy fingerprints agree in both runtimes; rc.1 works without stable/rc.2-only features.                                   | DEC-001, DEC-005     |
+| REQ-002: Preserve exact source bytes and contextual meaning.                 | AC-002: Direct/cache fixtures preserve bytes and origin parser context; identical bytes under distinct bases have distinct validation identities; no source/format claim is attached solely to a byte digest.  | DEC-002, DEC-003     |
+| REQ-003: Distinguish document, closure, publication and consumer claims.     | AC-003: Incomplete/profile-invalid/resource-exceeded fixtures cannot claim closure validity; complete managed graphs have reproducible member/edge/report evidence and separately recorded consumer admission. | DEC-004              |
+| REQ-004: Bound and control every external acquisition.                       | AC-004: Adversarial DNS/redirect/encoding/import inputs cannot connect to forbidden destinations or escape byte/time/work limits; parser/context/entity network attempts are denied.                           | DEC-006, DEC-011     |
+| REQ-005: Make retries and publication safe.                                  | AC-005: Duplicate/reordered/crashed jobs converge; stale generations cannot promote; catalogs never reference absent objects or evidence; private staging cannot be fetched publicly.                          | DEC-008              |
+| REQ-006: Honour origin metadata and keep immutable snapshot claims precise.  | AC-006: 304/variant/restriction changes reuse only eligible bytes/evidence, conditional requests are resource-scoped, and quarantine removes future mappings without pretending old copies vanished.           | DEC-009              |
+| REQ-007: Serve interoperable catalogs without control-plane hits.            | AC-007: Seed-first OASIS and optional JSON resolve identically from one committed generation; complete hit/first-caller paths obtain correct immutable context through CloudFront/S3.                          | DEC-007, DEC-010     |
+| REQ-008: Preserve canonical consumer behaviour and rollback.                 | AC-008: Direct/cache corpus and 2,000-class browser workloads agree on semantics/source evidence/typed outcomes and obey unchanged budgets; direct-only bypass and prior deployment recovery pass.             | DEC-002, DEC-012     |
+| REQ-009: Operate with explicit privacy, rights and cost acceptance.          | AC-009: Logs exclude raw queries/viewer secrets, source/AGPL obligations and egress controls are reviewed, budget actions preserve site/data-plane health, and observed costs/drills support launch.           | DEC-011, DEC-012     |
+
+### 20.2 Quality scenarios
+
+| Scenario                                     | Stimulus and observable pass condition                                                                                                                                                                             |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| QA-001: Context integrity                    | Serve the same relative-IRI bytes from two origin bases and through the cache; each direct/cache pair agrees, the two validation identities differ, and no artifact URL becomes parser context.                    |
+| QA-002: Network containment                  | A public source redirects/rebinds to a prohibited IPv4/IPv6/metadata target; the connection recorder observes zero forbidden connects and the job terminates within its budget.                                    |
+| QA-003: Crash consistency                    | Interrupt each §9.4 write/send boundary and replay duplicates/out-of-order generations; only old-complete/new-complete eligible bindings become visible and recovery is bounded.                                   |
+| QA-004: Qualification precision              | Supply cyclic/shared imports, a missing member, a profile violation and a valid but over-budget consumer workload; only the fully qualified profile gets `CLOSURE_VALIDATED`, with independent admission outcomes. |
+| QA-005: HTTP evolution                       | Refresh 200→304, changed bytes, changed base/format/`Vary`, changed restrictions and timeout; fingerprints/eligibility/freshness change correctly without reusing stale semantic proof.                            |
+| QA-006: Browser performance and cancellation | Run direct/cache 2,000-class workloads across Chromium/Firefox/WebKit and cancel during fetch/poll/import/admission; accepted outputs and budgets agree, stale results cannot replace the active document.         |
+| QA-007: Availability and recovery            | Disable control-plane work, fail an origin, roll catalog/deployment back and activate bypass; published reads/site remain healthy and direct-only limitations are visible.                                         |
+| QA-008: Privacy and economics                | Submit sources/viewer URLs with sensitive query material and simulate quota/budget events; no normal log/public rejection leaks it, new work stops, fixed/shared costs remain explicitly accounted.                |
+
+### 20.3 Slice traceability and proof
+
+In this table, `REQ/AC-001–003` denotes REQ-001 through REQ-003 together with their matching AC-001 through AC-003 criteria; the same inclusive range convention applies to QA/DEC IDs.
+
+| Slice                                                               | REQ / AC / QA / DEC links                                         | Independently demonstrable proof                                                                                                                                          | Release/cleanup implication                                                                                            |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| SLICE-001: Pin semantics and qualify one offline source             | REQ/AC-001–003; QA-001, QA-004; DEC-001–005                       | The installed Node/browser package parses one pinned source with a reproducible context/format/policy identity; same bytes at two bases do not alias.                     | No AWS mutation; freeze accepted contract and remove obsolete release/file-map assumptions.                            |
+| SLICE-002: Retrieve and validate one bounded source                 | REQ/AC-002, 004, 006; QA-001, 002, 005; DEC-003, 005, 006, 009    | Controlled source → exact bytes/private staging → typed document result, including DNS/redirect/encoding/304 failure proof.                                               | No public unvalidated bytes; egress design/rights decisions precede live use.                                          |
+| SLICE-003: Materialize and publish one durable binding              | REQ/AC-002, 005, 007; QA-001, 003; DEC-007, 008, 010              | Local/admitted integration POST → queue → validated immutable artifact/evidence → source commit → catalog/303 resolution, with every crash boundary exercised.            | Introduce versioned schemas/prefixes only after approval; orphan reconciliation preserves referenced data.             |
+| SLICE-004: Qualify one managed closure                              | REQ/AC-003–005; QA-002–004; DEC-004, 006, 008                     | Root/diamond/cycle/missing-import fixtures produce exact graph/report manifests through pinned document acquisition, with restart and separate consumer outcome.          | No flattened source; resumable bounded work and stale-member invalidation; publish only the claimed qualification.     |
+| SLICE-005: Open the same canonical document directly and from cache | REQ/AC-001–003, 007–008; QA-001, 004, 006; DEC-002, 005, 010, 012 | Current root/import source acquisition and worker sessions produce matching source evidence, semantic result and typed failures with controlled cancellation.             | Cache/bypass composition is reversible; retire only proven redundant live paths.                                       |
+| SLICE-006: Revalidate, quarantine and reconcile a published source  | REQ/AC-005–009; QA-003, 005, 007, 008; DEC-008–012                | 304/change/outage/quarantine, lost dirty event, root CAS and policy/package requalification drills preserve permitted old bindings and reject stale proof.                | Complete operations/runbook, privacy-safe reporting, staging/orphan retention and feature-only cost control.           |
+| SLICE-007: Dark deploy and qualify approved seeds/canaries          | REQ/AC-001–009; QA-001–008; DEC-001–012                           | Exact CDK diff/synth/IAM/licence evidence, private OAC endpoints, staged seed parity, controlled live first-caller/hit and budget/security canaries.                      | Separate approval for resources, logging/WAF/seed publication; disable admission after canary until rollout authority. |
+| SLICE-008: Roll out, observe and hand over                          | REQ/AC-007–009; QA-006–008; DEC-007, 011, 012                     | Full corpus/workload matrix, direct-only/deployment/catalog rollback, seven-day COUNT evidence, approved BLOCK and subsequent observation, report/billing reconciliation. | Retain previous deployment/generations; named observer accepts production outcome and remaining cleanup.               |
+
+### 20.4 Dependencies and integration ownership
+
+SLICE-001 precedes identity-dependent work.
+SLICE-002 establishes the network/document contract used by SLICE-003; the latter demonstrates a full single-document publication path before closure and UI expansion.
+SLICE-004 and SLICE-005 both consume the frozen document/evidence contract; coordinate their shared schema/policy decisions through one integration owner.
+SLICE-006 completes refresh and operational behaviour; SLICE-007 requires those controls, exact configuration approval, cost/egress/rights evidence and seed staging.
+SLICE-008 requires the dark/canary gates and explicit rollout authority.
+
+Read-only source inventory, package evidence and account/cost inspection may be semantically independent.
+Parallel write work is optional only after owners and shared contracts are frozen; this plan grants no delegation authority.
+Use scoped feedback during each slice, affected regression checks at integration and the accepted R2 final verification/independent assurance before release.
+Do not rerun every expensive suite after each sentence or helper change.
+
+### 20.5 Migration, resumption and cleanup
+
+This is a new cache schema, not permission to discard historical catalog data.
+Seed migration starts from historical accepted logical mappings and a fresh approved source inventory; dry-run and local staging precede exact-account apply.
+Bind apply to account/region/bucket/table, reviewed manifest digest and exact package/policy identities.
+Partial apply reconciles conditional objects/records by identity before retry; it does not regenerate a manifest silently.
+
+Package or loader-policy changes create new validation/closure/resolution identities and a parallel catalog generation over existing immutable bytes.
+Keep the old consumer/generation available until both consumers pass the new contract; a mixed-version reader must reject unsupported evidence rather than reinterpret it.
+No revalidation invents source-preservation proof absent from the new package report.
+Schema migration, if later needed, declares readers/writers, interruption/reconciliation and rollback before changing durable records.
+Do not delete old deployment, source, seed, staging or qualification evidence until reference/retention/incident obligations are resolved.
+
+### 20.6 Unknowns, cheapest probes and re-planning triggers
+
+| Unknown / owner                                   | Cheapest discriminating evidence                                                                                       | Required response                                                                        |
+| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Exact runtime/package support / integration owner | Installed public-package smoke tests in the actual supported Lambda Node patch/runtime and browser worker.             | Replan runtime/bundling on mismatch; do not choose an older package silently.            |
+| Context and source qualification / semantic owner | Same-bytes/two-bases, redirects, malformed encodings and incomplete-closure fixtures using current public APIs.        | Fix the acquisition contract or obtain a bounded producer decision; no private shim.     |
+| Network defence / infrastructure-security owner   | Controlled connector/canary plus a costed independent-egress comparison.                                               | Owner accepts residual risk or revises topology/budget before live deployment.           |
+| Durable republication / source/licence owner      | Review seed directives/rights and exact worker/AGPL corresponding-source obligations.                                  | Exclude the affected source or block deployment until cleared; no fabricated permission. |
+| USD 10 feasibility / account owner                | Preceding 90 days of traffic/free-allocation use and current calculator output including WAF/shared logs/closure work. | Reopen scope/topology before resources if headroom is insufficient.                      |
+| Catalog and closure scale / consumer owner        | Logical-corpus and 25,000-entry/2,000-class bounded benchmarks.                                                        | Generate an index only if justified; do not relax safety or public consumer limits.      |
+
+Re-baseline on any new public contract, package/policy/decoder/base rule, schema, rights/egress assumption, authority boundary, unacceptable workload result or cost/topology change.
+Accepting this plan is not accepting a later changed requirement or test oracle.
+
+### 20.7 Assessment recommendation coverage
+
+| Assessment recommendation group                                                                             | Synthesis location / disposition                                                                                                     |
+| ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Exact published RC, no Phase 20/stable/rc.2 dependency; producer improvements optional                      | §2, SLICE-001. The documented native npm alias is retained.                                                                          |
+| Canonical acquisition/session seam; exact source rather than reserialization; metadata-owned formats        | §§4–7, 10–11, 17–19, SLICE-001/005.                                                                                                  |
+| Separate fetched/document/closure/publication states, context identity, policy/versioning, consumer budgets | §§9, 11, QA-001/004, SLICE-003/004.                                                                                                  |
+| Redirect/DNS/SSRF, no ambient network, independent egress                                                   | §§7, 11–12, QA-002, SLICE-002/007. The blanket remoteImports=false wording is reconciled with the injected closure loader.           |
+| Explicit decoding and parser-input digest                                                                   | §§4, 10–11. Strict UTF-8 matches the current consumer; unsupported encoding is explicit, not a global release wait.                  |
+| HTTP validators/304/variation, conservative IRI identity, differentiated TTLs                               | §§1.1, 4, 7.5, 12.3, 13, QA-005, SLICE-006.                                                                                          |
+| Idempotent queue/generations, durable publication, S3 checksums                                             | §§9–10, QA-003, SLICE-003/006. Private staging reconciles pre-validation persistence with the no-public-unvalidated-bytes invariant. |
+| One model for OASIS and optional compact JSON                                                               | §§6.4, 10.5. JSON is conditional on benchmark evidence, not a second source of truth.                                                |
+| URL redaction, cross-runtime tests, parser regressions, corpus bundling and cache-hit workloads             | §§15, 19, QA-006/008, SLICE-005/008. Raw CloudFront query logging is removed from the proposed fields.                               |
+| Previous deployment and cache bypass                                                                        | §§17, 21–23, QA-007, SLICE-008. Direct-only mode retains ordinary CORS limitations and does not promise unavailable source access.   |
 
 ---
 
@@ -3007,35 +1819,40 @@ Every §23 definition-of-done condition has dated evidence, the operator handoff
 ### 21.1 Rollout order
 
 ```text
-Phase 20 production package proof
-  → contracts/security/domain tests
-  → private regional resources
-  → dark CloudFront behaviours + WAF COUNT + logs
-  → validated seed/catalog
-  → controlled live materialization canary
-  → WebVOWL client deployment
-  → observed production enablement
-  → WAF BLOCK
-  → refresh/quarantine/recovery drills
+exact public-package and semantic contract proof
+  → bounded source → durable single-document publication → managed closure qualification
+  → canonical direct/cache equivalence + operational recovery/cost/privacy controls
+  → approved private regional resources and dark CloudFront behaviours
+  → validated approved seed/catalog + controlled live canary
+  → separately approved WebVOWL deployment with direct-only bypass available
+  → observed production enablement with WAF COUNT
+  → at least seven complete days and representative closure evidence
+  → separately approved WAF BLOCK → additional week of observation
+  → accepted runbook, budget reconciliation and cleanup disposition
 ```
 
-Never deploy the client before the stable catalog and disabled/controlled API paths are reachable. Never enable WAF BLOCK before count evidence. Never delete the static catalog/resolver until seed parity and client rollback are proven.
+The integration owner names a responsible production observer and measurable abort thresholds before each live window: forbidden outbound connection, unvalidated publication, context/digest mismatch, sensitive log disclosure, legitimate WAF blocking, material consumer regression or exhausted cost headroom.
+Never deploy the client before stable catalogs and controlled API paths are reachable.
+Retain the known-good build and approved direct-only bypass throughout observation; direct-only mode remains subject to origin CORS and cannot guarantee access to every uncached ontology.
+Historical seed/catalog parity is proven without restoring the retired runtime constant.
 
 ### 21.2 Rollback layers
 
 | Failure                           | First rollback                                                                             | Data preserved                                                        |
 | --------------------------------- | ------------------------------------------------------------------------------------------ | --------------------------------------------------------------------- |
-| New-source cost/abuse             | Set `materializationEnabled=false`                                                         | Website, catalog, READY artifacts, registry/queue evidence.           |
+| New-source cost/abuse             | Set `materializationEnabled=false`                                                         | Website, catalog, published artifacts, registry/queue evidence.       |
 | WAF false positive                | Change rule BLOCK→COUNT                                                                    | All traffic/data; metrics retained.                                   |
-| Client loader regression          | Deploy prior WebVOWL build                                                                 | Cache infrastructure/catalog remains dark/usable; no source deletion. |
+| Client loader regression          | Activate approved direct-only acquisition; deploy prior WebVOWL build                      | Cache infrastructure/catalog remains dark/usable; no source deletion. |
 | Bad catalog root                  | Restore prior root version or repoint to prior immutable dynamic generation                | All generations/artifacts retained.                                   |
 | Bad dynamic mapping               | Quarantine source and republish generation                                                 | Artifact/provenance retained for audit; seed unchanged.               |
-| Worker/parser regression          | Disable admission and event-source mapping; deploy previous worker bundle                  | Pending queue/registry and READY artifacts retained.                  |
+| Worker/parser regression          | Disable admission and event-source mapping; deploy previous worker bundle                  | Pending queue/registry and published artifacts retained.              |
 | API regression                    | Disable admission/deploy previous API bundle                                               | S3 data plane remains readable.                                       |
 | Distribution behaviour regression | Apply reviewed prior distribution config                                                   | Regional resources remain private; no bucket public fallback.         |
 | Security/legal artifact incident  | Quarantine, republish catalog, separately authorize invalidation/object-access containment | Audit evidence retained under incident policy.                        |
 
-Rollback never moves an immutable artifact/catalog generation to different bytes, reuses a digest path, turns the S3 bucket public, exposes the Function URL, disables TLS validation, or restores `ONTOLOGY_CATALOG` through a hidden source alias.
+Rollback never rewrites immutable artifact/evidence/catalog bytes, reuses a digest path, turns the bucket/staging public, exposes the Function URL, disables TLS checks, bypasses consumer admission or restores a retired source alias.
+Read and reconcile exact remote state before retrying interrupted writes.
+A package rollback restores the compatible consumer/policy/generation set; it does not reinterpret new validation records under old software.
 
 ### 21.3 Ambiguous external writes
 
@@ -3050,12 +1867,14 @@ For CDK deployment, S3 write, DynamoDB transition, WAF update, budget action, se
 
 ### 21.4 Degraded operation
 
-- Catalog unavailable: try direct, then materialization.
+- Catalog unavailable or incompatible: try controlled direct retrieval, then eligible materialization; direct-only bypass never calls materialization.
 - Materialization disabled/unavailable: catalog and direct paths still work; show a specific diagnostic.
-- DynamoDB/SQS/Lambda unavailable: READY S3/catalog reads still work.
+- DynamoDB/SQS/Lambda unavailable: published S3/catalog reads still work.
 - Upstream unavailable: catalog hit works; unknown source receives transient failure.
 - Catalog publisher delayed: first caller receives final artifact directly and session mapping; future catalog discovery waits.
-- Revalidation fails: last-known-good remains.
+- Transient revalidation fails: eligible last-known-good remains; changed restrictions/quarantine use containment instead.
+- Closure qualification incomplete: keep the document mapping with its actual validation level; do not advertise a full closure pass.
+- New package/policy cannot read old evidence: bypass/revalidate under the new identity; never infer compatibility.
 - Reporting unavailable: request serving continues; alarm/report backlog is operational debt and does not mutate source state.
 
 ---
@@ -3082,6 +1901,11 @@ For CDK deployment, S3 write, DynamoDB transition, WAF update, budget action, se
 16. Recover from a failed/ambiguous CDK deployment without destructive Git or CloudFormation shortcuts.
 17. Produce daily/monthly private reports and retention evidence.
 18. Perform security incident containment without deleting audit evidence.
+19. Reconcile source/validation/resolution/closure identities, stale-member manifests and document-versus-consumer failures.
+20. Recover private staging, lost enqueue/catalog intents and generation-fenced jobs; remove only proven unreferenced objects under approved retention.
+21. Activate/verify direct-only acquisition and restore a matching consumer/policy/catalog generation.
+22. Diagnose conditional 304, changed Vary/encoding/base restrictions, requalification and source republication eligibility.
+23. Verify the chosen independent egress controls or retained owner-approved residual risk and the associated operating cost.
 
 Every procedure names the expected account/region/resource, read command, decision criteria, mutation command/API, postcondition check, rollback, and evidence location. Examples use symbolic identifiers defined in the runbook and must require operators to resolve/confirm them before mutation; they never encourage commands against a wildcard account or broad bucket prefix.
 
@@ -3089,68 +1913,65 @@ Every procedure names the expected account/region/resource, read command, decisi
 
 ## 23. Definition of done
 
-This programme is complete only when all of the following are true:
+This section defines future implementation/release acceptance, not completion of the present plan synthesis.
+Every REQ/AC/QA has dated evidence bound to exact source, package, policy, configuration and catalog identities.
 
-### 23.1 Package and application boundary
+### 23.1 Package and consumer boundary
 
-- Phase 20 is complete and evidenced.
-- Browser and Lambda use the same exact accepted public `owlapi` registry artefact and profile.
-- No current/retired `src/owlapi-js` import, local/workspace/Git/alias dependency, private deep import, parser registry, or duplicate package tree participates.
-- `owlapi` performs no ambient network; every outbound request belongs to an injected application/worker policy.
-- Source document IRI remains parser context when bytes come from HTTPS upgrade, redirect, S3, or shared content digest.
-- WebVOWL root and imports use one loader/session and retain VOWL semantic output parity.
+- Both runtimes use the same exact publicly installable package/integrity and metadata-derived format authority; the documented native npm alias is allowed.
+- No retired package/converter tree, private parser path, local/Git/workspace fallback or duplicate package implementation participates.
+- Direct and cached bytes reach the current canonical worker/session contracts with the same effective origin parser context and exact original-source exports.
+- Root/import acquisition, cancellation, stale-result handling and unchanged resource/admission policy pass the full corpus and 2,000-class Chromium/Firefox/WebKit matrix.
 
-### 23.2 Validation and integrity
+### 23.2 Identity, validation and publication
 
-- Only representations accepted by `webvowl-compatible-document-v1` are READY/catalog eligible.
-- All upstream/document/parser work has tested finite byte/time/import/depth/redirect/retry limits.
-- Remote imports, remote JSON-LD contexts, and XML external entities are disabled during worker validation.
-- Artifacts are immutable SHA-256 paths written conditionally; registry/catalog references pass integrity checks.
-- Declared ontology/version/redirect IRIs are metadata only; no unreviewed alias exists.
-- Seed mappings are complete, curated, validated, immutable, and precedence-protected.
-- Refresh retains last-known-good and quarantine reliably removes future mapping.
+- Stored SHA-256 identifies content-decoded bytes; character decoding is fatal, explicit and compatible with the consumer, with unsupported encodings reported distinctly.
+- Validation identities include parser base, exact public format/package/integrity, policy and contract; byte deduplication never reuses an unrelated context's evidence.
+- Document/source/closure/profile/publication/admission claims are separate; incomplete or unverified evidence cannot claim `CLOSURE_VALIDATED`.
+- Root manifests preserve exact managed members/edges, cycles/shared imports and full profile/source reports without flattening source documents.
+- Private staging is inaccessible through CloudFront; only validated exact bytes and durable evidence become eligible published bindings.
+- Conditional generation/lease/policy checks, outbox recovery, SQS duplication/reordering and every persistence-boundary crash drill pass.
 
-### 23.3 Security and privacy
+### 23.3 Security, privacy and rights
 
-- URL/DNS/connection/redirect SSRF controls pass the complete IPv4/IPv6/adversarial corpus and live forbidden canary without a connection.
-- No credentials/cookies/caller headers flow upstream; no private/no-store/session response is published.
-- WAF rate rule is measured then enforced; daily quota, worker concurrency, attempts, queue/DLQ, kill switch, and body/byte limits operate.
-- Function URL is inaccessible directly and CloudFront permissions are distribution-scoped.
-- Artifact bucket is private/OAC-only; IAM policies are least privilege; no NAT/KMS/managed-rule fixed-cost surprise exists.
-- Logs/reports omit raw viewer IP, cookie, user agent, referrer, request body, source IRI in routine events, and high-cardinality CloudWatch dimensions.
-- Cache/takedown policy, provenance, AGPL/dependency notices, and security contacts are published/reviewed.
-- The approved corresponding-source mechanism resolves every deployed worker revision to complete, reproducible source/build inputs for the worker and exact bundled `owlapi`; the recorded licence review has no open deployment condition.
+- Every actual connection/redirect is subject to proven URL/DNS/address pinning and finite limits; parser ambient fetch, remote contexts and XML external entities are denied.
+- Egress topology and residual risk have explicit owner/security acceptance; IAM/OAC/function/bucket boundaries pass live forbidden-access canaries.
+- New-source/closure quotas, WAF COUNT-to-BLOCK evidence, worker concurrency/deadlines, DLQ and kill-switch controls work without disabling the site/data plane.
+- No credentials, viewer identifiers, source excerpts or unreviewed query strings enter routine logs or public rejection data.
+- Source rights/cache directives, quarantine/takedown and exact deployed AGPL/notices/corresponding-source obligations have no unresolved launch condition.
 
-### 23.4 Caching and catalog
+### 23.4 HTTP and catalog integrity
 
-- Catalog/artifact hits are CloudFront→S3 only and invoke no Lambda/DynamoDB/SQS.
-- Artifact and immutable catalog responses cache one year with immutable identity; root caches five minutes with tested stale behaviour; API never caches.
-- OASIS root/seed/dynamic files are conformant, deterministic, exact, seed-first, and consumable by WebVOWL plus an independent resolver.
-- First caller succeeds from the 303 artifact without waiting for catalog propagation; later session resolves from catalog.
-- Viewer `source` query is absent from artifact cache/origin keys and cannot fragment content.
-- Existing legacy ontology paths/rewrite behaviour and website remain unchanged.
+- Source validators, variants, content decoding and 200/304/restriction changes are reconciled; ineligible immutable republication is rejected and package/policy changes requalify evidence.
+- Catalog/artifact/evidence hits are CloudFront/S3 only; first callers obtain immutable parser-context bindings without waiting for the catalog.
+- OASIS, seed precedence and optional generated JSON are deterministic and independently validated against the same committed model.
+- Immutable/mutable/API cache headers and validators match their identities; query tokens cannot fragment bytes or spoof accepted source context.
+- A catalog generation never points to absent objects/evidence; refresh, quarantine, root rollback and cross-store reconciliation pass with honest limits on recalling old copies.
 
-### 23.5 Cost and operations
+### 23.5 Operations, budget and delivery
 
-- Distribution stays CloudFront pay-as-you-go and Route 53 remains independently managed.
-- Observed projected monthly incremental cost is below USD 10 with documented headroom; WAF total-distribution cost is included.
-- CloudFront/Lambda/SQS/DynamoDB/S3/CloudWatch/Athena actual usage reconciles with private reports and AWS billing data.
-- USD 7 actual, USD 9 forecast, and USD 10 actual controls notify/disable new work as designed without disabling the distribution.
-- Raw/aggregate retention, alarms, dashboard, Athena byte cutoff, report idempotency, and source attribution caveat are operational.
-- Rollback, refresh, DLQ, quarantine, catalog restore, kill/re-enable, cost-spike, and incident drills have dated passing evidence.
-- Final clean tests/builds/CDK synth/nag/diff/browser/live canary/dependency/licence/SBOM checks pass.
-- No required configuration approval, deployment, evidence record, review checkpoint, or runbook action remains outstanding.
+- Current account/region/runtime versions, 90-day traffic, WAF shared-distribution cost and the revised closure/staging/egress costs support the accepted USD 10 target with observed headroom.
+- USD 7 actual/USD 9 forecast/USD 10 actual controls notify/contain new work as approved; delayed billing and continuing fixed/data-plane costs are explicit.
+- Private reports reconcile source work and artifact traffic without unsupported exact viewer-source attribution; retention and query cutoffs operate.
+- Known-good build, direct-only bypass, catalog/consumer-policy rollback, DLQ, refresh, quarantine, cost and incident drills are reproducible by the named observer/operator.
+- Final relevant HISEW checks, independent verification, scoped security/semantic/operations/licence reviews, browser/live canaries and operator handoff have passing evidence for the accepted target.
+- No required configuration, production or delivery decision is inferred.
+  Commit, push, deployment and publication occur only within their separately granted authority.
 
 ---
 
 ## 24. Normative and current guidance references
 
-### 24.1 Local architecture/package sources
+### 24.1 Revision and package sources
 
-- [Canonical standalone `owlapi` implementation plan](https://github.com/Hadden-Industries/owlapi/blob/main/docs/implementation-plan.md)
-- [Standalone `owlapi` ontology-lifecycle capability plan](https://github.com/Hadden-Industries/owlapi/blob/main/docs/ontology-lifecycle-capability-implementation-plan.md)
-- Current WebVOWL `src/owl2vowl/js/constants.js`, `importResolver.js`, `index.js`, `src/app/js/loadingModule.js`, and `src/shared/js/util/resolveFetchUrl.js` as migration evidence only.
-- Current `amazon-aws/app.py`, `infrastructure/stack.py`, `CloudFront/Functions/RewriteOntologyURI.js`, and `Lambda/Functions/DisableCloudFrontOnCostLimit.js` as deployment evidence only.
+- [Supplied deep-research assessment](../reviews/Validated%20Ontology%20Materialisation%20Cache_%20deep-research%20assessment%20and%20recommended%20plan%20revisions.md), including its 5 October 2026 research cutoff.
+  Its opaque original file-citation tokens are not independently retrievable links; this plan cites the supplied file and verified sources instead of treating those tokens as evidence artifacts.
+- [Public rc.1 release and downstream acceptance policy](https://github.com/Hadden-Industries/owlapi/releases/tag/v0.1.0-rc.1).
+- [Tagged public API](https://github.com/Hadden-Industries/owlapi/blob/v0.1.0-rc.1/API.md) and [npm package](https://www.npmjs.com/package/@hadden-industries/owlapi); exact registry identity and local lock/installed exports checked on 5 October 2026.
+- WebVOWL `0fbf00e`: `src/app/js/controller/canonicalVowlSourceAcquisition.js`, `importResolver.js`, canonical session/worker modules, `src/app/js/canonicalApplication.js` and `src/canonical-main.js`.
+- Consumer contract evidence: `packages/vowl/src/owl/loading.js`, `policy.js`, `compatibleLoading.js`; logical corpus reader `packages/vowl/conformance/storage.mjs`.
+- The prior [standalone package plan](https://github.com/Hadden-Industries/owlapi/blob/main/docs/implementation-plan.md) and [lifecycle plan](https://github.com/Hadden-Industries/owlapi/blob/main/docs/ontology-lifecycle-capability-implementation-plan.md) remain historical context, not gates overriding the published RC contract.
+- `amazon-aws` stack/rewrite/cost-control paths in §§5/14/18 remain predictions requiring current repository and account inspection before implementation; no deployed inventory is established by this revision.
 
 ### 24.2 Web and catalog standards
 
@@ -3158,6 +1979,10 @@ This programme is complete only when all of the following are true:
 - [WHATWG Fetch Standard](https://fetch.spec.whatwg.org/)
 - [WHATWG DOM Standard — `AbortSignal`](https://dom.spec.whatwg.org/)
 - [W3C Web Cryptography Level 2](https://www.w3.org/TR/WebCryptoAPI/)
+- [RFC 3986 — URI syntax, resolution and comparison](https://www.rfc-editor.org/rfc/rfc3986.html)
+- [RFC 8246 — Immutable HTTP responses](https://www.rfc-editor.org/rfc/rfc8246.html)
+- [W3C OWL 2 structural specification and imports closure](https://www.w3.org/TR/owl2-syntax/)
+- [OWASP Logging Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html)
 - [RFC 9110 — HTTP Semantics](https://www.rfc-editor.org/rfc/rfc9110.html)
 - [RFC 9111 — HTTP Caching](https://www.rfc-editor.org/rfc/rfc9111.html)
 - [RFC 5861 — stale HTTP cache controls](https://www.rfc-editor.org/rfc/rfc5861.html)
