@@ -48,7 +48,7 @@ const OWLAPI_OWNED_ROOT_DEPENDENCIES = [
   "rdfxml-streaming-parser",
 ];
 const WEBVOWL_OWNED_XML_DEPENDENCY = "0.9.12";
-const PACKAGE_CONFIGURATION_KEYS = ["imports", "overrides", "resolutions"];
+const PACKAGE_CONFIGURATION_KEYS = ["imports", "resolutions"];
 const CONFIGURATION_PATHS = [
   path.join(ROOT, "vite.config.mjs"),
   path.join(ROOT, "eslint.config.js"),
@@ -57,6 +57,12 @@ const MODULE_SPECIFIER_RULE_ID = "boundary/collect-module-specifiers";
 const javascriptLinter = new Linter({ cwd: ROOT });
 
 const readJson = (filePath) => JSON.parse(readFileSync(filePath, "utf8"));
+
+const hasUnexpectedOwlapiReference = (manifest) => {
+  const manifestWithoutCoordinate = structuredClone(manifest);
+  delete manifestWithoutCoordinate.dependencies?.owlapi;
+  return /\bowlapi(?:-js)?\b/iu.test(JSON.stringify(manifestWithoutCoordinate));
+};
 
 const boundedDiagnostics = (violations) => ({
   count: violations.length,
@@ -354,8 +360,6 @@ describe("installed owlapi consumer boundary", () => {
     const forbiddenKeys = PACKAGE_CONFIGURATION_KEYS.filter((key) =>
       Object.hasOwn(manifest, key),
     );
-    const manifestWithoutCoordinate = structuredClone(manifest);
-    delete manifestWithoutCoordinate.dependencies?.owlapi;
     const configurationMentions = CONFIGURATION_PATHS.filter((filePath) =>
       /\bowlapi(?:-js)?\b/iu.test(readFileSync(filePath, "utf8")),
     ).map(relative);
@@ -365,9 +369,31 @@ describe("installed owlapi consumer boundary", () => {
       readJson(path.join(ROOT, "packages", "vowl", "package.json")).name,
     ).toBe("vowl");
     expect(forbiddenKeys).toEqual([]);
-    expect(JSON.stringify(manifestWithoutCoordinate)).not.toMatch(
-      /\bowlapi(?:-js)?\b/iu,
-    );
+    expect(hasUnexpectedOwlapiReference(manifest)).toBe(false);
     expect(configurationMentions).toEqual([]);
+  });
+
+  test("permits unrelated dependency overrides beside the approved OWLAPI coordinate", () => {
+    expect(
+      hasUnexpectedOwlapiReference({
+        dependencies: { owlapi: EXPECTED_PACKAGE_SPECIFIER },
+        overrides: { "development-tool": { "yaml-parser": "4.0.0" } },
+      }),
+    ).toBe(false);
+  });
+
+  test.each([
+    ["direct", { owlapi: "file:../owlapi" }],
+    ["scoped", { "@hadden-industries/owlapi": "1.0.0" }],
+    ["version-qualified", { "owlapi@0.1.0-rc.1": "1.0.0" }],
+    ["nested", { consumer: { owlapi: "file:../owlapi" } }],
+    ["alias", { replacement: "npm:@hadden-industries/owlapi@1.0.0" }],
+  ])("detects %s OWLAPI overrides", (_kind, overrides) => {
+    expect(
+      hasUnexpectedOwlapiReference({
+        dependencies: { owlapi: EXPECTED_PACKAGE_SPECIFIER },
+        overrides,
+      }),
+    ).toBe(true);
   });
 });

@@ -2,6 +2,11 @@
   "name": "webvowl-markdown-tooling",
   "version": "1.0.0",
   "private": true,
+  "overrides": {
+    "micromark-extension-math": {
+      "katex": "0.19.0"
+    }
+  },
   "devDependencies": {
     "@hadden-industries/markdown-quality": "0.1.0-alpha.4"
   }
