@@ -4,6 +4,7 @@ import { parse } from "yaml";
 const load = (path) =>
   parse(readFileSync(new URL(path, import.meta.url), "utf8"));
 const workflow = load("../.github/workflows/markdown-quality.yml");
+const application = load("../.github/workflows/webvowl-ci.yml");
 const observerPython = "3.14.7";
 const nodeVersion = "24.21.0";
 
@@ -196,4 +197,36 @@ test.each([
   const changed = structuredClone(workflow);
   mutate(changed);
   expect(() => assertTrustedWindow(changed)).toThrow();
+});
+
+test("documentation-only and mixed jobs both acquire and check the complete canonical corpus", () => {
+  const documentation = application.jobs.documentation;
+  expect(documentation).not.toHaveProperty("if");
+  const acquire = documentation.steps.findIndex((step) =>
+    step.run?.includes("npm ci --prefix tooling/markdown --ignore-scripts"),
+  );
+  const check = documentation.steps.findIndex((step) =>
+    step.run?.includes("markdown-quality/src/cli.js check"),
+  );
+  expect(acquire).toBeGreaterThan(-1);
+  expect(check).toBeGreaterThan(acquire);
+  expect(documentation.steps[check]).not.toHaveProperty("if");
+  expect(documentation.steps[check].run).not.toMatch(
+    /files-json|selected|changed/,
+  );
+  expect(
+    documentation.steps.some((step) => step.run?.includes("pip install")),
+  ).toBe(false);
+  expect(application.jobs.application.if).toBe(
+    "needs.scope.outputs.full == 'true'",
+  );
+  expect(application.jobs.tooling.if).toBe(
+    "needs.scope.outputs.full == 'true'",
+  );
+  expect(application.jobs.required.needs).toEqual([
+    "scope",
+    "application",
+    "tooling",
+    "documentation",
+  ]);
 });
