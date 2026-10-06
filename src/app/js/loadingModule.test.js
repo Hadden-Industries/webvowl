@@ -390,6 +390,28 @@ describe("loading presentation listener ownership", () => {
     expect(controls.get("#loadingInfo_msgBox").hidden).toBe(true);
   });
 
+  test("repeated controller/catch notifications present one cause without the wrapper code", () => {
+    const append_message = jest.fn();
+    loadingModule.dispose();
+    loadingModule = createLoadingModule({ ontologyMenu: { append_message } });
+    const state = {
+      status: "error",
+      loadGeneration: 1,
+      error: {
+        code: "LOAD_FAILED",
+        message: "Opening the ontology took too long.",
+        details: { reason: "DEADLINE_EXCEEDED" },
+      },
+    };
+    loadingModule.renderControllerState(state);
+    loadingModule.renderControllerState(structuredClone(state));
+    expect(append_message).toHaveBeenCalledTimes(1);
+    expect(append_message).toHaveBeenCalledWith("DEADLINE_EXCEEDED", {
+      tone: "error",
+      block: true,
+    });
+  });
+
   beforeEach(() => {
     controls = new Map();
     global.document = {

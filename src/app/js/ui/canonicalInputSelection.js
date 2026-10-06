@@ -9,13 +9,14 @@ const LEGACY_DIALECT =
   "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0";
 let nextId = 0;
 
-/** Explicit input context; syntax and document identity are never inferred from content. */
+/** Document identity is explicit; OWL syntax defaults to owning-parser detection. */
 export function requestCanonicalInputSelection({
   documentObject = document,
   displayName = "Direct input",
   signal,
   owlFormats,
   knownDocumentIri,
+  requireReader = false,
 } = {}) {
   signal?.throwIfAborted();
   const doc = documentObject;
@@ -46,6 +47,10 @@ export function requestCanonicalInputSelection({
   placeholder.disabled = true;
   placeholder.selected = true;
   if (!owlFormats) {
+    const automatic = append("option", "Auto-detect OWL format", syntax);
+    automatic.value = "owl:auto";
+    automatic.selected = !requireReader;
+    placeholder.selected = requireReader;
     const canonical = append("option", "Canonical VOWL", syntax);
     canonical.value = "canonical";
     const legacy = append(
@@ -102,13 +107,15 @@ export function requestCanonicalInputSelection({
   cancel.type = "button";
   const submit = append("button", "Open", actions);
   submit.type = "submit";
-  syntax.addEventListener("change", () => {
+  function updateContext() {
     const owl = syntax.value.startsWith("owl:");
     context.hidden = !owl;
     base.disabled = !owl;
     base.required = owl;
     legacyNotice.hidden = syntax.value !== "legacy";
-  });
+  }
+  syntax.addEventListener("change", updateContext);
+  updateContext();
   base.addEventListener("input", () => base.setCustomValidity(""));
   return new Promise((resolve, reject) => {
     let finished = false;
@@ -148,7 +155,9 @@ export function requestCanonicalInputSelection({
         }
         finish({
           kind: "owl",
-          format: syntax.value.slice(4),
+          ...(syntax.value === "owl:auto"
+            ? {}
+            : { format: syntax.value.slice(4) }),
           documentIri: base.value,
         });
       } else if (syntax.value === "canonical") {
@@ -181,7 +190,49 @@ export async function requestCanonicalRemoteFormat(
   return selection?.format ?? null;
 }
 
-/** Preserve file bytes independently of the reader's explicit parser selection. */
+function requiresJsonReader(content) {
+  const bytes = content.bytes;
+  const length = bytes?.length ?? content.text?.length ?? 0;
+  const codeAt = bytes
+    ? (index) => bytes[index]
+    : (index) => content.text?.charCodeAt(index);
+  let index =
+    bytes?.[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf
+      ? 3
+      : codeAt(0) === 0xfeff
+        ? 1
+        : 0;
+  for (; index < length; index++) {
+    const code = codeAt(index);
+    if ([9, 10, 13, 32].includes(code)) {
+      continue;
+    }
+    // A prefix suggests a reader choice; it does not validate JSON or assign
+    // canonical/legacy/JSON-LD meaning. Their owning readers do that later.
+    if (
+      [0x7b, 0x5b, 0x22, 0x2d].includes(code) ||
+      (code >= 0x30 && code <= 0x39)
+    ) {
+      return true;
+    }
+    for (const token of ["true", "false", "null"]) {
+      if (
+        [...token].every(
+          (character, offset) =>
+            codeAt(index + offset) === character.charCodeAt(0),
+        ) &&
+        (index + token.length === length ||
+          [9, 10, 13, 32].includes(codeAt(index + token.length)))
+      ) {
+        return true;
+      }
+    }
+    return false;
+  }
+  return false;
+}
+
+/** Acquire bytes first; JSON reader admission stays explicit, OWL detection is native. */
 export async function selectCanonicalLocalSource({
   file,
   text,
@@ -193,17 +244,19 @@ export async function selectCanonicalLocalSource({
   if (file?.size > OWLOntologyLoaderConfiguration.defaults().maxInputBytes) {
     const error = new RangeError("The document exceeds the input byte limit.");
     error.code = "RESOURCE_LIMIT_EXCEEDED";
+    error.details = { stage: "acquisition", resource: "maxInputBytes" };
     throw error;
-  }
-  const selection = await select({ displayName, signal });
-  signal?.throwIfAborted();
-  if (!selection) {
-    return null;
   }
   const content = file
     ? { bytes: new Uint8Array(await file.arrayBuffer()) }
     : { text };
   signal?.throwIfAborted();
+  const requireReader = requiresJsonReader(content);
+  const selection = await select({ displayName, signal, requireReader });
+  signal?.throwIfAborted();
+  if (!selection) {
+    return null;
+  }
   const { kind, ...context } = selection;
   return {
     kind: `${kind === "owl" ? "ontology" : "vowl-json"}-${file ? "bytes" : "text"}`,

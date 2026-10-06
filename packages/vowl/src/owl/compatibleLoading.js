@@ -1,4 +1,5 @@
 import { OWL2DLProfile } from "owlapi/profiles";
+import { OWLDocumentFormats } from "owlapi/formats";
 import { fail } from "../errors.js";
 import { loadClosure, waitForResult } from "./loading.js";
 import { buildModel } from "./modelBuilder.js";
@@ -8,6 +9,7 @@ import { retainCompatibleEvidence } from "./sourceEvidence.js";
 /** Prepare typed retained content without treating a profile assessment as view admission. */
 export async function prepareCompatibleView(bytes, context, options, budget) {
   const prepared = await loadCompatibleClosure(bytes, context, options, budget);
+  const startedAt = performance.now();
   const projectionDiagnostics = [];
   const diagnostic = (code, details, subject, evidence) => {
     projectionDiagnostics.push(
@@ -32,6 +34,10 @@ export async function prepareCompatibleView(bytes, context, options, budget) {
   budget.check();
   const result = { ...prepared, source, projectionDiagnostics };
   const retained = await retainCompatibleEvidence(result, budget);
+  performance.measure("webvowl.owl-retention", {
+    start: startedAt,
+    end: performance.now(),
+  });
   budget.check();
   return { ...result, retained };
 }
@@ -65,6 +71,7 @@ export async function loadCompatibleClosure(bytes, context, options, budget) {
       });
     },
   });
+  const startedAt = performance.now();
   const report = await waitForResult(
     new OWL2DLProfile().checkOntology(loaded.ontology, {
       sourceAssessment: true,
@@ -77,6 +84,10 @@ export async function loadCompatibleClosure(bytes, context, options, budget) {
     }),
     budget,
   );
+  performance.measure("webvowl.owl-assessment", {
+    start: startedAt,
+    end: performance.now(),
+  });
   const assessment = report.getSourceAssessment();
   if (
     !assessment ||
@@ -105,6 +116,9 @@ export async function loadCompatibleClosure(bytes, context, options, budget) {
         ontology,
         documentIri: documentContext.documentIRI.value,
         formatKey: format?.key ?? null,
+        mediaType: Object.values(OWLDocumentFormats).find(
+          ({ key }) => key === format?.key,
+        )?.mediaTypes[0],
         // Public historical evidence, not proof of exhaustive source preservation.
         parserMetadata: format?.getOntologyLoaderMetaData() ?? null,
       };

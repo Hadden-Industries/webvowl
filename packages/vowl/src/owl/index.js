@@ -41,7 +41,7 @@ const optionChecks = {
   },
 };
 
-/** Open a qualified live OWL model; canonical identity is a separate operation. */
+/** Open a qualified live OWL model; omitted mediaType uses native syntax detection. */
 export async function openOwl(input, options) {
   const opts = optionRecord(options, [
     "documentIri",
@@ -52,12 +52,22 @@ export async function openOwl(input, options) {
   ]);
   const checks = {
     documentIri: optionChecks.documentIri,
-    mediaType: optionChecks.mediaType,
+    mediaType(value) {
+      if (value !== undefined) {
+        optionChecks.mediaType(value);
+      }
+    },
     resolveImport: optionChecks.resolveImport,
   };
   const budget = new ResourceBudget(opts, performance.now(), checks);
   try {
-    const context = documentContext(opts.documentIri, opts.mediaType, budget);
+    const context = documentContext(
+      opts.documentIri,
+      opts.mediaType,
+      budget,
+      "",
+      true,
+    );
     const bytes = snapshotBytes(input, budget);
     const prepared = await prepareCompatibleView(bytes, context, opts, budget);
     return admitOwlModel(

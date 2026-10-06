@@ -32,6 +32,43 @@ const insert = [
   },
 ];
 
+test("native automatic OWL selection retains the same root and extensionless import evidence", async () => {
+  const root = encode(
+    prefix +
+      "<urn:root> a owl:Ontology; owl:imports <urn:import>. <urn:A> a owl:Class.",
+  );
+  const imported = encode(
+    prefix + "<urn:import> a owl:Ontology. <urn:B> a owl:Class.",
+  );
+  const automatic = await openOwl(root, {
+    documentIri: "urn:root",
+    resolveImport: async () => ({ bytes: imported, documentIri: "urn:import" }),
+  });
+  const explicit = await openOwl(root, {
+    ...options,
+    resolveImport: async () => ({
+      bytes: imported,
+      documentIri: "urn:import",
+      mediaType: "text/turtle",
+    }),
+  });
+  expect(inspectModel(automatic.model)).toEqual(inspectModel(explicit.model));
+  const checkpoint = await checkpointModel(automatic.model);
+  expect(
+    checkpoint.source.evidence.documents.map(({ formatKey, mediaType }) => [
+      formatKey,
+      mediaType,
+    ]),
+  ).toEqual([
+    ["turtle", "text/turtle"],
+    ["turtle", "text/turtle"],
+  ]);
+  expect(checkpoint.source.sources.map(({ bytes }) => bytes)).toEqual([
+    root,
+    imported,
+  ]);
+});
+
 test("public original-source retrieval survives edits and recovery but never invents portable bytes", async () => {
   const bytes = encode(prefix + "<urn:A> a owl:Class.");
   const { model } = await openOwl(bytes, options);

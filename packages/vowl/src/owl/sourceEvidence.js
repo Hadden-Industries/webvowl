@@ -108,7 +108,7 @@ export async function retainCompatibleEvidence(prepared, budget) {
     documents.push({
       id,
       documentIri: document.documentIri,
-      mediaType: source.mediaType,
+      mediaType: source.mediaType ?? document.mediaType,
       digest: await digest(bytes, budget),
       formatKey: document.formatKey,
       ontologyIdentity: {

@@ -1,4 +1,12 @@
+import {
+  canonicalFailureDetails,
+  canonicalLoadingMessage,
+} from "./canonicalVowlFailure.js";
+
 const DEFAULT_DEADLINE_MS = 10000;
+// Compatible OWL assessment needs a separate opening allowance; editing/export
+// retain their existing bounds. The same allowance travels to the package.
+const OWL_OPENING_DEADLINE_MS = 60000;
 const MAXIMUM_DEADLINE_MS = 300000;
 const DEFAULT_INPUT_BYTES = 33554432;
 const MAXIMUM_INPUT_BYTES = 268435456;
@@ -12,10 +20,16 @@ const byteLength = Object.getOwnPropertyDescriptor(
   "byteLength",
 ).get;
 
-function failure(code) {
-  const error = new Error(code.replaceAll("_", " ").toLowerCase());
+function failure(code, details) {
+  const error = new Error(
+    canonicalLoadingMessage({
+      code,
+      message: code.replaceAll("_", " ").toLowerCase(),
+    }),
+  );
   error.name = "CanonicalVowlOperationError";
   error.code = code;
+  error.details = canonicalFailureDetails(details);
   return error;
 }
 
@@ -204,7 +218,9 @@ export function createCanonicalVowlWorkerClient({
       }
       const deadlineMs = positiveLimit(
         request.limits?.deadlineMs,
-        DEFAULT_DEADLINE_MS,
+        request.operation === "open-owl-model"
+          ? OWL_OPENING_DEADLINE_MS
+          : DEFAULT_DEADLINE_MS,
         MAXIMUM_DEADLINE_MS,
       );
       const inputLimit = positiveLimit(
@@ -265,6 +281,9 @@ export function createCanonicalVowlWorkerClient({
       const payload = structuredClone(
         checkpointPayload ?? { ...request, bytes },
       );
+      if (request.operation === "open-owl-model") {
+        payload.limits = { ...payload.limits, deadlineMs };
+      }
       if (nextRequestId === Number.MAX_SAFE_INTEGER) {
         throw failure("CANONICAL_CONTEXT_INVALID");
       }
@@ -280,7 +299,13 @@ export function createCanonicalVowlWorkerClient({
         let finished = false;
         let resultTimer;
         const timer = setTimeout(
-          () => settle(failure("RESOURCE_LIMIT_EXCEEDED")),
+          () =>
+            settle(
+              failure("DEADLINE_EXCEEDED", {
+                stage: "worker",
+                resource: "deadlineMs",
+              }),
+            ),
           deadlineMs,
         );
         function settle(error, result) {
@@ -335,6 +360,7 @@ export function createCanonicalVowlWorkerClient({
                 typeof code === "string" && /^[A-Z][A-Z0-9_]{0,95}$/u.test(code)
                   ? code
                   : "CANONICAL_OPERATION_FAILED",
+                data.failure?.details,
               ),
             );
           } else if (data.type === "import") {

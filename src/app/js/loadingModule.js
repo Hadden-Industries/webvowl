@@ -273,7 +273,11 @@ export function createLoadingModule({
     );
   };
 
+  let lastErrorDetails = null;
   function presentLoadingError(message = "") {
+    if (!message) {
+      lastErrorDetails = null;
+    }
     const errorMessage = document.querySelector("#loadingErrorMessage");
     errorMessage.textContent = message;
     errorMessage.hidden = message.length === 0;
@@ -616,7 +620,12 @@ export function createLoadingModule({
       if (controllerState.error) {
         presentLoadingError(controllerState.error.message);
         const error = controllerState.error;
-        const detailMessages = [error.code, error.details?.reason].filter(
+        const detailMessages = [
+          ...new Set([
+            error.code === "LOAD_FAILED" ? undefined : error.code,
+            error.details?.reason,
+          ]),
+        ].filter(
           (message) =>
             typeof message === "string" &&
             message.trim().length > 0 &&
@@ -624,12 +633,20 @@ export function createLoadingModule({
         );
         document.querySelector("#loadingInfo_msgBox").hidden =
           detailMessages.length === 0;
-        for (const message of detailMessages) {
+        const identity = JSON.stringify([
+          controllerState.loadGeneration,
+          error.message,
+          detailMessages,
+        ]);
+        for (const message of lastErrorDetails === identity
+          ? []
+          : detailMessages) {
           ontologyMenu?.append_message(message, {
             tone: "error",
             block: true,
           });
         }
+        lastErrorDetails = identity;
       }
       return;
     }

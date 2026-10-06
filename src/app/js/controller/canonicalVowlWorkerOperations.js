@@ -15,6 +15,7 @@ import {
 } from "vowl";
 import { fromOwl, openOwl, exportModelRdf } from "vowl/owl";
 import { migrate } from "vowl/migrate";
+import { canonicalFailureDetails } from "./canonicalVowlFailure.js";
 
 /**
  * Worker-only package boundary. Each operation admits bytes in this module
@@ -37,10 +38,17 @@ export async function runCanonicalVowlOperation(
         limits,
         resolveImport,
       });
+      const startedAt = performance.now();
+      const inspection = inspectModel(opened.model);
+      const checkpoint = await checkpointModel(opened.model, { limits });
+      performance.measure("webvowl.owl-checkpoint", {
+        start: startedAt,
+        end: performance.now(),
+      });
       return {
         visualization: null,
-        inspection: inspectModel(opened.model),
-        checkpoint: await checkpointModel(opened.model, { limits }),
+        inspection,
+        checkpoint,
         correspondence: opened.correspondence,
       };
     }
@@ -231,5 +239,8 @@ export function canonicalWorkerFailure(error) {
       error instanceof VowlError && /^[A-Z][A-Z0-9_]{0,95}$/u.test(error.code)
         ? error.code
         : "CANONICAL_OPERATION_FAILED",
+    ...(error instanceof VowlError && error.details
+      ? { details: canonicalFailureDetails(error.details) }
+      : {}),
   };
 }
