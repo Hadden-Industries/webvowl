@@ -1,5 +1,10 @@
 # Canonical VOWL example compatibility repair plan
 
+**5 October 2026 loading-regression supplement:** the newly reported extensionless UO loading failure is split into an [independent WebVOWL repair](2026-10-05-ontology-loading-regression-repair-plan.md) and a [deferred OwlAPI repair](https://github.com/Hadden-Industries/owlapi/blob/main/docs/plans/2026-10-05-profile-performance-and-default-behavior-repair-plan.md).
+The consumer plan uses the installed RC.1 public loader and configurable opening limits; it requires no library update.
+The producer plan is retained in the OwlAPI repository and covers assessment scheduling and default-behavior parity decisions.
+These draft supplements preserve the existing six-example scope and historical evidence below; they do not adopt its recorded execution, replenish review budgets or authorize implementation/configuration/release changes.
+
 Status: Owner-approved bounded repair baseline, with a proposed compatibility-direction revision recorded on 2 October 2026.
 The owner approved implementation and qualification after the design synthesis, then approved the exact npm alias update and execution adoption/resumption on 3 October 2026.
 Proceed with COMPAT-01 and bounded diagnosis; semantic/performance contract decisions explicitly reserved below remain separate gates before dependent implementation.
