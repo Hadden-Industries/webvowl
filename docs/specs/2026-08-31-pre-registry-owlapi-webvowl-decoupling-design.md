@@ -1,8 +1,8 @@
 # Pre-registry `owlapi` / WebVOWL repository decoupling design
 
-> **Status:** Draft for written review  
-> **Decision date:** 31 August 2026  
-> **Repositories:** `Hadden-Industries/owlapi` and `Hadden-Industries/webvowl`  
+> **Status:** Draft for written review\
+> **Decision date:** 31 August 2026\
+> **Repositories:** `Hadden-Industries/owlapi` and `Hadden-Industries/webvowl`\
 > **Decision owner:** Maksym Shostak
 
 ## 1. Context
