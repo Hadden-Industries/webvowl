@@ -39,7 +39,7 @@ Identical node coordinates or SVG bytes across independent force-layout runs rem
 A source/artifact digest establishes byte identity, not semantic fidelity; the exported SVG also needs independent content and visual inspection.
 Reducing the agent's graph-construction reasoning is a product objective; a claimed cost or latency improvement needs measured comparative evidence.
 
-Human/agent action parity supports this outcome: a reader must be able to inspect, adjust and export the same application state the agent used. Parity, successful tool calls and passing tests alone do not establish that the reader received a faithful figure. Apply the repository's [OUT-01 outcome check](../sdlc/engineering-principles.md#out-01--recheck-the-higher-level-outcome) to each remaining slice using this purpose and the AQFO acceptance evidence.
+Human/agent action parity supports this outcome: a reader must be able to inspect, adjust and export the same application state the agent used. Parity, successful tool calls and passing tests alone do not establish that the reader received a faithful figure. Apply the repository's [OUT-01 outcome check](https://github.com/Hadden-Industries/webvowl/blob/05808887a29d0f4e476b659ba94a63eb3f576cf6/docs/sdlc/engineering-principles.md#out-01--recheck-the-higher-level-outcome) to each remaining slice using this purpose and the AQFO acceptance evidence.
 
 ## Decision summary
 

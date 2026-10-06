@@ -55,6 +55,12 @@ Clone this repository, then use its selected **Node.js** ([version](.node-versio
 Run `npm run setup:development` to install locked npm dependencies with lifecycle scripts disabled and prepare `.venv` from the [hashed Python lock](requirements.lock.txt).
 Python installation requires hashes and wheels, then runs `pip check`.
 The [development requirements](requirements-dev.txt) declare minimum versions without upper bounds; routine setup and CI install the exact locked versions.
+
+Run `npm run install:markdown` explicitly to install the exact shared Markdown graph without lifecycle scripts.
+The development runtime is Node 24.21.0; the application dependency graph is unchanged.
+Markdown checking always covers the full authored corpus, including when CI skips application jobs for documentation-only changes.
+Use `npm run format:docs -- -- "docs/example.md"` for literal paths or `--files-json` for a JSON array.
+Exceptions and upgrades remain governed by the shared capability and exact trusted-run owner acceptance.
 Setup preserves an existing usable environment and does not activate agent configuration.
 
 To regenerate the Python lock with the resolver installed in `.venv`, run:
@@ -85,15 +91,15 @@ Run `npm run check:docs` for Prettier Markdown formatting and Snapper's semantic
 Run `npm run check` for both sets of checks, the Jest suite, and the application build (including its existing formatting and lint checks).
 The full check requires the [test corpus](#test-corpus).
 
-| Command                       | Purpose                                                                         |
-| ----------------------------- | ------------------------------------------------------------------------------- |
-| `npm run format:python`       | Format maintained Python files with Ruff.                                       |
-| `npm run lint:python`         | Check Python, including import ordering.                                        |
-| `npm run lint:python:fix`     | Apply Ruff's safe lint fixes.                                                   |
-| `npm run format:python:check` | Check Python formatting without rewriting files.                                |
-| `npm run format:docs`         | Format Markdown with Prettier and Snapper, then normalize layout with Prettier. |
-| `npm run format:docs:check`   | Check Markdown formatting and prose diagnostics without rewriting files.        |
-| `npm run test:prose`          | Test prose selection, literal preservation, and check-mode behavior.            |
+| Command                       | Purpose                                                                  |
+| ----------------------------- | ------------------------------------------------------------------------ |
+| `npm run format:python`       | Format maintained Python files with Ruff.                                |
+| `npm run lint:python`         | Check Python, including import ordering.                                 |
+| `npm run lint:python:fix`     | Apply Ruff's safe lint fixes.                                            |
+| `npm run format:python:check` | Check Python formatting without rewriting files.                         |
+| `npm run format:docs`         | Format Markdown with the isolated shared Markdown Quality capability.    |
+| `npm run format:docs:check`   | Check Markdown formatting and prose diagnostics without rewriting files. |
+| `npm run test:prose`          | Test prose selection, literal preservation, and check-mode behavior.     |
 
 Both Python tools run from this checkout's `.venv`; rerun `npm run setup:development` after pulling dependency changes.
 Ruff targets Python 3.14, uses 88-character lines, and disables unsafe fixes.

@@ -464,8 +464,8 @@ The earlier plan established that old call sites were bypassed but did not test 
 This follow-up separates obsolete code targets, already-adopted techniques, measured adaptation opportunities and unaccepted behavior changes.
 First-principles elimination of repeated work comes first; measured current practice, the linked platform/canonical contracts, and historical technique reuse constrain the resulting proposals in that order.
 
-The [reproducible external experiment](../../../../../.hi/w/e/operator-reports/performance-search-canonical-transposition-20261005/experiment.mjs) imports the current repository functions and writes isolated source-derived prototypes outside the checkout.
-[Raw results](../../../../../.hi/w/e/operator-reports/performance-search-canonical-transposition-20261005/results.json) retain source/lock/input hashes, Node/host identity, all seven alternating-order paired samples, two warmups, counted work and unavailable timings.
+The reproducible external experiment (`../../../../../.hi/w/e/operator-reports/performance-search-canonical-transposition-20261005/experiment.mjs`, local evidence path) imports the current repository functions and writes isolated source-derived prototypes outside the checkout.
+Raw results (`../../../../../.hi/w/e/operator-reports/performance-search-canonical-transposition-20261005/results.json`, local evidence path) retain source/lock/input hashes, Node/host identity, all seven alternating-order paired samples, two warmups, counted work and unavailable timings.
 No production module, dependency, configuration, fixture oracle or canonical byte artifact was changed by the experiment.
 
 | Original lesson                                                      | Current mechanism tested or traced                                                              | Evidence and disposition                                                                                                                                      |
@@ -632,7 +632,7 @@ That original baseline-to-HEAD net diff is 2,010 records: 1,923 additions, 49 mo
 Seven original merge commits have exactly their second parent's tree, so none introduces an unaccounted merge resolution.
 The three reflog originals have the same trees as their corresponding squash commits; they are recorded separately without claiming extra landed functionality.
 
-The complete [machine ledger](../../../../../.hi/w/e/operator-reports/performance-search-plan-20261005/repository-change-ledger.json), [path-by-path accounting](../../../../../.hi/w/e/operator-reports/performance-search-plan-20261005/path-accounting.md) and [reproduction script](../../../../../.hi/w/e/operator-reports/performance-search-plan-20261005/inventory.mjs) are retained in the configured external evidence store.
+The complete machine ledger (`../../../../../.hi/w/e/operator-reports/performance-search-plan-20261005/repository-change-ledger.json`, local evidence path), path-by-path accounting (`../../../../../.hi/w/e/operator-reports/performance-search-plan-20261005/path-accounting.md`, local evidence path) and reproduction script (`../../../../../.hi/w/e/operator-reports/performance-search-plan-20261005/inventory.mjs`, local evidence path) are retained in the configured external evidence store.
 Machine-ledger SHA-256: `faf05a721791ea1760faa65a4a184402205298beea9caf42aacf36a9db066957`.
 Every historical path maps to exactly one group below and to every commit/parent event that touched it; the detailed accounting lists exact paths, including all bundled-away members.
 The evidence links are local to this host; preserve or transfer that evidence directory with a cross-host handoff.
@@ -648,7 +648,7 @@ No changed source/configuration/test/evidence path in that universe is omitted a
 The transposition baseline adds three recovered commits after that immutable audit: `74227959e6ca88ea604b4d8b48fbb02fe10f2f60` updates this plan, `c65770dab849279cf44da822a4501dcc34365efa` merges it with an identical second-parent tree, and `5f5a5e955f3ac5ac6f3bceaf3201a79708759938` independently commits the cache plan and supplied research assessment.
 The last commit makes two initially dirty inputs clean without changing their recorded bytes; the research assessment becomes one additional historical tracked path in G16, while the cache-plan path already belongs to G17.
 There are no production, configuration, test or corpus changes between the original audit and the experiment baseline.
-The [follow-up ledger](../../../../../.hi/w/e/operator-reports/performance-search-canonical-transposition-20261005/follow-up-ledger.json) retains every parent-relative comparison and exact ref/input identities.
+The follow-up ledger (`../../../../../.hi/w/e/operator-reports/performance-search-canonical-transposition-20261005/follow-up-ledger.json`, local evidence path) retains every parent-relative comparison and exact ref/input identities.
 Together the audit and supplement account for 29 commits and 18,680 parent-relative change records over 9,241 distinct historical paths, plus the original three working-tree inputs whose bytes remain unchanged.
 At this observation only `skills-lock.json` remains uncommitted among those initial inputs; no concurrent work was restored, restaged or reverted by this task.
 The working correction in this document is separately reviewable and is not an implementation change.
@@ -714,7 +714,7 @@ G08 has no historical changes: the old shared filters were inspected because unc
 | G21-tooling                        |                            13 / 12 | CI/doc tool selection/checks/tests, example regeneration, formatter fixes and retired converter benchmark. Use current commands and logical corpus; avoid deleted benchmark paths and preserve Markdown literal semantics. Links: Current verification/benchmark plan.                                                                                                                                                    |
 | G22-configuration-and-dependencies |                              5 / 5 | Root manifest/lock, Python requirements/lock and Vite configuration; pre-existing skills-lock edits. Freeze updated dependency/tool identities for comparisons; current canonical mode and configured outDir are baseline. No upgrade/configuration change is proposed. Links: Environment/authority/check selection.                                                                                                     |
 
-The [dependency-entry ledger](../../../../../.hi/w/e/operator-reports/performance-search-plan-20261005/dependency-entry-ledger.json) retains every changed transitive and platform package record alongside the complete patches.
+The dependency-entry ledger (`../../../../../.hi/w/e/operator-reports/performance-search-plan-20261005/dependency-entry-ledger.json`, local evidence path) retains every changed transitive and platform package record alongside the complete patches.
 Material changes include the npm owlapi alias and vowl workspace; URI/canonicalization/admission dependencies; Vite 8.3.2, dependency-cruiser 18.5.0, Prettier 3.9.9, html-validate 11.16.1, Ruff 0.16.10, Snapper 0.11.7; and CodeQL action 4.38.2.
 These are repository declarations/lock observations, not claims that this task installed or proved latest/safe versions.
 Vite now has an isolated canonical output/entry mode and preserves mtimes using the resolved output directory; the normal production entry also uses canonical composition.

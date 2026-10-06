@@ -8,7 +8,7 @@
 **Accountable owners:** the respective product maintainer and each adopting repository's policy/host owner.
 Universal Ontology (UO) remains the first SDLC testbed.
 **Primary acceptance:** A06 and A14, with adopter-specific readback of the applicable WP0–WP7 obligations.
-[P0]
+\[P0]
 
 **Selected implementation:** verify and close the remaining product obligations on exact candidates; integrate the real accepted MCP and SHACL implementations when available; port only independently accepted, qualified SDLC changes using a file-by-file three-way comparison; and record actual component and host coverage in the existing adoption materials.
 Do not build a cross-repository distribution mechanism, a new approval service, another scanner, a new lifecycle schema, or a universal release gate.
@@ -22,7 +22,7 @@ The critical delivery distinction is **source-qualified → adopter-integrated �
 These are descriptions of evidence, not new runtime states.
 A source commit, a passing control fixture, a package label of `1.0.0`, and an actual native-host result establish different things.
 
-Companions: [adoption/integration worksheet](wp8-adoption-and-integration-worksheet.proposed.md), [proposed adoption-record amendments](wp8-adoption-record-amendments.proposed.md), and [verification catalogue](wp8-verification-catalogue.proposed.json).
+Companions: [adoption/integration worksheet](https://github.com/Hadden-Industries/universal-ontology/blob/be340a68e2787868780e76c5f56b8185f1bec5cb/docs/plans/sdlc-improvements/wp8-selective-adoption/adoption-and-integration-worksheet.proposed.md), [proposed adoption-record amendments](https://github.com/Hadden-Industries/universal-ontology/blob/be340a68e2787868780e76c5f56b8185f1bec5cb/docs/plans/sdlc-improvements/wp8-selective-adoption/adoption-record-amendments.proposed.md), and [verification catalogue](https://github.com/Hadden-Industries/universal-ontology/blob/be340a68e2787868780e76c5f56b8185f1bec5cb/docs/plans/sdlc-improvements/wp8-selective-adoption/verification-catalogue.proposed.json).
 They support this work package; they are not mandatory new documents for every ordinary change.
 
 ## 1. Preserve the parent contract and refresh its starting point
@@ -42,7 +42,7 @@ They support this work package; they are not mandatory new documents for every o
 
 **A14 — representative outcome:** the frozen WebVOWL candidate completes or honestly fails the AQFO artifact job; ONI's real packed consumer/description behavior is demonstrated.
 An honestly recorded failure satisfies truthful reporting, not the product's positive acceptance requirement.
-[P0]
+\[P0]
 
 WP8 consumes WP1's text/evidence guarantees, WP2's execution ownership, WP3's resource obligations, WP4's actual protected dispatch, WP5's installed security capability, WP6's trusted-baseline/preflight rules and WP7's proportionate cadence.
 Their plans, baselines, candidate branches and actual implementations must not be conflated.
@@ -67,13 +67,13 @@ Preserve the parent's original findings as historical evidence.
 
 The UO baseline merge is dated 10 September 2026 at 21:14:07 UTC, which is 11 September at 00:14:07 in Cyprus.
 This plan's date deliberately differs from the parent filename.
-[S01–S07, P1]
+\[S01–S07, P1]
 
 The current ONI dependency result supersedes the parent's active dependency-failure assumption for that inspected candidate.
 Do not deliberately reinstall the retired comparator, reopen the fixed `nwmatcher`/`qs` selections, or generate another dependency change merely to follow an obsolete step literally.
 Preserve the failure-to-decision-to-repair history and attach the later successful native observation.
 The current linkage failure remains distinct; its exact current diagnostic should be read before deciding its remedy.
-[S05–S07, S17]
+\[S05–S07, S17]
 
 ### 1.3 WebVOWL's actual repair is not the earlier proposed representation
 
@@ -82,7 +82,7 @@ Its consuming `createOntologyHeaderRecord` now accepts a **string or null**, rej
 The earlier nonempty-string restriction is no longer present there.
 The controller also contains separate `createLoadFailedError` (`LOAD_FAILED`) and `createLoadAbortedError` (`LOAD_ABORTED`) constructors.
 Their complete error-routing behavior still needs the relevant tests, not inference from constructor names.
-[S08–S10]
+\[S08–S10]
 
 Consequently, WP8 must not impose an empty-string-to-null rewrite just because the earlier diagnostic suggested it.
 Verify the maintained contract against its actual accepted intent: an absent version must not prevent a valid ontology from loading, meaningful source text must survive, invalid typed inputs must fail at their owner, and ordinary failure must not masquerade as cancellation.
@@ -92,7 +92,7 @@ Any further representation change needs its own accepted justification and consu
 The completion record reports a successful native AQFO job and later records a different production-preview failure.
 The latter was repaired by bundling the required existing D3 exports.
 The production-preview subset checked startup, human loading and native export; it is not a repeat of every earlier job or a newly observed AQFO result on every host.
-[S11–S13]
+\[S11–S13]
 
 ### 1.4 Evidence levels used throughout
 
@@ -128,14 +128,14 @@ P1/P2 are priorities, not R1/R2 risk classifications.
 Propose R2 for a consequential shared-control adoption or combined MCP/SHACL integration that changes accepted verification, metadata, concurrency or cross-component behavior.
 A bounded product repair may have a lower independently justified route; the existing D3 correction was recorded as R1.
 Do not raise every observational read to R2 or downgrade inherited R2 obligations to simplify adoption.
-[S12, S24]
+\[S12, S24]
 
 The following permissions remain separate: inspect evidence; modify source/tests; modify configuration or policy; create a verification workspace; install approved dependencies; access a browser/network endpoint; invoke a paid/native scan; write or update an Issue/PR; commit/push; merge; deploy/publish; and dispose of resources.
 Accepting this implementation design does not silently grant all of them.
 
 The default scope excludes npm/Steam publication, a new repository or repository migration, hosted deployment, origin-trial activation, changes to credentials/ACLs/guard exceptions, blanket dependency upgrades, new browser/runtime support, global Git settings and source-package version promotion.
 ONI's existing local-only decisions and later specific publication exceptions must be read as actual decisions; a past authorised push is not standing permission for the next one.
-[S17, P1]
+\[S17, P1]
 
 ### 2.3 Responsibilities, not mandatory extra agents
 
@@ -164,7 +164,7 @@ Group genuinely identical handling; expand only actual conflicts or risks.
 Do not use the whole `.sdlc` directory as the unit of adoption.
 WebVOWL's current `.sdlc/UPSTREAM.json` records an immediate import from ONI at `1d352b9040005e144a9fc4a1ac7dd628241e7284`, a UO target source at `b3984ffbfe9b38cca7bd4570aeb3f5bc0fa6f20e`, and file-level adaptations.
 That is a two-hop lineage with local choices, not a byte-identical UO deployment.
-[S14]
+\[S14]
 
 A component is selected because its accepted correction is needed, not because a later source tree happens to include it.
 Use the applicable earlier WP's actual implementation and acceptance evidence.
@@ -202,7 +202,7 @@ A patch applying cleanly proves neither preserved behavior nor compatible surrou
 At the inspected revisions, UO and ONI use `scripts/` lifecycle helpers; WebVOWL has adopted `util/` lifecycle paths.
 Resolve actual imports, script-root locators, tests and generated references rather than mass replacing the word `scripts`.
 Preserve the adaptor's Node/Python choices and approved package-manager dispatch.
-[S15, S16, S19, S22]
+\[S15, S16, S19, S22]
 
 ### 3.4 Preserve histories, licences and overlays
 
@@ -214,7 +214,7 @@ If an existing current-state manifest is updated, retain its predecessor in ordi
 Preserve applicable UO/ONI/WebVOWL licence notices, adapted TDD notices and the separately governed DCG terms.
 Do not infer rights from a source-package version or re-run unrelated licensing campaigns where accepted evidence remains applicable.
 No legal clearance is granted by this plan.
-[S14, S17]
+\[S14, S17]
 
 Do not import `.venv`, `node_modules`, `.sdlc/runtime`, user `.codex` state, personal credentials, global hooks or security bundles as configuration.
 Evidence may be separately preserved/transferred through an approved restricted route; that is not activation of its old runtime records.
@@ -231,7 +231,7 @@ For WP1, maintained source and adoption text already describe version-3 receipts
 For WP2, the inspected main merge concerns its baseline and a candidate branch is visible.
 Neither fact by itself supplies its complete native acceptance.
 WP3–WP7 must likewise be checked against their actual source and decisions rather than marked done because their detailed plans exist.
-[S01–S03]
+\[S01–S03]
 
 Where a source repair has already been independently qualified on the precise inputs and supported host, retain that evidence and inspect only subsequent affected deltas.
 Do not force a fake RED on repaired main.
@@ -242,7 +242,7 @@ A missing regression should receive an independently authored check; report whet
 Read UO's current package scripts, required route and verification configuration.
 At the inspected source, the maintained interfaces include `npm run check:sdlc`, `npm run test:sdlc`, `npm run test:python` and `npm run sdlc -- verify`.
 Invoke lifecycle commands only against the execution the coordinator actually owns.
-[S19, S20]
+\[S19, S20]
 
 Select the relevant existing regression from the originating WP and run the actual default Windows boundary where it is material.
 Retain raw failures, source/control identity, exact commands, environment and expected result.
@@ -251,7 +251,7 @@ The final consequential source candidate still receives its actual required full
 The inspected UO full profile has eleven named checks, including the five source-ontology invariant inputs, direct Vite build, JSON-LD generation and MCP application bundle.
 Root `npm run build` invokes prebuild auto-fixes; the configured direct Vite invocation deliberately avoids them.
 Do not swap these paths or call a small synthetic profile the repository's full qualification.
-[S19, S20]
+\[S19, S20]
 
 ### 4.3 Readiness to port is scoped
 
@@ -275,7 +275,7 @@ If an acceptance gap remains, state that gap separately from the repaired behavi
 Do not close a tracker item merely because this plan exists.
 A source read can establish that a check changed, but not that the entire original native browser job now succeeds on the adopting host.
 Preserve the original failed AQFO run and source oracle.
-[S08–S12]
+\[S08–S12]
 
 ### 5.2 Optional-version contract and tests
 
@@ -292,7 +292,7 @@ Cover omitted version, `null` as represented by the projector, explicit empty st
 At the inspected contract, the empty string is valid and preserved; non-string/non-null constructor values reject.
 Do not demand that the projector reject a value it intentionally represents as absent without first establishing an accepted source contract.
 Do not replace every invalid value with `null`, make all required fields optional, or synthesize a version to make AQFO pass.
-[S08, S09]
+\[S08, S09]
 
 Use independently supplied expected records and meaningful assertions about the surviving entity and metadata, not an output snapshot generated by the same projector.
 Preserve valid explicit version text exactly.
@@ -311,7 +311,7 @@ Exercise an ordinary uncoded `TypeError` in the valid, current, uncancelled load
 The outward result must be the accepted load-failure classification, not `LOAD_ABORTED`.
 The current source provides `LOAD_FAILED`; inspect the complete catch path and public projection to verify that it is actually used appropriately.
 Keep useful diagnostics in their approved private/detail boundary rather than leaking unrestricted exception content.
-[S10]
+\[S10]
 
 Separately test an actual caller cancellation, a superseded generation, the supported abort representations and genuine coded fetch/parse errors. Specify which source/view remains usable, which generation is current and whether a stale completion can overwrite it.
 An aborted operation is not a load failure; an ordinary exception is not evidence of cancellation.
@@ -325,7 +325,7 @@ Broader renderer recovery is changed only if an independently reproduced defect 
 The inspected production-preview fix already removes D3 externalisation and the obsolete output-global mapping from `vite.config.mjs`, and adds `src/productionBundle.integration.test.js`.
 Preserve its actual shipped-module negative control and the classic D3 asset.
 Do not duplicate that repair or remove its regression merely because development-server tests pass.
-[S04, S12, S13]
+\[S04, S12, S13]
 
 An approved normal build can produce ignored output, but final verification must not silently modify the frozen tracked input.
 Inspect build/prebuild hooks, expected output locations and source identity.
@@ -350,7 +350,7 @@ These are the evaluation's recorded source facts.
 At execution, retrieve or reuse the retained exact source through authorised access and verify it.
 A mismatch is a new input decision, not permission to update the expected digest silently.
 The same bytes can be retained locally for an independent oracle without changing the input URL supplied to the native job.
-[S11, S12]
+\[S11, S12]
 
 Record WebVOWL's full source revision and relevant dirty inputs, actual build artifact, browser/client/model identity when available, execution surface, native WebMCP capability, and accepted restrictions.
 Freeze the candidate with the implementation owner.
@@ -360,7 +360,7 @@ Use the real locally built preview when qualification claims cover the delivered
 Vite preview serves a local build; it is not production-host deployment qualification.
 An origin/permission requirement not available on that surface remains a limit.
 Never patch or mock `document.modelContext` and call it native availability.
-[S12, W02]
+\[S12, W02]
 
 ### 6.2 Establish independent semantic expectations
 
@@ -379,7 +379,7 @@ Preserve the asserted subclass direction even if a reviewer expects a different 
 The earlier inspection found no explicitly declared class whose label is `Fishing Vessel`, while the phrase occurs in annotations.
 Scope that negative statement to the declarations and bytes actually examined; do not generalise it to every inferred/imported entity.
 The absence of `owl:imports` in the pinned bytes is likewise a source observation, not a proof of complete conversion.
-[S11, S12]
+\[S11, S12]
 
 Check current source and exported structure against these independent expectations.
 VOWL presentation relationships, counts and spatial proximity are not interchangeable with OWL declarations or asserted edges.
@@ -413,7 +413,7 @@ A timeout/best-effort export cannot be reported as settled.
 Inspect that export did not unexpectedly change the live state.
 Distinguish page export, successful retrieval, local retained file, clickable conversation delivery and unsupported automatic attachment.
 A real retained artifact with an honestly reported client limitation is different from pretending attachment occurred.
-[S11, S12]
+\[S11, S12]
 
 ### 6.5 Failure and rerun discipline
 
@@ -437,17 +437,17 @@ At the inspected head `fe75c5d…`, BBCode run `34529893438`, attempt 1, has ten
 Dependency-review job `103047780807` actually ran its review action successfully.
 Library and CLI mutation jobs `103048991149` and `103048991235` ran their qualification step; six matrix jobs ran the converter and real packed-consumer check.
 This is new remote evidence, not a result of this research executing the jobs.
-[S06]
+\[S06]
 
 The existing execution record explains the intervening owner-approved retirement of the unsupported executable comparator.
 It retains a historical 250-observation report and reports 200 active observations over the retained four providers.
 Preserve those distinct scopes and the original failed jobs.
 The latest source record's pending-push wording is historical relative to the newly observed run; append a dated readback rather than rewriting its earlier result.
-[S17]
+\[S17]
 
 Re-read the actual candidate and exact run/attempt when WP8 executes. If the relevant current native dependency action passes on that candidate, record the repaired obligation; do not force a dependency edit. If a new failure exists, obtain its exact package/manifest/advisory, status and policy threshold, then use the accepted dependency decision route.
 A static reachability opinion or clean production-only audit cannot waive a different native gate.
-[P7, S06, S07]
+\[P7, S06, S07]
 
 Do not infer that all ONI checks pass: trusted-linkage run `34529892678`, attempt 1, is separately failed for the inspected candidate.
 Read that job's current diagnostic and use WP6's accepted trusted-consumer work where applicable.
@@ -457,7 +457,7 @@ No patch to candidate policy, severity suppression, fictitious approval, changed
 ### 7.2 Preserve unrelated decisions and limitations
 
 Keep the retained comparator evidence, active provider/corpus identities, accepted performance limitation, unresolved upstream serializer proposal, licensing provenance, renderer scope and destination-specific release obligations under their actual decisions. Do not treat the retired graph as current installed tooling, resurrect it for a new audit, or copy its recovered installation into an adopter's active dependencies. The retained recovery directory remains a WP0/WP3 resource obligation.
-[S17]
+\[S17]
 
 Do not repeat an unsupported claim that independent counsel is required where the accepted plan and later owner decision do not say that.
 Equally, an internal licence assessment is not an externally supplied legal opinion.
@@ -485,7 +485,7 @@ If the actual input is inaccessible or its scope is ambiguous, retain that speci
 Inspect the selected package's current scripts and consumer tests.
 The observed package exposes `test:package`, `release:pack`, `check`, `qualify:github` and applicable type/coverage commands. Ordinary `check` already contains installed-package qualification; do not run several equivalent pack/install campaigns merely to restate it.
 No observed ordinary check implies registry publication or live renderer qualification.
-[S18]
+\[S18]
 
 Retain the exact archive from the approved candidate, its native identity/checksum, source/build relationship and allowed dependency graph.
 If an existing packer enforces a clean candidate, satisfy it through the normal commit/ownership procedure; do not reset, clean or stash someone else's work.
@@ -493,7 +493,7 @@ If an existing packer enforces a clean candidate, satisfy it through the normal 
 Use the existing package-consumer script and a task-owned independent consumer directory outside the source/dependency ancestry.
 Establish that API imports and CLI execution resolve to the installed archive, not source-relative imports, development links or an ancestor `node_modules`.
 Native npm supports tarball installation; directory installation can have linking semantics, so a source-directory success is not equivalent evidence.
-[W03]
+\[W03]
 
 Keep the selected compiler roles, Node/npm versions and install-script/egress restrictions.
 A fresh native install may resolve dependency ranges differently from the author's lockfile; retain the actual installed graph and do not claim the source lock alone fixed it.
@@ -521,7 +521,7 @@ A wrapper that lists only PR-triggered runs is not a complete required-check inv
 
 A retried run retains the original event's `GITHUB_SHA`/`GITHUB_REF`; do not claim that rerunning an old linkage job adopts a newer trusted policy.
 Obtain an actual qualifying subsequent event under normal authority and inspect its executed policy identity.
-[W05]
+\[W05]
 
 Use the existing task/PR record and existing restricted evidence references.
 A new body update, remote rerun, dispatch, merge or push is a write requiring its own authority.
@@ -534,7 +534,7 @@ Research readback alone grants none.
 The published SHACL branch and Issue #31 are proposal evidence at the inspected state.
 The handoff's local MCP worktrees may contain unique implementation and reviews, but their current contents were not accessed.
 Obtain actual owner handoffs and accepted implementation identities; do not infer absence of local work from the remote branch list or pretend proposal branches are complete code.
-[S02, S21, P1]
+\[S02, S21, P1]
 
 For each side, bind the accepted requirements/version, current full commit and relevant dirty inputs, required source/version context, native validator/query interfaces, affected shared files, completed evidence and remaining gaps.
 Record which owner may supply, integrate and accept each input.
@@ -552,7 +552,7 @@ Preserve the original implementation/review candidates and failures before any i
 
 Git's native `rev-parse`/worktree interfaces establish physical roots, administrative paths and shared/common identity.
 Linked worktrees share some refs/configuration; they are not separate repositories or security sandboxes. Coordinate fetch/ref/configuration operations that can affect others and do not invent a worktree-local isolation guarantee from directory names.
-[W01]
+\[W01]
 
 Apply the accepted inputs through the normal repository integration procedure.
 Inspect shared package/lock files, verification policy/configuration, source discovery, ontology version selection, build outputs, query indexes, MCP resource schemas and documentation generation.
@@ -568,7 +568,7 @@ The integration owner must still verify the final delivered combined object afte
 Apply only the version/context-selection rules actually accepted for the SHACL implementation.
 Issue #31 proposes explicit local context, changed-entity defaults, full contextual graph checks, staged-byte correctness, deterministic generated documentation and distinct audit mode.
 Until accepted and implemented, those are admission requirements to resolve with its owner—not newly activated WP8 policy.
-[S21]
+\[S21]
 
 Once the corresponding contracts are accepted, exercise:
 
@@ -593,7 +593,7 @@ A successful validator on one revision does not qualify an index or server servi
 The observed UO package exposes `generate:jsonld`, `generate:jsonld:all`, `mcp:index`, `mcp:stdio` and `mcp:package:build`; other commands stage channels or create release artifacts.
 Inspect the actual command contracts and use the accepted local build/test route.
 Do not invoke staging, publishing, hosted deployment or credentials merely because the script exists.
-[S19]
+\[S19]
 
 Use a fresh owned output location or verify the existing output provenance.
 The inspected `generate:jsonld` script is `--missing-only`; a successful invocation can leave previously present output unchanged.
@@ -613,7 +613,7 @@ Retain branch-local successes as history.
 Introduce an independently controlled source/test/configuration change in an owned fixture and confirm that incompatible earlier receipts cannot satisfy the current gate.
 Include actual required profile selection, canonical/current receipt matching and context changes that materially affect the consumer.
 Do not rewrite task IDs, baseline digests or `startingHead` to recycle a pass.
-[S22, S23]
+\[S22, S23]
 
 On the actual final combined candidate, run its required R2 full profile and accepted semantic/independent obligations.
 An integration fixture called `full` is not that run; eleven root checks alone may still leave accepted SHACL or MCP consumer obligations to execute.
@@ -622,7 +622,7 @@ Examine current command composition and the explicit implementation plan rather 
 A route/control movement requiring new authority stays blocked until that decision is supplied through a supported interface.
 Issue #36's missing active amendment path is a separate reported problem.
 WP8 does not fix it by editing active JSON, claiming a fictitious completed handoff, lowering risk or silently creating a new starting point that omits earlier work.
-[S15]
+\[S15]
 
 ### 8.6 Output and acceptance
 
@@ -643,12 +643,12 @@ Do not overwrite the adopter's `.sdlc/verification.json` with UO's eleven-check 
 ONI's `.NET` and converter selection and WebVOWL's build/browser checks have different consumers.
 Preserve baseline semantics, input scopes, package-manager dispatch and held-out test independence.
 Port tests to the actual maintained layout instead of importing a second test tree that discovers unrelated fixtures.
-[S14, S16, S18, S20]
+\[S14, S16, S18, S20]
 
 Before tests run, inspect the actual test-discovery scope.
 A saved review snapshot containing `*.test.js` can accidentally join the product suite; the WebVOWL completion record retains such an incident.
 Keep replay/archive material outside discovery through the existing approved storage boundary; do not silence the issue by excluding every review-related or Markdown path from verification.
-[S12]
+\[S12]
 
 ### 9.2 Handle existing task and receipt state without falsifying history
 
@@ -659,12 +659,12 @@ Do not automatically migrate all worktrees or call `begin` inside someone else's
 For a selected version-3 receipt adoption, deliver the writer, schema and reader coherently.
 Preserve historical version-2 receipts as history; obtain new native evidence where the new contract requires it.
 Do not rewrite history into v3, accept old green records as new qualification, or add a permissive fallback just to avoid a blocked transition.
-[S03, S22, P3]
+\[S03, S22, P3]
 
 When shared policy/configuration changes, follow the supported authority and rerouting behavior.
 A human-readable decision cannot make an unavailable native risk-amendment interface exist.
 Any approved temporary scope limitation is recorded explicitly, not represented as successful native reclassification.
-[S15]
+\[S15]
 
 ### 9.3 Separate generated configuration from effective host behavior
 
@@ -678,7 +678,7 @@ Do not collect a full environment dump or secrets merely to populate an identity
 
 For guard and Security obligations, reuse WP4/WP5's actual accepted host evidence only when the combination still matches. A merged fix or visible plugin is not operational capability; OpenAI's own guidance distinguishes installation, surface/workspace availability and the permissions of included apps.
 No universal propagation time or install command is inferred here.
-[W04, P5, P6]
+\[W04, P5, P6]
 
 ### 9.4 Verify preservation and actual local behavior
 
@@ -702,7 +702,7 @@ A green aggregate with unavailable evidence cannot establish an unobserved consu
 Trusted policy support, especially WP6's accepted-plan route, must be present in the policy source actually executed.
 Never check out or execute a candidate's validator, workflows, dependency configuration or hooks in a trusted-base metadata job to make it accept itself.
 Keep existing tokens/read scopes and branch protections unchanged unless separately accepted.
-[P7, W06]
+\[P7, W06]
 
 A local-only adoption can be accepted for that local surface without implying remote delivery.
 When the accepted current deliverable excludes ONI remote changes or names a future repository, record remote work as deliberately deferred to its owner; do not merge ONI merely to remove an old red badge.
@@ -718,12 +718,12 @@ Use the companion worksheet as a draft section, not a required new standalone re
 An entry must answer: **which accepted fix, from which immutable source, adapted how, into which target, on which host, with which actual evidence, and what is still not qualified?**
 Record an evidence-store reference that the intended maintainer can actually read, with relevant retention/ownership.
 A local `.sdlc/runtime` path alone is not proof that the next maintainer can retrieve it after a worktree disappears.
-[P1, S03, S14]
+\[P1, S03, S14]
 
 The package status may remain `1.0.0`/pre-release with repository-local deployment recorded.
 Do not bump a source-package or product version, change global deployment flags, or label all hosts equivalent to finish this work package.
 The existing status object has its own owner decision.
-[S27]
+\[S27]
 
 ### 10.2 Distinguish three records
 
@@ -741,7 +741,7 @@ Append risk/false-positive decisions beside native evidence, preserving original
 Complete intended tracked instructions and summaries before final freeze where the accepted sequencing permits.
 Put subsequent operational progress in an authorised existing task/handoff location, not repeatedly into a fingerprinted document.
 Any post-verification tracked edit or commit that invalidates current evidence receives the required fresh qualification; do not add a fingerprint exception to make adoption easier.
-[P8, S22]
+\[P8, S22]
 
 If the adoption entry itself must be committed after a product observation, preserve the original observation's exact object and separately assess the documentation delta, then satisfy the actual final gate.
 The source identity of the earlier browser/export result must not be retroactively rewritten to the later documentation commit.
@@ -772,7 +772,7 @@ Use WP0/WP3 preservation/disposition for surviving worktrees, test environments,
 The historical six worktrees can all remain.
 Actual DCG or permission denials reach the operator through the existing channel; no alternate interpreter or file API is a remedy for a denied equivalent action.
 An observed old reversible retention decision in ONI is not general permission to move arbitrary protected resources.
-[P1, P2, P4]
+\[P1, P2, P4]
 
 ## 12. Detailed implementation slices
 
@@ -1071,34 +1071,34 @@ Do not use the planning-file checks to satisfy any product or host acceptance cr
 
 ### Supplied materials
 
-**[P0]** `sdlc-implementation-plan-2026-09-10.md` — Parent WP8 and acceptance matrix; controlling requested scope.
+**\[P0]** `sdlc-implementation-plan-2026-09-10.md` — Parent WP8 and acceptance matrix; controlling requested scope.
 SHA-256: `b560e4b15685c2af42f1cafd1a223ff718d968cc8a0648e9a33522fb07601c82`.
 
-**[P1]** `sdlcworktreelifecyclehandoff20260910.md` — Historical observations/questions; not a current inventory or deletion authority.
+**\[P1]** `sdlcworktreelifecyclehandoff20260910.md` — Historical observations/questions; not a current inventory or deletion authority.
 SHA-256: `a9cf76ae85ab314b15e80164150e0a69d8c18af836c32a83e8ca689e1a4d16d6`.
 
-**[P2]** `wp0-worktree-preservation-implementation-plan-2026-09-10.md` — Preservation design; its existence is not executed preservation.
+**\[P2]** `wp0-worktree-preservation-implementation-plan-2026-09-10.md` — Preservation design; its existence is not executed preservation.
 SHA-256: `5c789f1250de378b46388c0d9806a7d4c0527cbaf425beaa976e8356e052eba7`.
 
-**[P3]** `wp1-text-boundaries-evidence-retention-implementation-plan-2026-09-10.md` — Writer/reader/text design; use actual accepted delivered implementation.
+**\[P3]** `wp1-text-boundaries-evidence-retention-implementation-plan-2026-09-10.md` — Writer/reader/text design; use actual accepted delivered implementation.
 SHA-256: `68594f4df7bb0144c633054ba1decba5a9540580aff8a1ba974af94de15409b1`.
 
-**[P4]** `wp3-resource-release-visibility-implementation-plan-2026-09-10.md` — Resource-disposition proposal; check actual implementation/acceptance before adoption.
+**\[P4]** `wp3-resource-release-visibility-implementation-plan-2026-09-10.md` — Resource-disposition proposal; check actual implementation/acceptance before adoption.
 SHA-256: `2a78c43583efa96b5082b95077f1b38629198dd84e79e395f1ced512c9dcf82f`.
 
-**[P5]** `wp4-command-dispatch-diagnosis-implementation-plan-2026-09-10.md` — Actual protected-host qualification, not a source-only classifier pass.
+**\[P5]** `wp4-command-dispatch-diagnosis-implementation-plan-2026-09-10.md` — Actual protected-host qualification, not a source-only classifier pass.
 SHA-256: `862266cc6b2adf253dbf035f178f115cfe9659fdcffc7d5879ad753fa31f6223`.
 
-**[P6]** `wp5-installed-security-inventory-qualification-implementation-plan-2026-09-10.md` — Installed scope and separate artifact-workaround obligations.
+**\[P6]** `wp5-installed-security-inventory-qualification-implementation-plan-2026-09-10.md` — Installed scope and separate artifact-workaround obligations.
 SHA-256: `acab2f5bfb97398d90973648a7647da199bfc53e4b13134f2a30b8134684def9`.
 
-**[P7]** `wp6-trusted-baseline-and-preflight-implementation-plan-2026-09-10.md` — Trusted baseline and current remote-readback boundary.
+**\[P7]** `wp6-trusted-baseline-and-preflight-implementation-plan-2026-09-10.md` — Trusted baseline and current remote-readback boundary.
 SHA-256: `21923f8abc7f1644e39ede0da8a40e05813f3dcabe851846a2b64c9db0ed4e5e`.
 
-**[P8]** `wp7-proportionate-execution-implementation-plan-2026-09-11.md` — Execution cadence, output placement and shared A14 exercises.
+**\[P8]** `wp7-proportionate-execution-implementation-plan-2026-09-11.md` — Execution cadence, output placement and shared A14 exercises.
 SHA-256: `222928fef535acae1557e2e2b9e6d55e4675038a10c88f6bac0c031d9162cad4`.
 
-**[P9]** `wp2-independent-worktree-execution-implementation-plan-2026-09-10.md` — Independent worktree execution and shared A06 integration boundary.
+**\[P9]** `wp2-independent-worktree-execution-implementation-plan-2026-09-10.md` — Independent worktree execution and shared A06 integration boundary.
 SHA-256: `36263bd280bf331e855a9487590d8615d474d68ee1f494a5e4d56e23a0f11adf`.
 
 ### Inspected repository material and external primary documentation
@@ -1107,104 +1107,104 @@ Repository links are pinned where applicable.
 Mutable API/Issue/PR references retain the research identity stated above; they must be read afresh before action.
 Existing execution reports are not tests run during this research.
 
-**[S01]** [UO main ref read](https://api.github.com/repos/Hadden-Industries/universal-ontology/branches/main).
+**\[S01]** [UO main ref read](https://api.github.com/repos/Hadden-Industries/universal-ontology/branches/main).
 Mutable ref read; research pin a0374bad8203aa95f87a0e47a85013fd4b938c7e.
 
-**[S02]** [UO branch inventory](https://api.github.com/repos/Hadden-Industries/universal-ontology/branches?per_page=100).
+**\[S02]** [UO branch inventory](https://api.github.com/repos/Hadden-Industries/universal-ontology/branches?per_page=100).
 Proposal/candidate refs, not acceptance of their implementations.
 
-**[S03]** [UO adoption record](https://github.com/Hadden-Industries/universal-ontology/blob/a0374bad8203aa95f87a0e47a85013fd4b938c7e/docs/sdlc/adoption.md).
+**\[S03]** [UO adoption record](https://github.com/Hadden-Industries/universal-ontology/blob/a0374bad8203aa95f87a0e47a85013fd4b938c7e/docs/sdlc/adoption.md).
 Existing source/host and WP1 claims; local bundles not independently reopened here.
 
-**[S04]** [WebVOWL production-preview repair commit](https://github.com/Hadden-Industries/webvowl/commit/80b302214d24bce195986af89ef7a34d24274928).
+**\[S04]** [WebVOWL production-preview repair commit](https://github.com/Hadden-Industries/webvowl/commit/80b302214d24bce195986af89ef7a34d24274928).
 Commit and stated repair scope.
 
-**[S05]** [ONI PR #4](https://github.com/MaksymShostak/oxygen-not-included/pull/4).
+**\[S05]** [ONI PR #4](https://github.com/MaksymShostak/oxygen-not-included/pull/4).
 Mutable metadata; base 975acf599d06ec3d274c55bac8d1731278ffa153 and head fe75c5d8e29f68e43812439fbc6ec73df2f43b05 at read.
 
-**[S06]** [ONI exact BBCode workflow attempt jobs](https://api.github.com/repos/MaksymShostak/oxygen-not-included/actions/runs/34529893438/attempts/1/jobs?per_page=100).
+**\[S06]** [ONI exact BBCode workflow attempt jobs](https://api.github.com/repos/MaksymShostak/oxygen-not-included/actions/runs/34529893438/attempts/1/jobs?per_page=100).
 Ten jobs; each succeeded; actual dependency, converter and mutation steps ran.
 Metadata is not archive-content inspection.
 
-**[S07]** [ONI trusted-linkage run for the same candidate](https://github.com/MaksymShostak/oxygen-not-included/actions/runs/34529892678).
+**\[S07]** [ONI trusted-linkage run for the same candidate](https://github.com/MaksymShostak/oxygen-not-included/actions/runs/34529892678).
 Attempt 1, pull_request_target, failed.
 Current diagnostic not retrieved in this research.
 
-**[S08]** [WebVOWL VOWL inspection projector](https://github.com/Hadden-Industries/webvowl/blob/80b302214d24bce195986af89ef7a34d24274928/src/app/js/controller/vowlModelInspectionProjector.js).
+**\[S08]** [WebVOWL VOWL inspection projector](https://github.com/Hadden-Industries/webvowl/blob/80b302214d24bce195986af89ef7a34d24274928/src/app/js/controller/vowlModelInspectionProjector.js).
 String version including empty string is forwarded; other values become null.
 
-**[S09]** [WebVOWL rendered-graph contracts](https://github.com/Hadden-Industries/webvowl/blob/80b302214d24bce195986af89ef7a34d24274928/src/app/js/controller/renderedGraphRuntimeContracts.js).
+**\[S09]** [WebVOWL rendered-graph contracts](https://github.com/Hadden-Industries/webvowl/blob/80b302214d24bce195986af89ef7a34d24274928/src/app/js/controller/renderedGraphRuntimeContracts.js).
 createOntologyHeaderRecord accepts string or null; no nonempty version constraint.
 
-**[S10]** [WebVOWL controller](https://github.com/Hadden-Industries/webvowl/blob/80b302214d24bce195986af89ef7a34d24274928/src/app/js/controller/webVowlController.js).
+**\[S10]** [WebVOWL controller](https://github.com/Hadden-Industries/webvowl/blob/80b302214d24bce195986af89ef7a34d24274928/src/app/js/controller/webVowlController.js).
 Separate LOAD_FAILED / LOAD_ABORTED constructors and abort recognition inspected; complete runtime qualification not performed.
 
-**[S11]** [WebVOWL original and later evaluation](https://github.com/Hadden-Industries/webvowl/blob/80b302214d24bce195986af89ef7a34d24274928/docs/evaluations/webmcp-integration.md).
+**\[S11]** [WebVOWL original and later evaluation](https://github.com/Hadden-Industries/webvowl/blob/80b302214d24bce195986af89ef7a34d24274928/docs/evaluations/webmcp-integration.md).
 Pinned AQFO source facts, historical failure and later outcome references.
 
-**[S12]** [WebVOWL completion and later production correction](https://github.com/Hadden-Industries/webvowl/blob/80b302214d24bce195986af89ef7a34d24274928/docs/evaluations/2026-09-10-webmcp-completion.md).
+**\[S12]** [WebVOWL completion and later production correction](https://github.com/Hadden-Industries/webvowl/blob/80b302214d24bce195986af89ef7a34d24274928/docs/evaluations/2026-09-10-webmcp-completion.md).
 Reported native user outcomes and scoped limits; private/local artifacts not retrieved.
 
-**[S13]** [WebVOWL production module-link regression](https://github.com/Hadden-Industries/webvowl/blob/80b302214d24bce195986af89ef7a34d24274928/src/productionBundle.integration.test.js).
+**\[S13]** [WebVOWL production module-link regression](https://github.com/Hadden-Industries/webvowl/blob/80b302214d24bce195986af89ef7a34d24274928/src/productionBundle.integration.test.js).
 Actual test source read; not executed by this research.
 
-**[S14]** [WebVOWL import provenance](https://github.com/Hadden-Industries/webvowl/blob/80b302214d24bce195986af89ef7a34d24274928/.sdlc/UPSTREAM.json).
+**\[S14]** [WebVOWL import provenance](https://github.com/Hadden-Industries/webvowl/blob/80b302214d24bce195986af89ef7a34d24274928/.sdlc/UPSTREAM.json).
 First portion read: ONI immediate source, UO target lineage and per-file adaptation.
 
-**[S15]** [UO Issue #36: active scope/risk amendment](https://github.com/Hadden-Industries/universal-ontology/issues/36).
+**\[S15]** [UO Issue #36: active scope/risk amendment](https://github.com/Hadden-Industries/universal-ontology/issues/36).
 Existing separately reported interface gap, not repaired by a cadence or adoption document.
 
-**[S16]** [ONI affected-component runner](https://github.com/MaksymShostak/oxygen-not-included/blob/fe75c5d8e29f68e43812439fbc6ec73df2f43b05/scripts/runAffectedChecks.js).
+**\[S16]** [ONI affected-component runner](https://github.com/MaksymShostak/oxygen-not-included/blob/fe75c5d8e29f68e43812439fbc6ec73df2f43b05/scripts/runAffectedChecks.js).
 Actual base selection and maintained consumer command composition.
 
-**[S17]** [ONI execution/retirement evidence](https://github.com/MaksymShostak/oxygen-not-included/blob/fe75c5d8e29f68e43812439fbc6ec73df2f43b05/docs/plans/2026-09-08-steam-community-bbcode-execution.md).
+**\[S17]** [ONI execution/retirement evidence](https://github.com/MaksymShostak/oxygen-not-included/blob/fe75c5d8e29f68e43812439fbc6ec73df2f43b05/docs/plans/2026-09-08-steam-community-bbcode-execution.md).
 Recorded decisions, local results and retained-history distinctions; supplemented by S06/S07.
 
-**[S18]** [ONI converter package scripts](https://github.com/MaksymShostak/oxygen-not-included/blob/fe75c5d8e29f68e43812439fbc6ec73df2f43b05/tools/steam-community-bbcode/package.json).
+**\[S18]** [ONI converter package scripts](https://github.com/MaksymShostak/oxygen-not-included/blob/fe75c5d8e29f68e43812439fbc6ec73df2f43b05/tools/steam-community-bbcode/package.json).
 Existing check, pack and consumer interfaces; not installation or publication evidence.
 
-**[S19]** [UO package scripts](https://github.com/Hadden-Industries/universal-ontology/blob/a0374bad8203aa95f87a0e47a85013fd4b938c7e/package.json).
+**\[S19]** [UO package scripts](https://github.com/Hadden-Industries/universal-ontology/blob/a0374bad8203aa95f87a0e47a85013fd4b938c7e/package.json).
 Actual source-side interface list, including missing-only JSON-LD and mutating prebuild.
 
-**[S20]** [UO verification profile](https://github.com/Hadden-Industries/universal-ontology/blob/a0374bad8203aa95f87a0e47a85013fd4b938c7e/.sdlc/verification.json).
+**\[S20]** [UO verification profile](https://github.com/Hadden-Industries/universal-ontology/blob/a0374bad8203aa95f87a0e47a85013fd4b938c7e/.sdlc/verification.json).
 Actual eleven-command full profile at the inspected pin.
 
-**[S21]** [UO Issue #31: SHACL proposal](https://github.com/Hadden-Industries/universal-ontology/issues/31).
+**\[S21]** [UO Issue #31: SHACL proposal](https://github.com/Hadden-Industries/universal-ontology/issues/31).
 Draft scope and proposed semantic contracts; not implemented or accepted by WP8.
 
-**[S22]** [UO state and receipt consumer](https://github.com/Hadden-Industries/universal-ontology/blob/a0374bad8203aa95f87a0e47a85013fd4b938c7e/scripts/_sdlc_state.py).
+**\[S22]** [UO state and receipt consumer](https://github.com/Hadden-Industries/universal-ontology/blob/a0374bad8203aa95f87a0e47a85013fd4b938c7e/scripts/_sdlc_state.py).
 Current v3 receipt validation and fingerprint behavior; not host execution.
 
-**[S23]** [UO Issue #33: independent worktree execution](https://github.com/Hadden-Industries/universal-ontology/issues/33).
+**\[S23]** [UO Issue #33: independent worktree execution](https://github.com/Hadden-Industries/universal-ontology/issues/33).
 Existing scope excludes a cross-repository distribution mechanism; true combined integration required.
 
-**[S24]** [UO proportionate workflow](https://github.com/Hadden-Industries/universal-ontology/blob/a0374bad8203aa95f87a0e47a85013fd4b938c7e/docs/sdlc/proportional-workflow.md).
+**\[S24]** [UO proportionate workflow](https://github.com/Hadden-Industries/universal-ontology/blob/a0374bad8203aa95f87a0e47a85013fd4b938c7e/docs/sdlc/proportional-workflow.md).
 Existing route/assurance boundaries, not automatic scope approval.
 
-**[S25]** [UO independent review playbook](https://github.com/Hadden-Industries/universal-ontology/blob/a0374bad8203aa95f87a0e47a85013fd4b938c7e/docs/sdlc/subagent-playbook.md).
+**\[S25]** [UO independent review playbook](https://github.com/Hadden-Industries/universal-ontology/blob/a0374bad8203aa95f87a0e47a85013fd4b938c7e/docs/sdlc/subagent-playbook.md).
 Existing independence, coordination and preservation instructions.
 
-**[S26]** [UO TDD evidence/handoff reference](https://github.com/Hadden-Industries/universal-ontology/blob/a0374bad8203aa95f87a0e47a85013fd4b938c7e/.sdlc/skills/test-driven-development/references/evidence-and-handoffs.md).
+**\[S26]** [UO TDD evidence/handoff reference](https://github.com/Hadden-Industries/universal-ontology/blob/a0374bad8203aa95f87a0e47a85013fd4b938c7e/.sdlc/skills/test-driven-development/references/evidence-and-handoffs.md).
 Existing execution/evidence ownership; native histories and accepted scope.
 
-**[S27]** [UO package status](https://github.com/Hadden-Industries/universal-ontology/blob/a0374bad8203aa95f87a0e47a85013fd4b938c7e/.sdlc/PACKAGE_STATUS.json).
+**\[S27]** [UO package status](https://github.com/Hadden-Industries/universal-ontology/blob/a0374bad8203aa95f87a0e47a85013fd4b938c7e/.sdlc/PACKAGE_STATUS.json).
 Pre-release repository-local deployment metadata; not global current byte/host equivalence.
 
-**[W01]** [Git native worktree semantics](https://git-scm.com/docs/git-worktree.html).
+**\[W01]** [Git native worktree semantics](https://git-scm.com/docs/git-worktree.html).
 Shared versus per-worktree refs/configuration; resolve through native Git.
 
-**[W02]** [Vite local static-build preview](https://vite.dev/guide/static-deploy.html).
+**\[W02]** [Vite local static-build preview](https://vite.dev/guide/static-deploy.html).
 Preview is local built-application testing, not a production server.
 
-**[W03]** [npm install package and tarball semantics](https://docs.npmjs.com/cli/install/).
+**\[W03]** [npm install package and tarball semantics](https://docs.npmjs.com/cli/install/).
 Native tarball install differs from a development directory/link.
 Read matching installed-version help for execution.
 
-**[W04]** [OpenAI plugin capability/permission guidance](https://help.openai.com/en/articles/20001256-plugins-in-codex).
+**\[W04]** [OpenAI plugin capability/permission guidance](https://help.openai.com/en/articles/20001256-plugins-in-codex).
 Installation, account/workspace/surface availability and app permissions are separate.
 
-**[W05]** [GitHub rerun identity](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/re-run-workflows-and-jobs).
+**\[W05]** [GitHub rerun identity](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/re-run-workflows-and-jobs).
 Reruns retain original event SHA/ref; not implicit trusted-policy refresh.
 
-**[W06]** [GitHub workflow event semantics](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows).
+**\[W06]** [GitHub workflow event semantics](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows).
 Distinguish pull_request and pull_request_target; preserve trusted execution boundary.
