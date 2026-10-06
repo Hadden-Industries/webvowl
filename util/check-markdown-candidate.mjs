@@ -270,6 +270,27 @@ export function metadataGit(executable, sourceRoot, trustedRoot) {
     );
   return bound;
 }
+
+/** npm ci validates ranges; qualification binds the resulting exact locked release. */
+export function lockedCapabilityVersion(manifest, lock) {
+  const name = "@hadden-industries/markdown-quality";
+  const requested = manifest.devDependencies?.[name];
+  if (
+    typeof requested !== "string" ||
+    requested.length === 0 ||
+    lock.packages?.[""]?.devDependencies?.[name] !== requested
+  )
+    throw new Error("Trusted manifest and lock disagree");
+  const core = lock.packages?.[`node_modules/${name}`];
+  if (
+    typeof core?.version !== "string" ||
+    !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/u.test(core.version) ||
+    !core.integrity
+  )
+    throw new Error("Locked capability identity is incomplete");
+  return core.version;
+}
+
 function revision(root, git) {
   // rev-parse reads checkout identity; it runs no candidate program or hook.
   return execFileSync(git, ["-C", root, "rev-parse", "--verify", "HEAD"], {
@@ -316,14 +337,7 @@ async function main() {
   );
   const lockBytes = readFileSync(join(toolingRoot, "package-lock.json"));
   const lock = JSON.parse(lockBytes.toString("utf8"));
-  const expectedVersion =
-    manifest.devDependencies?.["@hadden-industries/markdown-quality"];
-  if (
-    lock.packages?.[""]?.devDependencies?.[
-      "@hadden-industries/markdown-quality"
-    ] !== expectedVersion
-  )
-    throw new Error("Trusted manifest and lock disagree");
+  const expectedVersion = lockedCapabilityVersion(manifest, lock);
   const staging = stageCandidate({ sourceRoot, trustedRoot, outputRoot });
   const cli = join(
     toolingRoot,
@@ -332,7 +346,9 @@ async function main() {
   const started = performance.now();
   const result = await checkCandidate({ outputRoot, cli, staging });
   if (result.trustedPackage.version !== expectedVersion)
-    throw new Error("Installed capability differs from the exact trusted pin");
+    throw new Error(
+      "Installed capability differs from the exact locked version",
+    );
   const nativeManifest = JSON.parse(
     readFileSync(
       join(dirname(dirname(cli)), "assets/tool-manifest.json"),

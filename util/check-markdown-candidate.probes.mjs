@@ -16,6 +16,7 @@ import {
   checkCandidate,
   dataDigest,
   metadataGit,
+  lockedCapabilityVersion,
 } from "./check-markdown-candidate.mjs";
 
 const artifacts = process.env.MARKDOWN_TEST_ARTIFACT_ROOT ?? tmpdir();
@@ -37,6 +38,47 @@ const policy = {
   links: { localFiles: true, rootRelative: "reject" },
   layout: { endOfLine: "lf", tabWidth: 2 },
 };
+
+test("trusted dependency ranges bind the exact resolved lockfile version", () => {
+  const name = "@hadden-industries/markdown-quality";
+  for (const [requested, version] of [
+    [">=1.0.3", "1.0.3"],
+    [">=1.0.3", "1.0.4"],
+    ["^1.0.3", "1.1.0"],
+    ["1.0.3", "1.0.3"],
+  ]) {
+    const manifest = { devDependencies: { [name]: requested } };
+    const lock = {
+      packages: {
+        "": { devDependencies: { [name]: requested } },
+        [`node_modules/${name}`]: { version, integrity: "sha512-fixture" },
+      },
+    };
+    assert.equal(lockedCapabilityVersion(manifest, lock), version);
+    lock.packages[""].devDependencies[name] = "0.1.0-alpha.4";
+    assert.throws(
+      () => lockedCapabilityVersion(manifest, lock),
+      /Trusted manifest and lock disagree/,
+    );
+    lock.packages[""].devDependencies[name] = requested;
+    lock.packages[`node_modules/${name}`].version = requested + " invalid";
+    assert.throws(
+      () => lockedCapabilityVersion(manifest, lock),
+      /Locked capability identity is incomplete/,
+    );
+    lock.packages[`node_modules/${name}`].version = version;
+    delete lock.packages[`node_modules/${name}`].integrity;
+    assert.throws(
+      () => lockedCapabilityVersion(manifest, lock),
+      /Locked capability identity is incomplete/,
+    );
+  }
+  assert.throws(
+    () => lockedCapabilityVersion({ devDependencies: {} }, { packages: {} }),
+    /Trusted manifest and lock disagree/,
+  );
+});
+
 function fixture() {
   const root = mkdtempSync(join(artifacts, "candidate-staging-test-"));
   const sourceRoot = join(root, "candidate"),
