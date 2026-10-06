@@ -74,6 +74,11 @@
     "test:markdown": "node --test util/check-markdown-candidate.probes.mjs"
   },
   "license": "AGPL-3.0-only",
+  "overrides": {
+    "@istanbuljs/load-nyc-config": {
+      "js-yaml": "4.3.2"
+    }
+  },
   "private": true,
   "jest": {
     "testEnvironment": "node",
