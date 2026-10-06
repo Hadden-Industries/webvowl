@@ -15,13 +15,6 @@
       "skillPath": "skills/apple-design/SKILL.md",
       "computedHash": "8b94db67cb9edaad5f1501010804caa610131f1d2dfda0a27664b2e858deade3"
     },
-    "brainstorming": {
-      "source": "obra/superpowers",
-      "ref": "main",
-      "sourceType": "github",
-      "skillPath": "skills/brainstorming/SKILL.md",
-      "computedHash": "b58d55b64742ecd37923985ec7bdfbe678ffbcb9895562abd28c0a32dcacd7fb"
-    },
     "brooks-audit": {
       "source": "hyhmrright/brooks-lint",
       "sourceType": "github",
@@ -47,13 +40,6 @@
       "sourceType": "github",
       "skillPath": "skills/engineering/codebase-design/SKILL.md",
       "computedHash": "5a17552cc1482f1a40124bf4e6c9dbd90ac0dbb47e71c07d47369f9e5f2ae3b5"
-    },
-    "committing-to-git": {
-      "source": "Hadden-Industries/agent-skills",
-      "ref": "main",
-      "sourceType": "github",
-      "skillPath": "skills/committing-to-git/SKILL.md",
-      "computedHash": "29f146a9c7819d78ee83dbce3ef31b257ced8b63b2906e52110716828e0821cc"
     },
     "defining-concepts": {
       "source": "Hadden-Industries/agent-skills",
@@ -155,13 +141,6 @@
       "sourceType": "github",
       "skillPath": "skills/productivity/writing-for-agents/SKILL.md",
       "computedHash": "95da47fc97af998e85b7d7e6d57b3ac76727c1e290cfe9ea09005aacb826959f"
-    },
-    "writing-plans": {
-      "source": "obra/superpowers",
-      "ref": "main",
-      "sourceType": "github",
-      "skillPath": "skills/writing-plans/SKILL.md",
-      "computedHash": "27c75044e444a4fc68798c3f799dc23eaff3a6bfabff32e6ad75bb20f881c094"
     }
   }
 }
