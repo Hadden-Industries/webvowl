@@ -11,9 +11,11 @@ function formatRequired(candidates) {
   return error;
 }
 
-function resourceLimit(message) {
+function resourceLimit(message, resource) {
   const error = new RangeError(message);
   error.code = "RESOURCE_LIMIT_EXCEEDED";
+  error.stage = "acquisition";
+  error.resource = resource;
   return error;
 }
 
@@ -71,6 +73,7 @@ export function createCanonicalVowlSourceAcquisition({
     ) {
       throw resourceLimit(
         "The document exceeds the owning parser's input byte limit.",
+        "maxInputBytes",
       );
     }
     return bytes.slice();
@@ -81,30 +84,14 @@ export function createCanonicalVowlSourceAcquisition({
     signal?.throwIfAborted();
     return { ...acquired, bytes: ownedBytes(acquired.bytes) };
   }
-  async function acquire(documentIri, signal, format, allowSelection = false) {
+  async function acquire(documentIri, signal, format) {
     const acquired = await acquireBytes(documentIri, signal);
-    let mediaType;
-    try {
-      mediaType = selectCanonicalOwlMediaType({ ...acquired, format });
-    } catch (error) {
-      if (
-        !allowSelection ||
-        !requestFormat ||
-        format !== undefined ||
-        error.code !== "OWL_FORMAT_SELECTION_REQUIRED"
-      ) {
-        throw error;
-      }
-      const selected = await requestFormat(
-        { documentIri: acquired.documentIri, formats: error.formats },
-        { signal },
-      );
-      signal?.throwIfAborted();
-      if (selected === null) {
-        throw new DOMException("Format selection was cancelled.", "AbortError");
-      }
-      mediaType = selectCanonicalOwlMediaType({ format: selected });
+    if (format === undefined) {
+      // Server/filename hints do not force a parser. Native loading selects
+      // syntax from these bytes once, including extensionless imports.
+      return { bytes: acquired.bytes, documentIri: acquired.documentIri };
     }
+    const mediaType = selectCanonicalOwlMediaType({ format });
     return {
       bytes: acquired.bytes,
       documentIri: acquired.documentIri,
@@ -136,6 +123,7 @@ export function createCanonicalVowlSourceAcquisition({
             if (cache.size >= limits.maxImportCount) {
               const error = resourceLimit(
                 "The import count limit was exceeded.",
+                "maxImportCount",
               );
               onFailure?.(error);
               throw error;
@@ -146,6 +134,7 @@ export function createCanonicalVowlSourceAcquisition({
                 if (totalBytes > limits.maxInputBytes) {
                   throw resourceLimit(
                     "The aggregate import byte limit was exceeded.",
+                    "maxInputBytes",
                   );
                 }
                 return acquired;
@@ -163,10 +152,11 @@ export function createCanonicalVowlSourceAcquisition({
           }
           const acquired = await cache.get(documentIri);
           signal?.throwIfAborted();
-          if (!acquired.selectedMediaType) {
+          if (acquired.format !== undefined && !acquired.selectedMediaType) {
             try {
-              acquired.selectedMediaType =
-                selectCanonicalOwlMediaType(acquired);
+              acquired.selectedMediaType = selectCanonicalOwlMediaType({
+                format: acquired.format,
+              });
             } catch (error) {
               if (
                 requestFormat &&
@@ -244,21 +234,20 @@ export function createCanonicalVowlSourceAcquisition({
     },
     async remote(documentIri, { signal, format } = {}) {
       // Human input precedes worker admission; it cannot consume its parse deadline.
-      const acquired = await acquire(documentIri, signal, format, true);
+      const acquired = await acquire(documentIri, signal, format);
       return { operation: "open-owl-model", ...acquired };
     },
-    local(bytes, { documentIri, format, contentType, fileName } = {}) {
+    local(bytes, { documentIri, format } = {}) {
       const snapshot = ownedBytes(bytes);
       if (typeof documentIri !== "string" || !documentIri) {
         throw new TypeError(
           "A local document requires its explicit parsing base IRI.",
         );
       }
-      const mediaType = selectCanonicalOwlMediaType({
-        format,
-        contentType,
-        fileName,
-      });
+      const mediaType =
+        format === undefined
+          ? undefined
+          : selectCanonicalOwlMediaType({ format });
       return {
         operation: "open-owl-model",
         bytes: snapshot,

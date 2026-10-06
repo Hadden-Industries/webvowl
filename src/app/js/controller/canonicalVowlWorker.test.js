@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { jest } from "@jest/globals";
-import { canonicalize, decode, encode, profiles } from "vowl";
+import { canonicalize, decode, encode, profiles, VowlError } from "vowl";
 import {
   runCanonicalVowlOperation,
   canonicalWorkerFailure,
@@ -15,6 +15,47 @@ const owlRequest = {
   documentIri: "urn:source",
   mediaType: "text/owl-functional",
 };
+
+test("extensionless and misleading acquisition names open RDF/XML through the real worker operation", async () => {
+  const bytes = text.encode(
+    '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:owl="http://www.w3.org/2002/07/owl#"><owl:Ontology rdf:about="urn:ontology"/><owl:Class rdf:about="urn:A"/></rdf:RDF>',
+  );
+  const { createCanonicalVowlSourceAcquisition } =
+    await import("./canonicalVowlSourceAcquisition.js");
+  const acquisition = createCanonicalVowlSourceAcquisition({ resolver: {} });
+  for (const fileName of ["extensionless", "misleading.ttl"]) {
+    const request = acquisition.local(bytes, {
+      documentIri: "urn:original",
+      fileName,
+      contentType: "text/turtle",
+    });
+    const opened = await runCanonicalVowlOperation(request);
+    expect(opened.checkpoint.source.evidence.documents[0]).toMatchObject({
+      formatKey: "rdfxml",
+      mediaType: "application/rdf+xml",
+      documentIri: "urn:original",
+    });
+    expect(opened.checkpoint.source.sources[0].bytes).toEqual(bytes);
+    expect(opened.inspection.records.roles).toContainEqual(
+      expect.objectContaining({ kind: "class" }),
+    );
+  }
+  await expect(
+    runCanonicalVowlOperation(
+      acquisition.local(bytes, {
+        documentIri: "urn:original",
+        format: "turtle",
+      }),
+    ),
+  ).rejects.toMatchObject({ code: "MAPPING_SYNTAX_INVALID" });
+  await expect(
+    runCanonicalVowlOperation({
+      operation: "open-owl-model",
+      documentIri: "urn:original",
+      bytes: text.encode("definitely not an OWL document"),
+    }),
+  ).rejects.toMatchObject({ code: "MAPPING_SYNTAX_INVALID" });
+});
 
 test("OWL operation workers retain source bytes across live editing and recovery", async () => {
   const opened = await runCanonicalVowlOperation({
@@ -509,6 +550,39 @@ test("aggregate acquisition counts root plus every imported document", async () 
   expect(worker.terminate).toHaveBeenCalledTimes(1);
 });
 
+test("OWL opening shares its longer budget with the worker without changing other defaults", async () => {
+  jest.useFakeTimers();
+  try {
+    const { workers, client } = harness();
+    const opening = client.run(
+      { ...owlRequest, operation: "open-owl-model" },
+      context,
+    );
+    const assertion = expect(opening).rejects.toMatchObject({
+      code: "DEADLINE_EXCEEDED",
+    });
+    expect(
+      workers[0].postMessage.mock.calls[0][0].request.limits.deadlineMs,
+    ).toBe(60000);
+    jest.advanceTimersByTime(10000);
+    expect(workers[0].terminate).not.toHaveBeenCalled();
+    jest.advanceTimersByTime(50000);
+    await assertion;
+    expect(workers[0].terminate).toHaveBeenCalledTimes(1);
+    const ordinary = client.run(
+      { operation: "decode", bytes: Uint8Array.of(1) },
+      context,
+    );
+    const ordinaryAssertion = expect(ordinary).rejects.toMatchObject({
+      code: "DEADLINE_EXCEEDED",
+    });
+    jest.advanceTimersByTime(10000);
+    await ordinaryAssertion;
+  } finally {
+    jest.useRealTimers();
+  }
+});
+
 test("whole-job deadline terminates an unresponsive worker", async () => {
   jest.useFakeTimers();
   try {
@@ -522,7 +596,7 @@ test("whole-job deadline terminates an unresponsive worker", async () => {
       context,
     );
     const assertion = expect(promise).rejects.toMatchObject({
-      code: "RESOURCE_LIMIT_EXCEEDED",
+      code: "DEADLINE_EXCEEDED",
     });
     jest.advanceTimersByTime(5);
     await assertion;
@@ -535,5 +609,35 @@ test("whole-job deadline terminates an unresponsive worker", async () => {
 test("unexpected exception text never crosses the worker boundary", () => {
   expect(canonicalWorkerFailure(new Error("secret source text"))).toEqual({
     code: "CANONICAL_OPERATION_FAILED",
+  });
+});
+
+test("resource failures retain only safe stage and resource facts across the worker seam", async () => {
+  const safe = canonicalWorkerFailure(
+    new VowlError("MODEL_RESOURCE_LIMIT", "secret source text", {
+      details: {
+        stage: "owl-validation",
+        resource: "maxWork",
+        source: "secret",
+      },
+    }),
+  );
+  expect(safe).toEqual({
+    code: "MODEL_RESOURCE_LIMIT",
+    details: { stage: "owl-validation", resource: "maxWork" },
+  });
+  const { workers, client } = harness();
+  const pending = client.run(owlRequest, context);
+  const worker = workers[0];
+  await worker.onmessage({
+    data: {
+      ...worker.postMessage.mock.calls[0][0],
+      type: "failure",
+      failure: safe,
+    },
+  });
+  await expect(pending).rejects.toMatchObject({
+    code: "MODEL_RESOURCE_LIMIT",
+    details: { stage: "owl-validation", resource: "maxWork" },
   });
 });

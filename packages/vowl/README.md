@@ -62,6 +62,11 @@ The application must preserve and reconcile the complete scene alongside the che
 The visualization field is required for artifact capture and forbidden for structural-content capture.
 Failed editing, recovery or capture leaves the previous model usable.
 `openOwl(bytes, {documentIri, mediaType, resolveImport, signal, limits})` on `vowl/owl` now admits a compatible live model and returns `{model, correspondence}` without RDFC.
+For live opening, `mediaType` is optional: omission delegates format recognition to the public OwlAPI loader, once, using the acquired bytes.
+An explicit media type still selects exactly one owning parser; document/base identity remains required independently of format.
+Live import responses likewise allow `{bytes, documentIri}` without a media type.
+Retained evidence records the owning loader's actual format and its public primary media type when selection was automatic.
+The source-preserving `fromOwl` contract still requires explicit media types for roots and imports.
 It retains the acquired closure bytes and historical parser/profile reports in a defensive checkpoint, with digests verified on recovery.
 Inspection exposes qualified interpretation and original assessment separately from current typed records; exhaustive statement-to-record provenance remains unavailable.
 Edits depending on unresolved source interpretation fail atomically while unrelated edits remain available.

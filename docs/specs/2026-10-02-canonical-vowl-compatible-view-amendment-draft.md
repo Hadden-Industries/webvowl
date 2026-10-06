@@ -6,6 +6,15 @@ The [original contracts](2026-09-24-canonical-vowl-core-contract.md) and retaine
 Implementation resumed on 3 October 2026 after the exact published-dependency and execution-transfer approvals; this contract remains a draft pending qualification.
 Section 14 records the subsequently delivered Java-compatible owlapi boundary and supersedes earlier proposed upstream requirements where inconsistent.
 
+## Live syntax selection amendment, 6 October 2026
+
+The approved WebVOWL loading repair permits omitted `mediaType` only for compatible live `openOwl` input and its import responses.
+Omission delegates recognition to the existing public OwlAPI loader during the single closure load; supplied media types retain exact parser selection.
+The original absolute document IRI remains required and independent of syntax recognition.
+Retained source evidence records the selected public format key and primary media type after loading, alongside the exact acquired bytes and existing assessments.
+This supersedes the draft's required-media-type wording for live opening only; `fromOwl`, frozen canonical authorities, artifact schemas and canonical byte profiles are unchanged.
+The application uses an opening-specific finite deadline consistently at worker and package ingress; all other resource limits and operation defaults remain in force.
+
 ## 1. User outcome and scope
 
 An ontology viewable in the pinned pre-fork baseline should load with its available import closure and render in WebVOWL 2.0, with material differences explained and tested.

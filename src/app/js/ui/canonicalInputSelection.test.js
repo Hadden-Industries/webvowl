@@ -73,13 +73,85 @@ test("local input retains exact bytes, including a BOM, without text decoding", 
   expect(file.text).not.toHaveBeenCalled();
 });
 
-test("cancelling syntax selection does not read the file", async () => {
-  const file = { name: "cancel.owl", arrayBuffer: jest.fn() };
+test("cancelling document context publishes no source after its bytes have been acquired", async () => {
+  const file = {
+    name: "cancel.owl",
+    arrayBuffer: jest.fn(async () => new ArrayBuffer(0)),
+  };
   expect(
     await selectCanonicalLocalSource({ file, select: async () => null }),
   ).toBeNull();
-  expect(file.arrayBuffer).not.toHaveBeenCalled();
+  expect(file.arrayBuffer).toHaveBeenCalledTimes(1);
 });
+
+test("extensionless input asks only for independent context and leaves syntax to the native loader", async () => {
+  const bytes = new TextEncoder().encode(
+    "Ontology(<urn:A> Declaration(Class(<urn:B>)))",
+  );
+  const file = {
+    name: "extensionless",
+    arrayBuffer: jest.fn(async () => bytes.buffer),
+  };
+  const source = await selectCanonicalLocalSource({
+    file,
+    select: async (context) => {
+      expect(file.arrayBuffer).toHaveBeenCalledTimes(1);
+      expect(context.requireReader).toBe(false);
+      return { kind: "owl", documentIri: "urn:source" };
+    },
+  });
+  expect(source.format).toBeUndefined();
+  expect(source.bytes).toEqual(bytes);
+});
+
+test("JSON input retains explicit reader selection instead of being reinterpreted as OWL", async () => {
+  const select = jest.fn(async () => ({ kind: "canonical" }));
+  await selectCanonicalLocalSource({
+    text: '{"header":{},"@context":{}}',
+    select,
+  });
+  expect(select).toHaveBeenCalledWith(
+    expect.objectContaining({ requireReader: true }),
+  );
+});
+
+test("JSON reader choice precedes validation even for incomplete JSON with a byte-order mark", async () => {
+  const bytes = new TextEncoder().encode('\uFEFF \n{"header":');
+  const select = jest.fn(async () => null);
+  await selectCanonicalLocalSource({
+    file: { name: "extensionless", arrayBuffer: async () => bytes.buffer },
+    select,
+  });
+  expect(select).toHaveBeenCalledWith(
+    expect.objectContaining({ requireReader: true }),
+  );
+});
+
+test.each(['"text"', "42", "-1", "true", "false", "null", "[]"])(
+  "JSON scalar or array %s requires its reader before admission",
+  async (text) => {
+    const select = jest.fn(async () => null);
+    await selectCanonicalLocalSource({ text, select });
+    expect(select).toHaveBeenCalledWith(
+      expect.objectContaining({ requireReader: true }),
+    );
+  },
+);
+
+test.each([
+  "foaf:Person a owl:Class .",
+  "test:Thing a owl:Class .",
+  "name:Thing a owl:Class .",
+])(
+  "JSON reader hints do not claim a Turtle prefixed name: %s",
+  async (text) => {
+    const select = jest.fn(async () => null);
+    await selectCanonicalLocalSource({ text, select });
+    expect(select).toHaveBeenCalledWith(
+      expect.objectContaining({ requireReader: false }),
+    );
+  },
+);
 
 test("retiring an input while it is read prevents publication of the local source", async () => {
   const abort = new AbortController();

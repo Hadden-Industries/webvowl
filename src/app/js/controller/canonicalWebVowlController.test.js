@@ -1,4 +1,5 @@
 import { jest } from "@jest/globals";
+import { ResourceLimitError } from "owlapi/io";
 import { createCanonicalWebVowlController } from "./canonicalWebVowlController.js";
 import { createCanonicalVowlDocumentSession } from "./canonicalVowlDocumentSession.js";
 import { runCanonicalVowlOperation } from "./canonicalVowlWorkerOperations.js";
@@ -477,6 +478,79 @@ test("an import acquisition limit aborts admission as a failure, not a missing-i
     source: { identity: "urn:retained" },
     error: { details: { reason: "RESOURCE_LIMIT_EXCEEDED" } },
   });
+});
+
+test("worker expiry preserves the accepted document and exposes a useful bounded cause", async () => {
+  const { controller, load, session } = setup();
+  await load("urn:retained");
+  const before = controller.getState();
+  session.load.mockRejectedValueOnce(
+    Object.assign(new Error("deadline exceeded"), {
+      code: "DEADLINE_EXCEEDED",
+      details: { stage: "worker", resource: "deadlineMs", source: "secret" },
+    }),
+  );
+  await expect(load("urn:expired")).rejects.toMatchObject({
+    code: "DEADLINE_EXCEEDED",
+  });
+  expect(controller.getState()).toMatchObject({
+    source: before.source,
+    loadGeneration: before.loadGeneration,
+    documentRevision: before.documentRevision,
+    error: {
+      code: "LOAD_FAILED",
+      message: expect.stringContaining("took too long"),
+      details: {
+        reason: "DEADLINE_EXCEEDED",
+        stage: "worker",
+        resource: "deadlineMs",
+      },
+    },
+  });
+  expect(controller.getState().error.details).not.toHaveProperty("source");
+});
+
+test.each([
+  ["timeoutMs", "took too long"],
+  ["maxRemoteDocumentBytes", "size limit"],
+])(
+  "remote %s failures preserve their owning resource and accepted source",
+  async (resource, message) => {
+    const { controller, load, acquisition } = setup();
+    await load("urn:retained");
+    acquisition.remote.mockRejectedValueOnce(
+      new ResourceLimitError("Remote acquisition failed", {
+        resource,
+        source: "secret",
+      }),
+    );
+    await expect(load("urn:failed")).rejects.toMatchObject({ resource });
+    const state = controller.getState();
+    expect(state).toMatchObject({
+      source: { identity: "urn:retained" },
+      error: {
+        message: expect.stringContaining(message),
+        details: { reason: "RESOURCE_LIMIT_EXCEEDED", resource },
+      },
+    });
+    expect(state.error.details).not.toHaveProperty("source");
+  },
+);
+
+test("remote syntax guidance does not offer an unavailable format interaction", async () => {
+  const { controller, load, acquisition } = setup();
+  acquisition.remote.mockRejectedValueOnce(
+    Object.assign(new Error("mapping syntax invalid"), {
+      code: "MAPPING_SYNTAX_INVALID",
+    }),
+  );
+  await expect(load("urn:failed")).rejects.toMatchObject({
+    code: "MAPPING_SYNTAX_INVALID",
+  });
+  expect(controller.getState().error.message).toContain("Check its syntax");
+  expect(controller.getState().error.message).not.toContain(
+    "choose its format",
+  );
 });
 
 test("prefix commands validate the caller generation and strip only the application envelope", async () => {

@@ -1,6 +1,10 @@
 import { createCanonicalVowlDocumentSession } from "./canonicalVowlDocumentSession.js";
 import { exportCanonicalDrawing } from "./canonicalVowlDrawingExport.js";
 import { createCanonicalVowlWorkerClient } from "./canonicalVowlWorkerClient.js";
+import {
+  canonicalFailureDetails,
+  canonicalLoadingMessage,
+} from "./canonicalVowlFailure.js";
 import { createCanonicalVowlSourceAcquisition } from "./canonicalVowlSourceAcquisition.js";
 import { applyCanonicalEditorCommand } from "./canonicalVowlEditorCommands.js";
 import { createOntologyInspector } from "./ontologyInspector.js";
@@ -625,9 +629,14 @@ export function createCanonicalWebVowlController({
               : toPublicWebVowlError(
                   new WebVowlOperationError({
                     code: "LOAD_FAILED",
-                    message: cause.message,
+                    message: canonicalLoadingMessage(cause),
                     ...(typeof cause.code === "string"
-                      ? { details: { reason: cause.code } }
+                      ? {
+                          details: {
+                            reason: cause.code,
+                            ...canonicalFailureDetails(cause),
+                          },
+                        }
                       : {}),
                     cause,
                   }),

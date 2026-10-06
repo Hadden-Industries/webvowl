@@ -53,13 +53,24 @@ export function resolveDocumentFormat(mediaType, pointer = "") {
   return matches[0];
 }
 
-export function documentContext(documentIri, mediaType, budget, pointer = "") {
+/** Only compatible live ingress permits the owning loader to select syntax. */
+export function documentContext(
+  documentIri,
+  mediaType,
+  budget,
+  pointer = "",
+  automatic = false,
+) {
   validateDocumentIri(documentIri, pointer);
   checkString(documentIri, `${pointer}/documentIri`, budget);
   return {
     documentIRI: IRI.create(documentIri),
-    contentType: mediaType,
-    format: resolveDocumentFormat(mediaType, pointer),
+    ...(automatic && mediaType === undefined
+      ? {}
+      : {
+          contentType: mediaType,
+          format: resolveDocumentFormat(mediaType, pointer),
+        }),
   };
 }
 
@@ -223,6 +234,7 @@ export async function loadClosure(bytes, context, options, budget, policy) {
             response.mediaType,
             budget,
             "/resolveImport",
+            policy.parsingMode === "compatible",
           );
           policy.observeSource?.(snapshot, importedContext, {
             requestedIri: request.importIRI.value,
@@ -265,6 +277,7 @@ export async function loadClosure(bytes, context, options, budget, policy) {
     maxImportDepth: Math.min(32, limits.depth),
   });
   try {
+    const startedAt = performance.now();
     const loaded = await waitForResult(
       manager.loadOntologyGraphFromOntologyDocument(
         sourceFor(bytes, context),
@@ -272,6 +285,10 @@ export async function loadClosure(bytes, context, options, budget, policy) {
       ),
       budget,
     );
+    performance.measure("webvowl.owl-loading", {
+      start: startedAt,
+      end: performance.now(),
+    });
     if (boundaryFailure) {
       throw boundaryFailure;
     }
