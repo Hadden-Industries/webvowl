@@ -4,9 +4,19 @@ import {
 } from "./canonicalVowlFailure.js";
 
 const DEFAULT_DEADLINE_MS = 10000;
-// Compatible OWL assessment needs a separate opening allowance; editing/export
-// retain their existing bounds. The same allowance travels to the package.
-const OWL_OPENING_DEADLINE_MS = 60000;
+// The owner-approved desktop allowance covers the entire model lifecycle;
+// the same whole-job deadline travels to the package in the worker request.
+const MODEL_OPERATION_DEADLINE_MS = 60000;
+const modelOperations = new Set([
+  "open-owl-model",
+  "open-canonical-model",
+  "open-legacy-model",
+  "recover-model",
+  "edit-model",
+  "capture-model",
+  "read-model-source",
+  "export-model-rdf",
+]);
 const MAXIMUM_DEADLINE_MS = 300000;
 const DEFAULT_INPUT_BYTES = 33554432;
 const MAXIMUM_INPUT_BYTES = 268435456;
@@ -21,15 +31,17 @@ const byteLength = Object.getOwnPropertyDescriptor(
 ).get;
 
 function failure(code, details) {
+  const safeDetails = canonicalFailureDetails(details);
   const error = new Error(
     canonicalLoadingMessage({
       code,
       message: code.replaceAll("_", " ").toLowerCase(),
+      details: safeDetails,
     }),
   );
   error.name = "CanonicalVowlOperationError";
   error.code = code;
-  error.details = canonicalFailureDetails(details);
+  error.details = safeDetails;
   return error;
 }
 
@@ -49,6 +61,32 @@ function positiveLimit(value, fallback, maximum) {
     throw failure("OPTION_INVALID");
   }
   return result;
+}
+
+function limitRecord(value) {
+  if (value === undefined) {
+    return {};
+  }
+  if (
+    value === null ||
+    typeof value !== "object" ||
+    Array.isArray(value) ||
+    ![Object.prototype, null].includes(Object.getPrototypeOf(value))
+  ) {
+    throw failure("OPTION_INVALID");
+  }
+  for (const key of Reflect.ownKeys(value)) {
+    const descriptor = Object.getOwnPropertyDescriptor(value, key);
+    if (
+      typeof key !== "string" ||
+      !descriptor.enumerable ||
+      !("value" in descriptor)
+    ) {
+      throw failure("OPTION_INVALID");
+    }
+  }
+  // Numeric ranges and known field names remain the producer's authority.
+  return value;
 }
 
 /** Bound plain checkpoint/request data before structuredClone allocates its copy. */
@@ -216,15 +254,18 @@ export function createCanonicalVowlWorkerClient({
       if (signal?.aborted) {
         throw failure("LOAD_ABORTED");
       }
+      const limits = limitRecord(request.limits);
       const deadlineMs = positiveLimit(
-        request.limits?.deadlineMs,
-        request.operation === "open-owl-model"
-          ? OWL_OPENING_DEADLINE_MS
-          : DEFAULT_DEADLINE_MS,
+        Object.hasOwn(limits, "deadlineMs")
+          ? limits.deadlineMs
+          : modelOperations.has(request.operation)
+            ? MODEL_OPERATION_DEADLINE_MS
+            : DEFAULT_DEADLINE_MS,
+        undefined,
         MAXIMUM_DEADLINE_MS,
       );
       const inputLimit = positiveLimit(
-        request.limits?.inputBytes,
+        limits.inputBytes,
         DEFAULT_INPUT_BYTES,
         MAXIMUM_INPUT_BYTES,
       );
@@ -241,7 +282,7 @@ export function createCanonicalVowlWorkerClient({
       let acquiredBytes = bytes?.byteLength ?? 0;
       let checkpointPayload;
       if (checkpointOperation) {
-        const depth = positiveLimit(request.limits?.depth, 128, 512);
+        const depth = positiveLimit(limits.depth, 128, 512);
         const allowed = [
           "operation",
           "checkpoint",
@@ -281,7 +322,7 @@ export function createCanonicalVowlWorkerClient({
       const payload = structuredClone(
         checkpointPayload ?? { ...request, bytes },
       );
-      if (request.operation === "open-owl-model") {
+      if (modelOperations.has(request.operation)) {
         payload.limits = { ...payload.limits, deadlineMs };
       }
       if (nextRequestId === Number.MAX_SAFE_INTEGER) {
