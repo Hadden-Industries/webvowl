@@ -9,6 +9,68 @@ export const CANONICAL_VISIBLE_FILTERS = Object.freeze({
   minDegree: 0,
 });
 
+function countCanonicalDegrees(occurrences) {
+  const byId = new Map(occurrences.map((record) => [record.id, record]));
+  const degree = new Map();
+  for (const occurrence of occurrences) {
+    const endpoints = occurrence.ends ?? [occurrence.from, occurrence.to];
+    if (
+      occurrence.kind.endsWith("-edge") &&
+      !endpoints.some((id) => byId.get(id)?.kind === "datatype-node")
+    ) {
+      for (const id of new Set(endpoints)) {
+        if (id !== undefined) {
+          degree.set(id, (degree.get(id) ?? 0) + 1);
+        }
+      }
+    }
+  }
+  return degree;
+}
+
+/** Restore the legacy first-threshold/50-node policy over admitted occurrences. */
+export function findCanonicalAutomaticMinimumDegree(
+  inspection,
+  filters,
+  retainedHidden = [],
+) {
+  const { hidden, maximumDegree } = prepareCanonicalVisibility(
+    inspection,
+    { ...filters, minDegree: 0 },
+    retainedHidden,
+  );
+  const hiddenIds = new Set(hidden);
+  const degree = countCanonicalDegrees(inspection.occurrences);
+  const counts = new Map();
+  let remaining = 0;
+  for (const occurrence of inspection.occurrences) {
+    if (
+      ["class-node", "datatype-node"].includes(occurrence.kind) &&
+      !hiddenIds.has(occurrence.id)
+    ) {
+      const value = degree.get(occurrence.id) ?? 0;
+      counts.set(value, (counts.get(value) ?? 0) + 1);
+      remaining += 1;
+    }
+  }
+  if (remaining <= 50) {
+    return 0;
+  }
+  // Only degree boundaries can change the retained count. Match the legacy
+  // exclusive maximum and zero fallback without repeated graph filtering.
+  for (const value of [...counts.keys()].sort((a, b) => a - b)) {
+    remaining -= counts.get(value);
+    const minimum = value + 1;
+    if (minimum >= maximumDegree || remaining === 0) {
+      return 0;
+    }
+    if (remaining <= 50) {
+      return minimum;
+    }
+  }
+  return 0;
+}
+
 /** Visibility controls select admitted occurrences; they never rebuild topology. */
 export function prepareCanonicalVisibility(
   inspection,
@@ -23,7 +85,7 @@ export function prepareCanonicalVisibility(
   );
   const byId = new Map(occurrences.map((record) => [record.id, record]));
   const hidden = new Set(retainedHidden.filter((id) => byId.has(id)));
-  const degree = new Map();
+  const degree = countCanonicalDegrees(occurrences);
   const constructs = new Map(
     inspection.records.constructs.map((record) => [record.id, record]),
   );
@@ -42,17 +104,6 @@ export function prepareCanonicalVisibility(
     );
   }
   for (const occurrence of occurrences) {
-    const endpoints = occurrence.ends ?? [occurrence.from, occurrence.to];
-    if (
-      occurrence.kind.endsWith("-edge") &&
-      !endpoints.some((id) => byId.get(id)?.kind === "datatype-node")
-    ) {
-      for (const id of new Set(endpoints)) {
-        if (id !== undefined) {
-          degree.set(id, (degree.get(id) ?? 0) + 1);
-        }
-      }
-    }
     if (
       (filters.datatypes === "hide" && occurrence.kind === "datatype-node") ||
       (filters.objectProperties === "hide" && objectPropertyEdge(occurrence)) ||
@@ -73,7 +124,7 @@ export function prepareCanonicalVisibility(
   if (filters.minDegree > 0) {
     for (const occurrence of occurrences) {
       if (
-        occurrence.kind === "class-node" &&
+        ["class-node", "datatype-node"].includes(occurrence.kind) &&
         (degree.get(occurrence.id) ?? 0) < filters.minDegree
       ) {
         hidden.add(occurrence.id);

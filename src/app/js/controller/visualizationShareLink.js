@@ -199,6 +199,6 @@ export function createVisualizationShareLink(
     .toString()
     .replaceAll("&", ";");
   const link = new URL(String(applicationUrl));
-  link.hash = `opts=${optionText};#${sourceKind}=${encodeURIComponent(state.source.identity)}`;
+  link.hash = `opts=${optionText};#${sourceKind}=${encodeURI(state.source.identity)}`;
   return link.href;
 }

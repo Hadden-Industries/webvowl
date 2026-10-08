@@ -5,6 +5,7 @@ import {
   prepareCanonicalVisibility,
   CANONICAL_VISIBLE_FILTERS,
   canonicalLabelSelection,
+  findCanonicalAutomaticMinimumDegree,
 } from "./canonicalVowlViewControls.js";
 
 let inspection;
@@ -87,4 +88,72 @@ test("language controls map explicit label choices to the portable scene", () =>
     mode: "language",
     range: "de",
   });
+});
+
+test("automatic degree retains the 50-node boundary, exclusive maximum and zero fallback", () => {
+  function graph(size, kind) {
+    const nodes = Array.from({ length: size }, (_, i) => ({
+      id: `n${i}`,
+      kind: "class-node",
+      targets: [],
+    }));
+    const edges = nodes.slice(1).map((node, i) => ({
+      id: `e${i}`,
+      kind: "subclass-edge",
+      from: node.id,
+      to: kind === "star" ? "n0" : nodes[i].id,
+    }));
+    if (kind === "ring") {
+      edges.push({
+        id: "closing",
+        kind: "subclass-edge",
+        from: "n0",
+        to: nodes.at(-1).id,
+      });
+    }
+    return {
+      occurrences: [...nodes, ...edges],
+      records: { roles: [], expressions: [], constructs: [] },
+    };
+  }
+  expect(
+    findCanonicalAutomaticMinimumDegree(
+      graph(50, "star"),
+      CANONICAL_VISIBLE_FILTERS,
+    ),
+  ).toBe(0);
+  expect(
+    findCanonicalAutomaticMinimumDegree(
+      graph(51, "star"),
+      CANONICAL_VISIBLE_FILTERS,
+    ),
+  ).toBe(2);
+  expect(
+    findCanonicalAutomaticMinimumDegree(
+      graph(51, "ring"),
+      CANONICAL_VISIBLE_FILTERS,
+    ),
+  ).toBe(0);
+  const isolated = graph(51, "star");
+  isolated.occurrences = isolated.occurrences.filter(
+    ({ kind }) => kind === "class-node",
+  );
+  expect(
+    findCanonicalAutomaticMinimumDegree(isolated, CANONICAL_VISIBLE_FILTERS),
+  ).toBe(0);
+});
+
+test("positive degree excludes datatype links and datatype nodes, and zero restores them", () => {
+  const datatypes = inspection.occurrences.filter(
+    ({ kind }) => kind === "datatype-node",
+  );
+  expect(datatypes.length).toBeGreaterThan(0);
+  const positive = prepareCanonicalVisibility(inspection, {
+    ...CANONICAL_VISIBLE_FILTERS,
+    minDegree: 1,
+  });
+  expect(datatypes.every(({ id }) => positive.hidden.includes(id))).toBe(true);
+  expect(
+    prepareCanonicalVisibility(inspection, CANONICAL_VISIBLE_FILTERS).hidden,
+  ).toEqual([]);
 });

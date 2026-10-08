@@ -395,11 +395,23 @@ export function createLoadingModule({
   loadingModule.ontologyLoadRequestFromLocation = function () {
     const { ontologyIdentifier, initialVisualization, presentation } =
       readVisualizationShareLink(String(location));
+    const source = ontologySourceForIdentifier(ontologyIdentifier);
+    // Presets are interactive ontology examples even though their packaged
+    // canonical artifacts include saved placements. Explicit route choices win.
+    const initial = /^(?:url|iri|file)=/.test(ontologyIdentifier)
+      ? initialVisualization
+      : {
+          ...initialVisualization,
+          view: { layout: "resume", ...initialVisualization.view },
+        };
     return {
-      source: ontologySourceForIdentifier(ontologyIdentifier),
-      ...(Object.keys(initialVisualization).length === 0
+      source,
+      ...(/^(?:url|iri|file)=/.test(ontologyIdentifier)
         ? {}
-        : { initialVisualization }),
+        : { useAutomaticDegree: true }),
+      ...(Object.keys(initial).length === 0
+        ? {}
+        : { initialVisualization: initial }),
       ...(Object.keys(presentation).length === 0 ? {} : { presentation }),
     };
   };
@@ -445,6 +457,7 @@ export function createLoadingModule({
     source,
     initialVisualization,
     reuseCachedOntology,
+    useAutomaticDegree,
   ) {
     try {
       return await webVowlController.loadOntology(
@@ -452,9 +465,19 @@ export function createLoadingModule({
           source,
           ...(reuseCachedOntology === undefined ? {} : { reuseCachedOntology }),
         },
-        ...(initialVisualization === undefined
+        ...(initialVisualization === undefined &&
+        useAutomaticDegree === undefined
           ? []
-          : [{ initialVisualization }]),
+          : [
+              {
+                ...(initialVisualization === undefined
+                  ? {}
+                  : { initialVisualization }),
+                ...(useAutomaticDegree === undefined
+                  ? {}
+                  : { useAutomaticDegree }),
+              },
+            ]),
       );
     } catch {
       loadingModule.renderControllerState(webVowlController.getState());
@@ -468,6 +491,7 @@ export function createLoadingModule({
     initialVisualization,
     presentation,
     reuseCachedOntology = true,
+    useAutomaticDegree,
   }) {
     supersedeInput();
     prepareLoadingPresentation();
@@ -476,6 +500,7 @@ export function createLoadingModule({
       source,
       initialVisualization,
       reuseCachedOntology,
+      useAutomaticDegree,
     );
     if (state && presentation !== undefined) {
       onShareLinkPresentation?.(presentation);

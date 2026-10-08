@@ -86,9 +86,9 @@ describe("visualization share-link input", () => {
     expect(
       new URL(link).origin + new URL(link).pathname + new URL(link).search,
     ).toBe("https://viewer.test/webvowl/?theme=dark");
-    expect(link).toContain("#iri=https%3A%2F%2Fexample.test%2Fmodel%23part");
+    expect(link).toContain("#iri=https://example.test/model#part");
     expect(readVisualizationShareLink(link)).toEqual({
-      ontologyIdentifier: "iri=https%3A%2F%2Fexample.test%2Fmodel%23part",
+      ontologyIdentifier: "iri=https://example.test/model#part",
       initialVisualization: {
         view: {
           language: "en-gb",
@@ -102,6 +102,19 @@ describe("visualization share-link input", () => {
       },
       presentation: { sidebar: 0 },
     });
+    for (const identity of [
+      "https://example.test/a%2Fb?value=%23&other=one%20two#part",
+      "https://example.test/a?first=a+b;second=a=b#opts=paused=true;#foaf",
+      "https://example.test/тест?value=α#β",
+      "https://[::1]/model?value=%25#part",
+    ]) {
+      const shared = createVisualizationShareLink("https://viewer.test/", {
+        ...state,
+        source: { kind: "ontology-document-iri", identity },
+      });
+      const identifier = readVisualizationShareLink(shared).ontologyIdentifier;
+      expect(decodeURIComponent(identifier.slice(4))).toBe(identity);
+    }
     expect(() =>
       createVisualizationShareLink("https://viewer.test/", {
         ...state,
