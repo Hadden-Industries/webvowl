@@ -1,4 +1,4 @@
-import { readNodesShownOption } from "../controller/nodesShownContracts.js";
+import { createNodesShownIntent } from "../controller/nodesShownContracts.js";
 
 /** Native range exploration with an independent, commit-on-Enter exact draft. */
 export function createNodesShownControl({
@@ -14,9 +14,6 @@ export function createNodesShownControl({
   let frame;
   let pendingIntent;
   let requestRevision = 0;
-  let announcement;
-  let settledStatus = "";
-  const pendingTimers = new Set();
   function restore() {
     draft = false;
     controls.exact.value = String(status.shownNodeCount);
@@ -39,12 +36,6 @@ export function createNodesShownControl({
       frame = undefined;
     }
     const revision = ++requestRevision;
-    const timer = setTimeout(() => {
-      if (!lifecycle.signal.aborted && revision === requestRevision) {
-        controls.status.textContent = "Updating graph…";
-      }
-    }, 200);
-    pendingTimers.add(timer);
     Promise.resolve()
       .then(() => {
         if (!lifecycle.signal.aborted && revision === requestRevision) {
@@ -61,14 +52,6 @@ export function createNodesShownControl({
           controls.error.textContent =
             "The node count could not be updated. Try again.";
         }
-      })
-      .finally(() => {
-        clearTimeout(timer);
-        pendingTimers.delete(timer);
-        if (!lifecycle.signal.aborted && revision === requestRevision) {
-          clearTimeout(announcement);
-          controls.status.textContent = settledStatus;
-        }
       });
   }
   function commitDraft() {
@@ -76,11 +59,11 @@ export function createNodesShownControl({
       return;
     }
     try {
-      const intent = readNodesShownOption(controls.exact.value);
-      if (
-        intent.mode !== "exact" ||
-        intent.requestedCount > status.eligibleNodeCount
-      ) {
+      const intent = createNodesShownIntent({
+        mode: "exact",
+        requestedCount: controls.exact.valueAsNumber,
+      });
+      if (intent.requestedCount > status.eligibleNodeCount) {
         throw new RangeError();
       }
       draft = false;
@@ -105,7 +88,7 @@ export function createNodesShownControl({
           "plus",
           "all",
           "auto",
-          "status",
+          "total-value",
           "error",
         ].map((name) => [
           name,
@@ -173,11 +156,6 @@ export function createNodesShownControl({
         return;
       }
       if (!next) {
-        clearTimeout(announcement);
-        for (const timer of pendingTimers) {
-          clearTimeout(timer);
-        }
-        pendingTimers.clear();
         draft = false;
         requestRevision += 1;
         if (frame !== undefined) {
@@ -187,11 +165,19 @@ export function createNodesShownControl({
         for (const name of ["range", "exact", "minus", "plus", "all", "auto"]) {
           controls[name].disabled = true;
         }
-        controls.status.textContent = "Load an ontology to choose nodes shown.";
+        status = { eligibleNodeCount: 0, shownNodeCount: 0 };
+        controls.range.max = "0";
+        controls.range.value = "0";
+        controls.range.removeAttribute("aria-valuetext");
+        controls.exact.max = "0";
+        controls["total-value"].textContent = "0";
+        restore();
         return;
       }
       status = next;
       controls.range.max = String(status.eligibleNodeCount);
+      controls.exact.max = controls.range.max;
+      controls["total-value"].textContent = controls.range.max;
       controls.range.value = String(status.shownNodeCount);
       if (!draft) {
         controls.exact.value = controls.range.value;
@@ -212,22 +198,10 @@ export function createNodesShownControl({
         status.eligibleNodeCount === 0
           ? "No nodes are available with the current filters."
           : `Showing ${status.shownNodeCount} of ${status.eligibleNodeCount} available nodes.${shortfall}`;
-      settledStatus = text;
       controls.range.setAttribute("aria-valuetext", text);
-      clearTimeout(announcement);
-      announcement = setTimeout(() => {
-        if (!lifecycle.signal.aborted) {
-          controls.status.textContent = text;
-        }
-      }, 100);
     },
     dispose() {
       lifecycle.abort();
-      for (const timer of pendingTimers) {
-        clearTimeout(timer);
-      }
-      pendingTimers.clear();
-      clearTimeout(announcement);
       if (frame !== undefined) {
         cancelFrame?.(frame);
       }

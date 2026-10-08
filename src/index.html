@@ -617,10 +617,13 @@
                       >
                       <input
                         id="nodesShown-exact"
-                        type="text"
+                        type="number"
                         inputmode="numeric"
+                        min="0"
+                        max="0"
+                        step="1"
                         value="0"
-                        aria-describedby="nodesShown-error nodesShown-status"
+                        aria-describedby="nodesShown-error nodesShown-total"
                       />
                       <button
                         id="nodesShown-plus"
@@ -635,28 +638,28 @@
                     <label class="visually-hidden" for="nodesShown-range"
                       >Nodes shown</label
                     >
-                    <input
-                      id="nodesShown-range"
-                      type="range"
-                      min="0"
-                      max="0"
-                      value="0"
-                      step="1"
-                      aria-describedby="nodesShown-status"
-                    />
-                    <p id="nodesShown-error" class="nodes-shown-error"></p>
+                    <div class="nodes-shown-slider">
+                      <div class="range-touch-wrapper">
+                        <input
+                          id="nodesShown-range"
+                          type="range"
+                          min="0"
+                          max="0"
+                          value="0"
+                          step="1"
+                          aria-describedby="nodesShown-total"
+                        />
+                      </div>
+                      <span id="nodesShown-total" class="nodes-shown-total">
+                        <span class="visually-hidden">Available nodes: </span>
+                        <span id="nodesShown-total-value">0</span>
+                      </span>
+                    </div>
                     <p
-                      id="nodesShown-status"
-                      role="status"
+                      id="nodesShown-error"
+                      class="nodes-shown-error"
                       aria-live="polite"
-                      aria-atomic="true"
-                    >
-                      Load an ontology to choose nodes shown.
-                    </p>
-                    <p class="tool-hint">
-                      Drag to explore or enter an exact count. All follows every
-                      eligible node.
-                    </p>
+                    ></p>
                   </fieldset>
                 </li>
               </ul>
