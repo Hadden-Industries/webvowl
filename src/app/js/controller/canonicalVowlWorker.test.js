@@ -16,6 +16,77 @@ const owlRequest = {
   mediaType: "text/owl-functional",
 };
 
+test("desktop defaults preserve rejection of malformed caller limit records", async () => {
+  const opened = await runCanonicalVowlOperation({
+    ...owlRequest,
+    operation: "open-owl-model",
+  });
+  const getter = jest.fn(() => 60000);
+  const malformed = [
+    { deadlineMs: null },
+    { deadlineMs: undefined },
+    null,
+    [],
+    new Date(0),
+    { [Symbol("limit")]: 1 },
+    Object.defineProperty({}, "deadlineMs", { value: 60000 }),
+    Object.defineProperty({}, "deadlineMs", { get: getter, enumerable: true }),
+  ];
+  for (const limits of malformed) {
+    const request = {
+      operation: "recover-model",
+      checkpoint: opened.checkpoint,
+      limits,
+    };
+    await expect(
+      runCanonicalVowlOperation(request, undefined, { baseRevision: 0 }),
+    ).rejects.toMatchObject({ code: "OPTION_INVALID" });
+    const { workers, client } = harness();
+    const run = client.run(request, context);
+    if (workers.length) {
+      client.dispose();
+    }
+    await expect(run).rejects.toMatchObject({
+      code: "OPTION_INVALID",
+    });
+    expect(workers).toHaveLength(0);
+    client.dispose();
+  }
+  expect(getter).not.toHaveBeenCalled();
+});
+
+test("ordinary large named-class ontologies rank by default while explicit smaller budgets still reject", async () => {
+  const request = {
+    operation: "open-owl-model",
+    documentIri: "urn:ranking-resource-regression",
+    mediaType: "text/owl-functional",
+    limits: { deadlineMs: 60000 },
+    bytes: text.encode(
+      `Ontology(<urn:ranking-resource-regression> ${Array.from({ length: 8250 }, (_, i) => `Declaration(Class(<urn:class:${i}>))`).join("\n")})`,
+    ),
+  };
+  await expect(
+    runCanonicalVowlOperation({
+      ...request,
+      limits: { ...request.limits, totalStringBytes: 16777216 },
+    }),
+  ).rejects.toMatchObject({
+    code: "RDF_RESOURCE_LIMIT",
+    details: {
+      stage: "node-ranking",
+      resource: "totalStringBytes",
+      maximum: 16777216,
+    },
+  });
+  const opened = await runCanonicalVowlOperation(request);
+  expect(opened.inspection.occurrences).toHaveLength(8250);
+  expect(opened.rankingIdentity.correspondence).toHaveLength(8250);
+  expect(
+    new Set(opened.rankingIdentity.correspondence.map(({ current }) => current))
+      .size,
+  ).toBe(8250);
+}, 60000);
+
 test("extensionless and misleading acquisition names open RDF/XML through the real worker operation", async () => {
   const bytes = text.encode(
     '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:owl="http://www.w3.org/2002/07/owl#"><owl:Ontology rdf:about="urn:ontology"/><owl:Class rdf:about="urn:A"/></rdf:RDF>',
@@ -548,7 +619,7 @@ test("aggregate acquisition counts root plus every imported document", async () 
   expect(worker.terminate).toHaveBeenCalledTimes(1);
 });
 
-test("OWL opening shares its longer budget with the worker without changing other defaults", async () => {
+test("OWL opening and artifact operations retain distinct whole-job deadlines", async () => {
   jest.useFakeTimers();
   try {
     const { workers, client } = harness();
@@ -581,6 +652,72 @@ test("OWL opening shares its longer budget with the worker without changing othe
   }
 });
 
+test.each([
+  "open-owl-model",
+  "open-canonical-model",
+  "open-legacy-model",
+  "recover-model",
+  "edit-model",
+  "capture-model",
+  "read-model-source",
+  "export-model-rdf",
+])("%s retains the admitted model's whole-job allowance", async (operation) => {
+  jest.useFakeTimers();
+  try {
+    const { workers, client } = harness();
+    const pending = client.run(
+      {
+        operation,
+        ...(operation.startsWith("open-")
+          ? { bytes: Uint8Array.of(1) }
+          : { checkpoint: {} }),
+      },
+      context,
+    );
+    const rejection = expect(pending).rejects.toMatchObject({
+      code: "DEADLINE_EXCEEDED",
+    });
+    expect(
+      workers[0].postMessage.mock.calls[0][0].request.limits.deadlineMs,
+    ).toBe(60000);
+    jest.advanceTimersByTime(10000);
+    expect(workers[0].terminate).not.toHaveBeenCalled();
+    jest.advanceTimersByTime(50000);
+    await rejection;
+    expect(workers[0].terminate).toHaveBeenCalledTimes(1);
+    client.dispose();
+  } finally {
+    jest.useRealTimers();
+  }
+});
+
+test("the desktop profile admits an ordinary hierarchy without overriding a tighter work limit", async () => {
+  const request = {
+    operation: "open-owl-model",
+    documentIri: "urn:hierarchy-resource-regression",
+    mediaType: "text/owl-functional",
+    bytes: text.encode(
+      `Ontology(<urn:hierarchy-resource-regression> ${Array.from({ length: 5000 }, (_, i) => `Declaration(Class(<urn:hierarchy:C${i}>))${i ? ` SubClassOf(<urn:hierarchy:C${i}> <urn:hierarchy:C${i - 1}>)` : ""}`).join("\n")})`,
+    ),
+  };
+  await expect(
+    runCanonicalVowlOperation({
+      ...request,
+      limits: { embeddedValues: 1500000 },
+    }),
+  ).rejects.toMatchObject({
+    code: "RDF_RESOURCE_LIMIT",
+    details: {
+      stage: "node-ranking",
+      resource: "embeddedValues",
+      maximum: 1500000,
+    },
+  });
+  const opened = await runCanonicalVowlOperation(request);
+  expect(opened.inspection.records.roles).toHaveLength(5000);
+  expect(opened.rankingIdentity.correspondence).toHaveLength(14998);
+}, 60000);
+
 test("whole-job deadline terminates an unresponsive worker", async () => {
   jest.useFakeTimers();
   try {
@@ -608,6 +745,41 @@ test("unexpected exception text never crosses the worker boundary", () => {
   expect(canonicalWorkerFailure(new Error("secret source text"))).toEqual({
     code: "CANONICAL_OPERATION_FAILED",
   });
+});
+
+test("producer ranking budget facts survive the worker client and drive its message", async () => {
+  const safe = canonicalWorkerFailure(
+    new VowlError("RDF_RESOURCE_LIMIT", "private source", {
+      details: {
+        stage: "node-ranking",
+        limit: "totalStringBytes",
+        maximum: 16777216,
+        actual: 21310464,
+      },
+    }),
+  );
+  expect(safe.details).toEqual({
+    stage: "node-ranking",
+    resource: "totalStringBytes",
+    maximum: 16777216,
+    actual: 21310464,
+  });
+  const { workers, client } = harness();
+  const pending = client.run(owlRequest, context);
+  await workers[0].onmessage({
+    data: {
+      ...workers[0].postMessage.mock.calls[0][0],
+      type: "failure",
+      failure: safe,
+    },
+  });
+  await expect(pending).rejects.toMatchObject({
+    code: "RDF_RESOURCE_LIMIT",
+    message:
+      "Node selection exceeded its temporary string-space budget (at least 20.3 MiB requested; 16 MiB allowed). Try a smaller ontology, import closure or edit.",
+    details: safe.details,
+  });
+  client.dispose();
 });
 
 test("resource failures retain only safe stage and resource facts across the worker seam", async () => {

@@ -18,9 +18,41 @@ import { fromOwl, openOwl, exportModelRdf } from "vowl/owl";
 import { migrate } from "vowl/migrate";
 import { canonicalFailureDetails } from "./canonicalVowlFailure.js";
 
+const modelOperations = new Set([
+  "open-owl-model",
+  "open-canonical-model",
+  "open-legacy-model",
+  "recover-model",
+  "edit-model",
+  "capture-model",
+  "read-model-source",
+  "export-model-rdf",
+]);
+
+// Owner-approved desktop profile, measured on a 10,000-class hierarchy.
+// One model must remain usable across opening, editing, recovery and export;
+// explicit limits still win, and parser bytes/RDF/canonicalization caps stay native.
+const modelOperationLimits = Object.freeze({
+  deadlineMs: 60000,
+  totalStringBytes: 67108864,
+  primaryRecords: 200000,
+  embeddedValues: 4000000,
+});
+
 async function rankingIdentity(model, limits) {
   const start = performance.now();
-  const result = await readModelRankingIdentity(model, { limits });
+  let result;
+  try {
+    result = await readModelRankingIdentity(model, { limits });
+  } catch (error) {
+    if (error instanceof VowlError) {
+      throw new VowlError(error.code, error.message, {
+        details: { ...canonicalFailureDetails(error), stage: "node-ranking" },
+        cause: error,
+      });
+    }
+    throw error;
+  }
   performance.measure("webvowl.node-ranking-identity", {
     start,
     end: performance.now(),
@@ -39,7 +71,20 @@ export async function runCanonicalVowlOperation(
   resolveImport,
   context,
 ) {
-  const { operation, bytes, limits } = request;
+  const { operation, bytes } = request;
+  let limits = request.limits;
+  if (modelOperations.has(operation)) {
+    if (limits === undefined) {
+      limits = modelOperationLimits;
+    } else if (limits !== null && typeof limits === "object") {
+      // Retain prototypes, symbols and accessor/non-enumerable descriptors so
+      // the producer's option validator still rejects malformed caller data.
+      limits = Object.create(Object.getPrototypeOf(limits), {
+        ...Object.getOwnPropertyDescriptors(modelOperationLimits),
+        ...Object.getOwnPropertyDescriptors(limits),
+      });
+    }
+  }
   let document;
   let metadata = {};
   switch (operation) {

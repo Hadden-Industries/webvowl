@@ -6,6 +6,7 @@ const stages = new Set([
   "owl-evidence",
   "owl-live-admission",
   "owl-mapping",
+  "node-ranking",
 ]);
 const resources = new Set([
   "deadlineMs",
@@ -38,7 +39,7 @@ const resources = new Set([
   "maxWork",
 ]);
 
-/** Only owned stage/resource names cross the worker seam; never exception prose. */
+/** Only owned names and non-negative safe counters cross the worker seam. */
 export function canonicalFailureDetails(value) {
   const details = {};
   if (value && typeof value === "object") {
@@ -58,6 +59,19 @@ export function canonicalFailureDetails(value) {
           details[name] = entry;
         }
       }
+      // VOWL calls its counter `limit`; OwlAPI and the application use `resource`.
+      const resource =
+        Object.getOwnPropertyDescriptor(record, "resource")?.value ??
+        Object.getOwnPropertyDescriptor(record, "limit")?.value;
+      if (resources.has(resource)) {
+        details.resource = resource;
+        for (const name of ["maximum", "actual"]) {
+          const entry = Object.getOwnPropertyDescriptor(record, name)?.value;
+          if (Number.isSafeInteger(entry) && entry >= 0) {
+            details[name] = entry;
+          }
+        }
+      }
     }
   }
   return details;
@@ -70,9 +84,11 @@ export function canonicalLoadingMessage(error) {
       "RESOURCE_LIMIT_EXCEEDED",
       "INPUT_RESOURCE_LIMIT",
       "MODEL_RESOURCE_LIMIT",
+      "RDF_RESOURCE_LIMIT",
+      "RDFC_RESOURCE_LIMIT",
     ].includes(error?.code)
   ) {
-    const { resource } = canonicalFailureDetails(error);
+    const { resource, stage, maximum, actual } = canonicalFailureDetails(error);
     if (resource === "timeoutMs") {
       return "The remote ontology request took too long. Try again.";
     }
@@ -86,6 +102,38 @@ export function canonicalLoadingMessage(error) {
     ) {
       return "The document or import closure exceeds the input size limit.";
     }
+    const budgets = {
+      totalStringBytes: "temporary string-space",
+      stringBytes: "single-string size",
+      primaryRecords: "model-record",
+      embeddedValues: "processing-work",
+      rdfQuads: "RDF statement",
+      rdfDeepIterations: "canonicalization-work",
+      depth: "nesting-depth",
+    };
+    if (budgets[resource]) {
+      const amount = (value) =>
+        ["totalStringBytes", "stringBytes"].includes(resource)
+          ? `${Number((value / 1048576).toFixed(1))} MiB`
+          : String(value);
+      const byteCounter = ["totalStringBytes", "stringBytes"].includes(
+        resource,
+      );
+      const roundedEqual =
+        actual !== undefined &&
+        maximum !== undefined &&
+        actual !== maximum &&
+        amount(actual) === amount(maximum);
+      const quantity = (value) =>
+        byteCounter && roundedEqual ? `${value} bytes` : amount(value);
+      const quantities =
+        maximum === undefined
+          ? ""
+          : actual === undefined
+            ? ` (limit ${quantity(maximum)})`
+            : ` (at least ${quantity(actual)} requested; ${quantity(maximum)} allowed)`;
+      return `${stage === "node-ranking" ? "Node selection" : "Processing the ontology"} exceeded its ${budgets[resource]} budget${quantities}. Try a smaller ontology, import closure or edit.`;
+    }
   }
   const messages = {
     DEADLINE_EXCEEDED:
@@ -95,6 +143,10 @@ export function canonicalLoadingMessage(error) {
       "The document exceeds an input size or nesting limit.",
     MODEL_RESOURCE_LIMIT:
       "The ontology exceeds a parsing or assessment resource limit.",
+    RDF_RESOURCE_LIMIT:
+      "The ontology and its imports exceed a node-selection or RDF processing resource limit. Try a smaller ontology or import closure.",
+    RDFC_RESOURCE_LIMIT:
+      "The ontology and its imports exceed the RDF canonicalization-work limit. Try a smaller ontology or import closure.",
     MAPPING_SYNTAX_INVALID:
       "The document could not be parsed as OWL. Check its syntax.",
     MAPPING_IMPORT_UNRESOLVED: "An ontology import could not be loaded.",
