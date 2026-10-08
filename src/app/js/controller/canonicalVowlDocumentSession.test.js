@@ -1333,7 +1333,7 @@ test.each(["inspection", "rankingIdentity"])(
   },
 );
 
-test("bounded identity rejection during edit preserves the accepted checkpoint and scene", async () => {
+test("bounded resource rejection during edit preserves the accepted checkpoint and scene", async () => {
   const { session } = setup();
   await session.load(request());
   const before = session.snapshot();

@@ -309,14 +309,25 @@ test("the candidate controller preserves selection through rename and focuses ne
     requestedCount: 0,
   });
   const applyDrawing = runtime.applyCanonicalDrawingRevision;
+  const resetGate = deferred();
+  let precedingResetSignal;
+  runtime.applyVisualizationView.mockImplementationOnce(
+    (_request, { signal }) => {
+      precedingResetSignal = signal;
+      return resetGate.promise;
+    },
+  );
+  const precedingResetView = controller.setVisualizationView({ focus: [] });
   runtime.applyCanonicalDrawingRevision = () => {
     throw new Error("reset scene rejected");
   };
   await expect(controller.resetVisualization()).rejects.toThrow(
     "reset scene rejected",
   );
+  expect(precedingResetSignal.aborted).toBe(false);
   runtime.applyCanonicalDrawingRevision = applyDrawing;
-  await controller.setVisualizationView({ focus: [] });
+  resetGate.resolve();
+  await precedingResetView;
   expect(session.scene().snapshot()).toEqual(editedScene);
   expect(controller.getState().nodeCountStatus.shownNodeCount).toBe(0);
   expect(controller.getState().view.nodesShown).toEqual({

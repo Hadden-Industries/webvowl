@@ -1176,8 +1176,6 @@ export function createCanonicalWebVowlController({
       signal?.throwIfAborted();
       activeExport?.abort();
       const sequence = loadSequence;
-      const viewRevision = ++viewSequence;
-      pendingView?.abort();
       const resetNodesShown = { mode: "auto" };
       const visibility = session.selectNodes(
         CANONICAL_VISIBLE_FILTERS,
@@ -1195,6 +1193,9 @@ export function createCanonicalWebVowlController({
         },
         { renderedGraphRuntime: runtime },
       );
+      const viewRevision = ++viewSequence;
+      pendingView?.abort();
+      pendingView = undefined;
       nodesShown = resetNodesShown;
       filters = { ...CANONICAL_VISIBLE_FILTERS };
       retainedHidden = [];
