@@ -1,13 +1,16 @@
 import { beforeAll } from "@jest/globals";
 import { openOwl } from "vowl/owl";
-import { inspectModel } from "vowl";
+import { inspectModel, readModelRankingIdentity } from "vowl";
+import { closeVowlVisibility } from "./canonicalVowlScene.js";
 import {
   prepareCanonicalVisibility,
   CANONICAL_VISIBLE_FILTERS,
   canonicalLabelSelection,
+  createCanonicalNodeSelector,
 } from "./canonicalVowlViewControls.js";
 
 let inspection;
+let rankingIdentity;
 beforeAll(async () => {
   const { model } = await openOwl(
     new TextEncoder().encode(`Ontology(<urn:view>
@@ -21,6 +24,7 @@ beforeAll(async () => {
     { documentIri: "urn:view", mediaType: "text/owl-functional" },
   );
   inspection = inspectModel(model);
+  rankingIdentity = await readModelRankingIdentity(model);
 });
 
 test.each([
@@ -80,4 +84,41 @@ test("obsolete degree options are rejected even beside valid filters", () => {
       minDegree: 0,
     }),
   ).toThrow("nodesShown");
+});
+
+test("count deltas preserve full incidence closure with labels, disjoint edges and upstream filtering", () => {
+  const label = inspection.occurrences.find(({ kind }) => kind === "label");
+  for (const filters of [
+    CANONICAL_VISIBLE_FILTERS,
+    { ...CANONICAL_VISIBLE_FILTERS, objectProperties: "hide" },
+  ]) {
+    const retained = [label.id];
+    const upstream = prepareCanonicalVisibility(
+      inspection,
+      filters,
+      retained,
+    ).hidden;
+    const select = createCanonicalNodeSelector(inspection, rankingIdentity);
+    const all = select(filters, { mode: "all" }, retained);
+    const count = all.rankedNodeOccurrenceIds.length;
+    const sequence = [
+      ...Array.from({ length: count + 1 }, (_, i) => i),
+      ...Array.from({ length: count + 1 }, (_, i) => count - i),
+      count,
+      2,
+      0,
+    ];
+    for (const requestedCount of sequence) {
+      const actual = select(
+        filters,
+        { mode: "exact", requestedCount },
+        retained,
+      );
+      const expected = closeVowlVisibility(inspection.occurrences, [
+        ...upstream,
+        ...all.rankedNodeOccurrenceIds.slice(Math.min(requestedCount, count)),
+      ]);
+      expect([...actual.hidden].sort()).toEqual([...expected].sort());
+    }
+  }
 });

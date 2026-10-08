@@ -118,3 +118,30 @@ test("zero, shortfall, disposal and unavailable document status stay truthful", 
   jest.runOnlyPendingTimers();
   jest.useRealTimers();
 });
+
+test("a delayed successful request restores settled status without a second count publication", async () => {
+  jest.useFakeTimers();
+  const { controls, onChange, control, render } = setup();
+  let resolve;
+  const pending = new Promise((yes) => {
+    resolve = yes;
+  });
+  onChange.mockImplementation(() => {
+    render(37, 109, { mode: "exact", requestedCount: 37 });
+    return pending;
+  });
+  controls.exact.value = "37";
+  controls.exact.dispatchEvent(new Event("input"));
+  key(controls.exact, "Enter");
+  await flush();
+  jest.advanceTimersByTime(250);
+  expect(controls.status.textContent).toBe("Updating graph…");
+  resolve();
+  await flush();
+  await flush();
+  expect(controls.status.textContent).toBe(
+    "Showing 37 of 109 available nodes.",
+  );
+  control.dispose();
+  jest.useRealTimers();
+});

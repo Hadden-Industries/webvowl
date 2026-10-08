@@ -982,11 +982,11 @@ describe("rendered graph requests and results", () => {
   });
 
   test.each([-1, 1.5, Number.MAX_SAFE_INTEGER + 1, Infinity, NaN])(
-    "rejects an invalid visualization minimum degree %s",
-    (minDegree) => {
+    "rejects an invalid exact node count %s",
+    (requestedCount) => {
       expect(() =>
         createVisualizationViewApplicationRequest({
-          nodesShown: { mode: "exact", requestedCount: minDegree },
+          nodesShown: { mode: "exact", requestedCount },
           loadGeneration: 3,
         }),
       ).toThrow("requestedCount");

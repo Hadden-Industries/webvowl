@@ -1314,18 +1314,33 @@ test("cancelled merge choices leave both live model and placements unchanged", a
   });
 });
 
-test("mismatched worker revisions are rejected before scene mutation", async () => {
-  const { session, control } = setup();
+test.each(["inspection", "rankingIdentity"])(
+  "mismatched worker %s revisions are rejected before scene mutation",
+  async (field) => {
+    const { session, control } = setup();
+    await session.load(request());
+    const initial = session.snapshot();
+    control.after = (result) => ({
+      ...result,
+      [field]: { ...result[field], revision: 2 },
+    });
+    await expect(
+      session.edit(rename(initial.inspection)),
+    ).rejects.toMatchObject({
+      code: "DOCUMENT_WORKER_RESULT_INVALID",
+    });
+    expect(session.snapshot()).toEqual(initial);
+  },
+);
+
+test("bounded identity rejection during edit preserves the accepted checkpoint and scene", async () => {
+  const { session } = setup();
   await session.load(request());
-  const initial = session.snapshot();
-  control.after = (result) => ({
-    ...result,
-    inspection: { ...result.inspection, revision: 2 },
-  });
-  await expect(session.edit(rename(initial.inspection))).rejects.toMatchObject({
-    code: "DOCUMENT_WORKER_RESULT_INVALID",
-  });
-  expect(session.snapshot()).toEqual(initial);
+  const before = session.snapshot();
+  await expect(
+    session.edit(rename(before.inspection), { limits: { rdfQuads: 1 } }),
+  ).rejects.toMatchObject({ code: "RDF_RESOURCE_LIMIT" });
+  expect(session.snapshot()).toEqual(before);
 });
 
 test("only one pending capture owns a scene/checkpoint snapshot", async () => {

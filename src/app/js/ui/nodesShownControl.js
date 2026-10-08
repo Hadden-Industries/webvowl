@@ -15,6 +15,7 @@ export function createNodesShownControl({
   let pendingIntent;
   let requestRevision = 0;
   let announcement;
+  let settledStatus = "";
   const pendingTimers = new Set();
   function restore() {
     draft = false;
@@ -64,6 +65,10 @@ export function createNodesShownControl({
       .finally(() => {
         clearTimeout(timer);
         pendingTimers.delete(timer);
+        if (!lifecycle.signal.aborted && revision === requestRevision) {
+          clearTimeout(announcement);
+          controls.status.textContent = settledStatus;
+        }
       });
   }
   function commitDraft() {
@@ -207,6 +212,7 @@ export function createNodesShownControl({
         status.eligibleNodeCount === 0
           ? "No nodes are available with the current filters."
           : `Showing ${status.shownNodeCount} of ${status.eligibleNodeCount} available nodes.${shortfall}`;
+      settledStatus = text;
       controls.range.setAttribute("aria-valuetext", text);
       clearTimeout(announcement);
       announcement = setTimeout(() => {

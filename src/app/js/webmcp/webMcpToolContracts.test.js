@@ -1087,7 +1087,7 @@ describe("set_visualization_view input normalization", () => {
     }
   });
 
-  test("refuses a minimum degree that is not a whole number in range", () => {
+  test("rejects obsolete minimum-degree inputs regardless of their value", () => {
     for (const rejectedMinDegree of [
       -1,
       Number.MAX_SAFE_INTEGER + 1,

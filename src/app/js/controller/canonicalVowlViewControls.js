@@ -105,7 +105,12 @@ export function createCanonicalNodeSelector(inspection, identity) {
       }
     }
   }
-  return (filters, nodesShown, retainedHidden = []) => {
+  return (
+    filters,
+    nodesShown,
+    retainedHidden = [],
+    { measure = true } = {},
+  ) => {
     const startedAt = performance.now();
     const intent = createNodesShownIntent(nodesShown);
     const nextSignature = JSON.stringify([filters, [...retainedHidden].sort()]);
@@ -173,17 +178,19 @@ export function createCanonicalNodeSelector(inspection, identity) {
       }
     }
     appliedCount = shownNodeCount;
-    performance.clearMeasures("webvowl.node-selection");
-    performance.measure("webvowl.node-selection", {
-      start: startedAt,
-      end: performance.now(),
-      detail: {
-        rankingCacheReused,
-        eligibleNodeCount,
-        shownNodeCount,
-        nodeRankingPolicyVersion: NODE_RANKING_POLICY_VERSION,
-      },
-    });
+    if (measure) {
+      performance.clearMeasures("webvowl.node-selection");
+      performance.measure("webvowl.node-selection", {
+        start: startedAt,
+        end: performance.now(),
+        detail: {
+          rankingCacheReused,
+          eligibleNodeCount,
+          shownNodeCount,
+          nodeRankingPolicyVersion: NODE_RANKING_POLICY_VERSION,
+        },
+      });
+    }
     return {
       hidden: [...hidden],
       rankedNodeOccurrenceIds,

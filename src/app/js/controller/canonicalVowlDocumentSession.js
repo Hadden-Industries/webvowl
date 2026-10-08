@@ -34,7 +34,8 @@ function semanticRecords(inspection) {
 function readResult(result, revision) {
   if (
     result.inspection?.revision !== revision ||
-    result.checkpoint?.revision !== revision
+    result.checkpoint?.revision !== revision ||
+    result.rankingIdentity?.revision !== revision
   ) {
     throw rejected("DOCUMENT_WORKER_RESULT_INVALID");
   }
@@ -246,8 +247,8 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
         documentRevision: accepted.revision,
       });
     },
-    selectNodes(filters, nodesShown, hidden) {
-      return loaded().selectNodes(filters, nodesShown, hidden);
+    selectNodes(filters, nodesShown, hidden, options) {
+      return loaded().selectNodes(filters, nodesShown, hidden, options);
     },
     inspectRecords() {
       return structuredClone(loaded().inspection);

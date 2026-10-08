@@ -13,7 +13,9 @@ import { createVisualizationShareLink } from "./visualizationShareLink.js";
 import {
   CANONICAL_VISIBLE_FILTERS,
   canonicalLabelSelection,
+  prepareCanonicalVisibility,
 } from "./canonicalVowlViewControls.js";
+import { createCanonicalVowlRenderProjection } from "./canonicalVowlRenderProjection.js";
 import {
   createVisualizationViewApplicationRequest,
   createVisualizationModesRequest,
@@ -90,6 +92,7 @@ export function createCanonicalWebVowlController({
   let nodesShown = { mode: "auto" };
   let viewSequence = 0;
   let pendingView;
+  let revealCache;
   function readUpstreamHidden() {
     return retainedHidden.flatMap((reference) => {
       try {
@@ -172,6 +175,10 @@ export function createCanonicalWebVowlController({
     return request;
   }
   function acceptRevision(result, selectionTargets) {
+    revealCache = undefined;
+    pendingView?.abort();
+    pendingView = undefined;
+    viewSequence += 1;
     let selectedDocumentRecord =
       result.selectedTarget ?? state.selectedDocumentRecord;
     if (selectedDocumentRecord) {
@@ -494,6 +501,7 @@ export function createCanonicalWebVowlController({
         });
       }
       const retained = structuredClone(source);
+      revealCache = undefined;
       loadSequence += 1;
       pendingView?.abort();
       viewSequence += 1;
@@ -738,35 +746,82 @@ export function createCanonicalWebVowlController({
     },
     getOntologyElementRevealPlan(ontologyElementReferences) {
       current();
-      const references = createCanonicalSemanticReferences(
-        session.inspectRecords(),
-        state.loadGeneration,
-        session.target,
-      );
+      const retained = readUpstreamHidden();
+      const signature = JSON.stringify([session.identity(), filters, retained]);
+      if (revealCache?.signature !== signature) {
+        const inspection = session.inspectRecords();
+        const references = createCanonicalSemanticReferences(
+          inspection,
+          state.loadGeneration,
+          session.target,
+        );
+        const visibility = session.selectNodes(filters, nodesShown, retained, {
+          measure: false,
+        });
+        const ranks = new Map(
+          visibility.rankedNodeOccurrenceIds.map((id, index) => [
+            id,
+            index + 1,
+          ]),
+        );
+        const upstream = new Set(
+          prepareCanonicalVisibility(inspection, filters, retained).hidden,
+        );
+        const projection = createCanonicalVowlRenderProjection(
+          inspection,
+          session.scene().snapshot(),
+        );
+        const requiredByOccurrence = new Map(
+          projection.nodes.map((row) => [
+            row.occurrence,
+            ranks.get(row.occurrence),
+          ]),
+        );
+        for (const edge of projection.edges) {
+          const ends = [ranks.get(edge.from), ranks.get(edge.to)];
+          if (ends.every((rank) => rank !== undefined)) {
+            requiredByOccurrence.set(edge.occurrence, Math.max(...ends));
+          }
+        }
+        for (const label of projection.labels) {
+          requiredByOccurrence.set(
+            label.occurrence,
+            requiredByOccurrence.get(label.edge),
+          );
+        }
+        const byElement = new Map();
+        for (const row of [
+          ...projection.nodes,
+          ...projection.edges,
+          ...projection.labels,
+        ]) {
+          const rank = requiredByOccurrence.get(row.occurrence);
+          if (rank === undefined || upstream.has(row.occurrence)) {
+            continue;
+          }
+          for (const id of row.targets ?? row.records ?? []) {
+            const reference = references.get(id);
+            if (reference) {
+              const key = ontologyElementReferenceKey(reference);
+              byElement.set(
+                key,
+                Math.min(byElement.get(key) ?? Infinity, rank),
+              );
+            }
+          }
+        }
+        revealCache = { signature, byElement };
+      }
       const requested = new Set(
         ontologyElementReferences.map(ontologyElementReferenceKey),
       );
-      const visibility = session.selectNodes(
-        filters,
-        nodesShown,
-        readUpstreamHidden(),
-      );
-      const ranks = new Map(
-        visibility.rankedNodeOccurrenceIds.map((id, index) => [id, index + 1]),
-      );
       let requestedCount = state.nodeCountStatus.shownNodeCount;
       const matched = new Set();
-      for (const occurrence of session.inspectRecords().occurrences) {
-        if (!["class-node", "datatype-node"].includes(occurrence.kind)) {
-          continue;
-        }
-        for (const id of occurrence.targets ?? [occurrence.target]) {
-          const reference = references.get(id);
-          const key = reference && ontologyElementReferenceKey(reference);
-          if (requested.has(key) && ranks.has(occurrence.id)) {
-            matched.add(key);
-            requestedCount = Math.max(requestedCount, ranks.get(occurrence.id));
-          }
+      for (const key of requested) {
+        const rank = revealCache.byElement.get(key);
+        if (rank !== undefined) {
+          matched.add(key);
+          requestedCount = Math.max(requestedCount, rank);
         }
       }
       return Object.freeze({
@@ -950,13 +1005,6 @@ export function createCanonicalWebVowlController({
         ...nativeView
       } = validated;
       const nextNodesShown = requestedNodesShown ?? nodesShown;
-      const viewRevision = ++viewSequence;
-      pendingView?.abort();
-      const owner = new AbortController();
-      pendingView = owner;
-      const viewSignal = signal
-        ? AbortSignal.any([signal, owner.signal])
-        : owner.signal;
       // Validate references before changing the scene; determine visibility afterwards.
       if (nativeView.focus !== undefined) {
         inspector.resolveFocusableOntologyElementReferences({
@@ -991,6 +1039,15 @@ export function createCanonicalWebVowlController({
         session.updateView(viewChanges, { renderedGraphRuntime: runtime });
         filters = nextFilters;
         nodesShown = nextNodesShown;
+      }
+      const viewRevision = ++viewSequence;
+      pendingView?.abort();
+      const owner = new AbortController();
+      pendingView = owner;
+      const viewSignal = signal
+        ? AbortSignal.any([signal, owner.signal])
+        : owner.signal;
+      if (Object.keys(viewChanges).length) {
         publish({
           view: readView(),
           ...(visibility
@@ -1016,6 +1073,7 @@ export function createCanonicalWebVowlController({
           disposed ||
           sequence !== loadSequence ||
           viewRevision !== viewSequence ||
+          session.identity().documentRevision !== accepted.documentRevision ||
           viewSignal.aborted
         ) {
           throw new DOMException("The view was superseded.", "AbortError");
@@ -1034,7 +1092,8 @@ export function createCanonicalWebVowlController({
           previousScene &&
           !disposed &&
           sequence === loadSequence &&
-          viewRevision === viewSequence
+          viewRevision === viewSequence &&
+          session.identity().documentRevision === accepted.documentRevision
         ) {
           session.updateView(
             {
@@ -1054,7 +1113,8 @@ export function createCanonicalWebVowlController({
         if (
           !disposed &&
           sequence === loadSequence &&
-          viewRevision === viewSequence
+          viewRevision === viewSequence &&
+          session.identity().documentRevision === accepted.documentRevision
         ) {
           pendingView = undefined;
           publish({
@@ -1118,10 +1178,10 @@ export function createCanonicalWebVowlController({
       const sequence = loadSequence;
       const viewRevision = ++viewSequence;
       pendingView?.abort();
-      nodesShown = { mode: "auto" };
+      const resetNodesShown = { mode: "auto" };
       const visibility = session.selectNodes(
         CANONICAL_VISIBLE_FILTERS,
-        nodesShown,
+        resetNodesShown,
         [],
       );
       session.updateView(
@@ -1135,6 +1195,7 @@ export function createCanonicalWebVowlController({
         },
         { renderedGraphRuntime: runtime },
       );
+      nodesShown = resetNodesShown;
       filters = { ...CANONICAL_VISIBLE_FILTERS };
       retainedHidden = [];
       layoutIntent += 1;
@@ -1313,6 +1374,7 @@ export function createCanonicalWebVowlController({
         return;
       }
       disposed = true;
+      revealCache = undefined;
       viewSequence += 1;
       pendingView?.abort();
       activeExport?.abort();

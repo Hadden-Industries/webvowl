@@ -513,14 +513,6 @@ export function createSearchMenu({
         cue.textContent = " · Reveal in graph";
         testEntry.appendChild(cue);
         testEntry.title = `Increase Nodes shown to ${reveal.requestedCount} and reveal this result.`;
-        testEntry.onclick = () =>
-          runVisualizationControlAction(
-            () =>
-              webVowlController.revealOntologyElements({
-                ontologyElementReferences: entries,
-              }),
-            documentObject,
-          );
       } else if (eLen === 1 || allSame === true) {
         if (visible < 1) {
           testEntry.classList.add("search-entry-disabled");
@@ -659,7 +651,20 @@ export function createSearchMenu({
     // which is what the controller reports through isFocusable.
     setLocateButtonState((focusableElementCountsBySearchEntry[id] ?? 0) > 0);
     if (correspondingIds) {
-      searchMenu.focusOntologyElements(correspondingIds);
+      if ((focusableElementCountsBySearchEntry[id] ?? 0) > 0) {
+        searchMenu.focusOntologyElements(correspondingIds);
+      } else if (
+        webVowlController.getOntologyElementRevealPlan?.(correspondingIds)
+          ?.canReveal
+      ) {
+        runVisualizationControlAction(
+          () =>
+            webVowlController.revealOntologyElements({
+              ontologyElementReferences: correspondingIds,
+            }),
+          documentObject,
+        );
+      }
     }
     if (autoComStr !== inputText) {
       handleAutoCompletion();

@@ -695,6 +695,66 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
     expect(listbox.classList.contains("hidden")).toBe(true);
   });
 
+  test.each(["pointer", "keyboard"])(
+    "reveals a count-hidden search result through %s activation",
+    async (activation) => {
+      const revealed = [];
+      sharedSearchController.findOntologyElements = () => ({
+        matches: [
+          {
+            displayLabel: "Person",
+            isFocusable: false,
+            ontologyElementReference: {
+              kind: "class",
+              iri: "http://xmlns.com/foaf/0.1/Person",
+            },
+          },
+        ],
+      });
+      sharedSearchController.getOntologyElementRevealPlan = () => ({
+        canReveal: true,
+        requestedCount: 73,
+      });
+      sharedSearchController.revealOntologyElements = async (request) => {
+        revealed.push(request);
+      };
+      const menu = searchMenuFactory({
+        documentObject: mockDoc,
+        windowObject: global.window,
+        webVowlController: sharedSearchController,
+      });
+      menu.setup();
+      searchInput.value = "Per";
+      searchInput.dispatchEvent({ type: "input", target: searchInput });
+      expect(listbox.children[0].textContent).toContain("Reveal in graph");
+      if (activation === "pointer") {
+        listbox.children[0].onclick({ stopPropagation() {} });
+      } else {
+        searchInput.dispatchEvent({
+          type: "keydown",
+          key: "ArrowDown",
+          target: searchInput,
+        });
+        searchInput.dispatchEvent({
+          type: "keydown",
+          key: "Enter",
+          target: searchInput,
+        });
+      }
+      await new Promise((resolve) => setImmediate(resolve));
+      expect(revealed).toEqual([
+        {
+          ontologyElementReferences: [
+            { kind: "class", iri: "http://xmlns.com/foaf/0.1/Person" },
+          ],
+        },
+      ]);
+      expect(sharedViewRequests).toEqual([]);
+      expect(searchInput.value).toBe("Person");
+      expect(listbox.classList.contains("hidden")).toBe(true);
+    },
+  );
+
   test("synchronizes locate button title, aria-label, and disabled state on search result selection and clearing", () => {
     const searchMenu = searchMenuFactory({
       documentObject: global.document,

@@ -52,7 +52,9 @@ export function readVisualizationShareLink(address) {
   const options = Object.fromEntries(parameters);
   for (const name of parameters.keys()) {
     if (parameters.getAll(name).length > 1) {
-      throw new TypeError("Duplicate visualization option: " + name);
+      throw new TypeError(
+        "Duplicate visualization option. Remove repeated options from the link.",
+      );
     }
   }
 
