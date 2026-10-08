@@ -64,7 +64,7 @@ export function createCanonicalVowlRenderProjection(inspection, visualization) {
     }
   }
   for (const edge of inspection.occurrences) {
-    if (edge.kind === "operator-edge") {
+    if (edge.kind === "operator-edge" && !hidden.has(edge.id)) {
       const targets = operandsByExpression.get(edge.expression) ?? new Set();
       for (const target of occurrences.get(edge.to).targets) {
         targets.add(target);

@@ -75,7 +75,6 @@ test("OWL operation workers retain source bytes across live editing and recovery
         { kind: "remove", id: role.id },
         { kind: "remove", id: role.subject },
       ],
-      limits: { rdfQuads: 1, rdfDeepIterations: 0 },
     },
     undefined,
     { baseRevision: 0 },
@@ -127,7 +126,7 @@ test.each(["recover-model", "read-model-source", "export-model-rdf"])(
   },
 );
 
-test("per-operation workers recover and edit live checkpoints without canonicalization", async () => {
+test("per-operation workers recover live checkpoints and produce separate ranking identity", async () => {
   const loaded = await runCanonicalVowlOperation(owlRequest);
   const opened = await runCanonicalVowlOperation({
     operation: "open-canonical-model",
@@ -141,7 +140,6 @@ test("per-operation workers recover and edit live checkpoints without canonicali
     {
       operation: "edit-model",
       checkpoint,
-      limits: { rdfQuads: 1, rdfDeepIterations: 0 },
       changes: [
         { kind: "remove", id: role.id },
         { kind: "remove", id: role.subject },
@@ -150,6 +148,7 @@ test("per-operation workers recover and edit live checkpoints without canonicali
     undefined,
     { baseRevision: 0 },
   );
+  expect(changed.rankingIdentity).toEqual({ revision: 1, correspondence: [] });
   expect(changed.inspection.revision).toBe(1);
   expect(changed.inspection.records.roles).toEqual([]);
   expect(checkpoint).toEqual(opened.checkpoint);
@@ -157,7 +156,6 @@ test("per-operation workers recover and edit live checkpoints without canonicali
     {
       operation: "recover-model",
       checkpoint: changed.checkpoint,
-      limits: { rdfQuads: 1 },
     },
     undefined,
     { baseRevision: 1 },

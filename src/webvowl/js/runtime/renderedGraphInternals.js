@@ -20,7 +20,6 @@ import { createCompactNotationSwitch } from "../../../shared/js/modules/compactN
 import { createDatatypeFilter } from "../../../shared/js/modules/datatypeFilter.js";
 import { createDisjointFilter } from "../../../shared/js/modules/disjointFilter.js";
 import { createEmptyLiteralFilter } from "../../../shared/js/modules/emptyLiteralFilter.js";
-import { createNodeDegreeFilter } from "../../../shared/js/modules/nodeDegreeFilter.js";
 import { createNodeScalingSwitch } from "../../../shared/js/modules/nodeScalingSwitch.js";
 import { createObjectPropertyFilter } from "../../../shared/js/modules/objectPropertyFilter.js";
 import { createSetOperatorFilter } from "../../../shared/js/modules/setOperatorFilter.js";
@@ -219,7 +218,6 @@ function createGraph(
   const filterModules = [
     ["literalFilter", createEmptyLiteralFilter()],
     [null, createStatistics()],
-    ["nodeDegreeFilter", createNodeDegreeFilter()],
     ["datatypeFilter", createDatatypeFilter()],
     ["objectPropertyFilter", createObjectPropertyFilter()],
     ["subclassFilter", createSubclassFilter()],
@@ -2460,17 +2458,13 @@ function createGraph(
     renderedGraphSettings.data(vowlModel);
     unfilteredData = { nodes: parser.nodes(), properties: parser.properties() };
     refreshOntologyMetadata();
-    renderedGraphSettings
-      .nodeDegreeFilter()
-      .minDegree(renderedGraphSettings.nodeDegreeFilter().minDegree());
     let initializationData = _.clone(unfilteredData);
     renderedGraphSettings.filterModules().forEach(function (module) {
       initializationData = filterFunction(module, initializationData, true);
     });
     generateDictionary(unfilteredData);
     // Existing editing adds new elements directly to the visible drawing.
-    // Reapplying source-load filters here would immediately hide an isolated
-    // Thing or any new class while a positive collapsing degree is selected.
+    // The application reconciles visibility when accepting a semantic edit.
     classNodes = unfilteredData.nodes.filter(
       (node) =>
         visibleNodeIds.has(node.id()) || !previousNodeIds.has(node.id()),

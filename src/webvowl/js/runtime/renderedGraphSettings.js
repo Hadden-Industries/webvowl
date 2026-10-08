@@ -40,7 +40,6 @@ export function createRenderedGraphSettings() {
   let useAccuracyHelper = true;
   let showRenderingStatistic = true;
   let showInputModality = false;
-  let nodeDegreeFilter;
   let pickAndPinModule;
 
   // Presentation supplies the channel that surfaces a rejected setting; the
@@ -271,13 +270,6 @@ export function createRenderedGraphSettings() {
       return literalFilter;
     }
     literalFilter = p;
-    return renderedGraphSettings;
-  };
-  renderedGraphSettings.nodeDegreeFilter = function (p) {
-    if (!arguments.length) {
-      return nodeDegreeFilter;
-    }
-    nodeDegreeFilter = p;
     return renderedGraphSettings;
   };
   renderedGraphSettings.pickAndPinModule = function (val) {

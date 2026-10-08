@@ -207,7 +207,6 @@ test.each([
         },
         camera: { center: { x: 10, y: 20 }, zoom: 2 },
       };
-      graph.options().nodeDegreeFilter().minDegree(99);
       graph.load(2, { canonicalDrawing: drawing, isPaused });
       expect(document.getElementsByTagName("circle").length).toBeGreaterThan(0);
       expect(graph.paused()).toBe(isPaused);

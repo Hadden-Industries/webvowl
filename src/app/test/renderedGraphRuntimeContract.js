@@ -134,7 +134,7 @@ export async function assertRenderedGraphRuntimeContract({
     const viewApplicationPromise =
       adapterHarness.renderedGraphRuntime.applyVisualizationView(
         {
-          filters: { datatypes: "hide", minDegree: 2 },
+          filters: { datatypes: "hide" },
           focus: [{ kind: "class", iri: "https://example.test/Person" }],
           language: "en",
           layout: "resume",
@@ -155,7 +155,6 @@ export async function assertRenderedGraphRuntimeContract({
         filters: {
           datatypes: "hide",
           disjointness: "show",
-          minDegree: 2,
           objectProperties: "show",
           setOperators: "show",
           subclasses: "show",

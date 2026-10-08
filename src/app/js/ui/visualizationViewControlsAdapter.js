@@ -9,7 +9,6 @@ export const VISUALIZATION_VIEW_CONTROL_ELEMENT_IDS = Object.freeze({
   subclassesFilterCheckbox: "subclassFilterCheckbox",
   disjointnessFilterCheckbox: "disjointFilterCheckbox",
   setOperatorsFilterCheckbox: "setoperatorFilterCheckbox",
-  minimumDegreeRange: "nodeDegreeDistanceSlider",
   compactNotationCheckbox: "compactnotationModuleCheckbox",
   nodeScalingCheckbox: "nodescalingModuleCheckbox",
   colorExternalsCheckbox: "colorexternalsModuleCheckbox",
@@ -155,12 +154,6 @@ export function createVisualizationViewControlsAdapter(dependencies) {
     });
   }
 
-  listenOnControl("minimumDegreeRange", "change", (changeEvent) => {
-    requestVisualizationView({
-      filters: { minDegree: Number.parseInt(changeEvent.target.value, 10) },
-    });
-  });
-
   listenOnControl("zoomAndCenterViewportButton", "click", () => {
     requestVisualizationView({ viewport: "zoom-and-center" });
   });
@@ -223,10 +216,6 @@ export function createVisualizationViewControlsAdapter(dependencies) {
           visualizationView.filters[filterFieldName] === "hide",
         );
       }
-      presentControlValue(
-        "minimumDegreeRange",
-        String(visualizationView.filters.minDegree),
-      );
       const { modes, forceDistances } = visualizationView;
       if (modes) {
         for (const mode of [

@@ -192,13 +192,18 @@ test("export reports exact bounded artifact metadata even with a large embedded 
   expect(metadata.viewRecipe.source.identity.length).toBeGreaterThan(2000);
 });
 
-test("degree input accepts the same non-negative safe integers as the human filter", () => {
+test("count input accepts non-negative safe integers", () => {
   expect(
-    normalizeSetVisualizationViewToolInput({ filters: { minDegree: 101 } }),
-  ).toEqual({ filters: { minDegree: 101 } });
+    normalizeSetVisualizationViewToolInput({
+      nodesShown: { mode: "exact", requestedCount: 101 },
+    }),
+  ).toEqual({ nodesShown: { mode: "exact", requestedCount: 101 } });
   expect(() =>
     normalizeSetVisualizationViewToolInput({
-      filters: { minDegree: Number.MAX_SAFE_INTEGER + 1 },
+      nodesShown: {
+        mode: "exact",
+        requestedCount: Number.MAX_SAFE_INTEGER + 1,
+      },
     }),
   ).toThrow();
 });
@@ -651,6 +656,7 @@ describe("set_visualization_view input schema", () => {
       "focus",
       "language",
       "layout",
+      "nodesShown",
       "translation",
       "viewport",
       "zoomScale",
@@ -672,11 +678,8 @@ describe("set_visualization_view input schema", () => {
     ]) {
       expect(filterProperties[filterName].enum).toEqual(["show", "hide"]);
     }
-    expect(filterProperties.minDegree).toMatchObject({
-      type: "integer",
-      minimum: 0,
-      maximum: Number.MAX_SAFE_INTEGER,
-    });
+    expect(filterProperties.minDegree).toBeUndefined();
+    expect(inputSchema.properties.nodesShown.oneOf).toHaveLength(2);
     expect(inputSchema.properties.focus).toMatchObject({
       type: "array",
       maxItems: 25,
@@ -1029,7 +1032,7 @@ describe("set_visualization_view input normalization", () => {
     expect(
       normalizeSetVisualizationViewToolInput({
         language: "en",
-        filters: { datatypes: "hide", minDegree: 2 },
+        filters: { datatypes: "hide" },
         focus: [{ kind: "class", iri: "https://example.test/Person" }],
         layout: "resume",
         viewport: "zoom-and-center",
@@ -1037,7 +1040,7 @@ describe("set_visualization_view input normalization", () => {
       }),
     ).toEqual({
       language: "en",
-      filters: { datatypes: "hide", minDegree: 2 },
+      filters: { datatypes: "hide" },
       focus: [{ kind: "class", iri: "https://example.test/Person" }],
       layout: "resume",
       viewport: "zoom-and-center",
@@ -1848,7 +1851,6 @@ describe("WebMCP tool dispatch", () => {
           subclasses: "show",
           disjointness: "hide",
           setOperators: "show",
-          minDegree: 0,
         },
         focus,
         modes,

@@ -1,7 +1,7 @@
 # Exact node-count selector implementation plan
 
-> **Status:** Draft for owner review, 8 October 2026.
-> Implementation is not authorized or baselined by this document.<br>
+> **Status:** Accepted for implementation by the repository owner, 8 October 2026.
+> The implementation authorization and subsequent decisions in section 12 supersede the original drafting-only authority statements below.<br>
 > **Basis:** [Exact node-count research response](../reviews/webvowl-exact-node-count-research-brief-response.md), reconciled with local `main` at `2927ada73ac707165d55e702703608bff4ba5b26`.<br>
 > **Source identity:** Research-response SHA-256 `579e03538b606839bca8bb9036bc58f0dc56e858431185cb997a81181aad41ec` at drafting.
 > The response is a user-owned, untracked input; its recommendations are not all accepted requirements.<br>
@@ -492,3 +492,42 @@ Recheck unrelated working-tree changes, exact candidate and HISEW ownership befo
 The higher-level outcome remains understandable control of graph detail.
 Reassess the ranking/control design if people repeatedly cannot predict what appears, hidden expression structure becomes misleading, large graphs become unusable, or a downstream contract requires reproducible membership beyond the unchanged-source/policy promise.
 Correct arithmetic alone does not establish that outcome.
+
+## 12. Accepted implementation amendment, 8 October 2026
+
+The owner authorized implementation through HISEW on the existing local `main`, initially identical to remote `main` at `2927ada73ac707165d55e702703608bff4ba5b26`.
+The original plan and original research response were committed together at the first commit point, before source implementation.
+The owner pre-authorized messages, signed commits, pushes and normal merge, plus configuration changes required by this plan.
+Consolidate implementation before broad review; reserve external review for the final candidate and scope follow-ups to repairs.
+Production deployment remains outside this source-delivery authorization.
+
+- **DEC-007:** The owner selected existing canonical snapshot semantics: save complete resulting hidden membership; reopen with All of the restored eligible set.
+  URLs and WebMCP retain selection intent.
+  No new saved-state format or canonical schema field is required.
+- **DEC-009:** The owner accepted qualification on the available Windows machine and browsers, with automated and keyboard accessibility checks.
+  Record unavailable mobile, screen-reader and usability-study evidence explicitly; it does not block source delivery.
+  Measure the proposed timing hypotheses honestly; do not claim unmeasured performance or AT coverage.
+- **DEC-005:** A real one-class OWL load succeeded, but structural-content `captureModel` failed with `CAPTURE_QUALIFICATION_UNREPRESENTABLE`.
+  The owner approved a producer-owned `readModelRankingIdentity(model, {signal, limits})` API in the experimental VOWL package.
+  It reuses the producer's structural canonicalization and returns live-occurrence/canonical-key correspondence only.
+  Capture qualification checks, live handles, canonical profiles and artifact schemas retain their existing contracts.
+  Keys exclude visualization, qualification metadata and acquired-source ordering; validate representation invariance and bounded failure before selector integration.
+
+This amendment accepts the R2 route and remaining planned naming, eligibility, intent, UI and square-root fairness policy for implementation and counterexample evaluation.
+An ordinary review and another vendor's independent verifier cover the consolidated final candidate, including graph semantics, accessibility, performance and public-input/state integrity.
+No dependency adoption or workflow/profile configuration change is selected.
+Use native VOWL admission/identity, DOM/URL validation, existing Map/Set topology and the existing test harness.
+Evaluate library composition before adding generic machinery; the custom residual is the specified deterministic frontier ordering and fair merge.
+Source rollback preserves existing-format snapshots, but the previous reader cannot promise equivalent behavior for `nodesShown` links; use a forward fix or explicit corrected link instead of claiming a transparent downgrade.
+
+The producer checkpoint also established that unrefined canonical v1 structural issuance exhausts the symmetry-work budget on shipped GoodRelations and PersonasOnto presets.
+The ranking operation therefore reuses the producer's existing compatible-mapping partition refinement over structural RDF only before bounded RDFC issuance.
+It returns ranking keys, not canonical v1 artifact IDs.
+Existing canonical profiles, persisted bytes and their admission algorithms are unchanged.
+Any future key-algorithm change must revise the ranking-policy version and qualify membership again.
+
+The owner subsequently approved one explicit URL migration exception: a saved `doc=0` option reopens with `{mode: "all"}`.
+Preserve unrelated valid URL choices.
+Exactly the decoded value `0` is accepted; other obsolete degree values, duplicates and mixed `doc=0` plus `nodesShown` are rejected with correction advice.
+New links emit only `nodesShown`; programmatic and WebMCP degree inputs remain rejected.
+This narrowly scoped exception supersedes the earlier blanket URL rejection rule and is not a general degree-to-count conversion.

@@ -1,4 +1,8 @@
 import {
+  createNodesShownIntent,
+  rejectObsoleteNodeSelection,
+} from "./nodesShownContracts.js";
+import {
   createOntologyElementReference,
   createVowlDocumentRecordTarget,
 } from "./webVowlControllerContracts.js";
@@ -52,7 +56,6 @@ export const RENDERED_GRAPH_EVENT_KINDS = Object.freeze([
   "record-deletion-requested",
   "viewport-changed",
   "visualization-view-changed",
-  "degree-filter-range-changed",
   "graph-layout-state-changed",
   "editor-mode-changed",
   "rendering-statistics-changed",
@@ -69,7 +72,6 @@ const VISIBILITY_FILTER_FIELD_NAMES = Object.freeze([
 ]);
 const VISUALIZATION_FILTER_FIELD_NAMES = Object.freeze([
   ...VISIBILITY_FILTER_FIELD_NAMES,
-  "minDegree",
 ]);
 const APPLIED_VISUALIZATION_VIEW_FIELD_NAMES = Object.freeze([
   "language",
@@ -79,6 +81,7 @@ const APPLIED_VISUALIZATION_VIEW_FIELD_NAMES = Object.freeze([
   "forceDistances",
 ]);
 const VISUALIZATION_VIEW_REQUEST_FIELD_NAMES = Object.freeze([
+  "nodesShown",
   "language",
   "filters",
   "focus",
@@ -1124,6 +1127,7 @@ export function createVowlModelReplacementResult(result) {
 }
 
 function createVisualizationFilters(filters, { requireEveryField }) {
+  rejectObsoleteNodeSelection(filters);
   if (requireEveryField) {
     assertExactFieldNames(
       filters,
@@ -1146,12 +1150,6 @@ function createVisualizationFilters(filters, { requireEveryField }) {
       throw new TypeError(`${fieldName} must be show or hide.`);
     }
     normalizedFilters[fieldName] = filters[fieldName];
-  }
-  if (filters.minDegree !== undefined || requireEveryField) {
-    if (!Number.isSafeInteger(filters.minDegree) || filters.minDegree < 0) {
-      throw new RangeError("minDegree must be a non-negative safe integer.");
-    }
-    normalizedFilters.minDegree = filters.minDegree;
   }
   return Object.freeze(normalizedFilters);
 }
@@ -1226,7 +1224,6 @@ export const DEFAULT_VISUALIZATION_FILTERS = Object.freeze({
   subclasses: "show",
   disjointness: "hide",
   setOperators: "show",
-  minDegree: 0,
 });
 
 export const DEFAULT_VISUALIZATION_MODES = Object.freeze({
@@ -1351,6 +1348,9 @@ function assertViewportDirective(viewport) {
 
 function createVisualizationViewSettings(view, { requireEveryField }) {
   const normalizedView = {};
+  if (view.nodesShown !== undefined) {
+    normalizedView.nodesShown = createNodesShownIntent(view.nodesShown);
+  }
   if (view.language !== undefined || requireEveryField) {
     assertNonEmptyString(view.language, "language");
     normalizedView.language = view.language;
@@ -1368,7 +1368,9 @@ function createVisualizationViewSettings(view, { requireEveryField }) {
 
 export function createAppliedVisualizationView(view) {
   assertExactFieldNames(
-    view,
+    Object.fromEntries(
+      Object.entries(view).filter(([field]) => field !== "nodesShown"),
+    ),
     APPLIED_VISUALIZATION_VIEW_FIELD_NAMES,
     "applied visualization view",
   );
@@ -1409,6 +1411,7 @@ export function createVisualizationViewApplicationRequest(request) {
 }
 
 export function createVisualizationViewRequest(request) {
+  rejectObsoleteNodeSelection(request);
   assertAllowedFieldNames(
     request,
     VISUALIZATION_VIEW_REQUEST_FIELD_NAMES,
@@ -1851,23 +1854,6 @@ function createRenderedGraphEventPayload(kind, payload) {
         throw new TypeError("isEditorMode must be a boolean.");
       }
       return Object.freeze({ isEditorMode: payload.isEditorMode });
-    case "degree-filter-range-changed":
-      assertExactFieldNames(
-        payload,
-        ["maximumDegree", "automaticMinimumDegree"],
-        `${kind} payload`,
-      );
-      assertNonNegativeInteger(payload.maximumDegree, "maximumDegree");
-      assertNonNegativeInteger(
-        payload.automaticMinimumDegree,
-        "automaticMinimumDegree",
-      );
-      if (payload.automaticMinimumDegree > payload.maximumDegree) {
-        throw new RangeError(
-          "Automatic minimum degree cannot exceed the maximum degree.",
-        );
-      }
-      return Object.freeze({ ...payload });
     case "visualization-view-changed":
       assertExactFieldNames(
         payload,

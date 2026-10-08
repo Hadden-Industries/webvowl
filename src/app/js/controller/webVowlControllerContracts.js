@@ -28,7 +28,7 @@ export const WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES = Object.freeze([
   "selection",
   "selectedDocumentRecord",
   "renderProgress",
-  "degreeFilterRange",
+  "nodeCountStatus",
   "editorMode",
   "renderingStatistics",
   "error",
@@ -43,7 +43,7 @@ export const GENERATION_SCOPED_CONTROLLER_STATE_FIELDS = Object.freeze({
   selection: Object.freeze([]),
   selectedDocumentRecord: null,
   renderProgress: null,
-  degreeFilterRange: null,
+  nodeCountStatus: null,
   zoomScale: null,
   translation: null,
 });

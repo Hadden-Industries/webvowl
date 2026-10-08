@@ -63,7 +63,6 @@ export function createOntologyEditingState() {
 
   const defaultOptionsConfig = {};
   defaultOptionsConfig.sidebar = "1";
-  defaultOptionsConfig.doc = -1;
   defaultOptionsConfig.cd = 200;
   defaultOptionsConfig.dd = 120;
   defaultOptionsConfig.editorMode = "false";
@@ -231,7 +230,6 @@ export function createOntologyEditingState() {
   ontologyEditingState.initialConfig = function () {
     const initCfg = {};
     initCfg.sidebar = "1";
-    initCfg.doc = -1;
     initCfg.cd = 200;
     initCfg.dd = 120;
     initCfg.editorMode = "false";

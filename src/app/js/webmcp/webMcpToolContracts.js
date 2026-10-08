@@ -1,3 +1,7 @@
+import {
+  createNodesShownIntent,
+  rejectObsoleteNodeSelection,
+} from "../controller/nodesShownContracts.js";
 import { OWLDocumentFormats } from "owlapi/formats";
 import { createOntologySearchPager } from "./ontologySearchPager.js";
 import {
@@ -225,13 +229,6 @@ const VISIBILITY_FILTERS_SCHEMA = closedObjectSchema({
       description: "Show or hide set operator nodes.",
       enum: VISIBILITY_FILTER_VALUES,
     }),
-    minDegree: Object.freeze({
-      type: "integer",
-      description:
-        "Hide elements with fewer connections than this. The graph determines the available degree range; inspect the applied minimum after filtering.",
-      minimum: 0,
-      maximum: Number.MAX_SAFE_INTEGER,
-    }),
   },
 });
 
@@ -378,6 +375,27 @@ export const WEB_MCP_TOOL_DEFINITIONS = Object.freeze([
           description: "Preferred label language tag.",
           minLength: 1,
           maxLength: 35,
+        }),
+        nodesShown: Object.freeze({
+          oneOf: [
+            closedObjectSchema({
+              required: ["mode"],
+              properties: { mode: { enum: ["auto", "all"] } },
+            }),
+            closedObjectSchema({
+              required: ["mode", "requestedCount"],
+              properties: {
+                mode: { const: "exact" },
+                requestedCount: {
+                  type: "integer",
+                  minimum: 0,
+                  maximum: Number.MAX_SAFE_INTEGER,
+                },
+              },
+            }),
+          ],
+          description:
+            "Select an exact number of drawable node occurrences, all eligible nodes, or the automatic target of 50. Read nodeCountStatus for committed counts.",
         }),
         filters: VISIBILITY_FILTERS_SCHEMA,
         focus: Object.freeze({
@@ -1047,10 +1065,14 @@ const VISIBILITY_FILTER_FIELD_NAMES = Object.freeze([
   "subclasses",
   "disjointness",
   "setOperators",
-  "minDegree",
 ]);
 
 function normalizeVisibilityFilters(requestedFilters) {
+  try {
+    rejectObsoleteNodeSelection(requestedFilters);
+  } catch (error) {
+    refuse(error.message);
+  }
   assertOnlyAllowedFieldNames(
     requestedFilters,
     VISIBILITY_FILTER_FIELD_NAMES,
@@ -1062,19 +1084,11 @@ function normalizeVisibilityFilters(requestedFilters) {
     if (requestedFilters[filterName] === undefined) {
       continue;
     }
-    normalizedFilters[filterName] =
-      filterName === "minDegree"
-        ? assertWholeNumberInRange(
-            requestedFilters.minDegree,
-            "minDegree",
-            0,
-            Number.MAX_SAFE_INTEGER,
-          )
-        : assertEnumMember(
-            requestedFilters[filterName],
-            filterName,
-            VISIBILITY_FILTER_VALUES,
-          );
+    normalizedFilters[filterName] = assertEnumMember(
+      requestedFilters[filterName],
+      filterName,
+      VISIBILITY_FILTER_VALUES,
+    );
   }
   return Object.freeze(normalizedFilters);
 }
@@ -1146,6 +1160,7 @@ function normalizeOntologyElementReference(requestedReference) {
 }
 
 const SET_VISUALIZATION_VIEW_FIELD_NAMES = Object.freeze([
+  "nodesShown",
   "language",
   "filters",
   "focus",
@@ -1156,6 +1171,11 @@ const SET_VISUALIZATION_VIEW_FIELD_NAMES = Object.freeze([
 ]);
 
 export function normalizeSetVisualizationViewToolInput(toolInput = {}) {
+  try {
+    rejectObsoleteNodeSelection(toolInput);
+  } catch (error) {
+    refuse(error.message);
+  }
   assertOnlyAllowedFieldNames(
     toolInput,
     SET_VISUALIZATION_VIEW_FIELD_NAMES,
@@ -1163,6 +1183,15 @@ export function normalizeSetVisualizationViewToolInput(toolInput = {}) {
   );
 
   const visualizationViewRequest = {};
+  if (toolInput.nodesShown !== undefined) {
+    try {
+      visualizationViewRequest.nodesShown = createNodesShownIntent(
+        toolInput.nodesShown,
+      );
+    } catch (error) {
+      refuse(error.message);
+    }
+  }
   if (toolInput.language !== undefined) {
     visualizationViewRequest.language = assertBoundedString(
       toolInput.language,

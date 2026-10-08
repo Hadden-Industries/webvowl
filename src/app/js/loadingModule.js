@@ -408,7 +408,7 @@ export function createLoadingModule({
       source,
       ...(/^(?:url|iri|file)=/.test(ontologyIdentifier)
         ? {}
-        : { useAutomaticDegree: true }),
+        : { useAutomaticNodesShown: true }),
       ...(Object.keys(initial).length === 0
         ? {}
         : { initialVisualization: initial }),
@@ -432,7 +432,7 @@ export function createLoadingModule({
           message:
             error instanceof LocalOntologyFileUnavailableError
               ? error.message
-              : "The visualization link contains invalid options or an invalid ontology address.",
+              : error.message + " Correct the link options and load it again.",
         },
       });
       return undefined;
@@ -457,7 +457,7 @@ export function createLoadingModule({
     source,
     initialVisualization,
     reuseCachedOntology,
-    useAutomaticDegree,
+    useAutomaticNodesShown,
   ) {
     try {
       return await webVowlController.loadOntology(
@@ -466,16 +466,16 @@ export function createLoadingModule({
           ...(reuseCachedOntology === undefined ? {} : { reuseCachedOntology }),
         },
         ...(initialVisualization === undefined &&
-        useAutomaticDegree === undefined
+        useAutomaticNodesShown === undefined
           ? []
           : [
               {
                 ...(initialVisualization === undefined
                   ? {}
                   : { initialVisualization }),
-                ...(useAutomaticDegree === undefined
+                ...(useAutomaticNodesShown === undefined
                   ? {}
-                  : { useAutomaticDegree }),
+                  : { useAutomaticNodesShown }),
               },
             ]),
       );
@@ -491,7 +491,7 @@ export function createLoadingModule({
     initialVisualization,
     presentation,
     reuseCachedOntology = true,
-    useAutomaticDegree,
+    useAutomaticNodesShown,
   }) {
     supersedeInput();
     prepareLoadingPresentation();
@@ -500,7 +500,7 @@ export function createLoadingModule({
       source,
       initialVisualization,
       reuseCachedOntology,
-      useAutomaticDegree,
+      useAutomaticNodesShown,
     );
     if (state && presentation !== undefined) {
       onShareLinkPresentation?.(presentation);

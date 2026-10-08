@@ -13,7 +13,7 @@ import { createLanguageTools } from "../../shared/js/util/languageTools.js";
 import { createConfigMenu } from "./menu/configMenu.js";
 import { createDebugMenu } from "./menu/debugMenu.js";
 import { createExportMenu } from "./menu/exportMenu.js";
-import { createDegreeFilterControl } from "./ui/degreeFilterControl.js";
+import { createNodesShownControl } from "./ui/nodesShownControl.js";
 import { createGravityMenu } from "./menu/gravityMenu.js";
 import { createModeMenu } from "./menu/modeMenu.js";
 import { createNavigationMenu } from "./menu/navigationMenu.js";
@@ -50,7 +50,6 @@ export function createWebVowlApplication({
     iriBasedLanguage: webVowlConstants.LANG_IRIBASED,
     undefinedLanguage: webVowlConstants.LANG_UNDEFINED,
   };
-  const degreeFilterControl = createDegreeFilterControl();
   const pauseMenu = createPauseMenu({ documentObject: document });
 
   let directInputModule;
@@ -112,6 +111,10 @@ export function createWebVowlApplication({
   });
 
   // Menus that command the controller are constructed once it exists.
+  const nodesShownControl = createNodesShownControl({
+    onChange: (nodesShown) =>
+      webVowlController.setVisualizationView({ nodesShown }),
+  });
   const debugMenu = createDebugMenu({ webVowlController });
   const modeMenu = createModeMenu({ webVowlController });
   const configMenu = createConfigMenu({
@@ -194,7 +197,7 @@ export function createWebVowlApplication({
     // registration can outlive what answers it.
     webMcpRegistration.dispose();
     viewControlsLifecycleController.abort();
-    degreeFilterControl.dispose();
+    nodesShownControl.dispose();
     ontologyEditorSidebar?.dispose();
     directInputModule?.dispose();
     loadingModule?.dispose();
@@ -429,7 +432,7 @@ export function createWebVowlApplication({
 
     exportMenu.setup();
     gravityMenu.setup();
-    degreeFilterControl.setup();
+    nodesShownControl.setup();
     modeMenu.setup();
     pauseMenu.setup();
     sidebar.setup();
@@ -488,12 +491,15 @@ export function createWebVowlApplication({
           );
         }
         if (
-          changedFieldNames.includes("degreeFilterRange") ||
+          changedFieldNames.includes("status") ||
+          changedFieldNames.includes("nodeCountStatus") ||
           changedFieldNames.includes("view")
         ) {
-          degreeFilterControl.renderDegreeFilterRange(
-            controllerState.degreeFilterRange,
-            controllerState.view?.filters.minDegree ?? 0,
+          nodesShownControl.renderNodeCountStatus(
+            ["idle", "loading"].includes(controllerState.status)
+              ? null
+              : controllerState.nodeCountStatus,
+            controllerState.view?.nodesShown,
           );
         }
       },

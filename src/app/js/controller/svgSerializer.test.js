@@ -194,7 +194,6 @@ function createViewRecipe(overrides = {}) {
         subclasses: "show",
         disjointness: "hide",
         setOperators: "show",
-        minDegree: 2,
       },
       focus: [{ kind: "class", iri: "https://example.test/ontology#Person" }],
       modes: {

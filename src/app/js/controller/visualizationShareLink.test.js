@@ -10,12 +10,13 @@ beforeAll(async () => {
 describe("visualization share-link input", () => {
   test("reads existing option names as explicit semantic choices and retains the ontology fragment", () => {
     const link =
-      "https://example.test/app/#opts=doc=0;cd=300;dd=180;filter_datatypes=true;filter_disjoint=false;mode_dynamic=false;mode_pnp=true;mode_scaling=false;mode_compact=true;mode_colorExt=false;mode_multiColor=false;sidebar=0;editorMode=false;#iri=https://example.test/model#part";
+      "https://example.test/app/#opts=nodesShown=0;cd=300;dd=180;filter_datatypes=true;filter_disjoint=false;mode_dynamic=false;mode_pnp=true;mode_scaling=false;mode_compact=true;mode_colorExt=false;mode_multiColor=false;sidebar=0;editorMode=false;#iri=https://example.test/model#part";
     expect(readVisualizationShareLink(link)).toEqual({
       ontologyIdentifier: "iri=https://example.test/model#part",
       initialVisualization: {
         view: {
-          filters: { minDegree: 0, datatypes: "hide", disjointness: "show" },
+          nodesShown: { mode: "exact", requestedCount: 0 },
+          filters: { datatypes: "hide", disjointness: "show" },
         },
         modes: {
           dynamicLabelWidth: false,
@@ -31,16 +32,15 @@ describe("visualization share-link input", () => {
     });
   });
 
-  test("omitted choices and the historical automatic-degree marker preserve ontology defaults", () => {
+  test("omitted choices preserve ontology defaults and obsolete degree options are rejected", () => {
     expect(readVisualizationShareLink("https://example.test/#foaf")).toEqual({
       ontologyIdentifier: "foaf",
       initialVisualization: {},
       presentation: {},
     });
-    expect(
-      readVisualizationShareLink("https://example.test/#opts=doc=-1;#foaf")
-        .initialVisualization,
-    ).toEqual({});
+    expect(() =>
+      readVisualizationShareLink("https://example.test/#opts=doc=-1;#foaf"),
+    ).toThrow("nodesShown");
     expect(
       readVisualizationShareLink("https://example.test/").ontologyIdentifier,
     ).toBe("foaf");
@@ -53,6 +53,7 @@ describe("visualization share-link input", () => {
         identity: "https://example.test/model#part",
       },
       view: {
+        nodesShown: { mode: "exact", requestedCount: 0 },
         language: "en-gb",
         focus: [],
         filters: {
@@ -61,7 +62,6 @@ describe("visualization share-link input", () => {
           subclasses: "show",
           disjointness: "hide",
           setOperators: "show",
-          minDegree: 0,
         },
         modes: {
           nodeScaling: true,
@@ -93,6 +93,7 @@ describe("visualization share-link input", () => {
         view: {
           language: "en-gb",
           filters: state.view.filters,
+          nodesShown: state.view.nodesShown,
           layout: "pause",
           zoomScale: 0.5,
           translation: { xPx: 0, yPx: -20 },

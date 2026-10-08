@@ -36,8 +36,22 @@ function setup() {
         loadGeneration: (accepted?.loadGeneration ?? 0) + 1,
         documentRevision: 0,
         inspection: { diagnostics: [] },
+        nodesShown: { mode: "auto" },
+        nodeCountStatus: {
+          eligibleNodeCount: 0,
+          shownNodeCount: 0,
+          nodeRankingPolicyVersion: "connected-sqrt-v1",
+        },
       };
       return accepted;
+    }),
+    selectNodes: () => ({
+      hidden: [],
+      nodeCountStatus: {
+        eligibleNodeCount: 0,
+        shownNodeCount: 0,
+        nodeRankingPolicyVersion: "connected-sqrt-v1",
+      },
     }),
     snapshot: () => accepted,
     identity: () => accepted,
@@ -200,19 +214,55 @@ test("the candidate controller preserves selection through rename and focuses ne
     { ...reference, iri: "urn:Renamed" },
   ]);
   expect(controller.getState().selectedDocumentRecord).toEqual(target);
-  await controller.setVisualizationView({ filters: { minDegree: 1 } });
+  await controller.setVisualizationView({
+    nodesShown: { mode: "exact", requestedCount: 0 },
+  });
   expect(
     runtime.readVisibleRenderedGraphSnapshot().visibleElementReferences,
   ).toEqual([]);
   const renamed = controller.getState().selection[0];
+  expect(controller.getOntologyElementRevealPlan([renamed])).toEqual({
+    canReveal: true,
+    requestedCount: 1,
+  });
+  await controller.revealOntologyElements({
+    ontologyElementReferences: [renamed],
+  });
+  expect(controller.getState().view.nodesShown).toEqual({
+    mode: "exact",
+    requestedCount: 1,
+  });
   await controller.setVisualizationView({
-    filters: { minDegree: 0 },
+    nodesShown: { mode: "all" },
     focus: [renamed],
   });
   expect(runtime.applyVisualizationView).toHaveBeenLastCalledWith(
     expect.objectContaining({ focus: [renamed] }),
-    { signal: undefined },
+    { signal: expect.any(AbortSignal) },
   );
+  const retainedScene = session.scene().snapshot();
+  runtime.applyVisualizationView.mockRejectedValueOnce(
+    new Error("paint rejected"),
+  );
+  await expect(
+    controller.setVisualizationView({
+      nodesShown: { mode: "exact", requestedCount: 0 },
+    }),
+  ).rejects.toThrow("paint rejected");
+  expect(controller.getState().view.nodesShown).toEqual({ mode: "all" });
+  expect(session.scene().snapshot()).toEqual(retainedScene);
+  const gate = deferred();
+  runtime.applyVisualizationView.mockImplementationOnce(() => gate.promise);
+  const obsolete = controller.setVisualizationView({
+    nodesShown: { mode: "exact", requestedCount: 0 },
+  });
+  const rejected = expect(obsolete).rejects.toMatchObject({
+    name: "AbortError",
+  });
+  await controller.setVisualizationView({ nodesShown: { mode: "all" } });
+  gate.resolve();
+  await rejected;
+  expect(controller.getState().nodeCountStatus.shownNodeCount).toBe(1);
   await controller.loadOntology({
     source: {
       kind: "ontology-text",
@@ -225,6 +275,42 @@ test("the candidate controller preserves selection through rename and focuses ne
     },
   });
   const beforeDatatype = session.snapshot();
+  await controller.setVisualizationView({
+    nodesShown: { mode: "exact", requestedCount: 100 },
+  });
+  await controller.setVisualizationView({ filters: { datatypes: "hide" } });
+  expect(controller.getState().nodeCountStatus).toMatchObject({
+    eligibleNodeCount: beforeDatatype.inspection.occurrences.filter(
+      ({ kind }) => kind === "class-node",
+    ).length,
+    shownNodeCount: beforeDatatype.inspection.occurrences.filter(
+      ({ kind }) => kind === "class-node",
+    ).length,
+  });
+  expect(controller.getState().view.nodesShown).toEqual({
+    mode: "exact",
+    requestedCount: 100,
+  });
+  const datatypeRef = {
+    kind: "datatype",
+    iri: "http://www.w3.org/2001/XMLSchema#string",
+  };
+  expect(controller.getOntologyElementRevealPlan([datatypeRef]).canReveal).toBe(
+    false,
+  );
+  await controller.setVisualizationView({ filters: { datatypes: "show" } });
+  expect(controller.getState().nodeCountStatus).toMatchObject({
+    eligibleNodeCount: beforeDatatype.inspection.occurrences.filter(
+      ({ kind }) => ["class-node", "datatype-node"].includes(kind),
+    ).length,
+    shownNodeCount: beforeDatatype.inspection.occurrences.filter(({ kind }) =>
+      ["class-node", "datatype-node"].includes(kind),
+    ).length,
+  });
+  expect(controller.getState().view.nodesShown).toEqual({
+    mode: "exact",
+    requestedCount: 100,
+  });
   const roleForIri = (inspection, iri) => {
     const subject = inspection.records.subjects.find(
       (record) => record.iri === iri,

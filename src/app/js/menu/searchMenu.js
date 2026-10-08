@@ -485,6 +485,10 @@ export function createSearchMenu({
       let allSame = true;
       const visible =
         focusableElementCountsBySearchEntry[newResultsIds[i]] ?? 0;
+      const reveal =
+        visible === 0
+          ? webVowlController.getOntologyElementRevealPlan?.(entries)
+          : undefined;
 
       for (let a = 0; a < eLen; a++) {
         if (el0 !== referenceKeyOf(entries[a])) {
@@ -504,10 +508,25 @@ export function createSearchMenu({
         testEntry.appendChild(badge);
       }
 
-      if (eLen === 1 || allSame === true) {
+      if (reveal?.canReveal) {
+        const cue = documentObject.createElement("span");
+        cue.textContent = " · Reveal in graph";
+        testEntry.appendChild(cue);
+        testEntry.title = `Increase Nodes shown to ${reveal.requestedCount} and reveal this result.`;
+        testEntry.onclick = () =>
+          runVisualizationControlAction(
+            () =>
+              webVowlController.revealOntologyElements({
+                ontologyElementReferences: entries,
+              }),
+            documentObject,
+          );
+      } else if (eLen === 1 || allSame === true) {
         if (visible < 1) {
           testEntry.classList.add("search-entry-disabled");
-          testEntry.title = rawTitle + "\nElement is filtered out.";
+          testEntry.title =
+            rawTitle +
+            "\nHidden by another filter or the restored snapshot. Change that visibility first.";
           testEntry.onclick = function () {};
         }
       } else {
