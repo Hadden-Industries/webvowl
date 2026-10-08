@@ -4530,20 +4530,57 @@ a#locateSearchResult {
   padding: 4px;
 }
 
-.nodes-shown input[type="text"] {
-  width: 5ch;
-  min-height: 44px;
+.nodes-shown input[type="number"] {
+  box-sizing: border-box;
+  width: 44px;
+  height: 44px;
   padding: 4px;
   border: 1px solid currentcolor;
 
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
   color: inherit;
+  text-align: center;
 
+  appearance: textfield;
   background: transparent;
 }
 
-.nodes-shown input[type="range"] {
-  width: 100%;
-  min-height: 44px;
+.nodes-shown input[type="number"]::-webkit-inner-spin-button,
+.nodes-shown input[type="number"]::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+}
+
+.nodes-shown-slider {
+  position: relative;
+  padding-bottom: 20px;
+}
+
+.nodes-shown-total {
+  position: absolute;
+  right: 14px;
+  bottom: 0;
+  transform: translateX(50%);
+
+  padding-top: 8px;
+
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.nodes-shown-total::before {
+  content: "";
+
+  position: absolute;
+  top: 0;
+  left: 50%;
+
+  width: 1px;
+  height: 6px;
+
+  background: currentcolor;
 }
 
 .nodes-shown :focus-visible {
@@ -4557,6 +4594,7 @@ a#locateSearchResult {
 }
 
 .nodes-shown-error {
+  margin: 0;
   color: #fca5a5;
 }
 

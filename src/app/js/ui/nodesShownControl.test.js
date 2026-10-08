@@ -4,6 +4,9 @@ class Element extends EventTarget {
   value = "0";
   textContent = "";
   attributes = new Map();
+  get valueAsNumber() {
+    return this.value === "" ? NaN : Number(this.value);
+  }
   setAttribute(key, value) {
     this.attributes.set(key, value);
   }
@@ -13,9 +16,16 @@ class Element extends EventTarget {
 }
 function setup() {
   const controls = Object.fromEntries(
-    ["range", "exact", "minus", "plus", "all", "auto", "status", "error"].map(
-      (name) => [name, new Element()],
-    ),
+    [
+      "range",
+      "exact",
+      "minus",
+      "plus",
+      "all",
+      "auto",
+      "total-value",
+      "error",
+    ].map((name) => [name, new Element()]),
   );
   const onChange = jest.fn();
   const frames = [];
@@ -102,25 +112,26 @@ test("wheel scrolling is never cancelled or bound to count; buttons use the appl
   });
   control.dispose();
 });
-test("zero, shortfall, disposal and unavailable document status stay truthful", () => {
-  jest.useFakeTimers();
+test("endpoint total, native maximum, zero and accessible shortfall follow eligibility", () => {
   const { controls, control, render } = setup();
   render(73, 73, { mode: "exact", requestedCount: 100 });
-  jest.advanceTimersByTime(100);
-  expect(controls.status.textContent).toContain("Target 100");
+  expect(controls["total-value"].textContent).toBe("73");
+  expect(controls.exact.max).toBe("73");
+  expect(controls.range.attributes.get("aria-valuetext")).toContain(
+    "Target 100",
+  );
   render(0, 0);
-  jest.advanceTimersByTime(100);
   expect(controls.minus.disabled).toBe(true);
-  expect(controls.status.textContent).toContain("No nodes");
+  expect(controls["total-value"].textContent).toBe("0");
+  expect(controls.range.attributes.get("aria-valuetext")).toContain("No nodes");
   control.renderNodeCountStatus(null);
   expect(controls.exact.disabled).toBe(true);
+  expect(controls.exact.value).toBe("0");
+  expect(controls.range.attributes.has("aria-valuetext")).toBe(false);
   control.dispose();
-  jest.runOnlyPendingTimers();
-  jest.useRealTimers();
 });
 
-test("a delayed successful request restores settled status without a second count publication", async () => {
-  jest.useFakeTimers();
+test("a delayed successful request keeps the current count and total without status timers", async () => {
   const { controls, onChange, control, render } = setup();
   let resolve;
   const pending = new Promise((yes) => {
@@ -134,14 +145,41 @@ test("a delayed successful request restores settled status without a second coun
   controls.exact.dispatchEvent(new Event("input"));
   key(controls.exact, "Enter");
   await flush();
-  jest.advanceTimersByTime(250);
-  expect(controls.status.textContent).toBe("Updating graph…");
+  expect(controls.exact.value).toBe("37");
+  expect(controls["total-value"].textContent).toBe("109");
   resolve();
   await flush();
   await flush();
-  expect(controls.status.textContent).toBe(
-    "Showing 37 of 109 available nodes.",
-  );
+  expect(controls.exact.value).toBe("37");
+  expect(controls["total-value"].textContent).toBe("109");
   control.dispose();
-  jest.useRealTimers();
+});
+
+test.each(["", "-1", "1.5", "110", "9007199254740992"])(
+  "native numeric draft %j rejects without changing membership",
+  async (value) => {
+    const { controls, onChange, control } = setup();
+    controls.exact.value = value;
+    controls.exact.dispatchEvent(new Event("input"));
+    key(controls.exact, "Enter");
+    await flush();
+    expect(onChange).not.toHaveBeenCalled();
+    expect(controls.exact.attributes.get("aria-invalid")).toBe("true");
+    control.dispose();
+  },
+);
+
+test("native integer numeric notation and zero commit as exact counts", async () => {
+  const { controls, onChange, control } = setup();
+  for (const value of ["1e2", "100.0", "0"]) {
+    controls.exact.value = value;
+    controls.exact.dispatchEvent(new Event("input"));
+    key(controls.exact, "Enter");
+    await flush();
+    expect(onChange).toHaveBeenLastCalledWith({
+      mode: "exact",
+      requestedCount: Number(value),
+    });
+  }
+  control.dispose();
 });
