@@ -18,6 +18,89 @@ const bytes = new Uint8Array(
 );
 const request = () => ({ operation: "open-canonical-model", bytes });
 
+test("fresh loads automatically collapse, explicit zero wins and saved visibility survives reload", async () => {
+  const { session } = setup();
+  const source = {
+    operation: "open-owl-model",
+    documentIri: "urn:collapse",
+    mediaType: "text/owl-functional",
+    bytes: new TextEncoder().encode(`Ontology(<urn:collapse>
+      Declaration(Class(<urn:Hub>))
+      ${Array.from({ length: 60 }, (_, i) => `Declaration(Class(<urn:Leaf${i}>)) SubClassOf(<urn:Leaf${i}> <urn:Hub>)`).join("\n")}
+    )`),
+  };
+  try {
+    const automatic = await session.load(source);
+    expect(automatic.appliedFilters.minDegree).toBe(2);
+    expect(
+      automatic.projection.nodes.filter((node) => !node.hidden),
+    ).toHaveLength(1);
+    expect(automatic.degreeFilterRange.automaticMinimumDegree).toBe(2);
+    const explicit = await session.load(source, {
+      initialVisualization: { view: { filters: { minDegree: 0 } } },
+    });
+    expect(explicit.appliedFilters.minDegree).toBe(0);
+    expect(
+      explicit.projection.nodes.filter((node) => !node.hidden),
+    ).toHaveLength(61);
+    const saved = await session.capture();
+    const restored = await session.load({
+      operation: "open-canonical-model",
+      bytes: saved,
+    });
+    expect(restored.visualization.hidden).toEqual(
+      explicit.visualization.hidden,
+    );
+    expect(
+      restored.projection.nodes.filter((node) => !node.hidden),
+    ).toHaveLength(61);
+    const preset = await session.load(
+      { operation: "open-canonical-model", bytes: saved },
+      { useAutomaticDegree: true },
+    );
+    expect(preset.appliedFilters.minDegree).toBe(2);
+    expect(preset.projection.nodes.filter((node) => !node.hidden)).toHaveLength(
+      1,
+    );
+    expect((await session.load(source)).appliedFilters.minDegree).toBe(2);
+  } finally {
+    session.dispose();
+  }
+});
+
+test.each([
+  "foaf",
+  "goodrelations",
+  "muto",
+  "ontovibe",
+  "personasonto",
+  "sioc",
+])(
+  "packaged preset %s automatically selects at most 50 visible nodes before presentation",
+  async (name) => {
+    const { session } = setup();
+    try {
+      const bytes = new Uint8Array(
+        readFileSync(
+          new URL(`../../../canonical-examples/${name}.json`, import.meta.url),
+        ),
+      );
+      const accepted = await session.load(
+        { operation: "open-canonical-model", bytes },
+        { useAutomaticDegree: true },
+      );
+      const visible = accepted.projection.nodes.filter((node) => !node.hidden);
+      expect(visible.length).toBeGreaterThan(0);
+      expect(visible.length).toBeLessThanOrEqual(50);
+      expect(accepted.appliedFilters.minDegree).toBe(
+        accepted.degreeFilterRange.automaticMinimumDegree,
+      );
+    } finally {
+      session.dispose();
+    }
+  },
+);
+
 test("identity and source availability queries never clone a checkpoint", async () => {
   const { session } = setup();
   await session.load(request());
@@ -520,10 +603,22 @@ test.each(["subclass", "disjoint", "some", "all", "datatype"])(
       const label = result.inspection.occurrences.find(
         (row) => row.kind === "label" && row.edge === edge.id,
       );
+      const endpointPositions = [edge.from, edge.to].map(
+        (id) =>
+          result.visualization.placements.find(
+            (placement) => placement.occurrence === id,
+          ).position,
+      );
       expect(result.visualization.placements).toContainEqual(
         expect.objectContaining({
           occurrence: label.id,
-          position: kind === "subclass" ? { x: 0, y: 0 } : { x: 23, y: 47 },
+          position:
+            kind === "subclass"
+              ? {
+                  x: (endpointPositions[0].x + endpointPositions[1].x) / 2,
+                  y: (endpointPositions[0].y + endpointPositions[1].y) / 2,
+                }
+              : { x: 23, y: 47 },
         }),
       );
     }

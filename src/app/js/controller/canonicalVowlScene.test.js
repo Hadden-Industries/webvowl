@@ -36,6 +36,109 @@ async function merge(document) {
   return { ...result, occurrences: result.document.structural.occurrences };
 }
 
+test("fresh nodes have distinct deterministic positions translated around the camera center", () => {
+  const occurrences = Array.from({ length: 700 }, (_, index) => ({
+    id: `node-${index}`,
+    kind: index % 2 ? "datatype-node" : "class-node",
+  }));
+  const create = (center) =>
+    createCanonicalVowlScene(occurrences, {
+      loadGeneration: 1,
+      center,
+    }).snapshot().placements;
+  const placements = create({ x: 0, y: 0 });
+  expect(
+    new Set(placements.map(({ position }) => JSON.stringify(position))).size,
+  ).toBe(occurrences.length);
+  expect(create({ x: 0, y: 0 })).toEqual(placements);
+  const translated = create({ x: 40, y: -20 });
+  translated.forEach(({ position, pinned }, index) => {
+    expect(position.x).toBeCloseTo(placements[index].position.x + 40);
+    expect(position.y).toBeCloseTo(placements[index].position.y - 20);
+    expect(pinned).toBe(false);
+    expect(Math.hypot(position.x - 40, position.y + 20)).toBeLessThan(300);
+  });
+});
+
+test("labels and operators retain incidence-based placement among distributed nodes", () => {
+  // Put dependents first to exercise recursive placement independent of inventory order.
+  const occurrences = [
+    { id: "label", kind: "label", edge: "property" },
+    { id: "operator", kind: "class-node" },
+    { id: "operand-a", kind: "operator-edge", from: "operator", to: "a" },
+    { id: "operand-b", kind: "operator-edge", from: "operator", to: "b" },
+    { id: "property", kind: "property-edge", from: "a", to: "datatype" },
+    { id: "a", kind: "class-node" },
+    { id: "b", kind: "class-node" },
+    { id: "datatype", kind: "datatype-node" },
+  ];
+  const placements = new Map(
+    createCanonicalVowlScene(occurrences, { loadGeneration: 1 })
+      .snapshot()
+      .placements.map(({ occurrence, position }) => [occurrence, position]),
+  );
+  const midpoint = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+  expect(placements.get("a")).not.toEqual(placements.get("b"));
+  expect(placements.get("operator")).toEqual(
+    midpoint(placements.get("a"), placements.get("b")),
+  );
+  expect(placements.get("label")).toEqual(
+    midpoint(placements.get("a"), placements.get("datatype")),
+  );
+});
+
+test("saved scenes, supplied positions and retained pins survive fresh-node initialization", () => {
+  const occurrences = [
+    { id: "a", kind: "class-node" },
+    { id: "b", kind: "datatype-node" },
+  ];
+  const scene = createCanonicalVowlScene(occurrences, {
+    loadGeneration: 1,
+    suppliedPositions: new Map([["a", { x: 123, y: -456 }]]),
+  });
+  scene.arrange([
+    {
+      reference: scene.reference("a"),
+      position: { x: 12, y: 34 },
+      pinned: true,
+    },
+  ]);
+  const saved = scene.snapshot();
+  expect(
+    createCanonicalVowlScene(occurrences, {
+      loadGeneration: 2,
+      visualization: saved,
+      center: { x: 900, y: 900 },
+    }).snapshot(),
+  ).toEqual(saved);
+  const additions = [
+    ...occurrences,
+    { id: "c", kind: "class-node" },
+    { id: "d", kind: "datatype-node" },
+  ];
+  scene
+    .prepareEdit({
+      occurrences: additions,
+      correspondence: occurrences.map(({ id }) => ({
+        previous: id,
+        current: id,
+      })),
+    })
+    .commit();
+  const updated = scene.snapshot().placements;
+  expect(updated.slice(0, 2)).toEqual(saved.placements);
+  expect(updated[2].position).not.toEqual(updated[3].position);
+  expect(updated[2].position).not.toEqual(saved.placements[1].position);
+  expect(
+    createCanonicalVowlScene(occurrences, {
+      loadGeneration: 3,
+      suppliedPositions: new Map([["a", { x: 123, y: -456 }]]),
+    })
+      .snapshot()
+      .placements.find(({ occurrence }) => occurrence === "a").position,
+  ).toEqual({ x: 123, y: -456 });
+});
+
 test("hidden placements remain complete and can be admitted as an artifact", async () => {
   const document = await classes();
   const scene = createCanonicalVowlScene(document.structural.occurrences, {

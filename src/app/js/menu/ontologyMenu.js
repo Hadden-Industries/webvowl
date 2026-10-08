@@ -307,8 +307,7 @@ function createOntologyMenu({
         }
 
         const routeKey = result.isJson ? "url=" : "iri=";
-        locationObject.hash =
-          routeKey + encodeURIComponent(result.normalizedUrl);
+        locationObject.hash = routeKey + encodeURI(result.normalizedUrl);
         iriConverterInput.value = "";
         validationWasShown = false;
         updateConverterState();

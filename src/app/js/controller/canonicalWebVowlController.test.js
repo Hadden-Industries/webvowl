@@ -167,7 +167,12 @@ test("the candidate controller preserves selection through rename and focuses ne
   });
   expect(drawing.drawing.nodes).toHaveLength(1);
   expect(drawing.drawing.camera.center).toEqual({ x: 400, y: 300 });
-  expect(drawing.drawing.nodes[0].position).toEqual({ x: 400, y: 300 });
+  const initialPosition = drawing.drawing.nodes[0].position;
+  expect(Number.isFinite(initialPosition.x)).toBe(true);
+  expect(Number.isFinite(initialPosition.y)).toBe(true);
+  expect(
+    Math.hypot(initialPosition.x - 400, initialPosition.y - 300),
+  ).toBeLessThan(10);
   expect(controller.getOntologyEditorView().metadata).toBeDefined();
   expect(controller.resolveOntologyEditorIri("urn:Class")).toBe("urn:Class");
   const reference =

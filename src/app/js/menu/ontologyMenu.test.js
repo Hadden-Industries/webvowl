@@ -388,10 +388,7 @@ describe("ontology menu actions", () => {
     iriForm.handlers.submit(event);
 
     expect(global.location.hash).toBe(
-      "url=" +
-        encodeURIComponent(
-          "https://example.org/ontology.json?download=1#latest",
-        ),
+      "url=" + "https://example.org/ontology.json?download=1#latest",
     );
     expect(iriInput.element.value).toBe("");
     expect(iriButton.element.disabled).toBe(true);
@@ -402,9 +399,20 @@ describe("ontology menu actions", () => {
     expect(global.location.hash).toBe("#file=foaf.rdf.json");
 
     ontologyMenu.setIriText("example.org/ontology.owl");
-    expect(global.location.hash).toBe(
-      "iri=" + encodeURIComponent("https://example.org/ontology.owl"),
+    expect(global.location.hash).toBe("iri=https://example.org/ontology.owl");
+  });
+
+  test("keeps the custom ontology address readable and preserves existing URL escapes", () => {
+    const identity =
+      "https://haddenindustries.com/ontology/universal/reference-data/latest";
+    ontologyMenu.setIriText(identity);
+    expect(global.location.hash).toBe(`iri=${identity}`);
+    const escaped = "https://example.org/a%2Fb?value=%23&other=one%20two#part";
+    ontologyMenu.setIriText(escaped);
+    expect(global.location.hash).toContain(
+      "iri=https://example.org/a%252Fb?value=%2523&other=one%2520two#part",
     );
+    expect(decodeURIComponent(global.location.hash.slice(4))).toBe(escaped);
   });
 
   test("delegates an enabled create button to the explicit application command", () => {

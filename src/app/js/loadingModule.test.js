@@ -318,17 +318,57 @@ describe("loading module remote source derivation", () => {
       name === "foaf" ? source : undefined,
     );
     loadingModule = createLoadingModule({ resolvePresetSource });
-    expect(loadingModule.ontologyLoadRequestFromLocation().source).toEqual(
-      source,
-    );
+    const presetRequest = loadingModule.ontologyLoadRequestFromLocation();
+    expect(presetRequest.source).toEqual(source);
+    expect(presetRequest.initialVisualization).toEqual({
+      view: { layout: "resume" },
+    });
     loadingModuleContext.location =
       "https://webvowl.example/#iri=https%3A%2F%2Fexample.org%2Ffoaf.rdf";
     expect(loadingModule.ontologyLoadRequestFromLocation().source).toEqual({
       kind: "ontology-document-iri",
       documentIri: "https://example.org/foaf.rdf",
     });
+    expect(
+      loadingModule.ontologyLoadRequestFromLocation().initialVisualization,
+    ).toBeUndefined();
     expect(resolvePresetSource).toHaveBeenCalledTimes(1);
   });
+
+  test.each([
+    "foaf",
+    "goodrelations",
+    "muto",
+    "ontovibe",
+    "personasonto",
+    "sioc",
+    "",
+  ])("preset %s requests active initial layout", (name) => {
+    loadingModule = createLoadingModuleForLocation(
+      `https://webvowl.example/#${name}`,
+    );
+    expect(
+      loadingModule.ontologyLoadRequestFromLocation().initialVisualization,
+    ).toEqual({ view: { layout: "resume" } });
+    expect(
+      loadingModule.ontologyLoadRequestFromLocation().useAutomaticDegree,
+    ).toBe(true);
+  });
+
+  test.each([
+    ["true", "pause"],
+    ["false", "resume"],
+  ])(
+    "preset preserves explicit paused=%s and other share-link options",
+    (paused, layout) => {
+      loadingModule = createLoadingModuleForLocation(
+        `https://webvowl.example/#opts=paused=${paused};language=de;#foaf`,
+      );
+      expect(
+        loadingModule.ontologyLoadRequestFromLocation().initialVisualization,
+      ).toEqual({ view: { layout, language: "de" } });
+    },
+  );
 });
 
 describe("loading presentation listener ownership", () => {
@@ -648,7 +688,7 @@ describe("loading module canonical controller sources", () => {
     );
     const request = loadingModule.ontologyLoadRequestFromLocation();
     expect(request.initialVisualization).toEqual({
-      view: { filters: { minDegree: 0 } },
+      view: { layout: "resume", filters: { minDegree: 0 } },
       modes: { nodeScaling: false },
     });
     expect(presentedRoutes).toEqual([]);
@@ -664,8 +704,9 @@ describe("loading module canonical controller sources", () => {
     ]);
     expect(requestedLoadOptions).toEqual([
       {
+        useAutomaticDegree: true,
         initialVisualization: {
-          view: { filters: { minDegree: 0 } },
+          view: { layout: "resume", filters: { minDegree: 0 } },
           modes: { nodeScaling: false },
         },
       },

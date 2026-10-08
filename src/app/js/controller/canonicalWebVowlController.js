@@ -457,7 +457,10 @@ export function createCanonicalWebVowlController({
       subscribers.add(listener);
       return () => subscribers.delete(listener);
     },
-    async loadOntology({ source }, { signal, initialVisualization } = {}) {
+    async loadOntology(
+      { source },
+      { signal, initialVisualization, useAutomaticDegree } = {},
+    ) {
       const initial = createInitialVisualizationRequest(
         initialVisualization ?? {},
       );
@@ -549,6 +552,7 @@ export function createCanonicalWebVowlController({
               resolveImport:
                 imports?.resolveImport ?? acquisition.resolveImport,
               renderedGraphRuntime: runtime,
+              useAutomaticDegree,
               ...(viewportSize
                 ? {
                     center: {
@@ -582,7 +586,10 @@ export function createCanonicalWebVowlController({
         }
         pendingLoad = undefined;
         selectedEditorOccurrence = undefined;
-        filters = { ...CANONICAL_VISIBLE_FILTERS, ...initial.view?.filters };
+        filters = accepted.appliedFilters ?? {
+          ...CANONICAL_VISIBLE_FILTERS,
+          ...initial.view?.filters,
+        };
         retainedHidden =
           (accepted.retainedHidden ?? accepted.visualization?.hidden)?.map(
             (id) => session.scene().reference(id),
@@ -606,6 +613,9 @@ export function createCanonicalWebVowlController({
             accepted.diagnostics ?? accepted.inspection.diagnostics
           ).map(({ message }) => message),
           view: readView(),
+          ...(accepted.degreeFilterRange
+            ? { degreeFilterRange: accepted.degreeFilterRange }
+            : {}),
           ...runtime.readVisualizationViewport(),
           layout: {
             status: layout.isPaused
@@ -913,7 +923,8 @@ export function createCanonicalWebVowlController({
               ? {
                   degreeFilterRange: {
                     maximumDegree: visibility.maximumDegree,
-                    automaticMinimumDegree: 0,
+                    automaticMinimumDegree:
+                      state.degreeFilterRange?.automaticMinimumDegree ?? 0,
                   },
                 }
               : {}),

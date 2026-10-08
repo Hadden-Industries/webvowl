@@ -38,6 +38,23 @@ export function closeVowlVisibility(occurrences, hidden) {
 
 function initializePlacements(occurrences, retained, center, supplied) {
   const byId = new Map(occurrences.map((record) => [record.id, record]));
+  // Deterministic phyllotaxis gives fresh nodes a finite, distributed seed.
+  // Explicit scene positions bypass the force engine's missing-position seed;
+  // coincident seeds instead create an enormous initial repulsive impulse.
+  // Index the whole node inventory once, including retained nodes, so additions
+  // do not restart the sequence at positions already assigned to predecessors.
+  const seeds = new Map();
+  const angle = Math.PI * (3 - Math.sqrt(5));
+  for (const occurrence of occurrences) {
+    if (["class-node", "datatype-node"].includes(occurrence.kind)) {
+      const index = seeds.size;
+      const radius = 10 * Math.sqrt(0.5 + index);
+      seeds.set(occurrence.id, {
+        x: center.x + radius * Math.cos(index * angle),
+        y: center.y + radius * Math.sin(index * angle),
+      });
+    }
+  }
   const operatorTargets = new Map();
   for (const edge of occurrences) {
     if (edge.kind === "operator-edge") {
@@ -78,7 +95,7 @@ function initializePlacements(occurrences, retained, center, supplied) {
       const points = neighbors.map(place);
       position =
         points.length === 0
-          ? center
+          ? (seeds.get(id) ?? center)
           : {
               x: points.reduce(
                 (sum, point) => sum + point.x / points.length,

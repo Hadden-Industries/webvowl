@@ -11,6 +11,7 @@ import { createInitialVisualizationRequest } from "./renderedGraphRuntimeContrac
 import {
   CANONICAL_VISIBLE_FILTERS,
   prepareCanonicalVisibility,
+  findCanonicalAutomaticMinimumDegree,
   canonicalLabelSelection,
 } from "./canonicalVowlViewControls.js";
 import {
@@ -403,6 +404,7 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
         prepareProjection = createCanonicalVowlRenderProjection,
         renderedGraphRuntime,
         initialVisualization,
+        useAutomaticDegree = false,
       } = {},
     ) {
       checkOpen();
@@ -446,21 +448,32 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
         );
         const retainedHidden = scene.snapshot().hidden;
         const { filters, language, ...nativeView } = initial.view ?? {};
+        const defaultFilters = { ...CANONICAL_VISIBLE_FILTERS, ...filters };
+        const automaticMinimumDegree = findCanonicalAutomaticMinimumDegree(
+          candidate.inspection,
+          defaultFilters,
+          retainedHidden,
+        );
+        const appliedFilters = {
+          ...defaultFilters,
+          minDegree:
+            filters?.minDegree ??
+            (useAutomaticDegree || !result.visualization
+              ? automaticMinimumDegree
+              : 0),
+        };
+        const visibility = prepareCanonicalVisibility(
+          candidate.inspection,
+          appliedFilters,
+          retainedHidden,
+        );
         const { compactNotation, nodeScaling, colorExternals, ...nativeModes } =
           initial.modes ?? {};
         const viewChanges = {
           ...(language === undefined
             ? {}
             : { labelSelection: canonicalLabelSelection(language) }),
-          ...(filters === undefined
-            ? {}
-            : {
-                hidden: prepareCanonicalVisibility(
-                  candidate.inspection,
-                  { ...CANONICAL_VISIBLE_FILTERS, ...filters },
-                  retainedHidden,
-                ).hidden.map(scene.reference),
-              }),
+          hidden: visibility.hidden.map(scene.reference),
           display: {
             ...(compactNotation === undefined ? {} : { compactNotation }),
             ...(nodeScaling === undefined
@@ -632,6 +645,11 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
             projection,
             initialLayout,
             retainedHidden,
+            appliedFilters,
+            degreeFilterRange: {
+              maximumDegree: visibility.maximumDegree,
+              automaticMinimumDegree,
+            },
             diagnostics: structuredClone([
               ...candidate.inspection.diagnostics,
               ...(result.diagnostics ?? []),
