@@ -114,7 +114,6 @@ function createDefaultAppliedVisualizationView() {
     filters: Object.freeze({
       datatypes: "show",
       disjointness: "show",
-      minDegree: 0,
       objectProperties: "show",
       setOperators: "show",
       subclasses: "show",

@@ -322,7 +322,6 @@ describe("rendered graph events", () => {
         subclasses: "show",
         disjointness: "hide",
         setOperators: "show",
-        minDegree: 0,
       },
       modes: {
         nodeScaling: true,
@@ -370,7 +369,6 @@ describe("rendered graph events", () => {
       "record-deletion-requested",
       "viewport-changed",
       "visualization-view-changed",
-      "degree-filter-range-changed",
       "graph-layout-state-changed",
       "editor-mode-changed",
       "rendering-statistics-changed",
@@ -853,33 +851,13 @@ describe("rendered SVG snapshots", () => {
 });
 
 describe("rendered graph requests and results", () => {
-  test("publishes an immutable degree range with its automatic collapse minimum", () => {
-    const event = createRenderedGraphEvent({
-      kind: "degree-filter-range-changed",
-      loadGeneration: 4,
-      payload: { maximumDegree: 125, automaticMinimumDegree: 2 },
-    });
-    expect(event.payload).toEqual({
-      maximumDegree: 125,
-      automaticMinimumDegree: 2,
-    });
-    expect(Object.isFrozen(event.payload)).toBe(true);
-    expect(() =>
-      createRenderedGraphEvent({
-        kind: "degree-filter-range-changed",
-        loadGeneration: 4,
-        payload: { maximumDegree: 1, automaticMinimumDegree: 2 },
-      }),
-    ).toThrow();
-  });
-
   test("validates and owns initial visualization choices before replacement", () => {
     const initialVisualization = {
       view: {
         layout: "pause",
         zoomScale: 0.5,
         translation: { xPx: 0, yPx: -20 },
-        filters: { minDegree: 0 },
+        nodesShown: { mode: "exact", requestedCount: 0 },
       },
       modes: { dynamicLabelWidth: false },
       forceDistances: { classDistancePx: 300 },
@@ -955,7 +933,7 @@ describe("rendered graph requests and results", () => {
 
   test("creates an exact partial visualization-view application request", () => {
     const request = createVisualizationViewApplicationRequest({
-      filters: { datatypes: "hide", minDegree: 2 },
+      filters: { datatypes: "hide" },
       focus: [{ kind: "class", iri: "https://example.test/Person" }],
       language: "en",
       layout: "resume",
@@ -964,7 +942,7 @@ describe("rendered graph requests and results", () => {
     });
 
     expect(request).toEqual({
-      filters: { datatypes: "hide", minDegree: 2 },
+      filters: { datatypes: "hide" },
       focus: [{ kind: "class", iri: "https://example.test/Person" }],
       language: "en",
       layout: "resume",
@@ -994,24 +972,24 @@ describe("rendered graph requests and results", () => {
     ).toEqual({ loadGeneration: 3 });
   });
 
-  test("accepts the human slider's minimum degree above 100", () => {
+  test("accepts an exact safe-integer count above 100", () => {
     expect(
       createVisualizationViewApplicationRequest({
-        filters: { minDegree: 125 },
         loadGeneration: 3,
-      }).filters.minDegree,
-    ).toBe(125);
+        nodesShown: { mode: "exact", requestedCount: 125 },
+      }).nodesShown,
+    ).toEqual({ mode: "exact", requestedCount: 125 });
   });
 
   test.each([-1, 1.5, Number.MAX_SAFE_INTEGER + 1, Infinity, NaN])(
-    "rejects an invalid visualization minimum degree %s",
-    (minDegree) => {
+    "rejects an invalid exact node count %s",
+    (requestedCount) => {
       expect(() =>
         createVisualizationViewApplicationRequest({
-          filters: { minDegree },
+          nodesShown: { mode: "exact", requestedCount },
           loadGeneration: 3,
         }),
-      ).toThrow("minDegree");
+      ).toThrow("requestedCount");
     },
   );
 
@@ -1021,7 +999,6 @@ describe("rendered graph requests and results", () => {
         filters: {
           datatypes: "hide",
           disjointness: "show",
-          minDegree: 2,
           objectProperties: "show",
           setOperators: "show",
           subclasses: "show",
@@ -1076,7 +1053,6 @@ describe("rendered graph requests and results", () => {
           filters: {
             datatypes: "show",
             disjointness: "show",
-            minDegree: 0,
             objectProperties: "show",
             setOperators: "show",
             subclasses: "show",

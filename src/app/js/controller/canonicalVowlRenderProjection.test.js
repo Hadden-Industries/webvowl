@@ -184,6 +184,11 @@ test("operator projections expose omitted operands without creating an operand g
   });
   expect(drawing.edges[2]).toMatchObject({ from: "n", to: "n" });
   expect(drawing.nodes).toHaveLength(3);
+  visualization.hidden.push("n", "ue");
+  expect(
+    createCanonicalVowlRenderProjection(inspection, visualization).nodes[2]
+      .additionalOperands,
+  ).toEqual(["a", "some"]);
   expect(drawing.labels).toHaveLength(2);
   expect(drawing.inspection.records.expressions).toEqual(
     inspection.records.expressions,

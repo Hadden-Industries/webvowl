@@ -601,33 +601,63 @@
                     <label for="setoperatorFilterCheckbox">Set operators</label>
                   </div>
                 </li>
-                <li class="slideOption" id="nodeDegreeFilteringOption">
-                  <div class="distanceSliderContainer">
-                    <div class="slider-header">
-                      <label class="description" for="nodeDegreeDistanceSlider"
-                        >Degree of collapsing</label
+                <li class="slideOption" id="nodesShownControl">
+                  <fieldset class="nodes-shown">
+                    <legend>Nodes shown</legend>
+                    <div class="nodes-shown-entry">
+                      <button
+                        id="nodesShown-minus"
+                        type="button"
+                        aria-label="Show one fewer node"
                       >
-                      <span class="slider-value" id="nodeDegreeSliderValue"
-                        >0</span
+                        −
+                      </button>
+                      <label class="visually-hidden" for="nodesShown-exact"
+                        >Exact nodes shown</label
                       >
-                    </div>
-                    <div class="range-touch-wrapper">
                       <input
-                        id="nodeDegreeDistanceSlider"
-                        type="range"
-                        min="0"
+                        id="nodesShown-exact"
+                        type="text"
+                        inputmode="numeric"
                         value="0"
-                        step="1"
+                        aria-describedby="nodesShown-error nodesShown-status"
                       />
+                      <button
+                        id="nodesShown-plus"
+                        type="button"
+                        aria-label="Show one more node"
+                      >
+                        +
+                      </button>
+                      <button id="nodesShown-all" type="button">All</button>
+                      <button id="nodesShown-auto" type="button">Auto</button>
                     </div>
-                    <span
-                      id="degree-of-collapsing-hint"
-                      class="degree-of-collapsing-hint tool-hint hidden"
-                      >Showing only the most connected nodes for a fast, clear
-                      view. Adjust the filter to dial in the level of detail you
-                      need.</span
+                    <label class="visually-hidden" for="nodesShown-range"
+                      >Nodes shown</label
                     >
-                  </div>
+                    <input
+                      id="nodesShown-range"
+                      type="range"
+                      min="0"
+                      max="0"
+                      value="0"
+                      step="1"
+                      aria-describedby="nodesShown-status"
+                    />
+                    <p id="nodesShown-error" class="nodes-shown-error"></p>
+                    <p
+                      id="nodesShown-status"
+                      role="status"
+                      aria-live="polite"
+                      aria-atomic="true"
+                    >
+                      Load an ontology to choose nodes shown.
+                    </p>
+                    <p class="tool-hint">
+                      Drag to explore or enter an exact count. All follows every
+                      eligible node.
+                    </p>
+                  </fieldset>
                 </li>
               </ul>
             </div>

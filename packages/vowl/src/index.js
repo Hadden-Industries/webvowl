@@ -11,6 +11,7 @@ import { envelope } from "./modelContract.js";
 import { validateGraph, validateMeaning } from "./validateGraph.js";
 import { validateProjection, validateArtifact } from "./projection.js";
 import { issueIds } from "./internalRdf.js";
+import { refineDataset } from "./refinedRdf.js";
 import { compareBytes, jsonBytes, orderSets } from "./canonicalJson.js";
 import { parseBytes } from "./lexicalJson.js";
 import { takeOperationBudget } from "./operationBudget.js";
@@ -322,6 +323,32 @@ export async function captureModel(model, options) {
       correspondence: [...issued].map(([previous, current]) => ({
         previous,
         current,
+      })),
+    });
+  } finally {
+    budget.dispose();
+  }
+}
+
+/** Structural ranking keys only: never artifact authority or replacement handles. */
+export async function readModelRankingIdentity(model, options) {
+  const opts = optionRecord(options, ["limits", "signal"]);
+  const budget = new ResourceBudget(opts, performance.now());
+  try {
+    const state = requireModel(model);
+    const source = snapshotSource(
+      { profile: profiles.structuralContent, structural: state.structural },
+      budget,
+    );
+    // The admitted live model already passed structural validation. Reuse the
+    // producer's qualified refinement to bound symmetric RDF work, without
+    // admitting an artifact or including appearance and qualifications in keys.
+    const issued = await issueIds(source, budget, { refine: refineDataset });
+    return deepFreeze({
+      revision: model.revision,
+      correspondence: state.structural.occurrences.map(({ id }) => ({
+        previous: id,
+        current: issued.get(id),
       })),
     });
   } finally {

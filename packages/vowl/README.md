@@ -59,6 +59,11 @@ Readmission performs no network acquisition or canonicalization.
 The application must preserve and reconcile the complete scene alongside the checkpoint.
 
 `captureModel(model, {profile, visualization, signal, limits})` validates and canonicalizes a snapshot, returning `{document, correspondence}` without replacing live handles.
+`readModelRankingIdentity(model, {signal, limits})` returns `{revision, correspondence}` for occurrence handles and their structural canonical keys, including OWL-origin models.
+It uses the producer's structural RDF mapping, compatible-mapping partition refinement and bounded RDFC issuance, without visualization, qualifications or source-archive metadata.
+Ranking keys are not a promise of canonical v1 artifact IDs; the operation does not grant artifact authority, replace live handles or weaken capture qualification checks.
+Cache keys by structural revision and handle failed/cancelled identity work without replacing the previous view.
+Symmetric representations compare through the canonical isomorphism, not arbitrary source handles.
 The visualization field is required for artifact capture and forbidden for structural-content capture.
 Failed editing, recovery or capture leaves the previous model usable.
 `openOwl(bytes, {documentIri, mediaType, resolveImport, signal, limits})` on `vowl/owl` now admits a compatible live model and returns `{model, correspondence}` without RDFC.

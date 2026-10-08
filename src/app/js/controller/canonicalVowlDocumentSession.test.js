@@ -18,7 +18,7 @@ const bytes = new Uint8Array(
 );
 const request = () => ({ operation: "open-canonical-model", bytes });
 
-test("fresh loads automatically collapse, explicit zero wins and saved visibility survives reload", async () => {
+test("fresh loads show exactly 50, explicit zero wins and saved visibility reopens with All", async () => {
   const { session } = setup();
   const source = {
     operation: "open-owl-model",
@@ -31,38 +31,59 @@ test("fresh loads automatically collapse, explicit zero wins and saved visibilit
   };
   try {
     const automatic = await session.load(source);
-    expect(automatic.appliedFilters.minDegree).toBe(2);
+    expect(automatic.nodesShown).toEqual({ mode: "auto" });
     expect(
       automatic.projection.nodes.filter((node) => !node.hidden),
-    ).toHaveLength(1);
-    expect(automatic.degreeFilterRange.automaticMinimumDegree).toBe(2);
+    ).toHaveLength(50);
+    expect(automatic.nodeCountStatus.shownNodeCount).toBe(50);
     const explicit = await session.load(source, {
-      initialVisualization: { view: { filters: { minDegree: 0 } } },
+      initialVisualization: {
+        view: { nodesShown: { mode: "exact", requestedCount: 0 } },
+      },
     });
-    expect(explicit.appliedFilters.minDegree).toBe(0);
+    expect(explicit.nodesShown).toEqual({ mode: "exact", requestedCount: 0 });
     expect(
       explicit.projection.nodes.filter((node) => !node.hidden),
-    ).toHaveLength(61);
+    ).toHaveLength(0);
     const saved = await session.capture();
     const restored = await session.load({
       operation: "open-canonical-model",
       bytes: saved,
     });
-    expect(restored.visualization.hidden).toEqual(
-      explicit.visualization.hidden,
+    expect(restored.visualization.hidden).toHaveLength(
+      explicit.visualization.hidden.length,
     );
     expect(
       restored.projection.nodes.filter((node) => !node.hidden),
-    ).toHaveLength(61);
+    ).toHaveLength(0);
+    expect(restored.nodesShown).toEqual({ mode: "all" });
     const preset = await session.load(
       { operation: "open-canonical-model", bytes: saved },
-      { useAutomaticDegree: true },
+      { useAutomaticNodesShown: true },
     );
-    expect(preset.appliedFilters.minDegree).toBe(2);
+    expect(preset.nodesShown).toEqual({ mode: "auto" });
     expect(preset.projection.nodes.filter((node) => !node.hidden)).toHaveLength(
-      1,
+      0,
     );
-    expect((await session.load(source)).appliedFilters.minDegree).toBe(2);
+    expect((await session.load(source)).nodeCountStatus.shownNodeCount).toBe(
+      50,
+    );
+    await session.load(source, {
+      initialVisualization: {
+        view: { nodesShown: { mode: "exact", requestedCount: 37 } },
+      },
+    });
+    const partial = await session.capture();
+    const reopened = await session.load({
+      operation: "open-canonical-model",
+      bytes: partial,
+    });
+    expect(reopened.nodesShown).toEqual({ mode: "all" });
+    expect(reopened.nodeCountStatus).toMatchObject({
+      eligibleNodeCount: 37,
+      shownNodeCount: 37,
+    });
+    expect(await session.capture()).toEqual(partial);
   } finally {
     session.dispose();
   }
@@ -87,13 +108,14 @@ test.each([
       );
       const accepted = await session.load(
         { operation: "open-canonical-model", bytes },
-        { useAutomaticDegree: true },
+        { useAutomaticNodesShown: true },
       );
       const visible = accepted.projection.nodes.filter((node) => !node.hidden);
       expect(visible.length).toBeGreaterThan(0);
       expect(visible.length).toBeLessThanOrEqual(50);
-      expect(accepted.appliedFilters.minDegree).toBe(
-        accepted.degreeFilterRange.automaticMinimumDegree,
+      expect(accepted.nodesShown).toEqual({ mode: "auto" });
+      expect(visible.length).toBe(
+        Math.min(50, accepted.nodeCountStatus.eligibleNodeCount),
       );
     } finally {
       session.dispose();
@@ -166,7 +188,7 @@ test("initial visualization is prepared before acceptance and native failure res
   const initialVisualization = {
     view: {
       language: "IRI-based",
-      filters: { minDegree: 999 },
+      nodesShown: { mode: "exact", requestedCount: 0 },
       layout: "resume",
     },
     modes: {
@@ -986,9 +1008,7 @@ test("session edits live checkpoints, captures complete scenes and remains usabl
   scene.setVisibility([occurrence]);
   const changes = rename(loaded.inspection);
   const target = session.target(changes[0].id);
-  const changed = await session.edit(changes, {
-    limits: { rdfQuads: 1, rdfDeepIterations: 0 },
-  });
+  const changed = await session.edit(changes);
   expect(changed.documentRevision).toBe(1);
   expect(session.resolveTarget(target)).toBe(changes[0].id);
   expect(scene.resolve(occurrence)).toBe(changed.visualization.hidden[0]);
@@ -1008,9 +1028,7 @@ test("session edits live checkpoints, captures complete scenes and remains usabl
   expect(artifact.visualization.placements).toContainEqual(
     expect.objectContaining({ position: { x: 91, y: 47 }, pinned: true }),
   );
-  await session.edit(rename(changed.inspection, "urn:again"), {
-    limits: { rdfQuads: 1, rdfDeepIterations: 0 },
-  });
+  await session.edit(rename(changed.inspection, "urn:again"));
   expect(calls.map(({ request }) => request.operation)).toEqual([
     "open-canonical-model",
     "edit-model",
@@ -1296,18 +1314,33 @@ test("cancelled merge choices leave both live model and placements unchanged", a
   });
 });
 
-test("mismatched worker revisions are rejected before scene mutation", async () => {
-  const { session, control } = setup();
+test.each(["inspection", "rankingIdentity"])(
+  "mismatched worker %s revisions are rejected before scene mutation",
+  async (field) => {
+    const { session, control } = setup();
+    await session.load(request());
+    const initial = session.snapshot();
+    control.after = (result) => ({
+      ...result,
+      [field]: { ...result[field], revision: 2 },
+    });
+    await expect(
+      session.edit(rename(initial.inspection)),
+    ).rejects.toMatchObject({
+      code: "DOCUMENT_WORKER_RESULT_INVALID",
+    });
+    expect(session.snapshot()).toEqual(initial);
+  },
+);
+
+test("bounded resource rejection during edit preserves the accepted checkpoint and scene", async () => {
+  const { session } = setup();
   await session.load(request());
-  const initial = session.snapshot();
-  control.after = (result) => ({
-    ...result,
-    inspection: { ...result.inspection, revision: 2 },
-  });
-  await expect(session.edit(rename(initial.inspection))).rejects.toMatchObject({
-    code: "DOCUMENT_WORKER_RESULT_INVALID",
-  });
-  expect(session.snapshot()).toEqual(initial);
+  const before = session.snapshot();
+  await expect(
+    session.edit(rename(before.inspection), { limits: { rdfQuads: 1 } }),
+  ).rejects.toMatchObject({ code: "RDF_RESOURCE_LIMIT" });
+  expect(session.snapshot()).toEqual(before);
 });
 
 test("only one pending capture owns a scene/checkpoint snapshot", async () => {

@@ -7,7 +7,6 @@ import { color } from "d3";
 let assertRenderedGraphRuntimeContract;
 let createD3RenderedGraphAdapter;
 let createRenderedGraphConfiguration;
-let createNodeDegreeFilter;
 
 const ADAPTER_MODULE_URL = new URL(
   "./d3RenderedGraphAdapter.js",
@@ -63,14 +62,6 @@ async function loadRepositoryModule(moduleUrl) {
 }
 
 beforeAll(async () => {
-  ({ createNodeDegreeFilter } = (
-    await loadRepositoryModule(
-      new URL(
-        "../../../shared/js/modules/nodeDegreeFilter.js",
-        import.meta.url,
-      ),
-    )
-  ).namespace);
   ({ createRenderedGraphConfiguration } = (
     await loadRepositoryModule(CONFIGURATION_MODULE_URL)
   ).namespace);
@@ -323,32 +314,6 @@ function createAdapterHarness() {
     filterModules: {
       datatypes: createFilterModuleFixture(),
       disjointness: createFilterModuleFixture(),
-      minDegree: {
-        readDegreeRange: () => ({
-          maximumDegree: 3,
-          automaticMinimumDegree: 0,
-        }),
-        enabledStates: [],
-        minDegreeValues: [],
-        useAutomaticMinimumDegree() {
-          this.enabled(true);
-          this.minDegree(0);
-        },
-        enabled(nextEnabledState) {
-          if (nextEnabledState === undefined) {
-            return this.enabledStates.at(-1) ?? false;
-          }
-          this.enabledStates.push(nextEnabledState);
-          return undefined;
-        },
-        minDegree(value) {
-          if (value === undefined) {
-            return this.minDegreeValues.at(-1) ?? 0;
-          }
-          this.minDegreeValues.push(value);
-          return undefined;
-        },
-      },
       objectProperties: createFilterModuleFixture(),
       setOperators: createFilterModuleFixture(),
       subclasses: createFilterModuleFixture(),
@@ -390,8 +355,6 @@ function createAdapterHarness() {
         renderedGraphInternalsFixture.filterModules.disjointness,
       setOperatorFilter: () =>
         renderedGraphInternalsFixture.filterModules.setOperators,
-      nodeDegreeFilter: () =>
-        renderedGraphInternalsFixture.filterModules.minDegree,
       focuserModule: () => renderedGraphInternalsFixture.focuserModule,
       colorExternalsModule: () =>
         renderedGraphInternalsFixture.modeModules.colorExternals,
@@ -743,64 +706,6 @@ function createAdapterHarness() {
 }
 
 describe("D3 rendered graph adapter", () => {
-  test("selects automatic collapse on a new ontology after an explicit zero on the previous one", async () => {
-    const harness = createAdapterHarness();
-    const renderer = harness.renderedGraphInternalsFixture;
-    const filter = createNodeDegreeFilter();
-    renderer.filterModules.minDegree = filter;
-    const nodes = Array.from({ length: 52 }, (_, id) => {
-      const links = [];
-      return {
-        id: () => String(id),
-        type: () => "owl:Class",
-        links: () => links,
-      };
-    });
-    // A star with 51 leaves: degree 0 or 1 shows 52 nodes; degree 2 shows
-    // only its center. The real degree filter chooses and applies the cutoff.
-    const properties = nodes.slice(1).map((node, index) => {
-      const property = {
-        id: () => `property-${index}`,
-        type: () => "owl:ObjectProperty",
-        domain: () => nodes[0],
-        range: () => node,
-      };
-      const link = { property: () => property };
-      nodes[0].links().push(link);
-      node.links().push(link);
-      return property;
-    });
-    expect(nodes[0].links()).toHaveLength(51);
-    expect(nodes.slice(1).every((node) => node.links().length === 1)).toBe(
-      true,
-    );
-    const loadDrawingFixture = renderer.load;
-    renderer.load = (...args) => {
-      loadDrawingFixture(...args);
-      filter.initialize(nodes, properties);
-      filter.filter(nodes, properties);
-    };
-
-    await loadGeneration(harness, 1);
-    expect(filter.minDegree()).toBe(2);
-    expect(filter.filteredNodes()).toEqual([nodes[0]]);
-
-    const explicitZeroLoad = harness.renderedGraphRuntime.replaceVowlModel({
-      ...replacementRequest(2),
-      initialVisualization: { view: { filters: { minDegree: 0 } } },
-    });
-    harness.renderedGraphTestHarness.completeInitialPaint(2);
-    await explicitZeroLoad;
-    expect(filter.minDegree()).toBe(0);
-    expect(filter.filteredNodes()).toHaveLength(52);
-
-    await loadGeneration(harness, 3);
-    expect(filter.readDegreeRange().automaticMinimumDegree).toBe(2);
-    expect(filter.enabled()).toBe(true);
-    expect(filter.minDegree()).toBe(2);
-    expect(filter.filteredNodes()).toEqual([nodes[0]]);
-  });
-
   test("applies initial view values before first paint without UI callbacks or redraws of retired data", async () => {
     const harness = createAdapterHarness();
     const { renderedGraphRuntime, renderedGraphInternalsFixture: renderer } =
@@ -812,7 +717,7 @@ describe("D3 rendered graph adapter", () => {
           view: {
             language: "de",
             layout: "pause",
-            filters: { disjointness: "show", minDegree: 0 },
+            filters: { disjointness: "show" },
             zoomScale: 0.38,
             translation: { xPx: 0, yPx: -20 },
           },
@@ -1099,7 +1004,7 @@ describe("D3 rendered graph adapter", () => {
     );
 
     await loadGeneration(adapterHarness, 2);
-    expect(publishedEvents).toEqual(["degree-filter-range-changed"]);
+    expect(publishedEvents).toEqual([]);
     publishedEvents.length = 0;
     retiredSimulation.emit("end");
 
@@ -1119,13 +1024,7 @@ describe("D3 rendered graph adapter", () => {
     );
     const simulation =
       harness.rendererSimulationFixture.createdSimulations.at(-1);
-    expect(events).toEqual([
-      {
-        kind: "degree-filter-range-changed",
-        loadGeneration: 1,
-        payload: { maximumDegree: 3, automaticMinimumDegree: 0 },
-      },
-    ]);
+    expect(events).toEqual([]);
     events.length = 0;
     expect(simulation.isStopped).toBe(false);
     caller.abort();
@@ -1419,7 +1318,6 @@ describe("D3 rendered graph adapter", () => {
     expect(result).toMatchObject({
       filters: {
         disjointness: "hide",
-        minDegree: 0,
         datatypes: "show",
         objectProperties: "show",
         setOperators: "show",
@@ -1614,16 +1512,14 @@ describe("D3 rendered graph adapter", () => {
     },
   );
 
-  test("reports retained view choices and an explicitly saved degree after a replacement", async () => {
+  test("reports retained view choices after filtering after a replacement", async () => {
     const harness = createAdapterHarness();
     await loadGeneration(harness, 1);
     harness.renderedGraphInternalsFixture.filterModules.datatypes.enabled(true);
-    harness.renderedGraphInternalsFixture.filterModules.minDegree.enabled(true);
-    harness.renderedGraphInternalsFixture.filterModules.minDegree.minDegree(3);
     harness.renderedGraphInternalsFixture.language("en");
     const replacement = harness.renderedGraphRuntime.replaceVowlModel({
       ...replacementRequest(2),
-      initialVisualization: { view: { filters: { minDegree: 3 } } },
+      initialVisualization: { view: { filters: { datatypes: "hide" } } },
     });
     harness.renderedGraphTestHarness.completeInitialPaint(2);
     await replacement;
@@ -1634,7 +1530,6 @@ describe("D3 rendered graph adapter", () => {
     const { appliedVisualizationView } = await application;
     expect(appliedVisualizationView.language).toBe("en");
     expect(appliedVisualizationView.filters.datatypes).toBe("hide");
-    expect(appliedVisualizationView.filters.minDegree).toBe(3);
   });
 
   test("animates labels back when dynamic label width is switched off", async () => {
@@ -1912,13 +1807,11 @@ describe("D3 rendered graph adapter", () => {
     await loadGeneration(adapterHarness, 1);
     const internals = adapterHarness.renderedGraphInternalsFixture;
     const updateCountBefore = internals.updateCallCount;
-    internals.filterModules.minDegree.minDegreeValues.length = 0;
-    internals.filterModules.minDegree.enabledStates.length = 0;
 
     const viewApplication =
       adapterHarness.renderedGraphRuntime.applyVisualizationView({
         loadGeneration: 1,
-        filters: { datatypes: "hide", minDegree: 3 },
+        filters: { datatypes: "hide" },
         language: "en",
         viewport: "zoom-and-center",
       });
@@ -1929,10 +1822,8 @@ describe("D3 rendered graph adapter", () => {
 
     // "hide" activates the renderer's datatype filter.
     expect(internals.filterModules.datatypes.enabled()).toBe(true);
-    expect(internals.filterModules.minDegree.minDegreeValues).toEqual([3]);
-    expect(internals.filterModules.minDegree.enabledStates).toEqual([true]);
     expect(internals.appliedLanguages).toEqual(["en"]);
-    // Filter, language and degree changes recompute the graph once.
+    // Filter and language changes recompute the graph once.
     expect(internals.updateCallCount).toBe(updateCountBefore + 1);
     expect(internals.relocationRequests).toBe(1);
   });

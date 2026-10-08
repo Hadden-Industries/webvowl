@@ -36,8 +36,22 @@ function setup() {
         loadGeneration: (accepted?.loadGeneration ?? 0) + 1,
         documentRevision: 0,
         inspection: { diagnostics: [] },
+        nodesShown: { mode: "auto" },
+        nodeCountStatus: {
+          eligibleNodeCount: 0,
+          shownNodeCount: 0,
+          nodeRankingPolicyVersion: "connected-sqrt-v1",
+        },
       };
       return accepted;
+    }),
+    selectNodes: () => ({
+      hidden: [],
+      nodeCountStatus: {
+        eligibleNodeCount: 0,
+        shownNodeCount: 0,
+        nodeRankingPolicyVersion: "connected-sqrt-v1",
+      },
     }),
     snapshot: () => accepted,
     identity: () => accepted,
@@ -200,19 +214,126 @@ test("the candidate controller preserves selection through rename and focuses ne
     { ...reference, iri: "urn:Renamed" },
   ]);
   expect(controller.getState().selectedDocumentRecord).toEqual(target);
-  await controller.setVisualizationView({ filters: { minDegree: 1 } });
+  await controller.setVisualizationView({
+    nodesShown: { mode: "exact", requestedCount: 0 },
+  });
   expect(
     runtime.readVisibleRenderedGraphSnapshot().visibleElementReferences,
   ).toEqual([]);
   const renamed = controller.getState().selection[0];
+  expect(controller.getOntologyElementRevealPlan([renamed])).toEqual({
+    canReveal: true,
+    requestedCount: 1,
+  });
+  await controller.revealOntologyElements({
+    ontologyElementReferences: [renamed],
+  });
+  expect(controller.getState().view.nodesShown).toEqual({
+    mode: "exact",
+    requestedCount: 1,
+  });
   await controller.setVisualizationView({
-    filters: { minDegree: 0 },
+    nodesShown: { mode: "all" },
     focus: [renamed],
   });
   expect(runtime.applyVisualizationView).toHaveBeenLastCalledWith(
     expect.objectContaining({ focus: [renamed] }),
-    { signal: undefined },
+    { signal: expect.any(AbortSignal) },
   );
+  const retainedScene = session.scene().snapshot();
+  runtime.applyVisualizationView.mockRejectedValueOnce(
+    new Error("paint rejected"),
+  );
+  await expect(
+    controller.setVisualizationView({
+      nodesShown: { mode: "exact", requestedCount: 0 },
+    }),
+  ).rejects.toThrow("paint rejected");
+  expect(controller.getState().view.nodesShown).toEqual({ mode: "all" });
+  expect(session.scene().snapshot()).toEqual(retainedScene);
+  const gate = deferred();
+  runtime.applyVisualizationView.mockImplementationOnce(() => gate.promise);
+  const obsolete = controller.setVisualizationView({
+    nodesShown: { mode: "exact", requestedCount: 0 },
+  });
+  const rejected = expect(obsolete).rejects.toMatchObject({
+    name: "AbortError",
+  });
+  await controller.setVisualizationView({ nodesShown: { mode: "all" } });
+  gate.resolve();
+  await rejected;
+  expect(controller.getState().nodeCountStatus.shownNodeCount).toBe(1);
+  const invalidGate = deferred();
+  let validSignal;
+  runtime.applyVisualizationView.mockImplementationOnce(
+    (_request, { signal }) => {
+      validSignal = signal;
+      return invalidGate.promise;
+    },
+  );
+  const validView = controller.setVisualizationView({
+    nodesShown: { mode: "all" },
+  });
+  const validDrawing = runtime.applyCanonicalDrawingRevision;
+  runtime.applyCanonicalDrawingRevision = () => {
+    throw new Error("drawing rejected");
+  };
+  await expect(
+    controller.setVisualizationView({
+      nodesShown: { mode: "exact", requestedCount: 0 },
+    }),
+  ).rejects.toThrow("drawing rejected");
+  runtime.applyCanonicalDrawingRevision = validDrawing;
+  expect(validSignal.aborted).toBe(false);
+  invalidGate.resolve();
+  await validView;
+  const editGate = deferred();
+  runtime.applyVisualizationView.mockImplementationOnce(() => editGate.promise);
+  const beforeEditView = controller.setVisualizationView({
+    nodesShown: { mode: "exact", requestedCount: 0 },
+  });
+  const editViewRejected =
+    expect(beforeEditView).rejects.toThrow("old paint rejected");
+  await controller.editOntologyRecord({
+    loadGeneration: 1,
+    recordTarget: target,
+    changes: { iri: "urn:EditedWhilePainting" },
+  });
+  const editedScene = session.scene().snapshot();
+  editGate.reject(new Error("old paint rejected"));
+  await editViewRejected;
+  expect(session.scene().snapshot()).toEqual(editedScene);
+  expect(controller.getState().nodeCountStatus.shownNodeCount).toBe(0);
+  expect(controller.getState().view.nodesShown).toEqual({
+    mode: "exact",
+    requestedCount: 0,
+  });
+  const applyDrawing = runtime.applyCanonicalDrawingRevision;
+  const resetGate = deferred();
+  let precedingResetSignal;
+  runtime.applyVisualizationView.mockImplementationOnce(
+    (_request, { signal }) => {
+      precedingResetSignal = signal;
+      return resetGate.promise;
+    },
+  );
+  const precedingResetView = controller.setVisualizationView({ focus: [] });
+  runtime.applyCanonicalDrawingRevision = () => {
+    throw new Error("reset scene rejected");
+  };
+  await expect(controller.resetVisualization()).rejects.toThrow(
+    "reset scene rejected",
+  );
+  expect(precedingResetSignal.aborted).toBe(false);
+  runtime.applyCanonicalDrawingRevision = applyDrawing;
+  resetGate.resolve();
+  await precedingResetView;
+  expect(session.scene().snapshot()).toEqual(editedScene);
+  expect(controller.getState().nodeCountStatus.shownNodeCount).toBe(0);
+  expect(controller.getState().view.nodesShown).toEqual({
+    mode: "exact",
+    requestedCount: 0,
+  });
   await controller.loadOntology({
     source: {
       kind: "ontology-text",
@@ -225,6 +346,106 @@ test("the candidate controller preserves selection through rename and focuses ne
     },
   });
   const beforeDatatype = session.snapshot();
+  await controller.setVisualizationView({
+    nodesShown: { mode: "exact", requestedCount: 0 },
+  });
+  const eligible = session.selectNodes(
+    controller.getState().view.filters,
+    { mode: "all" },
+    [],
+  ).rankedNodeOccurrenceIds;
+  const datatypeNodes = beforeDatatype.inspection.occurrences.filter(
+    ({ kind }) => kind === "datatype-node",
+  );
+  const datatypeRanks = datatypeNodes.map(({ id }) => eligible.indexOf(id) + 1);
+  const repeatedDatatype = {
+    kind: "datatype",
+    roleKind: "datatype",
+    iri: "http://www.w3.org/2001/XMLSchema#string",
+  };
+  expect(datatypeRanks.length).toBeGreaterThan(1);
+  expect(
+    controller.getOntologyElementRevealPlan([repeatedDatatype]).requestedCount,
+  ).toBe(Math.min(...datatypeRanks));
+  const property = {
+    kind: "property",
+    iri: "urn:p",
+    roleKind: "data-property",
+  };
+  const pSubject = beforeDatatype.inspection.records.subjects.find(
+    ({ iri }) => iri === "urn:p",
+  );
+  const pRole = beforeDatatype.inspection.records.roles.find(
+    ({ subject }) => subject === pSubject.id,
+  );
+  const pEdge = beforeDatatype.inspection.occurrences.find((row) =>
+    row.properties?.includes(pRole.id),
+  );
+  const propertyCount = Math.max(
+    eligible.indexOf(pEdge.from) + 1,
+    eligible.indexOf(pEdge.to) + 1,
+  );
+  expect(controller.getOntologyElementRevealPlan([property])).toEqual({
+    canReveal: true,
+    requestedCount: propertyCount,
+  });
+  const selectionMetric = performance
+    .getEntriesByName("webvowl.node-selection")
+    .at(-1);
+  expect(
+    controller.getOntologyElementRevealPlan([property]).requestedCount,
+  ).toBe(propertyCount);
+  expect(performance.getEntriesByName("webvowl.node-selection").at(-1)).toBe(
+    selectionMetric,
+  );
+  await controller.revealOntologyElements({
+    ontologyElementReferences: [property],
+  });
+  expect(controller.getState().view.nodesShown).toEqual({
+    mode: "exact",
+    requestedCount: propertyCount,
+  });
+  await controller.setVisualizationView({ filters: { datatypes: "hide" } });
+  expect(controller.getOntologyElementRevealPlan([property]).canReveal).toBe(
+    false,
+  );
+  await controller.setVisualizationView({ filters: { datatypes: "show" } });
+  await controller.setVisualizationView({
+    nodesShown: { mode: "exact", requestedCount: 100 },
+  });
+  await controller.setVisualizationView({ filters: { datatypes: "hide" } });
+  expect(controller.getState().nodeCountStatus).toMatchObject({
+    eligibleNodeCount: beforeDatatype.inspection.occurrences.filter(
+      ({ kind }) => kind === "class-node",
+    ).length,
+    shownNodeCount: beforeDatatype.inspection.occurrences.filter(
+      ({ kind }) => kind === "class-node",
+    ).length,
+  });
+  expect(controller.getState().view.nodesShown).toEqual({
+    mode: "exact",
+    requestedCount: 100,
+  });
+  const datatypeRef = {
+    kind: "datatype",
+    iri: "http://www.w3.org/2001/XMLSchema#string",
+  };
+  expect(controller.getOntologyElementRevealPlan([datatypeRef]).canReveal).toBe(
+    false,
+  );
+  await controller.setVisualizationView({ filters: { datatypes: "show" } });
+  expect(controller.getState().nodeCountStatus).toMatchObject({
+    eligibleNodeCount: beforeDatatype.inspection.occurrences.filter(
+      ({ kind }) => ["class-node", "datatype-node"].includes(kind),
+    ).length,
+    shownNodeCount: beforeDatatype.inspection.occurrences.filter(({ kind }) =>
+      ["class-node", "datatype-node"].includes(kind),
+    ).length,
+  });
+  expect(controller.getState().view.nodesShown).toEqual({
+    mode: "exact",
+    requestedCount: 100,
+  });
   const roleForIri = (inspection, iri) => {
     const subject = inspection.records.subjects.find(
       (record) => record.iri === iri,

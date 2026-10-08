@@ -54,7 +54,6 @@ const DEFAULT_APPLIED_VISUALIZATION_VIEW = Object.freeze({
   filters: Object.freeze({
     datatypes: "show",
     disjointness: "show",
-    minDegree: 0,
     objectProperties: "show",
     setOperators: "show",
     subclasses: "show",
@@ -684,7 +683,6 @@ export function createD3RenderedGraphAdapter(dependencies) {
 
   function readAppliedVisualizationView() {
     const settings = renderedGraphInternals.options();
-    const degreeFilter = settings.nodeDegreeFilter();
     return {
       language: canonicalLabelSelection
         ? canonicalLabelSelection.mode === "iri"
@@ -703,7 +701,6 @@ export function createD3RenderedGraphAdapter(dependencies) {
             ],
           ),
         ),
-        minDegree: degreeFilter.enabled() ? degreeFilter.minDegree() : 0,
       },
       modes: {
         ...Object.fromEntries(
@@ -776,15 +773,6 @@ export function createD3RenderedGraphAdapter(dependencies) {
       readFilterModule(renderedGraphSettings)?.enabled(
         requestedVisibility === "hide",
       );
-      requiresRecomputation = true;
-    }
-
-    const requestedMinimumDegree = requestedView.filters?.minDegree;
-    if (requestedMinimumDegree !== undefined) {
-      const nodeDegreeFilter = renderedGraphSettings.nodeDegreeFilter();
-      // A degree of zero is "no degree filtering", not "filter at zero".
-      nodeDegreeFilter.enabled(requestedMinimumDegree > 0);
-      nodeDegreeFilter.minDegree(requestedMinimumDegree);
       requiresRecomputation = true;
     }
 
@@ -1146,12 +1134,6 @@ export function createD3RenderedGraphAdapter(dependencies) {
         }
         const initial = replacementRequest.initialVisualization ?? {};
         const initialView = initial.view ?? {};
-        if (initialView.filters?.minDegree === undefined) {
-          renderedGraphInternals
-            .options()
-            .nodeDegreeFilter()
-            .useAutomaticMinimumDegree();
-        }
         // Data interpretation happened in the application. Apply its semantic
         // choices before drawing, without running modules on a retired model.
         applyVisualizationViewToRenderer(
@@ -1178,14 +1160,6 @@ export function createD3RenderedGraphAdapter(dependencies) {
             ? {}
             : { isPaused: initialView.layout === "pause" }),
           centerViewport: !hasInitialViewport,
-        });
-        publishRenderedGraphEvent({
-          kind: "degree-filter-range-changed",
-          loadGeneration,
-          payload: renderedGraphInternals
-            .options()
-            .nodeDegreeFilter()
-            .readDegreeRange(),
         });
         if (hasInitialViewport) {
           renderedGraphInternals.setViewportTransform(
@@ -1249,14 +1223,6 @@ export function createD3RenderedGraphAdapter(dependencies) {
       appliedVisualizationView = createAppliedVisualizationView({
         ...readAppliedVisualizationView(),
         focus,
-      });
-      publishRenderedGraphEvent({
-        kind: "degree-filter-range-changed",
-        loadGeneration: activeLoadGeneration,
-        payload: renderedGraphInternals
-          .options()
-          .nodeDegreeFilter()
-          .readDegreeRange(),
       });
       return createVisualizationViewApplicationResult({
         loadGeneration: activeLoadGeneration,

@@ -351,7 +351,7 @@ describe("loading module remote source derivation", () => {
       loadingModule.ontologyLoadRequestFromLocation().initialVisualization,
     ).toEqual({ view: { layout: "resume" } });
     expect(
-      loadingModule.ontologyLoadRequestFromLocation().useAutomaticDegree,
+      loadingModule.ontologyLoadRequestFromLocation().useAutomaticNodesShown,
     ).toBe(true);
   });
 
@@ -684,11 +684,14 @@ describe("loading module canonical controller sources", () => {
 
   test("loads explicit share-link choices through the controller before presenting route-only UI choices", async () => {
     loadingModule = createLoadingModuleForLocation(
-      "https://example.test/webvowl/#opts=doc=0;mode_scaling=false;sidebar=0;#foaf",
+      "https://example.test/webvowl/#opts=nodesShown=0;mode_scaling=false;sidebar=0;#foaf",
     );
     const request = loadingModule.ontologyLoadRequestFromLocation();
     expect(request.initialVisualization).toEqual({
-      view: { layout: "resume", filters: { minDegree: 0 } },
+      view: {
+        layout: "resume",
+        nodesShown: { mode: "exact", requestedCount: 0 },
+      },
       modes: { nodeScaling: false },
     });
     expect(presentedRoutes).toEqual([]);
@@ -704,9 +707,12 @@ describe("loading module canonical controller sources", () => {
     ]);
     expect(requestedLoadOptions).toEqual([
       {
-        useAutomaticDegree: true,
+        useAutomaticNodesShown: true,
         initialVisualization: {
-          view: { layout: "resume", filters: { minDegree: 0 } },
+          view: {
+            layout: "resume",
+            nodesShown: { mode: "exact", requestedCount: 0 },
+          },
           modes: { nodeScaling: false },
         },
       },
@@ -746,9 +752,8 @@ describe("loading module canonical controller sources", () => {
       expect(messages).toEqual([]);
       // Standalone errors have no preceding loading-details bullet. The
       // visible status must carry the explanation independently of that list.
-      expect(inlineError.textContent).toBe(
-        "The visualization link contains invalid options or an invalid ontology address.",
-      );
+      expect(inlineError.textContent).toContain("doc is obsolete");
+      expect(inlineError.textContent).toContain("choose a new count");
       expect(inlineError.hidden).toBe(false);
       expect(controls.get("#currentLoadingStep").textContent).toBe(
         "Loading failed",

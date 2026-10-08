@@ -166,17 +166,6 @@ describe("native visualization view controls", () => {
     },
   );
 
-  test("requests exactly the chosen minimum degree", () => {
-    connectAdapter();
-    const minimumDegreeRange = controlElement("minimumDegreeRange");
-    minimumDegreeRange.value = "3";
-    minimumDegreeRange.emit("change");
-
-    expect(controller.setVisualizationView).toHaveBeenCalledWith({
-      filters: { minDegree: 3 },
-    });
-  });
-
   test("requests zoom-and-center independently of layout motion", () => {
     connectAdapter();
     controlElement("zoomAndCenterViewportButton").emit("click");
@@ -265,7 +254,6 @@ describe("controller state presentation", () => {
         subclasses: "show",
         disjointness: "hide",
         setOperators: "show",
-        minDegree: 4,
       }),
     }),
     layout: Object.freeze({ status: "relaxing" }),
@@ -305,7 +293,6 @@ describe("controller state presentation", () => {
     // "show" leaves the filter-out checkbox unchecked.
     expect(controlElement("datatypesFilterCheckbox").checked).toBe(false);
     expect(controlElement("objectPropertiesFilterCheckbox").checked).toBe(true);
-    expect(controlElement("minimumDegreeRange").value).toBe("4");
   });
 
   test("dispatches no input, change, or click event while presenting state", () => {

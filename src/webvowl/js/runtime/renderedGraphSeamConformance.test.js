@@ -30,7 +30,6 @@ const RENDERED_GRAPH_SETTINGS_SOURCE = readFileSync(
 const FILTER_MODULE_SOURCE_PATHS = Object.freeze({
   datatypeFilter: "../../../shared/js/modules/datatypeFilter.js",
   disjointPropertyFilter: "../../../shared/js/modules/disjointFilter.js",
-  nodeDegreeFilter: "../../../shared/js/modules/nodeDegreeFilter.js",
   objectPropertyFilter: "../../../shared/js/modules/objectPropertyFilter.js",
   setOperatorFilter: "../../../shared/js/modules/setOperatorFilter.js",
   subclassFilter: "../../../shared/js/modules/subclassFilter.js",

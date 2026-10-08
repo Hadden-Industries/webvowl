@@ -10,8 +10,7 @@ import { createCanonicalVowlEditorView } from "./canonicalVowlEditorView.js";
 import { createInitialVisualizationRequest } from "./renderedGraphRuntimeContracts.js";
 import {
   CANONICAL_VISIBLE_FILTERS,
-  prepareCanonicalVisibility,
-  findCanonicalAutomaticMinimumDegree,
+  createCanonicalNodeSelector,
   canonicalLabelSelection,
 } from "./canonicalVowlViewControls.js";
 import {
@@ -35,13 +34,18 @@ function semanticRecords(inspection) {
 function readResult(result, revision) {
   if (
     result.inspection?.revision !== revision ||
-    result.checkpoint?.revision !== revision
+    result.checkpoint?.revision !== revision ||
+    result.rankingIdentity?.revision !== revision
   ) {
     throw rejected("DOCUMENT_WORKER_RESULT_INVALID");
   }
   return {
     inspection: structuredClone(result.inspection),
     checkpoint: structuredClone(result.checkpoint),
+    selectNodes: createCanonicalNodeSelector(
+      result.inspection,
+      result.rankingIdentity,
+    ),
   };
 }
 
@@ -243,6 +247,9 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
         documentRevision: accepted.revision,
       });
     },
+    selectNodes(filters, nodesShown, hidden, options) {
+      return loaded().selectNodes(filters, nodesShown, hidden, options);
+    },
     inspectRecords() {
       return structuredClone(loaded().inspection);
     },
@@ -404,7 +411,7 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
         prepareProjection = createCanonicalVowlRenderProjection,
         renderedGraphRuntime,
         initialVisualization,
-        useAutomaticDegree = false,
+        useAutomaticNodesShown = false,
       } = {},
     ) {
       checkOpen();
@@ -447,24 +454,21 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
           },
         );
         const retainedHidden = scene.snapshot().hidden;
-        const { filters, language, ...nativeView } = initial.view ?? {};
+        const {
+          filters,
+          nodesShown: initialNodesShown,
+          language,
+          ...nativeView
+        } = initial.view ?? {};
         const defaultFilters = { ...CANONICAL_VISIBLE_FILTERS, ...filters };
-        const automaticMinimumDegree = findCanonicalAutomaticMinimumDegree(
-          candidate.inspection,
-          defaultFilters,
-          retainedHidden,
-        );
-        const appliedFilters = {
-          ...defaultFilters,
-          minDegree:
-            filters?.minDegree ??
-            (useAutomaticDegree || !result.visualization
-              ? automaticMinimumDegree
-              : 0),
+        const appliedFilters = defaultFilters;
+        const nodesShown = initialNodesShown ?? {
+          mode:
+            useAutomaticNodesShown || !result.visualization ? "auto" : "all",
         };
-        const visibility = prepareCanonicalVisibility(
-          candidate.inspection,
+        const visibility = candidate.selectNodes(
           appliedFilters,
+          nodesShown,
           retainedHidden,
         );
         const { compactNotation, nodeScaling, colorExternals, ...nativeModes } =
@@ -646,10 +650,8 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
             initialLayout,
             retainedHidden,
             appliedFilters,
-            degreeFilterRange: {
-              maximumDegree: visibility.maximumDegree,
-              automaticMinimumDegree,
-            },
+            nodesShown,
+            nodeCountStatus: visibility.nodeCountStatus,
             diagnostics: structuredClone([
               ...candidate.inspection.diagnostics,
               ...(result.diagnostics ?? []),
@@ -769,6 +771,7 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
             center,
             hidden: prepareVisibility?.(structuredClone(candidate.inspection), {
               correspondence: structuredClone(result.correspondence),
+              selectNodes: candidate.selectNodes,
             }),
             suppliedPositions:
               typeof suppliedPositions === "function"

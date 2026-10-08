@@ -1,14 +1,16 @@
 import { beforeAll } from "@jest/globals";
 import { openOwl } from "vowl/owl";
-import { inspectModel } from "vowl";
+import { inspectModel, readModelRankingIdentity } from "vowl";
+import { closeVowlVisibility } from "./canonicalVowlScene.js";
 import {
   prepareCanonicalVisibility,
   CANONICAL_VISIBLE_FILTERS,
   canonicalLabelSelection,
-  findCanonicalAutomaticMinimumDegree,
+  createCanonicalNodeSelector,
 } from "./canonicalVowlViewControls.js";
 
 let inspection;
+let rankingIdentity;
 beforeAll(async () => {
   const { model } = await openOwl(
     new TextEncoder().encode(`Ontology(<urn:view>
@@ -22,6 +24,7 @@ beforeAll(async () => {
     { documentIri: "urn:view", mediaType: "text/owl-functional" },
   );
   inspection = inspectModel(model);
+  rankingIdentity = await readModelRankingIdentity(model);
 });
 
 test.each([
@@ -65,22 +68,6 @@ test("show controls preserve explicitly saved hidden occurrences", () => {
   ).toEqual([]);
 });
 
-test("degree filtering does not silently reveal everything when the requested degree excludes all classes", () => {
-  const { maximumDegree } = prepareCanonicalVisibility(
-    inspection,
-    CANONICAL_VISIBLE_FILTERS,
-  );
-  const { hidden } = prepareCanonicalVisibility(inspection, {
-    ...CANONICAL_VISIBLE_FILTERS,
-    minDegree: maximumDegree + 1,
-  });
-  expect(
-    inspection.occurrences
-      .filter(({ kind }) => kind === "class-node")
-      .every(({ id }) => hidden.includes(id)),
-  ).toBe(true);
-});
-
 test("language controls map explicit label choices to the portable scene", () => {
   expect(canonicalLabelSelection("IRI-based")).toEqual({ mode: "iri" });
   expect(canonicalLabelSelection("undefined")).toEqual({ mode: "untagged" });
@@ -90,70 +77,48 @@ test("language controls map explicit label choices to the portable scene", () =>
   });
 });
 
-test("automatic degree retains the 50-node boundary, exclusive maximum and zero fallback", () => {
-  function graph(size, kind) {
-    const nodes = Array.from({ length: size }, (_, i) => ({
-      id: `n${i}`,
-      kind: "class-node",
-      targets: [],
-    }));
-    const edges = nodes.slice(1).map((node, i) => ({
-      id: `e${i}`,
-      kind: "subclass-edge",
-      from: node.id,
-      to: kind === "star" ? "n0" : nodes[i].id,
-    }));
-    if (kind === "ring") {
-      edges.push({
-        id: "closing",
-        kind: "subclass-edge",
-        from: "n0",
-        to: nodes.at(-1).id,
-      });
-    }
-    return {
-      occurrences: [...nodes, ...edges],
-      records: { roles: [], expressions: [], constructs: [] },
-    };
-  }
-  expect(
-    findCanonicalAutomaticMinimumDegree(
-      graph(50, "star"),
-      CANONICAL_VISIBLE_FILTERS,
-    ),
-  ).toBe(0);
-  expect(
-    findCanonicalAutomaticMinimumDegree(
-      graph(51, "star"),
-      CANONICAL_VISIBLE_FILTERS,
-    ),
-  ).toBe(2);
-  expect(
-    findCanonicalAutomaticMinimumDegree(
-      graph(51, "ring"),
-      CANONICAL_VISIBLE_FILTERS,
-    ),
-  ).toBe(0);
-  const isolated = graph(51, "star");
-  isolated.occurrences = isolated.occurrences.filter(
-    ({ kind }) => kind === "class-node",
-  );
-  expect(
-    findCanonicalAutomaticMinimumDegree(isolated, CANONICAL_VISIBLE_FILTERS),
-  ).toBe(0);
+test("obsolete degree options are rejected even beside valid filters", () => {
+  expect(() =>
+    prepareCanonicalVisibility(inspection, {
+      ...CANONICAL_VISIBLE_FILTERS,
+      minDegree: 0,
+    }),
+  ).toThrow("nodesShown");
 });
 
-test("positive degree excludes datatype links and datatype nodes, and zero restores them", () => {
-  const datatypes = inspection.occurrences.filter(
-    ({ kind }) => kind === "datatype-node",
-  );
-  expect(datatypes.length).toBeGreaterThan(0);
-  const positive = prepareCanonicalVisibility(inspection, {
-    ...CANONICAL_VISIBLE_FILTERS,
-    minDegree: 1,
-  });
-  expect(datatypes.every(({ id }) => positive.hidden.includes(id))).toBe(true);
-  expect(
-    prepareCanonicalVisibility(inspection, CANONICAL_VISIBLE_FILTERS).hidden,
-  ).toEqual([]);
+test("count deltas preserve full incidence closure with labels, disjoint edges and upstream filtering", () => {
+  const label = inspection.occurrences.find(({ kind }) => kind === "label");
+  for (const filters of [
+    CANONICAL_VISIBLE_FILTERS,
+    { ...CANONICAL_VISIBLE_FILTERS, objectProperties: "hide" },
+  ]) {
+    const retained = [label.id];
+    const upstream = prepareCanonicalVisibility(
+      inspection,
+      filters,
+      retained,
+    ).hidden;
+    const select = createCanonicalNodeSelector(inspection, rankingIdentity);
+    const all = select(filters, { mode: "all" }, retained);
+    const count = all.rankedNodeOccurrenceIds.length;
+    const sequence = [
+      ...Array.from({ length: count + 1 }, (_, i) => i),
+      ...Array.from({ length: count + 1 }, (_, i) => count - i),
+      count,
+      2,
+      0,
+    ];
+    for (const requestedCount of sequence) {
+      const actual = select(
+        filters,
+        { mode: "exact", requestedCount },
+        retained,
+      );
+      const expected = closeVowlVisibility(inspection.occurrences, [
+        ...upstream,
+        ...all.rankedNodeOccurrenceIds.slice(Math.min(requestedCount, count)),
+      ]);
+      expect([...actual.hidden].sort()).toEqual([...expected].sort());
+    }
+  }
 });

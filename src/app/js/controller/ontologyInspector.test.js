@@ -207,7 +207,6 @@ function createSummaryRequest(overrides = {}) {
         subclasses: "show",
         disjointness: "hide",
         setOperators: "show",
-        minDegree: 2,
       },
     },
     sourceProvenance: {
@@ -372,7 +371,6 @@ describe("ontology summary projection", () => {
       subclasses: "show",
       disjointness: "hide",
       setOperators: "show",
-      minDegree: 2,
     });
     expect(summary.source).toEqual({
       kind: "ontology-document-iri",
@@ -536,7 +534,6 @@ describe("ontology summary projection", () => {
             subclasses: "show",
             disjointness: "show",
             setOperators: "show",
-            minDegree: 0,
           },
         },
       }),

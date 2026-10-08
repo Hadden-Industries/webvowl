@@ -9,6 +9,7 @@ import {
   inspectModel,
   editModel,
   captureModel,
+  readModelRankingIdentity,
   checkpointModel,
   readmitModel,
   readModelSource,
@@ -16,6 +17,17 @@ import {
 import { fromOwl, openOwl, exportModelRdf } from "vowl/owl";
 import { migrate } from "vowl/migrate";
 import { canonicalFailureDetails } from "./canonicalVowlFailure.js";
+
+async function rankingIdentity(model, limits) {
+  const start = performance.now();
+  const result = await readModelRankingIdentity(model, { limits });
+  performance.measure("webvowl.node-ranking-identity", {
+    start,
+    end: performance.now(),
+    detail: { revision: model.revision },
+  });
+  return result;
+}
 
 /**
  * Worker-only package boundary. Each operation admits bytes in this module
@@ -49,6 +61,7 @@ export async function runCanonicalVowlOperation(
         visualization: null,
         inspection,
         checkpoint,
+        rankingIdentity: await rankingIdentity(opened.model, limits),
         correspondence: opened.correspondence,
       };
     }
@@ -77,6 +90,7 @@ export async function runCanonicalVowlOperation(
       );
       return {
         inspection: inspectModel(recovered.model),
+        rankingIdentity: await rankingIdentity(recovered.model, limits),
         checkpoint: await checkpointModel(recovered.model, { limits }),
         correspondence: recovered.correspondence,
       };
@@ -92,6 +106,7 @@ export async function runCanonicalVowlOperation(
       });
       return {
         inspection: inspectModel(result.model),
+        rankingIdentity: await rankingIdentity(result.model, limits),
         checkpoint: await checkpointModel(result.model, { limits }),
         correspondence: result.correspondence,
         created: result.created,
@@ -207,6 +222,7 @@ async function openAdmittedDocument(document, limits) {
   return {
     visualization,
     inspection: inspectModel(opened.model),
+    rankingIdentity: await rankingIdentity(opened.model, limits),
     checkpoint: await checkpointModel(opened.model, { limits }),
     correspondence: opened.correspondence,
   };

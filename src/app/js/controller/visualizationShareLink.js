@@ -1,4 +1,8 @@
 import {
+  readNodesShownOption,
+  rejectObsoleteNodeSelection,
+} from "./nodesShownContracts.js";
+import {
   createAppliedVisualizationView,
   createInitialVisualizationRequest,
 } from "./renderedGraphRuntimeContracts.js";
@@ -44,12 +48,33 @@ export function readVisualizationShareLink(address) {
       ? "foaf"
       : hash.slice(separator + 1) || "foaf"
     : hash || "foaf";
-  const options = Object.fromEntries(
-    new URLSearchParams(optionText.replaceAll(";", "&")),
-  );
+  const parameters = new URLSearchParams(optionText.replaceAll(";", "&"));
+  const options = Object.fromEntries(parameters);
+  for (const name of parameters.keys()) {
+    if (parameters.getAll(name).length > 1) {
+      throw new TypeError(
+        "Duplicate visualization option. Remove repeated options from the link.",
+      );
+    }
+  }
+
+  const savedAll = options.doc === "0";
+  if (savedAll && Object.hasOwn(options, "nodesShown")) {
+    throw new TypeError(
+      "The link contains both doc=0 and nodesShown. Keep nodesShown or remove it to reopen with All.",
+    );
+  }
+  if (savedAll) {
+    delete options.doc;
+  }
+  rejectObsoleteNodeSelection(options);
+
   const filters = {};
   const modes = {};
   const view = {};
+  if (savedAll) {
+    view.nodesShown = { mode: "all" };
+  }
   const forceDistances = {};
   const presentation = {};
   for (const [option, name] of Object.entries(FILTER_OPTIONS)) {
@@ -57,8 +82,8 @@ export function readVisualizationShareLink(address) {
       filters[name] = readBoolean(options[option], option) ? "hide" : "show";
     }
   }
-  if (Object.hasOwn(options, "doc") && options.doc !== "-1") {
-    filters.minDegree = readNumber(options.doc, "doc");
+  if (Object.hasOwn(options, "nodesShown")) {
+    view.nodesShown = readNodesShownOption(options.nodesShown);
   }
   if (Object.keys(filters).length > 0) {
     view.filters = filters;
@@ -162,7 +187,10 @@ export function createVisualizationShareLink(
     },
   });
   const options = {
-    doc: applied.filters.minDegree,
+    nodesShown:
+      applied.nodesShown.mode === "exact"
+        ? applied.nodesShown.requestedCount
+        : applied.nodesShown.mode,
     cd: applied.forceDistances.classDistancePx,
     dd: applied.forceDistances.datatypeDistancePx,
   };
