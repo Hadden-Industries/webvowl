@@ -45,7 +45,7 @@ jobs:
           package-manager-cache: false
       - name: Select package manager and install locked dependencies
         run: |
-          npm install --global --no-audit --no-fund npm@12.0.2
+          npm install --global --no-audit --no-fund npm@12.2.0
           npm ci --ignore-scripts
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
@@ -73,6 +73,8 @@ jobs:
           package-manager-cache: false
       - name: Acquire the exact isolated Markdown graph
         run: npm ci --prefix tooling/markdown --ignore-scripts --no-audit --no-fund
+      - name: Select package manager before root documentation commands
+        run: npm install --global --no-audit --no-fund npm@12.2.0
       - name: Check the full authored corpus
         run: npm run check:docs && npm run test:markdown
 
@@ -112,7 +114,7 @@ jobs:
           package-manager-cache: false
       - name: Select package manager and install locked dependencies
         run: |
-          npm install --global --no-audit --no-fund npm@12.0.2
+          npm install --global --no-audit --no-fund npm@12.2.0
           npm ci --ignore-scripts
       - run: npm test -- --runInBand
       - run: npm run build

@@ -89,7 +89,7 @@ The smallest authorized configuration changes are:
   The exact package-manager field supplies a reproducible reference; native devEngines owns local eligibility and admits newer stable npm versions.
 - `package-lock.json`: refresh the root graph with npm 12.2.0, retaining exact resolutions and integrity.
   Preserve production dependency declarations and reject unexplained production graph changes.
-- `.github/workflows/webvowl-ci.yml`: change the two existing global npm bootstraps to exact npm 12.2.0.
+- `.github/workflows/webvowl-ci.yml`: change the two existing global npm bootstraps to exact npm 12.2.0 and add that same bootstrap to the documentation job before its root npm commands.
   Keep `package-manager-cache: false`, script-disabled installation, job coverage, and gate behavior unchanged.
 
 `util/setUpDevelopmentEnvironment.mjs` must delegate npm eligibility to native devEngines instead of requiring equality with `packageManager` after npm has admitted the command.

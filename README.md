@@ -51,7 +51,9 @@ See [WebMCP usage and limits](docs/webmcp.md) and the [recorded browser qualific
 
 ## Run locally
 
-Clone this repository, then use its selected **Node.js** ([version](.node-version)), **npm** ([`packageManager`](package.json)), and **Python** ([version](.python-version)).
+Clone this repository, then use its selected **Node.js** ([version](.node-version)), **npm** ([native minimum and exact reference](package.json)), and **Python** ([version](.python-version)).
+Native npm `devEngines` requires npm `>=12.2.0`; `packageManager` and CI select exact npm 12.2.0 as the reproducible reference.
+Registry development dependencies use floating `>=` minimums; the committed lockfile selects the exact qualified graph for `npm ci`.
 Run `npm run setup:development` to install locked npm dependencies with lifecycle scripts disabled and prepare `.venv` from the [hashed Python lock](requirements.lock.txt).
 Python installation requires hashes and wheels, then runs `pip check`.
 The [development requirements](requirements-dev.txt) declare minimum versions without upper bounds; routine setup and CI install the exact locked versions.
