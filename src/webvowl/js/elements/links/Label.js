@@ -1,5 +1,86 @@
 export { Label };
 
+// Reuse the force-field accessors across labels: D3 reads and writes these
+// properties throughout each tick. Each label still owns the same descriptors.
+const forceStateDescriptors = {
+  x: {
+    get() {
+      return this.property().x;
+    },
+    set(value) {
+      this.property().x = value;
+    },
+  },
+  y: {
+    get() {
+      return this.property().y;
+    },
+    set(value) {
+      this.property().y = value;
+    },
+  },
+  px: {
+    get() {
+      return this.property().px;
+    },
+    set(value) {
+      this.property().px = value;
+    },
+  },
+  py: {
+    get() {
+      return this.property().py;
+    },
+    set(value) {
+      this.property().py = value;
+    },
+  },
+  vx: {
+    get() {
+      return this.property().vx;
+    },
+    set(value) {
+      this.property().vx = value;
+    },
+  },
+  vy: {
+    get() {
+      return this.property().vy;
+    },
+    set(value) {
+      this.property().vy = value;
+    },
+  },
+  fixed: {
+    get() {
+      const property = this.property();
+      const inverseFixed = property.inverse()
+        ? property.inverse().fixed
+        : false;
+      return property.fixed || inverseFixed;
+    },
+    set(value) {
+      this.property().fixed = value;
+    },
+  },
+  fx: {
+    get() {
+      return this.property().fx;
+    },
+    set(value) {
+      this.property().fx = value;
+    },
+  },
+  fy: {
+    get() {
+      return this.property().fy;
+    },
+    set(value) {
+      this.property().fy = value;
+    },
+  },
+};
+
 /**
  * A label represents the element(s) which further describe a link.
  * It encapsulates the property and its inverse property.
@@ -15,82 +96,7 @@ function Label(property, link) {
     return property;
   };
 
-  Object.defineProperty(this, "x", {
-    get: function () {
-      return property.x;
-    },
-    set: function (v) {
-      property.x = v;
-    },
-  });
-  Object.defineProperty(this, "y", {
-    get: function () {
-      return property.y;
-    },
-    set: function (v) {
-      property.y = v;
-    },
-  });
-  Object.defineProperty(this, "px", {
-    get: function () {
-      return property.px;
-    },
-    set: function (v) {
-      property.px = v;
-    },
-  });
-  Object.defineProperty(this, "py", {
-    get: function () {
-      return property.py;
-    },
-    set: function (v) {
-      property.py = v;
-    },
-  });
-  Object.defineProperty(this, "vx", {
-    get: function () {
-      return property.vx;
-    },
-    set: function (v) {
-      property.vx = v;
-    },
-  });
-  Object.defineProperty(this, "vy", {
-    get: function () {
-      return property.vy;
-    },
-    set: function (v) {
-      property.vy = v;
-    },
-  });
-  // "Forward" the fixed value set on the property to avoid having to access this container
-  Object.defineProperty(this, "fixed", {
-    get: function () {
-      const inverseFixed = property.inverse()
-        ? property.inverse().fixed
-        : false;
-      return property.fixed || inverseFixed;
-    },
-    set: function (v) {
-      property.fixed = v;
-    },
-  });
-  Object.defineProperty(this, "fx", {
-    get: function () {
-      return property.fx;
-    },
-    set: function (v) {
-      property.fx = v;
-    },
-  });
-  Object.defineProperty(this, "fy", {
-    get: function () {
-      return property.fy;
-    },
-    set: function (v) {
-      property.fy = v;
-    },
-  });
+  Object.defineProperties(this, forceStateDescriptors);
   this.frozen = property.frozen;
   this.locked = property.locked;
   this.pinned = property.pinned;
