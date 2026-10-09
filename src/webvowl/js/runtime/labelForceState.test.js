@@ -15,6 +15,10 @@ test("real labels follow the numeric D3 trajectory through initialization, pinni
     new OwlObjectProperty({ language: () => "en" }).id(`property-${index}`),
   );
   const labels = properties.map((property) => new Label(property, null));
+  const inverse = new OwlObjectProperty({ language: () => "en" });
+  properties[0].inverse(inverse);
+  inverse.inverse(properties[0]);
+  inverse.fixed = true;
   const numeric = labels.map(() => ({}));
   for (const points of [labels, numeric]) {
     points.forEach((point, index) => {
@@ -22,8 +26,12 @@ test("real labels follow the numeric D3 trajectory through initialization, pinni
       point.y = index === 0 ? 0 : -index * 7;
       point.fx = null;
       point.fy = null;
+      point.px = point.x;
+      point.py = point.y;
+      point.fixed = false;
     });
   }
+  numeric[0].fixed = true;
   function simulate(points) {
     const links = points
       .slice(1)
@@ -38,7 +46,18 @@ test("real labels follow the numeric D3 trajectory through initialization, pinni
   }
   const labelSimulation = simulate(labels),
     numericSimulation = simulate(numeric);
-  const fields = ["index", "x", "y", "vx", "vy", "fx", "fy"];
+  const fields = [
+    "index",
+    "x",
+    "y",
+    "px",
+    "py",
+    "vx",
+    "vy",
+    "fixed",
+    "fx",
+    "fy",
+  ];
   try {
     for (let tick = 0; tick <= 300; tick++) {
       if ([0, 1, 30, 120, 300].includes(tick)) {
@@ -46,6 +65,11 @@ test("real labels follow the numeric D3 trajectory through initialization, pinni
           labels.map((point) => fields.map((field) => point[field])),
         ).toEqual(numeric.map((point) => fields.map((field) => point[field])));
         expect(labelSimulation.alpha()).toBe(numericSimulation.alpha());
+        for (const point of [...labels, ...numeric]) {
+          for (const field of ["x", "y", "vx", "vy"]) {
+            expect(Number.isFinite(point[field])).toBe(true);
+          }
+        }
       }
       if (tick === 30) {
         properties[0].pinned(true);

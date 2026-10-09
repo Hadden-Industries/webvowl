@@ -2,6 +2,8 @@ export { Label };
 
 // Reuse the force-field accessors across labels: D3 reads and writes these
 // properties throughout each tick. Each label still owns the same descriptors.
+// Access uses the label receiver and its unchanged property() owner; detached
+// accessors, substituted receivers and rebinding property() are not supported.
 const forceStateDescriptors = {
   x: {
     get() {

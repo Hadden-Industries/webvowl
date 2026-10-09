@@ -127,6 +127,17 @@ describe("Label Coordinate Forwarding Unit Tests", () => {
     }
   });
 
+  test("supports direct, inherited and same-receiver reflective access", () => {
+    expect(Reflect.get(label, "x", label)).toBe(primaryProperty.x);
+    expect(Reflect.set(label, "x", 23, label)).toBe(true);
+    expect(primaryProperty.x).toBe(23);
+    const inherited = Object.create(label);
+    expect(inherited.x).toBe(23);
+    inherited.y = 41;
+    expect(primaryProperty.y).toBe(41);
+    expect(Object.hasOwn(inherited, "y")).toBe(false);
+  });
+
   test("preserves property/link identity, callbacks and prototype delegation", () => {
     const link = {};
     const calls = [];
