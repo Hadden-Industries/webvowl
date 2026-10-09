@@ -137,7 +137,7 @@ test("WebVOWL's trusted policy rejects a real missing link despite candidate con
       limits: profile.limits,
     },
     {
-      deadlineMs: profile.checkerMs,
+      checkerMs: profile.checkerMs,
       requestBytes: profile.requestBytes,
       reportBytes: profile.reportBytes,
       nodeOldSpaceMb: profile.nodeOldSpaceMb,

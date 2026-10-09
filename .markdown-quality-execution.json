@@ -7,7 +7,7 @@
   "nodeOldSpaceMb": 128,
   "requestBytes": 8388608,
   "reportBytes": 8388608,
-  "stagingBytes": 134217728,
+  "stagingBytes": 167772160,
   "stagingEntries": 100000,
   "limits": { "documentDiagnostics": 10000, "workerHeapMb": 128 },
   "runtimes": {
