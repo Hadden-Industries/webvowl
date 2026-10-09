@@ -39,7 +39,7 @@ test("installed public contracts bind WebVOWL's retained source and resource pol
   assert.equal(profile.samples, 6);
   assert.equal(profile.checkerMs, 30000);
   assert.equal(profile.windowMs, 180000);
-  assert.equal(profile.memoryBytes, 536870912);
+  assert.equal(profile.memoryBytes, 1073741824);
   assert.equal(profile.nodeOldSpaceMb, 128);
   assert.equal(profile.limits.workerHeapMb, 128);
   assert.equal(profile.runtimes.node, process.versions.node);

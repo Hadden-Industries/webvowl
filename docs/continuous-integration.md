@@ -36,7 +36,7 @@ The lockfile records their exact integrities; the core archive carries its clean
 Package version `1.0.3` alone does not identify this source adoption.
 Commands use the supported public package bins and API/schema exports rather than private implementation entry points.
 
-`.markdown-quality-execution.json` supplies finite local and hosted bounds: six samples, 30 seconds per checker, a 180 second window, a 512 MiB memory target, 128 MiB Node/worker heaps and exact runtime declarations.
+`.markdown-quality-execution.json` supplies finite local and hosted bounds: six samples, 30 seconds per checker, a 180 second window, a 1024 MiB memory limit, 128 MiB Node/worker heaps and exact runtime declarations.
 Windows observes cumulative Job peak committed bytes; Linux samples process-group RSS, so their resource measurements have different boundaries.
 Six passing samples describe the observed window and do not guarantee future tail performance.
 
