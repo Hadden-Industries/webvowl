@@ -77,9 +77,9 @@ test.each([
   expect(() => assertTrustedCaller(changed)).toThrow();
 });
 
-test("ordinary CI checks the complete authored corpus through the public command", () => {
+test("CI executes the complete authored corpus unless verified PR evidence is reused", () => {
   const documentation = application.jobs.documentation;
-  expect(documentation).not.toHaveProperty("if");
+  expect(documentation.if).toBe("needs.scope.outputs.reuse != 'true'");
   const acquire = documentation.steps.findIndex((step) =>
     step.run?.includes("npm ci --prefix tooling/markdown --ignore-scripts"),
   );
@@ -93,10 +93,10 @@ test("ordinary CI checks the complete authored corpus through the public command
     /files-json|selected|changed/,
   );
   expect(application.jobs.application.if).toBe(
-    "needs.scope.outputs.full == 'true'",
+    "needs.scope.outputs.full == 'true' && needs.scope.outputs.reuse != 'true'",
   );
   expect(application.jobs.tooling.if).toBe(
-    "needs.scope.outputs.full == 'true'",
+    "needs.scope.outputs.full == 'true' && needs.scope.outputs.reuse != 'true'",
   );
   expect(application.jobs.required.needs).toEqual([
     "scope",
