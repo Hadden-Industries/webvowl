@@ -13,8 +13,8 @@ import {
   forceY,
 } from "d3";
 import { Label } from "../src/webvowl/js/elements/links/Label.js";
-import { OwlClass } from "../src/webvowl/js/elements/nodes/implementations/owlClass.js";
-import { OwlObjectProperty } from "../src/webvowl/js/elements/properties/implementations/owlObjectProperty.js";
+import { OwlClass } from "../src/webvowl/js/elements/nodes/implementations/OwlClass.js";
+import { OwlObjectProperty } from "../src/webvowl/js/elements/properties/implementations/OwlObjectProperty.js";
 import { assertQuiescentMachine } from "./benchmarkEnvironment.mjs";
 
 // Supply the retained, unmodified baseline Label module explicitly. Both

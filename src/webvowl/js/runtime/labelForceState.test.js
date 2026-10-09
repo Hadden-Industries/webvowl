@@ -8,7 +8,7 @@ import {
   forceY,
 } from "d3";
 import { Label } from "../elements/links/Label.js";
-import { OwlObjectProperty } from "../elements/properties/implementations/owlObjectProperty.js";
+import { OwlObjectProperty } from "../elements/properties/implementations/OwlObjectProperty.js";
 
 test("real labels follow the numeric D3 trajectory through initialization, pinning and release", () => {
   const properties = Array.from({ length: 17 }, (_, index) =>
