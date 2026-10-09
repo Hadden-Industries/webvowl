@@ -114,9 +114,7 @@ beforeEach(() => {
         executablePath === process.execPath &&
         commandArguments[0] === npmCliPath
       ) {
-        return createCommandResult(
-          commandArguments[1] === "--version" ? "12.0.2\n" : "",
-        );
+        return createCommandResult();
       }
       if (executablePath === "aws") {
         return createCommandResult("aws-cli/2.30.0\n");
@@ -173,7 +171,6 @@ test.each([
       executableName,
     );
     expect(commands).toEqual([
-      [process.execPath, [npmCliPath, "--version"]],
       [systemPythonExecutableName, ["--version"]],
       [
         process.execPath,
@@ -272,13 +269,12 @@ test("rejects a Node version below the documented prerequisite", () => {
   expect(spawnSyncMock).not.toHaveBeenCalled();
 });
 
-test("rejects an npm version that differs from the packageManager declaration", () => {
-  spawnSyncMock.mockReturnValueOnce(createCommandResult("11.0.0\n"));
-  expect(() => setUpDevelopmentEnvironment({ repositoryRoot })).toThrow(
-    /npm@12\.0\.2/,
-  );
+test("preserves the exact npm reference after native admission", () => {
+  setUpDevelopmentEnvironment({ repositoryRoot });
+  expect(JSON.parse(readFileSync(join(repositoryRoot, "package.json"), "utf8")))
+    .toEqual({ packageManager: "npm@12.0.2" });
   expect(spawnSyncMock.mock.calls.some(([, args]) => args.includes("ci"))).toBe(
-    false,
+    true,
   );
 });
 
@@ -321,13 +317,18 @@ test.each([
   expect(spawnSyncMock.mock.lastCall[1]).toContain(failingArgument);
 });
 
-test("stops when npm is terminated by a signal", () => {
-  spawnSyncMock.mockReturnValueOnce({
-    ...createCommandResult("", null),
-    signal: "SIGTERM",
-  });
+test("stops when npm installation is terminated by a signal", () => {
+  const successfulCommand = spawnSyncMock.getMockImplementation();
+  spawnSyncMock.mockImplementation((executable, args, options) =>
+    args.includes("ci")
+      ? { ...createCommandResult("", null), signal: "SIGTERM" }
+      : successfulCommand(executable, args, options),
+  );
   expect(() => setUpDevelopmentEnvironment({ repositoryRoot })).toThrow(
     /SIGTERM/,
   );
-  expect(spawnSyncMock).toHaveBeenCalledTimes(1);
+  expect(spawnSyncMock).toHaveBeenCalledTimes(2);
+  expect(spawnSyncMock.mock.lastCall[1]).toEqual([
+    npmCliPath, "ci", "--include=dev", "--ignore-scripts",
+  ]);
 });
