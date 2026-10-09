@@ -9,6 +9,8 @@ export const VISUALIZATION_VIEW_CONTROL_ELEMENT_IDS = Object.freeze({
   subclassesFilterCheckbox: "subclassFilterCheckbox",
   disjointnessFilterCheckbox: "disjointFilterCheckbox",
   setOperatorsFilterCheckbox: "setoperatorFilterCheckbox",
+  filterMenuButton: "filter-button",
+  nodesShownContainer: "nodesShownControl",
   compactNotationCheckbox: "compactnotationModuleCheckbox",
   nodeScalingCheckbox: "nodescalingModuleCheckbox",
   colorExternalsCheckbox: "colorexternalsModuleCheckbox",
@@ -200,6 +202,44 @@ export function createVisualizationViewControlsAdapter(dependencies) {
     isPresentingControllerState = true;
     try {
       isGraphLayoutPaused = controllerState.layout.status === "paused";
+      if (
+        changedFieldNames.some((name) =>
+          ["status", "view", "nodeCountStatus", "loadGeneration"].includes(
+            name,
+          ),
+        )
+      ) {
+        // Highlight the applied effect, including automatic limits on first load.
+        // The menu stays active for other filters when the count returns to All.
+        const count = controllerState.nodeCountStatus;
+        const hasModel =
+          count !== null &&
+          count !== undefined &&
+          !["idle", "loading"].includes(controllerState.status);
+        const countLimited =
+          hasModel && count.shownNodeCount < count.eligibleNodeCount;
+        const otherFiltersActive =
+          hasModel &&
+          Object.values(VISIBILITY_FILTER_CONTROL_NAMES).some(
+            (name) => controllerState.view?.filters?.[name] === "hide",
+          );
+        const filterButton = connectedControlElements.get("filterMenuButton");
+        filterButton?.classList.toggle(
+          "highlighted",
+          countLimited || otherFiltersActive,
+        );
+        connectedControlElements
+          .get("nodesShownContainer")
+          ?.classList.toggle("highlighted", countLimited);
+        filterButton?.setAttribute(
+          "aria-label",
+          countLimited
+            ? `Filters (${controllerState.view?.nodesShown?.mode === "auto" ? "automatically " : ""}showing ${count.shownNodeCount} of ${count.eligibleNodeCount} available nodes)`
+            : otherFiltersActive
+              ? "Filters (active)"
+              : "Filters",
+        );
+      }
       if (!changedFieldNames.includes("view")) {
         return;
       }

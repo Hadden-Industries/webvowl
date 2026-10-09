@@ -342,6 +342,7 @@ describe("loading module remote source derivation", () => {
     "ontovibe",
     "personasonto",
     "sioc",
+    "benchmark",
     "",
   ])("preset %s requests active initial layout", (name) => {
     loadingModule = createLoadingModuleForLocation(

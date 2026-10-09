@@ -516,11 +516,11 @@
             popover="auto"
             role="dialog"
             class="modern-popover noselect"
-            aria-label="Filter"
+            aria-label="Filters"
           >
             <div class="sheet-handle" aria-hidden="true"></div>
             <div class="popover-header">
-              <h3>Filter</h3>
+              <h3>Filters</h3>
               <button
                 type="button"
                 class="popover-close-btn"
@@ -602,16 +602,50 @@
                   </div>
                 </li>
                 <li class="slideOption" id="nodesShownControl">
-                  <fieldset class="nodes-shown">
+                  <fieldset class="nodes-shown graph-slider--dark">
                     <legend>Nodes shown</legend>
                     <div class="nodes-shown-entry">
-                      <button
-                        id="nodesShown-minus"
-                        type="button"
-                        aria-label="Show one fewer node"
-                      >
-                        −
-                      </button>
+                      <div class="nodes-shown-slider">
+                        <div
+                          class="graph-slider graph-slider--horizontal graph-slider--dark"
+                        >
+                          <button
+                            id="nodesShown-minus"
+                            class="graph-slider-button"
+                            type="button"
+                            aria-label="Show one fewer node"
+                          >
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                              <path d="M19 13H5v-2h14v2z" />
+                            </svg>
+                          </button>
+                          <label class="visually-hidden" for="nodesShown-range"
+                            >Nodes shown</label
+                          >
+                          <div class="graph-slider-track">
+                            <input
+                              id="nodesShown-range"
+                              class="graph-slider-range"
+                              type="range"
+                              min="0"
+                              max="0"
+                              value="0"
+                              step="1"
+                              aria-describedby="nodesShown-total"
+                            />
+                          </div>
+                          <button
+                            id="nodesShown-plus"
+                            class="graph-slider-button"
+                            type="button"
+                            aria-label="Show one more node"
+                          >
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
                       <label class="visually-hidden" for="nodesShown-exact"
                         >Exact nodes shown</label
                       >
@@ -623,43 +657,24 @@
                         max="0"
                         step="1"
                         value="0"
-                        aria-describedby="nodesShown-error nodesShown-total"
+                        aria-describedby="nodesShown-total"
                       />
-                      <button
-                        id="nodesShown-plus"
-                        type="button"
-                        aria-label="Show one more node"
-                      >
-                        +
-                      </button>
-                      <button id="nodesShown-all" type="button">All</button>
-                      <button id="nodesShown-auto" type="button">Auto</button>
                     </div>
-                    <label class="visually-hidden" for="nodesShown-range"
-                      >Nodes shown</label
-                    >
-                    <div class="nodes-shown-slider">
-                      <div class="range-touch-wrapper">
-                        <input
-                          id="nodesShown-range"
-                          type="range"
-                          min="0"
-                          max="0"
-                          value="0"
-                          step="1"
-                          aria-describedby="nodesShown-total"
-                        />
-                      </div>
+                    <div id="nodesShown-markers" class="nodes-shown-markers">
+                      <button
+                        id="nodesShown-fifty"
+                        class="graph-slider-button nodes-shown-marker"
+                        type="button"
+                        aria-label="Show 50 nodes"
+                        hidden
+                      >
+                        50
+                      </button>
                       <span id="nodesShown-total" class="nodes-shown-total">
                         <span class="visually-hidden">Available nodes: </span>
                         <span id="nodesShown-total-value">0</span>
                       </span>
                     </div>
-                    <p
-                      id="nodesShown-error"
-                      class="nodes-shown-error"
-                      aria-live="polite"
-                    ></p>
                   </fieldset>
                 </li>
               </ul>
@@ -1209,9 +1224,10 @@
               </li>
               <li id="c_filter">
                 <button
+                  id="filter-button"
                   type="button"
                   class="navButton"
-                  aria-label="Filter"
+                  aria-label="Filters"
                   popovertarget="m_filter"
                   disabled
                 >
@@ -1227,7 +1243,7 @@
                       ></path>
                     </g>
                   </svg>
-                  <span class="menuElementLabel">Filter</span>
+                  <span class="menuElementLabel">Filters</span>
                 </button>
               </li>
               <li id="c_config">
@@ -1384,9 +1400,9 @@
             </button>
           </div>
         </nav>
-        <div id="zoomSlider" class="btn_shadowed">
+        <div id="zoomSlider" class="btn_shadowed graph-slider">
           <button
-            class="noselect"
+            class="noselect graph-slider-button"
             id="centerGraphButton"
             type="button"
             aria-label="Zoom and center graph"
@@ -1400,7 +1416,7 @@
             </svg>
           </button>
           <button
-            class="noselect"
+            class="noselect graph-slider-button"
             id="zoomInButton"
             type="button"
             aria-label="Zoom in"
@@ -1413,9 +1429,10 @@
               />
             </svg>
           </button>
-          <div class="noselect" id="zoomSliderParagraph">
+          <div class="noselect graph-slider-track" id="zoomSliderParagraph">
             <input
               id="zoomSliderElement"
+              class="graph-slider-range"
               type="range"
               min="0.1"
               max="4"
@@ -1427,7 +1444,7 @@
             />
           </div>
           <button
-            class="noselect"
+            class="noselect graph-slider-button"
             id="zoomOutButton"
             type="button"
             aria-label="Zoom out"

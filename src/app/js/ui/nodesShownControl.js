@@ -1,6 +1,7 @@
 import { createNodesShownIntent } from "../controller/nodesShownContracts.js";
+import { runVisualizationControlAction } from "./visualizationControlAction.js";
 
-/** Native range exploration with an independent, commit-on-Enter exact draft. */
+/** Native range exploration with an exact draft committed on Enter or blur. */
 export function createNodesShownControl({
   documentObject = globalThis.document,
   onChange,
@@ -17,8 +18,6 @@ export function createNodesShownControl({
   function restore() {
     draft = false;
     controls.exact.value = String(status.shownNodeCount);
-    controls.exact.removeAttribute("aria-invalid");
-    controls.error.textContent = "";
   }
   function submit(intent, coalesce = false) {
     pendingIntent = intent;
@@ -36,44 +35,52 @@ export function createNodesShownControl({
       frame = undefined;
     }
     const revision = ++requestRevision;
-    Promise.resolve()
-      .then(() => {
-        if (!lifecycle.signal.aborted && revision === requestRevision) {
-          return onChange(intent);
-        }
-      })
-      .catch((error) => {
-        if (
-          !lifecycle.signal.aborted &&
-          revision === requestRevision &&
-          error?.name !== "AbortError"
-        ) {
-          restore();
-          controls.error.textContent =
-            "The node count could not be updated. Try again.";
-        }
-      });
+    Promise.resolve().then(() => {
+      if (!lifecycle.signal.aborted && revision === requestRevision) {
+        return runVisualizationControlAction(async () => {
+          try {
+            await onChange(intent);
+          } catch (error) {
+            if (
+              lifecycle.signal.aborted ||
+              revision !== requestRevision ||
+              error?.name === "AbortError" ||
+              error?.code === "LOAD_ABORTED"
+            ) {
+              return;
+            }
+            restore();
+            throw error;
+          }
+        }, documentObject);
+      }
+    });
   }
   function commitDraft() {
     if (!draft) {
       return;
     }
-    try {
-      const intent = createNodesShownIntent({
-        mode: "exact",
-        requestedCount: controls.exact.valueAsNumber,
-      });
-      if (intent.requestedCount > status.eligibleNodeCount) {
-        throw new RangeError();
-      }
-      draft = false;
-      controls.exact.removeAttribute("aria-invalid");
-      controls.error.textContent = "";
-      submit(intent);
-    } catch {
-      controls.exact.setAttribute("aria-invalid", "true");
-      controls.error.textContent = `Enter a whole number from 0 to ${status.eligibleNodeCount}.`;
+    const requestedCount = controls.exact.valueAsNumber;
+    if (!Number.isFinite(requestedCount)) {
+      restore();
+      return;
     }
+    const intent = createNodesShownIntent({
+      mode: "exact",
+      requestedCount: Math.max(
+        0,
+        Math.min(Math.round(requestedCount), status.eligibleNodeCount),
+      ),
+    });
+    draft = false;
+    controls.exact.value = String(intent.requestedCount);
+    submit(intent);
+  }
+  function rangeIntent() {
+    const requestedCount = Number(controls.range.value);
+    return requestedCount === status.eligibleNodeCount
+      ? { mode: "all" }
+      : { mode: "exact", requestedCount };
   }
   return Object.freeze({
     setup() {
@@ -86,10 +93,9 @@ export function createNodesShownControl({
           "exact",
           "minus",
           "plus",
-          "all",
-          "auto",
+          "fifty",
+          "markers",
           "total-value",
-          "error",
         ].map((name) => [
           name,
           documentObject.getElementById(`nodesShown-${name}`),
@@ -105,14 +111,9 @@ export function createNodesShownControl({
       listen("range", "input", () => {
         restore();
         controls.exact.value = controls.range.value;
-        submit(
-          { mode: "exact", requestedCount: Number(controls.range.value) },
-          true,
-        );
+        submit(rangeIntent(), true);
       });
-      listen("range", "change", () =>
-        submit({ mode: "exact", requestedCount: Number(controls.range.value) }),
-      );
+      listen("range", "change", () => submit(rangeIntent()));
       listen("exact", "input", () => {
         draft = true;
       });
@@ -144,12 +145,12 @@ export function createNodesShownControl({
           ),
         });
       });
-      for (const mode of ["all", "auto"]) {
-        listen(mode, "click", () => {
+      listen("fifty", "click", () => {
+        if (status.eligibleNodeCount > 50) {
           restore();
-          submit({ mode });
-        });
-      }
+          submit({ mode: "exact", requestedCount: 50 });
+        }
+      });
     },
     renderNodeCountStatus(next, intent) {
       if (!controls || lifecycle.signal.aborted) {
@@ -162,7 +163,7 @@ export function createNodesShownControl({
           cancelFrame?.(frame);
         }
         frame = undefined;
-        for (const name of ["range", "exact", "minus", "plus", "all", "auto"]) {
+        for (const name of ["range", "exact", "minus", "plus", "fifty"]) {
           controls[name].disabled = true;
         }
         status = { eligibleNodeCount: 0, shownNodeCount: 0 };
@@ -171,6 +172,7 @@ export function createNodesShownControl({
         controls.range.removeAttribute("aria-valuetext");
         controls.exact.max = "0";
         controls["total-value"].textContent = "0";
+        controls.fifty.hidden = true;
         restore();
         return;
       }
@@ -187,8 +189,14 @@ export function createNodesShownControl({
         status.shownNodeCount === status.eligibleNodeCount;
       controls.range.disabled = status.eligibleNodeCount === 0;
       controls.exact.disabled = false;
-      controls.all.disabled = false;
-      controls.auto.disabled = false;
+      controls.fifty.hidden = status.eligibleNodeCount <= 50;
+      controls.fifty.disabled = controls.fifty.hidden;
+      if (!controls.fifty.hidden) {
+        controls.markers.style.setProperty(
+          "--nodes-shown-fifty-position",
+          `${(50 / status.eligibleNodeCount) * 100}%`,
+        );
+      }
       const shortfall =
         intent.mode === "exact" &&
         intent.requestedCount > status.eligibleNodeCount
@@ -197,7 +205,7 @@ export function createNodesShownControl({
       const text =
         status.eligibleNodeCount === 0
           ? "No nodes are available with the current filters."
-          : `Showing ${status.shownNodeCount} of ${status.eligibleNodeCount} available nodes.${shortfall}`;
+          : `${intent.mode === "auto" && status.shownNodeCount < status.eligibleNodeCount ? "Automatically showing" : "Showing"} ${status.shownNodeCount} of ${status.eligibleNodeCount} available nodes.${shortfall}`;
       controls.range.setAttribute("aria-valuetext", text);
     },
     dispose() {

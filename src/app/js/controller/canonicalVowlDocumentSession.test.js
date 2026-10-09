@@ -7,6 +7,7 @@ import { loadCorpus } from "../../../../packages/vowl/conformance/supplemental/m
 import { applyCanonicalEditorCommand } from "./canonicalVowlEditorCommands.js";
 import { createVisualizationArtifactService } from "./visualizationArtifactService.js";
 import { webcrypto } from "node:crypto";
+import { canonicalExampleSource } from "../canonicalExamples.js";
 
 const bytes = new Uint8Array(
   readFileSync(
@@ -90,6 +91,7 @@ test("fresh loads show exactly 50, explicit zero wins and saved visibility reope
 });
 
 test.each([
+  "benchmark",
   "foaf",
   "goodrelations",
   "muto",
@@ -101,6 +103,13 @@ test.each([
   async (name) => {
     const { session } = setup();
     try {
+      expect(canonicalExampleSource(name)).toEqual({
+        kind: "vowl-json-url",
+        url: new URL(
+          `../../../canonical-examples/${name}.json`,
+          import.meta.url,
+        ).href,
+      });
       const bytes = new Uint8Array(
         readFileSync(
           new URL(`../../../canonical-examples/${name}.json`, import.meta.url),
