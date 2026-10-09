@@ -1,4 +1,5 @@
 import * as d3 from "d3";
+import { createLegacyForceSimulation } from "./legacyForceSimulation.js";
 import { createLinkCreator as createLinkCreatorModule } from "../parsing/linkCreator.js";
 import { createElementTools as createElementToolsModule } from "../../../shared/js/util/elementTools.js";
 import { createNodeMap as createNodePrototypeMapModule } from "../elements/nodes/nodeMap.js";
@@ -271,7 +272,7 @@ function createGraph(
   let canonicalElements;
   // Graph behaviour
   let force;
-  let forceLink;
+
   let dragBehaviour;
   let renderInteractionEpoch = 0;
   let hasActiveRenderInteractions = true;
@@ -598,6 +599,16 @@ function createGraph(
     renderedGraphEventPort = { ...renderedGraphEventPort, ...nextPort };
   };
 
+  function readLayoutStatus() {
+    return {
+      forceAlpha: force.alpha(),
+      hasEnded:
+        (classNodes?.length ?? 0) + (labelNodes?.length ?? 0) === 0 ||
+        force.alpha() < force.alphaMin(),
+      isPaused: paused,
+    };
+  }
+
   // Observation comes from the simulation drawing this mount. Node and label
   // occurrence identities are separate from the ontology entities they depict.
   graph.readLayoutState = function () {
@@ -614,10 +625,7 @@ function createGraph(
       })),
     ];
     return {
-      forceAlpha: force.alpha(),
-      hasEnded:
-        layoutElementPositions.length === 0 || force.alpha() < force.alphaMin(),
-      isPaused: paused,
+      ...readLayoutStatus(),
       observedAtMs: performance.now(),
       widthPx: renderedGraphSettings.width(),
       heightPx: renderedGraphSettings.height(),
@@ -731,7 +739,7 @@ function createGraph(
     if (paused) {
       force.stop();
     } else {
-      force.alpha(1).restart();
+      force.start();
     }
   };
 
@@ -790,7 +798,7 @@ function createGraph(
     labelNodes = [];
     properties = [];
     force.nodes([]);
-    forceLink.links([]);
+    force.links([]);
     graphContainer?.selectAll("*").remove();
     graphContainer?.classed("is-render-pending", false);
   };
@@ -1051,7 +1059,7 @@ function createGraph(
           d.fx = event.x;
           d.fy = event.y;
           if (graph.paused() === false) {
-            force.alpha(0.3).restart();
+            force.resume();
           } else {
             recalculatePositions();
           }
@@ -1227,8 +1235,10 @@ function createGraph(
   // Initializes the graph and its first set of native interaction behaviours.
   function initializeGraph() {
     renderedGraphSettings.graphContainerElement(graphContainerElement);
-    force = d3.forceSimulation().on("tick", hiddenRecalculatePositions);
-    forceLink = d3.forceLink();
+    force = createLegacyForceSimulation().on(
+      "tick",
+      hiddenRecalculatePositions,
+    );
     createInteractionBehaviours();
     draggerObjectsArray.push(classDragger);
     draggerObjectsArray.push(rangeDragger);
@@ -1254,7 +1264,7 @@ function createGraph(
       return;
     }
     if (updateRenderingDuringSimulation === false) {
-      const progress = Math.max(0, Math.min(1, 1.0 - force.alpha()));
+      const progress = Math.max(0, Math.min(1, 1.0 - 10 * force.alpha()));
       const percentValue = Math.min(100, Math.max(0, parseInt(200 * progress)));
       renderedGraphEventPort.publishRenderProgress(percentValue);
 
@@ -1268,7 +1278,7 @@ function createGraph(
 
         if (initialLoad) {
           if (graph.paused() === false) {
-            force.alpha(0.3).restart();
+            force.resume();
           } // resume force
           initialLoad = false;
         }
@@ -1336,7 +1346,7 @@ function createGraph(
     renderedGraphEventPort.publishRenderingStatistics({
       framesPerSecond: fps,
       nodeCount: force.nodes().length,
-      linkCount: forceLink.links().length,
+      linkCount: force.links().length,
     });
     then = Date.now();
   }
@@ -2223,7 +2233,7 @@ function createGraph(
     ) {
       force.stop();
     } else {
-      force.alpha(1).restart();
+      force.start();
     }
   };
 
@@ -2293,7 +2303,7 @@ function createGraph(
     const publishLayoutState = () =>
       renderedGraphEventPort.publishGraphLayoutState(
         loadGeneration,
-        graph.readLayoutState(),
+        readLayoutStatus(),
       );
     force
       .on("tick.runtimeLayout", publishLayoutState)
@@ -2549,10 +2559,10 @@ function createGraph(
     // update node map
     updateNodeMap();
 
-    force.alpha(1).restart();
+    refreshGraphStyle();
+    force.start();
     redrawContent();
     graph.updatePulseIds(nodeArrayForPulse);
-    refreshGraphStyle();
     updateHaloStyles();
     // Rebuilding the SVG must draw the current arrangement immediately. A
     // paused graph has no future force tick to position its new elements.
@@ -2664,8 +2674,7 @@ function createGraph(
     force.stop();
 
     force.nodes([]);
-    forceLink.links([]);
-    force.force("link", forceLink);
+    force.links([]);
     nodeArrayForPulse = [];
     pulseNodeIds = [];
     locationId = 0;
@@ -2751,7 +2760,7 @@ function createGraph(
         }
       }
 
-      force.alpha(1).restart();
+      force.start();
     } else {
       force.stop();
       renderedGraphEventPort.publishRenderWarning(
@@ -2899,34 +2908,33 @@ function createGraph(
   /** -- force-layout related functions                      -- **/
   /** --------------------------------------------------------- **/
   function storeLinksOnNodes(nodes, links) {
-    for (let i = 0, nodesLength = nodes.length; i < nodesLength; i++) {
-      const node = nodes[i],
-        connectedLinks = [];
-
-      // look for properties where this node is the domain or range
-      for (let j = 0, linksLength = links.length; j < linksLength; j++) {
-        const link = links[j];
-
-        if (link.domain() === node || link.range() === node) {
-          connectedLinks.push(link);
-        }
+    const incidence = new Map(nodes.map((node) => [node, []]));
+    for (const link of links) {
+      const domain = link.domain();
+      const range = link.range();
+      incidence.get(domain)?.push(link);
+      if (range !== domain) {
+        incidence.get(range)?.push(link);
       }
-      node.links(connectedLinks);
+    }
+    for (const node of nodes) {
+      node.links(incidence.get(node));
     }
   }
 
   function setForceLayoutData(classNodes, labelNodes, links) {
-    let d3Links = [];
-    links.forEach(function (link) {
-      d3Links = d3Links.concat(link.linkParts());
-    });
+    const d3Links = [];
+    for (const link of links) {
+      for (const part of link.linkParts()) {
+        d3Links.push(part);
+      }
+    }
 
     const d3Nodes = [].concat(classNodes).concat(labelNodes);
     setPositionOfOldLabelsOnNewLabels(force.nodes(), labelNodes);
 
     force.nodes(d3Nodes);
-    forceLink.links(d3Links);
-    force.force("link", forceLink);
+    force.links(d3Links);
   }
 
   // The label nodes are positioned randomly, because they are created from scratch if the data changes and lose
@@ -2970,39 +2978,17 @@ function createGraph(
     }
 
     force
-      .force(
-        "charge",
-        d3.forceManyBody().strength(function (element) {
-          let charge = renderedGraphSettings.charge();
-          if (elementTools.isLabel(element)) {
-            charge *= 0.8;
-          }
-          return charge;
-        }),
-      )
-      .force(
-        "center",
-        d3.forceCenter(
-          renderedGraphSettings.width() / 2,
-          renderedGraphSettings.height() / 2,
-        ),
-      )
-      .force(
-        "x",
-        d3
-          .forceX(renderedGraphSettings.width() / 2)
-          .strength(renderedGraphSettings.gravity()),
-      )
-      .force(
-        "y",
-        d3
-          .forceY(renderedGraphSettings.height() / 2)
-          .strength(renderedGraphSettings.gravity()),
-      );
-
-    forceLink
-      .distance(calculateLinkPartDistance)
-      .strength(renderedGraphSettings.linkStrength()); // Flexibility of links
+      .size([renderedGraphSettings.width(), renderedGraphSettings.height()])
+      .charge(function (element) {
+        let charge = renderedGraphSettings.charge();
+        if (elementTools.isLabel(element)) {
+          charge *= 0.8;
+        }
+        return charge;
+      })
+      .gravity(renderedGraphSettings.gravity())
+      .linkDistance(calculateLinkPartDistance)
+      .linkStrength(renderedGraphSettings.linkStrength());
 
     force.nodes().forEach(function (n) {
       n.frozen(paused);

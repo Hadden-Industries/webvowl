@@ -417,6 +417,29 @@ describe("generation-scoped graph layout settlement", () => {
     expect(frameScheduler.pendingFrameCount).toBe(0);
   });
 
+  test("non-ending runtime ticks do not duplicate frame snapshot reads", async () => {
+    const promise = waitForSettledLayout({ subscribeToGraphLayoutEvents });
+    for (let index = 0; index < 20; index++) {
+      publishedLayoutEvent({
+        kind: "graph-layout-state-changed",
+        loadGeneration: LOAD_GENERATION,
+        payload: { forceAlpha: 0.1, hasEnded: false, isPaused: false },
+      });
+    }
+    expect(snapshotReadCount).toBe(0);
+    readGraphLayoutSnapshot = () => layoutSnapshot({ hasEnded: true });
+    publishedLayoutEvent({
+      kind: "graph-layout-state-changed",
+      loadGeneration: LOAD_GENERATION,
+      payload: { forceAlpha: 0, hasEnded: true, isPaused: false },
+    });
+    await expect(promise).resolves.toEqual(
+      expect.objectContaining({ reason: "native-end" }),
+    );
+    expect(frameScheduler.pendingFrameCount).toBe(0);
+    expect(unsubscribeCallCount).toBe(1);
+  });
+
   test("releases its frame and listener on every exit path", async () => {
     readGraphLayoutSnapshot = () => layoutSnapshot({ hasEnded: true });
 

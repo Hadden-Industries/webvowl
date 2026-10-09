@@ -1,15 +1,25 @@
 import * as d3 from "d3";
+import { createLegacyForceSimulation } from "./legacyForceSimulation.js";
 import { DOMImplementation } from "@xmldom/xmldom";
 import { beforeAll, expect, jest, test } from "@jest/globals";
 import { readFileSync } from "node:fs";
 
 const createdDragBehaviours = [];
+const createdSimulations = [];
 jest.unstable_mockModule("d3", () => ({
   ...d3,
   drag: () => {
     const behaviour = d3.drag();
     createdDragBehaviours.push(behaviour);
     return behaviour;
+  },
+}));
+
+jest.unstable_mockModule("./legacyForceSimulation.js", () => ({
+  createLegacyForceSimulation: (...args) => {
+    const simulation = createLegacyForceSimulation(...args);
+    createdSimulations.push(simulation);
+    return simulation;
   },
 }));
 
@@ -148,6 +158,42 @@ const MODEL = {
     { id: "a", label: "A", iri: "https://example.test/A", pos: [30, 40] },
   ],
 };
+
+test("real renderer tick and end status do not request coordinate snapshots", () => {
+  const { graph, dispose } = mountGraph(MODEL);
+  try {
+    const simulation = createdSimulations.at(-1);
+    const events = [];
+    graph.setRenderedGraphEventPort({
+      publishGraphLayoutState: (generation, payload) =>
+        events.push({ generation, payload }),
+    });
+    const before = graph.readLayoutState();
+    graph.readLayoutState = jest.fn(() => {
+      throw new Error("unexpected full snapshot");
+    });
+    simulation.alpha(0.02);
+    simulation.on("tick.runtimeLayout")();
+    simulation.alpha(0);
+    simulation.on("end.runtimeLayout")();
+    expect(events).toEqual([
+      {
+        generation: 1,
+        payload: { forceAlpha: 0.02, hasEnded: false, isPaused: true },
+      },
+      {
+        generation: 1,
+        payload: { forceAlpha: 0, hasEnded: true, isPaused: true },
+      },
+    ]);
+    expect(graph.readLayoutState).not.toHaveBeenCalled();
+    expect(before.layoutElementPositions).toEqual([
+      { stableLayoutElementKey: "node:a", x: 30, y: 40 },
+    ]);
+  } finally {
+    dispose();
+  }
+});
 
 test.each([
   [MODEL, true],
@@ -343,6 +389,33 @@ test("draws the bundled MUTO document on an uncached native mount", () => {
   try {
     expect(graph.readVisibleElementIds().nodeIds.length).toBeGreaterThan(0);
     expect(graph.isReadyForPaint()).toBe(true);
+    const simulation = createdSimulations.at(-1);
+    const nodes = graph.getUnfilteredData().nodes;
+    const links = [...new Set(simulation.links().map((part) => part.link()))];
+    for (const node of nodes) {
+      expect(node.links()).toEqual(
+        links.filter((link) => link.domain() === node || link.range() === node),
+      );
+    }
+    const classNodes = simulation.nodes().filter((point) => !point.property);
+    expect(simulation.nodes()).toEqual([
+      ...classNodes,
+      ...links.map((link) => link.label()),
+    ]);
+    expect(simulation.links()).toHaveLength(links.length * 2);
+    links.forEach((link, i) => {
+      expect(simulation.links()[2 * i].source).toBe(link.label());
+      expect(simulation.links()[2 * i].target).toBe(link.range());
+      expect(simulation.links()[2 * i + 1].source).toBe(link.domain());
+      expect(simulation.links()[2 * i + 1].target).toBe(link.label());
+    });
+    expect(
+      graph
+        .readLayoutState()
+        .layoutElementPositions.every(
+          ({ x, y }) => Number.isFinite(x) && Number.isFinite(y),
+        ),
+    ).toBe(true);
   } finally {
     dispose();
   }

@@ -86,6 +86,45 @@ function setup() {
   };
 }
 
+test("layout ticks publish controller state only when its status changes", async () => {
+  const { controller, load, emit } = setup();
+  await load("https://example.test/ontology");
+  const states = [];
+  controller.subscribeToState((state, fields) =>
+    states.push({ state, fields }),
+  );
+  const tick = (forceAlpha, isPaused = false, hasEnded = false) =>
+    emit({
+      kind: "graph-layout-state-changed",
+      loadGeneration: controller.getState().loadGeneration,
+      payload: { forceAlpha, isPaused, hasEnded },
+    });
+  tick(0.1);
+  const active = controller.getState();
+  tick(0.09);
+  tick(0.08);
+  expect(controller.getState()).toBe(active);
+  expect(states).toHaveLength(1);
+  tick(0.08, true);
+  tick(0.08, true);
+  tick(0.1);
+  tick(0, false, true);
+  tick(0, false, true);
+  expect(states.map(({ state }) => state.layout.status)).toEqual([
+    "relaxing",
+    "paused",
+    "relaxing",
+    "settled",
+  ]);
+  expect(
+    states.every(
+      ({ state, fields }) =>
+        Object.isFrozen(state) && fields.includes("layout"),
+    ),
+  ).toBe(true);
+  controller.dispose();
+});
+
 test("the candidate controller preserves selection through rename and focuses newly revealed elements", async () => {
   const { runtime, artifacts } = setup();
   let emit;
