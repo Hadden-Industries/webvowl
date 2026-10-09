@@ -1,9 +1,13 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "preset": "authored-gfm@1",
   "include": ["*.md", "docs/**/*.md", "packages/vowl/**/*.md"],
-  "exclude": [],
-  "ignoreFiles": [".gitignore", ".prettierignore"],
+  "exclude": [
+    "docs/owlapi-js/**",
+    "docs/sdlc/**",
+    "docs/reviews/**",
+    "docs/evaluations/**"
+  ],
   "lint": {},
   "links": { "localFiles": true, "rootRelative": "reject" },
   "layout": { "endOfLine": "lf", "tabWidth": 2 }

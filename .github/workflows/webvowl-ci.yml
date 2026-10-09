@@ -74,7 +74,7 @@ jobs:
       - name: Acquire the exact isolated Markdown graph
         run: npm ci --prefix tooling/markdown --ignore-scripts --no-audit --no-fund
       - name: Check the full authored corpus
-        run: node tooling/markdown/node_modules/@hadden-industries/markdown-quality/src/cli.js check
+        run: npm run check:docs && npm run test:markdown
 
   application:
     needs: scope

@@ -41,7 +41,7 @@ Rejecting them is therefore a regression against the stated goal, not a stricter
 Two constraints bound any recovery.
 
 OWL 2 DL genuinely forbids this.
-The OWL 2 Structural Specification's typing constraints state that "no IRI _I_ is declared in _Ax_ to be both object and data, object and annotation, or data and annotation property".
+The OWL 2 Structural Specification's typing constraints state that "no IRI *I* is declared in *Ax* to be both object and data, object and annotation, or data and annotation property".
 Strict mode must continue to reject these documents; only compatible mode, which explicitly does not claim OWL 2 DL conformance, may recover.
 
 Recovery cannot simply suppress the error.
@@ -132,7 +132,7 @@ Every punned property in the pinned corpus declares `rdfs:range rdfs:Literal`.
 The oracle honours that on FOAF, rendering a datatype property, but discards it on SIOC, rendering an object property whose range edge points at `owl:Thing` — output that contradicts the document it was given.
 
 The fixed precedence `data > object > annotation` reaches the right answer on this corpus, but only because every case happens to have a literal range.
-Invert the case — a property declared in both categories whose range is a _class_ — and the precedence forces "data" and the class range is replaced by `rdfs:Literal`.
+Invert the case — a property declared in both categories whose range is a *class* — and the precedence forces "data" and the class range is replaced by `rdfs:Literal`.
 That is the same failure as the oracle's, mirrored.
 Both rules discard the author's most direct statement about what the property relates.
 
@@ -167,7 +167,7 @@ Conformance and recovery are different questions and take different scopes.
 
 ## Amendment: refuse a sub-property triple that crosses the annotation category
 
-_2026-08-19._
+*2026-08-19.*
 
 ### The occurrence this record was waiting for
 

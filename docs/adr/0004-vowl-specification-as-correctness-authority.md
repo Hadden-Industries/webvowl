@@ -9,11 +9,11 @@
 
 ## Context
 
-The migration governs OWL _input_ rigorously.
+The migration governs OWL *input* rigorously.
 Section 22.2 requires language semantics to be implemented from normative specifications, permits the Java OWLAPI only as a black-box behavioural oracle, and forbids treating an implementation as a template.
 Every ingestion phase carries a conformance suite pinned by immutable revision.
 
-No equivalent discipline was ever applied to the VOWL _output_.
+No equivalent discipline was ever applied to the VOWL *output*.
 The implementation plan names the VOWL specification exactly once, in a background sentence, and never cites it normatively.
 `conformance/suites.json` pins the W3C RDF, JSON-LD, OWL 2 and OWL/XML suites but contained no VOWL entry, and `capabilities.json` has no capability expressing conformance to VOWL at all.
 

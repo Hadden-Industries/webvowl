@@ -15,7 +15,7 @@ The owner's 2026-09-09 action-parity amendment supersedes decisions 5 and 8's re
 The ownership and immutable-boundary rules below remain in force.
 
 Task 9 established a `RenderedGraphRuntime` seam and a `WebVowlController` that reduces renderer facts into frozen state.
-It did not settle who _owns_ the ontology.
+It did not settle who *owns* the ontology.
 Three consequences of leaving that unsettled surfaced together.
 
 **The semantic channel runs through the renderer package.**
@@ -56,7 +56,7 @@ Only `ontology-document-iri` and `ontology-text` produce one; `vowl-json-url` an
    It **MUST NOT** require an `OWLOntology`, because two of the four source kinds never produce one and the WebMCP tool surface cannot advertise facts that exist for only some sources.
 
 4. `readVisibleRenderedGraphSnapshot` **MUST** stay on the seam.
-   The renderer owns what is _visible_; the application owns what is _true_.
+   The renderer owns what is *visible*; the application owns what is *true*.
 
 5. The application **MUST** address ontology entities only.
    Occurrence identity — which of six drawn `owl:Thing` nodes was clicked — **MUST NOT** cross the seam.
@@ -70,7 +70,7 @@ Only `ontology-document-iri` and `ontology-text` produce one; `vowl-json-url` an
 8. Renderer tuning that carries no application meaning **MUST** still be routed through the controller rather than by a user-interface-to-renderer call, and **MUST NOT** become a WebMCP tool.
    This follows the `setGraphLayoutPaused` precedent that §1.4 already establishes.
 
-9. Narrowing what crosses _into_ the renderer is **deferred**.
+9. Narrowing what crosses *into* the renderer is **deferred**.
    The rule is recorded so future work does not widen it: the renderer's input should be a minimal sufficient statistic for drawing.
 
 ## Rationale
@@ -86,7 +86,7 @@ A **minimal sufficient statistic** is the precise form of decision 9 — the ren
 
 The same reasoning rules out one tempting simplification.
 Collapsing FOAF's six `owl:Thing` occurrences into a single entity would assert structure the source never asserted.
-Occurrence multiplicity is meaningful even though it looks redundant, which is why decision 5 pushes occurrence identity _down_ into the renderer rather than resolving it away.
+Occurrence multiplicity is meaningful even though it looks redundant, which is why decision 5 pushes occurrence identity *down* into the renderer rather than resolving it away.
 
 Decision 3 is a finding, not a preference.
 An `OWLOntology`-backed snapshot would serve pasted and fetched OWL documents while leaving every preset — and therefore `#foaf`, the first thing most readers see — with nothing.
