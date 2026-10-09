@@ -9,6 +9,7 @@ const REPOSITORY_ROOT_PATH = resolve(
   "..",
 );
 
+/** Install the locked toolchains after native npm devEngines admission via npm run. */
 export function setUpDevelopmentEnvironment({
   repositoryRoot = REPOSITORY_ROOT_PATH,
 } = {}) {
@@ -82,20 +83,8 @@ export function setUpDevelopmentEnvironment({
     return result.stdout?.trim() ?? "";
   }
 
-  const { packageManager } = JSON.parse(
-    readFileSync(join(repositoryRoot, "package.json"), "utf8"),
-  );
-  const npmVersion = runRequiredCommand(
-    "npm version check",
-    process.execPath,
-    [npmCliPath, "--version"],
-    { captureOutput: true },
-  );
-  if (packageManager !== `npm@${npmVersion}`) {
-    throw new Error(
-      `Use ${packageManager} declared in package.json; found npm@${npmVersion}.`,
-    );
-  }
+  // npm run enforces devEngines; packageManager names the reproducible reference,
+  // so requiring exact equality here would reject eligible newer npm versions.
 
   const pythonVirtualEnvironmentPath = join(repositoryRoot, ".venv");
   const virtualEnvironmentPythonExecutablePath = join(
