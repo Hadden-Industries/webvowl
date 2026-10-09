@@ -32,10 +32,15 @@ class ViewControlElementFixture extends EventTarget {
     this.textContent = "";
     this.value = "";
     this.classes = new Set();
+    this.attributes = new Map();
     this.classList = {
       toggle: (name, enabled) =>
         enabled ? this.classes.add(name) : this.classes.delete(name),
     };
+  }
+
+  setAttribute(name, value) {
+    this.attributes.set(name, value);
   }
 
   append(...childElements) {
@@ -139,6 +144,64 @@ describe("native visualization view controls", () => {
     });
   });
 
+  test("applied node limits highlight the menu and count row, including initial automatic selection", () => {
+    connectAdapter();
+    const publish = controller.subscribeToState.mock.calls[0][0];
+    const state = {
+      status: "ready",
+      layout: { status: "running" },
+      view: { filters: {}, nodesShown: { mode: "auto" } },
+      nodeCountStatus: { shownNodeCount: 50, eligibleNodeCount: 129 },
+    };
+    const button = controlElement("filterMenuButton");
+    const row = controlElement("nodesShownContainer");
+    publish(state, ["nodeCountStatus"]);
+    expect(button.classes.has("highlighted")).toBe(true);
+    expect(row.classes.has("highlighted")).toBe(true);
+    expect(button.attributes.get("aria-label")).toContain(
+      "automatically showing 50 of 129",
+    );
+    publish(
+      {
+        ...state,
+        view: {
+          filters: {},
+          nodesShown: { mode: "exact", requestedCount: 37 },
+        },
+        nodeCountStatus: { shownNodeCount: 37, eligibleNodeCount: 129 },
+      },
+      ["view", "nodeCountStatus"],
+    );
+    expect(row.classes.has("highlighted")).toBe(true);
+    expect(button.attributes.get("aria-label")).toContain("showing 37 of 129");
+    publish(
+      {
+        ...state,
+        view: { filters: {}, nodesShown: { mode: "all" } },
+        nodeCountStatus: { shownNodeCount: 129, eligibleNodeCount: 129 },
+      },
+      ["view", "nodeCountStatus"],
+    );
+    expect(button.classes.has("highlighted")).toBe(false);
+    expect(row.classes.has("highlighted")).toBe(false);
+    expect(button.attributes.get("aria-label")).toBe("Filters");
+    publish(
+      {
+        ...state,
+        nodeCountStatus: { shownNodeCount: 29, eligibleNodeCount: 29 },
+        view: { filters: { datatypes: "hide" }, nodesShown: { mode: "all" } },
+      },
+      ["view", "nodeCountStatus"],
+    );
+    expect(button.classes.has("highlighted")).toBe(true);
+    expect(row.classes.has("highlighted")).toBe(false);
+    expect(button.attributes.get("aria-label")).toBe("Filters (active)");
+    publish({ ...state, status: "loading", nodeCountStatus: null }, ["status"]);
+    expect(button.classes.has("highlighted")).toBe(false);
+    expect(row.classes.has("highlighted")).toBe(false);
+    expect(controller.setVisualizationView).not.toHaveBeenCalled();
+  });
+
   test.each([
     ["datatypesFilterCheckbox", "datatypes"],
     ["objectPropertiesFilterCheckbox", "objectProperties"],
@@ -163,6 +226,37 @@ describe("native visualization view controls", () => {
       expect(controller.setVisualizationView).toHaveBeenLastCalledWith({
         filters: { [filterFieldName]: "show" },
       });
+
+      const publish = controller.subscribeToState.mock.calls[0][0];
+      const state = {
+        status: "ready",
+        layout: { status: "running" },
+        view: {
+          filters: { [filterFieldName]: "hide" },
+          nodesShown: { mode: "all" },
+        },
+        nodeCountStatus: { shownNodeCount: 80, eligibleNodeCount: 80 },
+      };
+      publish(state, ["view", "nodeCountStatus"]);
+      expect(
+        controlElement("filterMenuButton").classes.has("highlighted"),
+      ).toBe(true);
+      expect(
+        controlElement("nodesShownContainer").classes.has("highlighted"),
+      ).toBe(false);
+      publish(
+        {
+          ...state,
+          view: {
+            ...state.view,
+            filters: { [filterFieldName]: "show" },
+          },
+        },
+        ["view"],
+      );
+      expect(
+        controlElement("filterMenuButton").classes.has("highlighted"),
+      ).toBe(false);
     },
   );
 

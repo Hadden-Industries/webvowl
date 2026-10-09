@@ -1,6 +1,10 @@
 // Canonical examples serve production and isolated qualification builds.
 // Historical app/data assets remain available as migration and comparison evidence.
 const examples = new Map([
+  [
+    "benchmark",
+    new URL("../../canonical-examples/benchmark.json", import.meta.url).href,
+  ],
   ["foaf", new URL("../../canonical-examples/foaf.json", import.meta.url).href],
   [
     "goodrelations",

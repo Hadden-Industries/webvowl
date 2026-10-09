@@ -142,7 +142,7 @@ describe("mobile toolbar styles", () => {
     const expectedLabels = [
       "Ontology",
       "Export",
-      "Filter",
+      "Filters",
       "Options",
       "Modes",
       "Debug",

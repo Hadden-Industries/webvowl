@@ -122,3 +122,20 @@ test("count deltas preserve full incidence closure with labels, disjoint edges a
     }
   }
 });
+
+test("All grows with eligibility while an exact former maximum stays fixed", () => {
+  const select = createCanonicalNodeSelector(inspection, rankingIdentity);
+  const filtered = { ...CANONICAL_VISIBLE_FILTERS, datatypes: "hide" };
+  const formerMaximum = select(filtered, { mode: "all" }).nodeCountStatus
+    .eligibleNodeCount;
+  const all = select(CANONICAL_VISIBLE_FILTERS, { mode: "all" });
+  const exact = select(CANONICAL_VISIBLE_FILTERS, {
+    mode: "exact",
+    requestedCount: formerMaximum,
+  });
+  expect(all.nodeCountStatus.eligibleNodeCount).toBeGreaterThan(formerMaximum);
+  expect(all.nodeCountStatus.shownNodeCount).toBe(
+    all.nodeCountStatus.eligibleNodeCount,
+  );
+  expect(exact.nodeCountStatus.shownNodeCount).toBe(formerMaximum);
+});
