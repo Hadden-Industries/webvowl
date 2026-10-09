@@ -81,6 +81,7 @@
   },
   "private": true,
   "jest": {
+    "maxWorkers": 2,
     "testEnvironment": "node",
     "transform": {},
     "testPathIgnorePatterns": [
