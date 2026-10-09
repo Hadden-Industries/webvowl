@@ -21,7 +21,7 @@ OWL 2 lets an axiom carry annotations, and the RDF mapping round-trips them thro
 </owl:Axiom>
 ```
 
-The `dcterms:source` records where the wording of the _definition_ came from.
+The `dcterms:source` records where the wording of the *definition* came from.
 It does not say the class came from Cambridge.
 
 The pinned oracle promotes such annotations to the annotated entity's own `annotations` map, and `VOWLBuilder` was changed to copy that behaviour on the grounds that ADR 0004 assigns the VOWL-JSON serialization to the implementation.
@@ -66,7 +66,7 @@ It says annotations are not part of the graph and belong in a sidebar or tooltip
 
 ADR 0004 assigns VOWL-JSON to the OWL2VOWL implementation because no specification defines its field shapes.
 That authority covers **the shape of the output** - which keys exist, how values are spelled - and stops there.
-Where OWL 2 defines what a construct _means_, the meaning is not the implementation's to redefine, and reproducing a misattribution is replicated error rather than compatibility.
+Where OWL 2 defines what a construct *means*, the meaning is not the implementation's to redefine, and reproducing a misattribution is replicated error rather than compatibility.
 This ADR records that boundary, because the original mistake was made by reading ADR 0004 point 3 as settling questions of meaning too.
 
 Statement-level metadata is a recognised, first-class need rather than an exotic case: it is what RDF 1.2's quoted triples exist for.

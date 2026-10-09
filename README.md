@@ -8,7 +8,7 @@ Load an ontology, inspect its structure, and export a figure for a paper, lectur
 
 ![WebVOWL displaying the MUTO tagging ontology, with connected classes and properties, ontology details, and exploration controls.](docs/images/webvowl-muto.png)
 
-_The bundled MUTO example in the hosted application._
+*The bundled MUTO example in the hosted application.*
 
 ## Try it
 

@@ -32,7 +32,7 @@ Exactly one production caller depends on this (`src/app/js/controller/webVowlCon
 
 ### 2.2 The VOWL model is not keyed by entity
 
-VOWL JSON assigns an `id` per _drawn occurrence_, not per ontology entity.
+VOWL JSON assigns an `id` per *drawn occurrence*, not per ontology entity.
 Across the shipped models:
 
 | Model                | Class entries | IRIs used by more than one entry | Entries with no IRI | Worst collision                      |
@@ -56,7 +56,7 @@ VOWL is not the ontology; it is a rendering-oriented projection of one.
 
 ### 2.4 A canonical `OWLOntology` already exists, is discarded, and cannot be relied on
 
-The `owlapi` consumer cutover landed on this branch at `21003ad5` (_refactor(owl2vowl): Consume standalone owlapi package_, 31 August 2026).
+The `owlapi` consumer cutover landed on this branch at `21003ad5` (*refactor(owl2vowl): Consume standalone owlapi package*, 31 August 2026).
 `ontologySourceLoader.js` imports `owlapi/model`, `owlapi/formats` and `owlapi/io` directly, and `src/owl2vowl/` is built on `OWLManager`, `dispatchAxiom` and `OWLDataFactory`.
 
 So a real canonical entity model is constructed today — and thrown away.
@@ -101,7 +101,7 @@ Meanwhile every drawn element allocates its accessors as instance-own closures, 
 | Property (`BaseElement` 26 + `BaseProperty` 52)                |                                   78 |
 
 FOAF therefore allocates on the order of 9,000 closures; goodrelations on the order of 43,000.
-Every one of those accessors is also a _setter_ when called with an argument, so the object handed to the sidebar today is an unguarded write channel into renderer state.
+Every one of those accessors is also a *setter* when called with an argument, so the object handed to the sidebar today is an unguarded write channel into renderer state.
 
 ## 3. Assessment of the external note
 
@@ -109,7 +109,7 @@ Every one of those accessors is also a _setter_ when called with an argument, so
 
 - The three-way split of domain state, shared interaction state, and visualization runtime state.
 - "Share identity, not mutable object references."
-- The test: _does the information still meaningfully exist when the graph is not mounted?_
+- The test: *does the information still meaningfully exist when the graph is not mounted?*
   If yes, the renderer must not own it.
 - Sibling projections that never query each other.
 - Incremental boundary introduction rather than rewrite.
@@ -119,16 +119,16 @@ Every one of those accessors is also a _setter_ when called with an argument, so
 **It assumes a canonical entity model is available to the application.**
 One is built — `owlapi` produces a real `OWLOntology` — but only for two of the four source kinds, and it is discarded at the converter boundary (§2.4).
 The application's `entitiesById` cannot be that ontology without stranding every preset ontology, and cannot be synthesised from VOWL without either discarding occurrences or asserting an entity layer VOWL never asserted.
-The honest canonical model available at the application layer is the VOWL model _as authored_, with its occurrence multiplicity intact.
+The honest canonical model available at the application layer is the VOWL model *as authored*, with its occurrence multiplicity intact.
 
 **`NodeSelected(nodeId)` is not sufficient.**
 The note collapses semantic identity and occurrence identity into one identifier.
 §2.2 shows they differ by a factor of 21 in shipped data.
 Focus wants the semantic reference — highlight every occurrence of this entity.
-Selection wants the occurrence — the reader clicked _this_ circle, pin _this_ one.
+Selection wants the occurrence — the reader clicked *this* circle, pin *this* one.
 
 **"Positions belong to D3" is too strong.** `pos` is in the document.
-The correct rule is that _authored_ positions are input and _simulated_ positions are renderer-local.
+The correct rule is that *authored* positions are input and *simulated* positions are renderer-local.
 The note's own table gestures at this under "pinned node position"; the distinction needs to be explicit here because VOWL always carries `pos`.
 
 ## 4. The three defects this framing exposes
@@ -184,7 +184,7 @@ Remove `readOntologyInspectionSnapshot` from `RENDERED_GRAPH_RUNTIME_METHOD_NAME
 One production caller changes.
 
 `readVisibleRenderedGraphSnapshot` **stays**: visibility after filtering is genuinely renderer-owned.
-This is the split in miniature — the renderer owns what is _visible_, the application owns what is _true_.
+This is the split in miniature — the renderer owns what is *visible*, the application owns what is *true*.
 
 `replaceVowlModel` becomes `replaceRenderableGraph`, carrying a `RenderableGraphProjection` instead of the full model: identity, kind, display labels, `attributes`, `pos`, `domain`/`range`, and `equivalent`.
 
@@ -223,7 +223,7 @@ selection: {
 
 `focus` in the view request keeps taking semantic references and keeps lighting every occurrence.
 Selection, pinning and the selected halo take occurrence references.
-Without this, applying selection _from_ state highlights all 21 `rdfs:Literal` nodes when the reader clicked one.
+Without this, applying selection *from* state highlights all 21 `rdfs:Literal` nodes when the reader clicked one.
 
 ### E. `OntologyInspectionSnapshot` is completed
 
@@ -250,7 +250,7 @@ Tier 1 needs three more of the same shape, and two new viewport directives — n
 | Display modes, editor mode                 | `setVisualizationMode({ … })`, plus `state.visualizationMode` so `revealDetailsSectionForCurrentMode` stops reading `graph.editorMode()`                            | No                                |
 | Reset button                               | Already expressible as a view request plus a pause request; no new vocabulary                                                                                       | Existing                          |
 
-This keeps §1.4's "deliberately smaller than the existing UI" intact for the _agent_ surface while giving the human UI a complete controller vocabulary.
+This keeps §1.4's "deliberately smaller than the existing UI" intact for the *agent* surface while giving the human UI a complete controller vocabulary.
 
 ### G. Sequencing
 
@@ -271,8 +271,8 @@ Step 6 is separable and could be deferred without blocking anything.
 ## 6. What this actually buys, stated honestly
 
 **The performance claim is real but second-order.**
-A narrower projection makes the graph cheaper to _hold and clone_ — 30–50% of the payload, and a `structuredClone` that was already only 0.15–1.0 ms.
-It does not make the graph meaningfully cheaper to _render_: force-simulation ticks scale with node count, SVG element count is unchanged, and the ~70–78 instance-own closures per element are allocated per drawn element regardless of payload width.
+A narrower projection makes the graph cheaper to *hold and clone* — 30–50% of the payload, and a `structuredClone` that was already only 0.15–1.0 ms.
+It does not make the graph meaningfully cheaper to *render*: force-simulation ticks scale with node count, SVG element count is unchanged, and the ~70–78 instance-own closures per element are allocated per drawn element regardless of payload width.
 Claiming a rendering win from this change would not survive measurement.
 
 There is a genuine downstream render win available later — if the renderer only ever receives what it draws, a filtered-out element need not be constructed at all, where today filters hide elements after construction.
@@ -283,13 +283,13 @@ That is a separate change and is not proposed here.
 - Semantic questions answerable before the renderer mounts, which is what makes deep-linking (`?selected=class:Person`) and early `get_ontology_summary` possible at all.
 - The projection becomes testable against `foaf.json` and `goodrelations.json` with no renderer, no DOM, no D3.
 - One writable object stops crossing the boundary.
-- Every fact has one encoding: labels live in the model, and the renderer gets a _derived_ display label recomputed on language change rather than a second stored copy that can disagree.
+- Every fact has one encoding: labels live in the model, and the renderer gets a *derived* display label recomputed on language change rather than a second stored copy that can disagree.
 
 **On entropy, precisely.**
 "Maximize entropy" is not the operative principle; three sharper ones are.
-_Data-processing inequality_ says a consumer downstream of a lossy stage is permanently capped by it, which is why widening the adapter's projection is the weaker fix.
-_Sufficient statistic_ is the exact form of "the graph holds only what it needs": the render projection must retain everything that determines pixels and nothing else.
-_Single encoding_ says two copies of one fact form a channel that can emit disagreement.
+*Data-processing inequality* says a consumer downstream of a lossy stage is permanently capped by it, which is why widening the adapter's projection is the weaker fix.
+*Sufficient statistic* is the exact form of "the graph holds only what it needs": the render projection must retain everything that determines pixels and nothing else.
+*Single encoding* says two copies of one fact form a channel that can emit disagreement.
 
 And the maximum-entropy reading cuts **against** the external note on one point: collapsing FOAF's six `owl:Thing` occurrences into one entity would assert structure the input never asserted.
 The canonical model must preserve occurrence multiplicity even though it looks redundant, because the redundancy is meaningful.

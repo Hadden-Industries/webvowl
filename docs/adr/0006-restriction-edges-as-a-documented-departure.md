@@ -16,7 +16,7 @@ It is not, and the evidence is unambiguous.
 
 The specification's Visual Notation section, in the paragraph following Table 9, lists `owl:allValuesFrom`, `owl:someValuesFrom`, `owl:hasValue`, `owl:Restriction` and `owl:onProperty` among elements that are not part of the VOWL visualization, saying they could be displayed some other way such as a tooltip or sidebar.
 That sentence alone is weak evidence, because the same list contains `rdfs:comment`, `rdfs:seeAlso` and `rdfs:isDefinedBy`, which every implementation emits into a sidebar rather than discarding.
-Read in context it means _not part of the graph_, not _discard_.
+Read in context it means *not part of the graph*, not *discard*.
 
 The authors' own publication settles it.
 Section 5.3 of "Visualizing Ontologies with VOWL" tests VOWL against OntoViBe, an ontology visualization benchmark built from a comprehensive set of OWL 2 constructs whose elements are named self-descriptively, and its figure is that benchmark rendered by WebVOWL version 0.4.0 - which the same paragraph calls a complete implementation of VOWL 2.

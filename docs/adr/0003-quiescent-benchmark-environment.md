@@ -14,7 +14,7 @@ The finding was recorded in `baseline.md`, classified `LOCAL_PHASE_FOLLOW_UP` as
 
 No regression existed.
 The benchmark had been launched in the background while the same session ran repeated full-text scans over a 44 MB file.
-Repeated on an idle machine, at the same revision, runtime, machine and lockfile, the signal measured 1,809.97 ms, which is 1.86% _below_ the accepted baseline.
+Repeated on an idle machine, at the same revision, runtime, machine and lockfile, the signal measured 1,809.97 ms, which is 1.86% *below* the accepted baseline.
 Every VOWL signal captured in the same window was inflated by a similar factor.
 
 The measurement complied with §20.6 as written.

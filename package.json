@@ -59,10 +59,10 @@
     "format:python:check": "node util/runRepositoryPython.mjs -I -m ruff format --check .",
     "lint:python": "node util/runRepositoryPython.mjs -I -m ruff check .",
     "lint:python:fix": "node util/runRepositoryPython.mjs -I -m ruff check --fix .",
-    "format:docs": "node tooling/markdown/node_modules/@hadden-industries/markdown-quality/src/cli.js format",
-    "format:docs:check": "node tooling/markdown/node_modules/@hadden-industries/markdown-quality/src/cli.js check",
+    "format:docs": "npm --prefix tooling/markdown run format",
+    "format:docs:check": "npm --prefix tooling/markdown run check",
     "check:python": "npm run lint:python && npm run format:python:check && npm run test:setup",
-    "check:docs": "node tooling/markdown/node_modules/@hadden-industries/markdown-quality/src/cli.js check",
+    "check:docs": "npm --prefix tooling/markdown run check",
     "check": "npm run lint && npm run format:app:check && npm run format:python:check && npm run test:setup && npm run test:markdown && npm test -- --runInBand && npm run build:bundle",
     "fix:all": "stylelint \"src/**/*.css\" --fix && eslint src/ util/ --fix && npm run lint:python:fix && npm run format",
     "zip": "node util/zip.mjs",
@@ -71,7 +71,7 @@
     "setup:development": "node util/setUpDevelopmentEnvironment.mjs",
     "test:setup": "node util/runRepositoryPython.mjs -m unittest discover -s util -p test_*.py",
     "install:markdown": "npm ci --prefix tooling/markdown --ignore-scripts --no-audit --no-fund",
-    "test:markdown": "node --test util/check-markdown-candidate.probes.mjs"
+    "test:markdown": "node --test util/markdownIntegration.probes.mjs"
   },
   "license": "AGPL-3.0-only",
   "overrides": {

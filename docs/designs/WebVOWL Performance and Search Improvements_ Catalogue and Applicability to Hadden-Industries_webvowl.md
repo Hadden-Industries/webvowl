@@ -2,7 +2,7 @@
 
 ## Executive summary
 
-The attached paper, _Making WebVOWL Great Again: Improving Performance and Search_, is not a collection of cosmetic optimisations.
+The attached paper, *Making WebVOWL Great Again: Improving Performance and Search*, is not a collection of cosmetic optimisations.
 Its main contribution is a systematic removal of repeated linear scans from WebVOWL's ontology-loading pipeline, replacing them with `Map`/`Set`-based indexing, plus a substantial change to the JavaScript object model and two search improvements.
 The reported effect is exceptional: ENVO loading falls from **631.7 seconds to 1.23 seconds, about 514× faster**, peak memory falls by as much as **57%**, and YAGO—132,882 nodes and 166,425 edges—goes from failing on a 32 GB machine to loading on the authors' 8 GB benchmark laptop.
 The search work also removes the previous restriction that only currently rendered entities can effectively be found. fileciteturn0file0
@@ -319,7 +319,7 @@ Regression tests must pay particular attention to ties: if the node budget is 10
 
 ### Subclass filtering
 
-This improvement had one of the paper's most dramatic _feature-specific_ results: ENVO's solitary-subclass filter reportedly fell from **63.8 seconds to 0.6 seconds, about 106× faster**, while YAGO changed from not completing to 7.6 seconds. fileciteturn0file0
+This improvement had one of the paper's most dramatic *feature-specific* results: ENVO's solitary-subclass filter reportedly fell from **63.8 seconds to 0.6 seconds, about 106× faster**, while YAGO changed from not completing to 7.6 seconds. fileciteturn0file0
 
 Legacy's implementation illustrates why.
 It first builds:
