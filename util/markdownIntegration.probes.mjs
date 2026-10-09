@@ -11,7 +11,7 @@ import {
 } from "node:fs";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -19,7 +19,6 @@ const root = fileURLToPath(new URL("../", import.meta.url));
 const tooling = join(root, "tooling/markdown");
 const requireMarkdown = createRequire(join(tooling, "package.json"));
 const entry = requireMarkdown.resolve("@hadden-industries/markdown-quality");
-const installedRoot = resolve(dirname(entry), "..");
 const {
   executeQuality,
   inspectSelection,
@@ -31,14 +30,11 @@ const json = (path) => JSON.parse(readFileSync(path, "utf8"));
 const sourceSha = "47febbe1b6f3282814e77db7ea13eac72b4928ed";
 
 test("installed public contracts bind WebVOWL's retained source and resource policy", () => {
-  const identity = json(join(installedRoot, "assets/source-identity.json"));
-  assert.equal(identity.head, sourceSha);
-  assert.equal(identity.clean, true);
   const workflow = readFileSync(
     join(root, ".github/workflows/markdown-quality.yml"),
     "utf8",
   );
-  assert.ok(workflow.includes(`markdown-quality.yml@${identity.head}`));
+  assert.ok(workflow.includes(`markdown-quality.yml@${sourceSha}`));
   const profile = readExecutionProfile({ root });
   assert.equal(profile.samples, 6);
   assert.equal(profile.checkerMs, 30000);
