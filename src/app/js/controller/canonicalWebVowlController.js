@@ -414,17 +414,17 @@ export function createCanonicalWebVowlController({
       case "rendering-statistics-changed":
         publish({ renderingStatistics: payload });
         break;
-      case "graph-layout-state-changed":
-        publish({
-          layout: {
-            status: payload.isPaused
-              ? "paused"
-              : payload.hasEnded
-                ? "settled"
-                : "relaxing",
-          },
-        });
+      case "graph-layout-state-changed": {
+        const status = payload.isPaused
+          ? "paused"
+          : payload.hasEnded
+            ? "settled"
+            : "relaxing";
+        if (state.layout.status !== status) {
+          publish({ layout: { status } });
+        }
         break;
+      }
       case "render-warning-raised":
         publish({ warnings: [...state.warnings, payload.message].slice(-20) });
         break;

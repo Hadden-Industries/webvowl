@@ -10,7 +10,7 @@
     "@xmldom/xmldom": "0.9.12",
     "d3": "^7.9.0",
     "lodash": "^4.18.1",
-    "owlapi": "npm:@hadden-industries/owlapi@0.1.0-rc.1"
+    "owlapi": "git+https://github.com/Hadden-Industries/owlapi.git#ccace6afe201c6e2cc6a49e53b2d50bd6617916f"
   },
   "devDependencies": {
     "@eslint/js": ">=10.0.1",

@@ -19,11 +19,36 @@ const createLinkCreator = (function () {
   linkCreator.createLinks = function (properties) {
     const links = groupPropertiesToLinks(properties);
 
-    for (let i = 0, l = links.length; i < l; i++) {
-      const link = links[i];
-
-      countAndSetLayers(link, links);
-      countAndSetLoops(link, links);
+    const pairs = new Map();
+    const loopsByNode = new Map();
+    for (const link of links) {
+      const domain = link.domain();
+      const range = link.range();
+      let layers = pairs.get(domain)?.get(range);
+      if (!layers) {
+        layers = [];
+        for (const [from, to] of [
+          [domain, range],
+          [range, domain],
+        ]) {
+          if (!pairs.has(from)) {
+            pairs.set(from, new Map());
+          }
+          pairs.get(from).set(to, layers);
+        }
+      }
+      link.layerIndex(layers.length);
+      layers.push(link);
+      link.layers(layers);
+      if (domain === range) {
+        if (!loopsByNode.has(domain)) {
+          loopsByNode.set(domain, []);
+        }
+        const loops = loopsByNode.get(domain);
+        link.loopIndex(loops.length);
+        loops.push(link);
+        link.loops(loops);
+      }
     }
 
     return links;
@@ -60,62 +85,6 @@ const createLinkCreator = (function () {
     }
 
     return links;
-  }
-
-  function countAndSetLayers(link, allLinks) {
-    let layer, layers, i, l;
-
-    if (typeof link.layers() === "undefined") {
-      layers = [];
-
-      // Search for other links that are another layer
-      for (i = 0, l = allLinks.length; i < l; i++) {
-        const otherLink = allLinks[i];
-        if (
-          (link.domain() === otherLink.domain() &&
-            link.range() === otherLink.range()) ||
-          (link.domain() === otherLink.range() &&
-            link.range() === otherLink.domain())
-        ) {
-          layers.push(otherLink);
-        }
-      }
-
-      // Set the results on each of the layers
-      for (i = 0, l = layers.length; i < l; ++i) {
-        layer = layers[i];
-
-        layer.layerIndex(i);
-        layer.layers(layers);
-      }
-    }
-  }
-
-  function countAndSetLoops(link, allLinks) {
-    let loop, loops, i, l;
-
-    if (typeof link.loops() === "undefined") {
-      loops = [];
-
-      // Search for other links that are also loops of the same node
-      for (i = 0, l = allLinks.length; i < l; i++) {
-        const otherLink = allLinks[i];
-        if (
-          link.domain() === otherLink.domain() &&
-          link.domain() === otherLink.range()
-        ) {
-          loops.push(otherLink);
-        }
-      }
-
-      // Set the results on each of the loops
-      for (i = 0, l = loops.length; i < l; ++i) {
-        loop = loops[i];
-
-        loop.loopIndex(i);
-        loop.loops(loops);
-      }
-    }
   }
 
   function createLink(property) {

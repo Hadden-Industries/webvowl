@@ -1,4 +1,5 @@
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { existsSync, lstatSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -17,11 +18,16 @@ const LOCAL_PACKAGE_SOURCE_PATH = path.join(ROOT, "src", "owlapi-js");
 const INSTALLED_PACKAGE_PATH = path.join(ROOT, "node_modules", "owlapi");
 const UTILITY_PATH = path.join(ROOT, "util");
 
-const EXPECTED_PACKAGE_SPECIFIER = "npm:@hadden-industries/owlapi@0.1.0-rc.1";
-const EXPECTED_RESOLUTION =
-  "https://registry.npmjs.org/@hadden-industries/owlapi/-/owlapi-0.1.0-rc.1.tgz";
+const EXPECTED_PACKAGE_SPECIFIER =
+  "git+https://github.com/Hadden-Industries/owlapi.git#ccace6afe201c6e2cc6a49e53b2d50bd6617916f";
+const EXPECTED_RESOLUTION = EXPECTED_PACKAGE_SPECIFIER;
 const EXPECTED_INTEGRITY =
-  "sha512-uDv9Omh2l2zxAjpVeQi4UxXEad/cRiKQUJT5RhxR3WtaAjPL3gAoOha9dPRhH6o2zlBdeg50g8EIVQgtt8RGqA==";
+  "sha512-365L3S4K3Z/kiZwl3ubDLWECRvTK+bHfwBtaekZk7myLd8kJ/RgEDmsPJODEYi5MY5rbPfwaWiFYKOaloufhzg==";
+// Independently derived from git archive of the approved commit, then npm pack
+// --ignore-scripts. npm skips integrity verification for Git dependencies.
+// Archive SHA-256: a2a3575864489ac8a3a9000f2e70992877b2c90076894570663ec52f5d4fb346.
+const EXPECTED_PAYLOAD_SHA256 =
+  "848a8ea563216ea4acc91d733ec22930b5efb5358951743d09b9fd5b0d653be5";
 const EXPECTED_PACKAGE_VERSION = "0.1.0-rc.1";
 const EXPECTED_EXPORTS = {
   ".": "./index.js",
@@ -57,6 +63,27 @@ const MODULE_SPECIFIER_RULE_ID = "boundary/collect-module-specifiers";
 const javascriptLinter = new Linter({ cwd: ROOT });
 
 const readJson = (filePath) => JSON.parse(readFileSync(filePath, "utf8"));
+
+const packagePayload = (directory = INSTALLED_PACKAGE_PATH) =>
+  readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    // Nested installed dependencies have their own lock identities.
+    if (entry.name === "node_modules") {
+      return [];
+    }
+    const filePath = path.join(directory, entry.name);
+    if (entry.isDirectory()) {
+      return packagePayload(filePath);
+    }
+    if (!entry.isFile()) {
+      throw new Error(`Unexpected non-file in OwlAPI payload: ${filePath}`);
+    }
+    return [
+      [
+        path.relative(INSTALLED_PACKAGE_PATH, filePath).replaceAll("\\", "/"),
+        createHash("sha256").update(readFileSync(filePath)).digest("hex"),
+      ],
+    ];
+  });
 
 const hasUnexpectedOwlapiReference = (manifest) => {
   const manifestWithoutCoordinate = structuredClone(manifest);
@@ -311,7 +338,7 @@ describe("installed owlapi consumer boundary", () => {
     ).toEqual([]);
   });
 
-  test("locks the approved registry alias and integrity for both consumers", () => {
+  test("locks the approved Git source and archive integrity for both consumers", () => {
     const lockfile = readJson(PACKAGE_LOCK_PATH);
     const rootPackage = lockfile.packages?.[""];
     const installedPackage = lockfile.packages?.["node_modules/owlapi"];
@@ -330,6 +357,18 @@ describe("installed owlapi consumer boundary", () => {
       ),
     ).toEqual(["node_modules/owlapi"]);
     expect(installedPackage?.version).toBe(EXPECTED_PACKAGE_VERSION);
+    expect(installedPackage?.link).toBeUndefined();
+  });
+
+  test("installed Git payload matches the independently packed producer commit", () => {
+    expect(lstatSync(INSTALLED_PACKAGE_PATH).isSymbolicLink()).toBe(false);
+    const inventory = packagePayload().sort(([left], [right]) =>
+      left < right ? -1 : left > right ? 1 : 0,
+    );
+    expect(inventory).toHaveLength(114);
+    expect(
+      createHash("sha256").update(JSON.stringify(inventory)).digest("hex"),
+    ).toBe(EXPECTED_PAYLOAD_SHA256);
   });
 
   test("observes the approved installed identity and public exports", () => {

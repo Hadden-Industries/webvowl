@@ -28,7 +28,7 @@
     "ajv": "8.20.0",
     "bcp-47": "2.1.1",
     "canonicalize": "5.1.0",
-    "owlapi": "npm:@hadden-industries/owlapi@0.1.0-rc.1",
+    "owlapi": "git+https://github.com/Hadden-Industries/owlapi.git#ccace6afe201c6e2cc6a49e53b2d50bd6617916f",
     "rdf-canonize": "5.0.0"
   }
 }

@@ -266,6 +266,9 @@ export function createGraphLayoutSettler(dependencies) {
           ) {
             return;
           }
+          if (renderedGraphEvent.payload?.hasEnded === false) {
+            return;
+          }
           const graphLayoutSnapshot = readCurrentGenerationSnapshot();
           if (graphLayoutSnapshot?.hasEnded === true) {
             completeWithOutcome(
