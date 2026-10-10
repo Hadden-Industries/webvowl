@@ -52,30 +52,54 @@ class JestProcessTests(unittest.TestCase):
     )
     def test_linux_selected_and_shadow_execution(self):
         """Run the JS adapter regressions in the existing Python matrix's selected venv."""
-        result = subprocess.run(
-            [
-                NODE,
-                "--experimental-vm-modules",
-                "--disable-warning=ExperimentalWarning",
-                str(ROOT / "node_modules/jest/bin/jest.js"),
-                "--runInBand",
-                "--runTestsByPath",
-                str(ROOT / "util/dependency-tooling.test.mjs"),
-                "--testNamePattern",
-                "native Jest result integrity",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            encoding="utf-8",
-            timeout=180,
-            check=False,
-            env={
-                **os.environ,
-                "NODE_OPTIONS": "--experimental-vm-modules --disable-warning=ExperimentalWarning",
-                "NODE_PATH": "",
-            },
-        )
-        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+        with tempfile.TemporaryDirectory(prefix="webvowl-linux-adapter-") as temporary:
+            output = Path(temporary) / "jest.json"
+            result = subprocess.run(
+                [
+                    NODE,
+                    "--experimental-vm-modules",
+                    "--disable-warning=ExperimentalWarning",
+                    str(ROOT / "node_modules/jest/bin/jest.js"),
+                    "--runInBand",
+                    "--runTestsByPath",
+                    str(ROOT / "util/dependency-tooling.test.mjs"),
+                    "--testNamePattern",
+                    "native Jest result integrity",
+                    "--json",
+                    "--outputFile",
+                    str(output),
+                ],
+                cwd=ROOT,
+                capture_output=True,
+                encoding="utf-8",
+                timeout=180,
+                check=False,
+                env={
+                    **os.environ,
+                    "NODE_OPTIONS": "--experimental-vm-modules --disable-warning=ExperimentalWarning",
+                    "NODE_PATH": "",
+                },
+            )
+            self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+            native = json.loads(output.read_text(encoding="utf-8"))
+            cases = [
+                case
+                for suite in native["testResults"]
+                for case in suite["assertionResults"]
+                if "native Jest result integrity" in case["ancestorTitles"]
+            ]
+            self.assertGreaterEqual(
+                len(cases), 2, "Required adapter group must execute"
+            )
+            self.assertTrue(all(case["status"] == "passed" for case in cases), cases)
+            names = {case["title"] for case in cases}
+            self.assertIn(
+                "executes a real whole-file subset without shadow duplication", names
+            )
+            self.assertIn(
+                "shadow detects a deliberately defective selector and retains both results",
+                names,
+            )
 
     def test_identity_readback_loss_never_crosses_execution_gate(self):
         """Inject only an OS identity readback failure, never a successful containment result."""

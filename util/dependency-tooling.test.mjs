@@ -647,12 +647,21 @@ describe("native Jest result integrity", () => {
       );
       const destination = mkdtempSync(join(tmpdir(), "webvowl-jest-result-"));
       ownedDirectories.push(destination);
-      const result = await runJest(
-        root,
-        admitJest(root),
-        ["src/descendant.test.js"],
-        join(destination, "run"),
-      );
+      const oldOptions = process.env.NODE_OPTIONS;
+      let result;
+      try {
+        process.env.NODE_OPTIONS =
+          "--require=webvowl-ambient-preload-must-not-load";
+        result = await runJest(
+          root,
+          admitJest(root),
+          ["src/descendant.test.js"],
+          join(destination, "run"),
+        );
+      } finally {
+        if (oldOptions === undefined) delete process.env.NODE_OPTIONS;
+        else process.env.NODE_OPTIONS = oldOptions;
+      }
       expect(result.success).toBe(true);
     },
     30000,
@@ -690,6 +699,10 @@ describe("native Jest result integrity", () => {
       const report = await planAffected({ root, base });
       expect(report.mode).toBe("selected");
       expect(report.selected).toEqual([consumer]);
+      expect(report.reasons[consumer].kind).toBe("declared-relation");
+      expect(report.reasons[consumer].directRelations).toEqual([
+        policy.relations[0].id,
+      ]);
       const result = await executePlan(report, { shadow: true });
       ownedDirectories.push(result.evidenceDirectory);
       expect(result.selectedRun.outcomes[consumer].status).toBe("failed");
@@ -714,6 +727,11 @@ describe("native Jest result integrity", () => {
       expect(result.success).toBe(true);
       expect(result.actualMode).toBe("selected");
       expect(result.fullRun).toBeNull();
+      expect(result.timings.selectedExecutionMs).toBeGreaterThan(0);
+      expect(result.timings.fullExecutionMs).toBe(0);
+      expect(result.timings.totalMs).toBe(
+        result.timings.planningMs + result.timings.executionMs,
+      );
     },
     30000,
   );

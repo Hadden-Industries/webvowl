@@ -295,7 +295,19 @@ export async function selectFromGraphs(graphs, changed, tests, relations) {
           selected.map((path) => [
             path,
             {
-              kind: changed.includes(path) ? "direct-change" : "native-reach",
+              kind: changed.includes(path)
+                ? "direct-change"
+                : relations.some(
+                      (rule) => applied.has(rule.id) && rule.consumer === path,
+                    )
+                  ? "declared-relation"
+                  : "native-reach",
+              directRelations: relations
+                .filter(
+                  (rule) => applied.has(rule.id) && rule.consumer === path,
+                )
+                .map((rule) => rule.id)
+                .sort(),
               scope:
                 "selection-wide context; consult native subgraphs for file reachability",
               seeds: [...seeds].sort(),
