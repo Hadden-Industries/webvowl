@@ -207,7 +207,8 @@ export function createCanonicalVowlInspectionProjection(
     // Complete retained evidence is separate from the bounded relationship
     // summary. Typed values, anchors, qualifications and details-only facts
     // remain available even when they have no drawable occurrence.
-    retainedFacts: structuredClone(inspection),
+    // The public snapshot constructor makes the owned, frozen copy once.
+    retainedFacts: inspection,
   };
   for (const record of semantic) {
     const reference = ref(record.id);

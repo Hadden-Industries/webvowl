@@ -711,12 +711,13 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
           },
         ],
       });
-      sharedSearchController.getOntologyElementRevealPlan = () => ({
+      sharedSearchController.getOntologyNeighborhoodRevealPlan = () => ({
         canReveal: true,
         requestedCount: 73,
       });
-      sharedSearchController.revealOntologyElements = async (request) => {
+      sharedSearchController.revealOntologyNeighborhood = async (request) => {
         revealed.push(request);
+        return { status: "revealed", counts: { nodes: 3 } };
       };
       const menu = searchMenuFactory({
         documentObject: mockDoc,

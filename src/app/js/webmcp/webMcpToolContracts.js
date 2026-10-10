@@ -361,6 +361,36 @@ export const WEB_MCP_TOOL_DEFINITIONS = Object.freeze([
     }),
   }),
   Object.freeze({
+    name: "reveal_ontology_neighborhood",
+    description:
+      "Temporarily reveal the complete admitted depth-two neighbourhood of exact semantic references. Refuses atomically above 25 references, 500 nodes, 1000 edges, 2000 labels or 10000 inspected adjacency entries. Canonical export and Share retain the ordinary view.",
+    annotations: Object.freeze({
+      readOnlyHint: false,
+      untrustedContentHint: true,
+    }),
+    inputSchema: closedObjectSchema({
+      properties: {
+        ontologyElementReferences: Object.freeze({
+          type: "array",
+          items: ONTOLOGY_ELEMENT_REFERENCE_SCHEMA,
+          minItems: 1,
+          maxItems: 25,
+        }),
+      },
+      required: ["ontologyElementReferences"],
+    }),
+  }),
+  Object.freeze({
+    name: "clear_ontology_neighborhood",
+    description:
+      "Restore the ordinary visibility, positions, pins and camera after a temporary neighbourhood reveal.",
+    annotations: Object.freeze({
+      readOnlyHint: false,
+      untrustedContentHint: true,
+    }),
+    inputSchema: closedObjectSchema({}),
+  }),
+  Object.freeze({
     name: "set_visualization_view",
     description:
       "Apply supported language, filters, focus, layout, and viewport changes to the visible WebVOWL graph.",
@@ -1685,6 +1715,39 @@ export function projectWebMcpToolFailure(toolName, thrownError) {
 // map is the whole routing table: a tool with no entry cannot be called, and a
 // controller operation with no entry is not reachable from an agent.
 const WEB_MCP_TOOL_ROUTES = Object.freeze({
+  reveal_ontology_neighborhood: Object.freeze({
+    normalizeToolInput: (input) => {
+      assertOnlyAllowedFieldNames(
+        input,
+        ["ontologyElementReferences"],
+        "reveal_ontology_neighborhood input",
+      );
+      if (
+        !Array.isArray(input.ontologyElementReferences) ||
+        input.ontologyElementReferences.length < 1 ||
+        input.ontologyElementReferences.length > 25
+      ) {
+        refuse("Supply between 1 and 25 ontology-element references.");
+      }
+      return Object.freeze({
+        ontologyElementReferences: input.ontologyElementReferences.map(
+          normalizeOntologyElementReference,
+        ),
+      });
+    },
+    controllerOperationName: "revealOntologyNeighborhood",
+  }),
+  clear_ontology_neighborhood: Object.freeze({
+    normalizeToolInput: (input = {}) => {
+      assertOnlyAllowedFieldNames(
+        input,
+        [],
+        "clear_ontology_neighborhood input",
+      );
+      return Object.freeze({});
+    },
+    controllerOperationName: "clearOntologyNeighborhood",
+  }),
   get_visualization_share_link: Object.freeze({
     normalizeToolInput: (input = {}) => {
       assertOnlyAllowedFieldNames(

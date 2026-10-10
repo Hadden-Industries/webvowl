@@ -19,6 +19,60 @@ const bytes = new Uint8Array(
 );
 const request = () => ({ operation: "open-canonical-model", bytes });
 
+test("temporary neighbourhood replacement and capture preserve the complete ordinary scene", async () => {
+  const { session } = setup();
+  await session.load(request());
+  const occurrences = session.snapshot().inspection.occurrences;
+  const node = occurrences.find(({ kind }) => kind === "class-node");
+  session.updateView({ hidden: [session.scene().reference(node.id)] });
+  const ordinary = session.scene().snapshot();
+  const before = await session.capture();
+  session.revealNeighborhood([]);
+  expect(session.hasNeighborhood()).toBe(true);
+  session
+    .scene()
+    .arrange(
+      [
+        {
+          reference: session.scene().reference(node.id),
+          position: { x: 999, y: 777 },
+          pinned: true,
+        },
+      ],
+      { camera: { center: { x: 80, y: 90 }, zoom: 2 } },
+    );
+  session.revealNeighborhood([node.id]);
+  expect(await session.capture()).toEqual(before);
+  expect(session.clearNeighborhood()).toBe(true);
+  expect(session.scene().snapshot()).toEqual(ordinary);
+  expect(session.hasNeighborhood()).toBe(false);
+  expect(session.clearNeighborhood()).toBe(false);
+  expect(await session.capture()).toEqual(before);
+  session.dispose();
+});
+
+test("failed neighbourhood publication leaves the ordinary scene and restoration owner untouched", async () => {
+  const { session } = setup();
+  await session.load(request());
+  const snapshot = session.snapshot();
+  const runtime = {
+    readCanonicalDrawingState: () => ({
+      ...session.identity(),
+      placements: snapshot.visualization.placements,
+      camera: snapshot.visualization.camera,
+    }),
+    applyCanonicalDrawingRevision() {
+      throw new Error("drawing rejected");
+    },
+  };
+  expect(() =>
+    session.revealNeighborhood([], { renderedGraphRuntime: runtime }),
+  ).toThrow("drawing rejected");
+  expect(session.scene().snapshot()).toEqual(snapshot.visualization);
+  expect(session.hasNeighborhood()).toBe(false);
+  session.dispose();
+});
+
 test("fresh loads show exactly 50, explicit zero wins and saved visibility reopens with All", async () => {
   const { session } = setup();
   const source = {

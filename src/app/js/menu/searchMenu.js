@@ -12,6 +12,7 @@ export function createSearchMenu({
   const searchMenu = {};
   let focusableElementCountsBySearchEntry = [];
   let hasVisualizationFocus = false;
+  let hasTemporaryNeighborhood = false;
   let dictionary = [];
   let entryNames = [];
   let searchLineEdit;
@@ -486,8 +487,8 @@ export function createSearchMenu({
       const visible =
         focusableElementCountsBySearchEntry[newResultsIds[i]] ?? 0;
       const reveal =
-        visible === 0
-          ? webVowlController.getOntologyElementRevealPlan?.(entries)
+        visible < eLen
+          ? webVowlController.getOntologyNeighborhoodRevealPlan?.(entries)
           : undefined;
 
       for (let a = 0; a < eLen; a++) {
@@ -512,13 +513,14 @@ export function createSearchMenu({
         const cue = documentObject.createElement("span");
         cue.textContent = " · Reveal in graph";
         testEntry.appendChild(cue);
-        testEntry.title = `Increase Nodes shown to ${reveal.requestedCount} and reveal this result.`;
+        testEntry.title =
+          "Temporarily reveal this result and its neighbourhood. Clear search to restore the ordinary view.";
       } else if (eLen === 1 || allSame === true) {
         if (visible < 1) {
           testEntry.classList.add("search-entry-disabled");
           testEntry.title =
             rawTitle +
-            "\nHidden by another filter or the restored snapshot. Change that visibility first.";
+            "\nNo complete neighbourhood is available within the reveal limits. Details remain available.";
           testEntry.onclick = function () {};
         }
       } else {
@@ -596,14 +598,21 @@ export function createSearchMenu({
   // Clearing highlights is a controller action; presenting its resulting state
   // does not issue another request or change the detail selection.
   searchMenu.clearVisualizationFocus = function () {
-    if (hasVisualizationFocus === false) {
+    if (!hasVisualizationFocus && !hasTemporaryNeighborhood) {
       return undefined;
     }
+    const clearNeighborhood = hasTemporaryNeighborhood;
+    hasTemporaryNeighborhood = false;
     hasVisualizationFocus = false;
     setLocateButtonState(false);
     updateClearButtonVisibility();
     return runVisualizationControlAction(
-      () => webVowlController?.setVisualizationView({ focus: [] }),
+      () =>
+        clearNeighborhood
+          ? webVowlController
+              .clearOntologyNeighborhood()
+              .then(() => webVowlController.setVisualizationView({ focus: [] }))
+          : webVowlController?.setVisualizationView({ focus: [] }),
       documentObject,
     );
   };
@@ -651,19 +660,33 @@ export function createSearchMenu({
     // which is what the controller reports through isFocusable.
     setLocateButtonState((focusableElementCountsBySearchEntry[id] ?? 0) > 0);
     if (correspondingIds) {
-      if ((focusableElementCountsBySearchEntry[id] ?? 0) > 0) {
+      if (
+        (focusableElementCountsBySearchEntry[id] ?? 0) ===
+        correspondingIds.length
+      ) {
         searchMenu.focusOntologyElements(correspondingIds);
       } else if (
-        webVowlController.getOntologyElementRevealPlan?.(correspondingIds)
+        webVowlController.getOntologyNeighborhoodRevealPlan?.(correspondingIds)
           ?.canReveal
       ) {
-        runVisualizationControlAction(
-          () =>
-            webVowlController.revealOntologyElements({
-              ontologyElementReferences: correspondingIds,
-            }),
-          documentObject,
-        );
+        runVisualizationControlAction(async () => {
+          const result = await webVowlController.revealOntologyNeighborhood({
+            ontologyElementReferences: correspondingIds,
+          });
+          hasTemporaryNeighborhood = result.status === "revealed";
+          const status = documentObject.getElementById(
+            "visualizationActionStatus",
+          );
+          if (status) {
+            status.textContent =
+              result.status === "revealed"
+                ? `Temporary neighbourhood: ${result.counts.nodes} nodes. Clear search to restore the ordinary view.`
+                : "The complete neighbourhood exceeds the reveal limits or has no drawable representation.";
+            status.hidden = false;
+          }
+        }, documentObject);
+      } else if ((focusableElementCountsBySearchEntry[id] ?? 0) > 0) {
+        searchMenu.focusOntologyElements(correspondingIds);
       }
     }
     if (autoComStr !== inputText) {

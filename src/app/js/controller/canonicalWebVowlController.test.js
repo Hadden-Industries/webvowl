@@ -4,6 +4,7 @@ import { createCanonicalWebVowlController } from "./canonicalWebVowlController.j
 import { createCanonicalVowlDocumentSession } from "./canonicalVowlDocumentSession.js";
 import { runCanonicalVowlOperation } from "./canonicalVowlWorkerOperations.js";
 import { createCanonicalVowlSourceAcquisition } from "./canonicalVowlSourceAcquisition.js";
+import { createVisualizationViewApplicationRequest } from "./renderedGraphRuntimeContracts.js";
 
 function deferred() {
   let resolve, reject;
@@ -196,7 +197,9 @@ test("the candidate controller preserves selection through rename and focuses ne
       .flatMap(({ semanticReferences }) => semanticReferences),
     visibleRelationshipReferences: [],
   });
-  runtime.applyVisualizationView = jest.fn(async () => {});
+  runtime.applyVisualizationView = jest.fn(async (request) => {
+    createVisualizationViewApplicationRequest(request);
+  });
   runtime.resizeVisualizationViewport = jest.fn();
   controller.resizeVisualizationViewport({
     widthPx: 800,
@@ -260,6 +263,46 @@ test("the candidate controller preserves selection through rename and focuses ne
     runtime.readVisibleRenderedGraphSnapshot().visibleElementReferences,
   ).toEqual([]);
   const renamed = controller.getState().selection[0];
+  const ordinary = session.scene().snapshot();
+  const ordinaryCapture = await session.capture();
+  expect(
+    await controller.revealOntologyNeighborhood({
+      ontologyElementReferences: [renamed],
+    }),
+  ).toMatchObject({ status: "revealed", counts: { nodes: 1 } });
+  expect(session.hasNeighborhood()).toBe(true);
+  expect(controller.getState().view.nodesShown).toEqual({
+    mode: "exact",
+    requestedCount: 0,
+  });
+  expect(await session.capture()).toEqual(ordinaryCapture);
+  await controller.setVisualizationView({ focus: [] });
+  expect(session.hasNeighborhood()).toBe(false);
+  expect(session.scene().snapshot()).toEqual(ordinary);
+  runtime.applyVisualizationView.mockRejectedValueOnce(
+    new Error("neighborhood paint rejected"),
+  );
+  await expect(
+    controller.revealOntologyNeighborhood({
+      ontologyElementReferences: [renamed],
+    }),
+  ).rejects.toThrow("neighborhood paint rejected");
+  expect(session.scene().snapshot()).toEqual(ordinary);
+  const neighborhoodGate = deferred();
+  runtime.applyVisualizationView.mockImplementationOnce(
+    () => neighborhoodGate.promise,
+  );
+  const supersededNeighborhood = controller.revealOntologyNeighborhood({
+    ontologyElementReferences: [renamed],
+  });
+  const supersededNeighborhoodRejected = expect(
+    supersededNeighborhood,
+  ).rejects.toMatchObject({ name: "AbortError" });
+  await controller.clearOntologyNeighborhood();
+  neighborhoodGate.resolve();
+  await supersededNeighborhoodRejected;
+  expect(session.scene().snapshot()).toEqual(ordinary);
+  expect(session.hasNeighborhood()).toBe(false);
   expect(controller.getOntologyElementRevealPlan([renamed])).toEqual({
     canReveal: true,
     requestedCount: 1,
