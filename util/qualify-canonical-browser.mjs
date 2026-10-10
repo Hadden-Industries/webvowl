@@ -196,7 +196,12 @@ try {
       socketPending.delete(message.id);
       if (message.error) pending.fail(new Error(JSON.stringify(message.error)));
       else pending.done(message.result);
-    } else events.get(message.method)?.(message.params, message.sessionId);
+    } else if (events.has(message.method)) {
+      const handler = events.get(message.method);
+      if (typeof handler === "function") {
+        handler(message.params, message.sessionId);
+      }
+    }
   });
   receipt.browser = await call("Browser.getVersion");
   const { targetId } = await call("Target.createTarget", {
