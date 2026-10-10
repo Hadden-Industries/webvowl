@@ -3,6 +3,7 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { setTimeout as delay } from "node:timers/promises";
 import { assertQuiescentMachine } from "./benchmarkEnvironment.mjs";
 import { createCanonicalVowlScene } from "../src/app/js/controller/canonicalVowlScene.js";
 import {
@@ -15,6 +16,26 @@ const baseline = process.argv[2];
 const output = process.argv[3];
 const allocationOnly = process.argv.includes("--allocation-only");
 const equivalenceOnly = process.argv.includes("--equivalence-only");
+const settleMs = Number(
+  process.argv
+    .find((argument) => argument.startsWith("--settle-ms="))
+    ?.split("=")[1] ?? 0,
+);
+if (!Number.isSafeInteger(settleMs) || settleMs < 0 || settleMs > 60000)
+  throw new TypeError("settle-ms must be an integer between 0 and 60000");
+const waitForIdleMs = Number(
+  process.argv
+    .find((argument) => argument.startsWith("--wait-for-idle-ms="))
+    ?.split("=")[1] ?? 0,
+);
+if (
+  !Number.isSafeInteger(waitForIdleMs) ||
+  waitForIdleMs < 0 ||
+  waitForIdleMs > 3600000
+)
+  throw new TypeError(
+    "wait-for-idle-ms must be an integer between 0 and 3600000",
+  );
 if (!baseline || !output || !globalThis.gc)
   throw new Error(
     "Usage: node --expose-gc util/benchmark-canonical-performance.mjs <baseline-commit> <absolute-result.json>",
@@ -54,7 +75,25 @@ const oldScene = (await previous(paths[0])).createCanonicalVowlScene;
 const oldInspector = (await previous(paths[1])).createOntologyInspector();
 const OldLink = (await previous(paths[2])).PlainLink;
 const inspector = createOntologyInspector();
-if (!allocationOnly && !equivalenceOnly) await assertQuiescentMachine();
+if (!allocationOnly && !equivalenceOnly && settleMs) await delay(settleMs);
+const rejectedPreflights = [];
+if (!allocationOnly && !equivalenceOnly) {
+  const deadline = performance.now() + waitForIdleMs;
+  for (;;) {
+    try {
+      await assertQuiescentMachine();
+      break;
+    } catch (error) {
+      rejectedPreflights.push({
+        at: new Date().toISOString(),
+        message: error.message,
+      });
+      console.error(JSON.stringify(rejectedPreflights.at(-1)));
+      if (performance.now() >= deadline) throw error;
+      await delay(Math.min(15000, Math.max(0, deadline - performance.now())));
+    }
+  }
+}
 const quantile = (values, fraction) =>
   [...values].sort((a, b) => a - b)[Math.ceil(values.length * fraction) - 1];
 function measure(operation) {
@@ -84,6 +123,9 @@ async function paired(before, after) {
   );
 }
 const results = {
+  settleMs,
+  waitForIdleMs,
+  rejectedPreflights,
   baseline,
   sources,
   candidateHead: execFileSync("git", ["rev-parse", "HEAD"], {

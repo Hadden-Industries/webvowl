@@ -11,6 +11,7 @@ import { createWebMcpToolDispatch } from "../../../../src/app/js/webmcp/webMcpTo
 
 const result = { status: "running", cycles: [], retired: [] };
 globalThis.performanceSearchQualification = result;
+const heapCheckpoint = new URLSearchParams(location.search).has("heap");
 function check(condition, name) {
   if (!condition) {
     throw new Error(name);
@@ -113,6 +114,38 @@ async function cycle(index) {
         .length > 0,
       "native-visible-neighborhood",
     );
+    if (heapCheckpoint && index === 0) {
+      globalThis.performanceSearchHeapCheckpoint = {
+        owners: Object.entries({
+          session,
+          controller,
+          runtime,
+          graph,
+          worker,
+          scene: session.scene(),
+          preparation: result.retired
+            .find((row) => row.kind === "search-preparation")
+            .reference.deref(),
+        }).map(([kind, owner]) => ({ kind, owner })),
+      };
+      const button = document.createElement("button");
+      button.id = "release-heap-checkpoint";
+      button.textContent = "Release live heap checkpoint";
+      document.body.prepend(button);
+      result.status = "live-heap-checkpoint";
+      await new Promise((resolve) => {
+        button.addEventListener(
+          "click",
+          () => {
+            delete globalThis.performanceSearchHeapCheckpoint;
+            button.remove();
+            result.status = "running";
+            resolve();
+          },
+          { once: true },
+        );
+      });
+    }
     check(
       JSON.stringify(await session.capture()) === JSON.stringify(ordinaryBytes),
       "ordinary-export-during-reveal",
