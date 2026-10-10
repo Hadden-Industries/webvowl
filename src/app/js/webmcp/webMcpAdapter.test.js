@@ -13,6 +13,8 @@ const EXPECTED_TOOL_NAMES = Object.freeze([
   "load_ontology",
   "get_ontology_summary",
   "find_ontology_elements",
+  "reveal_ontology_neighborhood",
+  "clear_ontology_neighborhood",
   "set_visualization_view",
   "export_visualization",
   "get_visualization_state",

@@ -103,6 +103,10 @@ export function createCanonicalWebVowlController({
     viewSequence++;
     session.clearNeighborhood({ renderedGraphRuntime: runtime });
     const restored = ordinaryPresentation;
+    runtime.setVisualizationFocus({
+      loadGeneration: session.identity().loadGeneration,
+      focus: restored.focus,
+    });
     ordinaryPresentation = undefined;
     publish({ view: readView(), ...runtime.readVisualizationViewport() });
     return restored;

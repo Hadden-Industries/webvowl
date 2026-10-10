@@ -197,8 +197,16 @@ test("the candidate controller preserves selection through rename and focuses ne
       .flatMap(({ semanticReferences }) => semanticReferences),
     visibleRelationshipReferences: [],
   });
+  let focus = [];
+  runtime.readVisualizationView = () => ({ language: "en", focus });
+  runtime.setVisualizationFocus = jest.fn((request) => {
+    focus = [...request.focus];
+  });
   runtime.applyVisualizationView = jest.fn(async (request) => {
     createVisualizationViewApplicationRequest(request);
+    if (request.focus !== undefined) {
+      focus = [...request.focus];
+    }
   });
   runtime.resizeVisualizationViewport = jest.fn();
   controller.resizeVisualizationViewport({
@@ -279,15 +287,25 @@ test("the candidate controller preserves selection through rename and focuses ne
   await controller.setVisualizationView({ focus: [] });
   expect(session.hasNeighborhood()).toBe(false);
   expect(session.scene().snapshot()).toEqual(ordinary);
-  runtime.applyVisualizationView.mockRejectedValueOnce(
-    new Error("neighborhood paint rejected"),
-  );
+  runtime.applyVisualizationView.mockImplementationOnce(async (request) => {
+    focus = [...request.focus];
+    throw new Error("neighborhood paint rejected");
+  });
   await expect(
     controller.revealOntologyNeighborhood({
       ontologyElementReferences: [renamed],
     }),
   ).rejects.toThrow("neighborhood paint rejected");
   expect(session.scene().snapshot()).toEqual(ordinary);
+  expect(focus).toEqual([]);
+  await controller.revealOntologyNeighborhood({
+    ontologyElementReferences: [renamed],
+  });
+  expect(focus).toEqual([renamed]);
+  await controller.setVisualizationModes({ compactNotation: true });
+  expect(focus).toEqual([]);
+  expect(session.hasNeighborhood()).toBe(false);
+  await controller.setVisualizationModes({ compactNotation: false });
   const neighborhoodGate = deferred();
   runtime.applyVisualizationView.mockImplementationOnce(
     () => neighborhoodGate.promise,

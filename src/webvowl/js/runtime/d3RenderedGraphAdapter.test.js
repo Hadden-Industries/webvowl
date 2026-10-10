@@ -1158,6 +1158,35 @@ describe("D3 rendered graph adapter", () => {
     ).toBe(visibleRenderedGraphSnapshot.visibleElementReferences.length);
   });
 
+  test("restores standing focus synchronously without requesting a paint", async () => {
+    const harness = createAdapterHarness();
+    await loadGeneration(harness, 1);
+    const focus = [{ kind: "class", iri: "http://xmlns.com/foaf/0.1/Person" }];
+    harness.renderedGraphRuntime.setVisualizationFocus({
+      loadGeneration: 1,
+      focus,
+    });
+    expect(harness.renderedGraphRuntime.readVisualizationView().focus).toEqual(
+      focus,
+    );
+    harness.renderedGraphRuntime.setVisualizationFocus({
+      loadGeneration: 1,
+      focus: [],
+    });
+    expect(harness.renderedGraphRuntime.readVisualizationView().focus).toEqual(
+      [],
+    );
+    expect(() =>
+      harness.renderedGraphRuntime.setVisualizationFocus({
+        loadGeneration: 2,
+        focus,
+      }),
+    ).toThrow();
+    expect(harness.renderedGraphRuntime.readVisualizationView().focus).toEqual(
+      [],
+    );
+  });
+
   test("applies a requested magnification to the renderer", async () => {
     const adapterHarness = createAdapterHarness();
     await loadGeneration(adapterHarness, 1);

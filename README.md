@@ -29,7 +29,7 @@ Local files are parsed in the browser; URL loading still depends on the source h
 
 ## Work with an agent
 
-WebVOWL exposes **14 structured tools** through [WebMCP](https://developer.chrome.com/docs/ai/webmcp), letting a compatible browser agent load, summarize, search, inspect, frame, arrange, and export the same graph you see.
+WebVOWL exposes **16 structured tools** through [WebMCP](https://developer.chrome.com/docs/ai/webmcp), letting a compatible browser agent load, summarize, search, reveal temporary neighbourhoods, inspect, frame, arrange, and export the same graph you see.
 Human controls and agent tools share the same application operations, so you can continue exploring the result yourself.
 
 Ask your agent to:

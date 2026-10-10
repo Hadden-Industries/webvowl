@@ -13,6 +13,7 @@ export function createSearchMenu({
   let focusableElementCountsBySearchEntry = [];
   let hasVisualizationFocus = false;
   let hasTemporaryNeighborhood = false;
+  let neighborhoodSequence = 0;
   let dictionary = [];
   let entryNames = [];
   let searchLineEdit;
@@ -598,21 +599,16 @@ export function createSearchMenu({
   // Clearing highlights is a controller action; presenting its resulting state
   // does not issue another request or change the detail selection.
   searchMenu.clearVisualizationFocus = function () {
+    neighborhoodSequence++;
     if (!hasVisualizationFocus && !hasTemporaryNeighborhood) {
       return undefined;
     }
-    const clearNeighborhood = hasTemporaryNeighborhood;
     hasTemporaryNeighborhood = false;
     hasVisualizationFocus = false;
     setLocateButtonState(false);
     updateClearButtonVisibility();
     return runVisualizationControlAction(
-      () =>
-        clearNeighborhood
-          ? webVowlController
-              .clearOntologyNeighborhood()
-              .then(() => webVowlController.setVisualizationView({ focus: [] }))
-          : webVowlController?.setVisualizationView({ focus: [] }),
+      () => webVowlController?.setVisualizationView({ focus: [] }),
       documentObject,
     );
   };
@@ -669,10 +665,15 @@ export function createSearchMenu({
         webVowlController.getOntologyNeighborhoodRevealPlan?.(correspondingIds)
           ?.canReveal
       ) {
+        const sequence = ++neighborhoodSequence;
+        hasTemporaryNeighborhood = true;
         runVisualizationControlAction(async () => {
           const result = await webVowlController.revealOntologyNeighborhood({
             ontologyElementReferences: correspondingIds,
           });
+          if (sequence !== neighborhoodSequence) {
+            return;
+          }
           hasTemporaryNeighborhood = result.status === "revealed";
           const status = documentObject.getElementById(
             "visualizationActionStatus",
