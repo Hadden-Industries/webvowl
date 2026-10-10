@@ -12,6 +12,7 @@ import {
 } from "node:fs";
 import { resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
+import { stripVTControlCharacters } from "node:util";
 import { analyzeCanonicalHeap } from "./analyze-canonical-heap.mjs";
 import { assertQuiescentMachine } from "./benchmarkEnvironment.mjs";
 
@@ -123,7 +124,7 @@ try {
         .digest("hex"),
     ]),
   );
-  child(
+  const vite = child(
     process.execPath,
     [
       resolve("node_modules/vite/bin/vite.js"),
@@ -135,13 +136,29 @@ try {
     ],
     "vite.log",
   );
+  let viteOutput = "";
+  let viteReady = false;
+  vite.stdout.on("data", (chunk) => {
+    viteOutput = (viteOutput + chunk.toString()).slice(-8192);
+    viteReady ||= /Local:\s+http:\/\/127\.0\.0\.1:5178\//u.test(
+      stripVTControlCharacters(viteOutput),
+    );
+  });
+  function assertOwnedServerRunning() {
+    assert.equal(vite.exitCode, null, "Owned Vite server exited unexpectedly");
+    assert.equal(vite.signalCode, null, "Owned Vite server was terminated");
+  }
   await waitFor(async () => {
+    assertOwnedServerRunning();
+    if (!viteReady) return false;
     try {
-      return (await fetch("http://127.0.0.1:5178/")).ok;
+      const ready = (await fetch("http://127.0.0.1:5178/")).ok;
+      assertOwnedServerRunning();
+      return ready;
     } catch {
       return false;
     }
-  }, "local Vite server");
+  }, "owned local Vite server");
   child(
     chromePath,
     [
@@ -344,6 +361,7 @@ try {
     assert.equal(receipt.exceptions.length, 0);
     receipt.status = "passed";
   }
+  assertOwnedServerRunning();
 } catch (error) {
   receipt.status = "failed";
   receipt.error = { message: error.message, stack: error.stack };
