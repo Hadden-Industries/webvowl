@@ -29,18 +29,16 @@ test("temporary neighbourhood replacement and capture preserve the complete ordi
   const before = await session.capture();
   session.revealNeighborhood([]);
   expect(session.hasNeighborhood()).toBe(true);
-  session
-    .scene()
-    .arrange(
-      [
-        {
-          reference: session.scene().reference(node.id),
-          position: { x: 999, y: 777 },
-          pinned: true,
-        },
-      ],
-      { camera: { center: { x: 80, y: 90 }, zoom: 2 } },
-    );
+  session.scene().arrange(
+    [
+      {
+        reference: session.scene().reference(node.id),
+        position: { x: 999, y: 777 },
+        pinned: true,
+      },
+    ],
+    { camera: { center: { x: 80, y: 90 }, zoom: 2 } },
+  );
   session.revealNeighborhood([node.id]);
   expect(await session.capture()).toEqual(before);
   expect(session.clearNeighborhood()).toBe(true);
