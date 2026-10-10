@@ -4,6 +4,7 @@ import contextlib
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 import set_up_agent_skills as subject
 import yaml
@@ -18,6 +19,23 @@ EXPECTED_OPENAI_YAML = """interface:
 policy:
   allow_implicit_invocation: false
 """
+
+
+class PythonMinimumTests(unittest.TestCase):
+    def test_rejects_previous_python_minor(self) -> None:
+        with (
+            mock.patch.object(subject.sys, "version_info", (3, 14, 8)),
+            self.assertRaisesRegex(subject.SetupError, "Python 3.15"),
+        ):
+            subject.require_python_version()
+
+    def test_accepts_minimum_and_newer_python(self) -> None:
+        for version in ((3, 15, 0), (3, 15, 1), (3, 16, 0), (4, 0, 0)):
+            with (
+                self.subTest(version=version),
+                mock.patch.object(subject.sys, "version_info", version),
+            ):
+                subject.require_python_version()
 
 
 class BrooksReviewInvocationPolicyTests(unittest.TestCase):

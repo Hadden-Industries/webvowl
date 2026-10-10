@@ -85,7 +85,7 @@ beforeEach(() => {
   );
   writeFileSync(join(repositoryRoot, "package-lock.json"), "{}");
   writeFileSync(join(repositoryRoot, ".node-version"), "24.20.0\n");
-  writeFileSync(join(repositoryRoot, ".python-version"), "3.14.7\n");
+  writeFileSync(join(repositoryRoot, ".python-version"), "3.15.0\n");
   writeFileSync(
     join(repositoryRoot, "requirements-dev.txt"),
     "PyYAML>=6.0.3\n",
@@ -120,7 +120,7 @@ beforeEach(() => {
         return createCommandResult("aws-cli/2.30.0\n");
       }
       if (commandArguments[0] === "--version") {
-        return createCommandResult("Python 3.14.7\n");
+        return createCommandResult("Python 3.15.0\n");
       }
       if (commandArguments[0] === "-m" && commandArguments[1] === "venv") {
         createPythonVirtualEnvironmentFixture();
@@ -188,6 +188,7 @@ test.each([
           "install",
           "--require-hashes",
           "--only-binary=:all:",
+          "--no-binary=PyYAML",
           "-r",
           join(repositoryRoot, "requirements.lock.txt"),
         ],
@@ -281,7 +282,9 @@ test("preserves the exact npm reference after native admission", () => {
 test.each([
   ["missing", { ...createCommandResult("", null), error: new Error("ENOENT") }],
   ["too old", createCommandResult("Python 3.10.0\n")],
-  ["older patch than selected", createCommandResult("Python 3.14.6\n")],
+  ["older minor than selected", createCommandResult("Python 3.14.8\n")],
+  ["prerelease", createCommandResult("Python 3.15.0rc3\n")],
+  ["unrecognized output", createCommandResult("Python unknown\n")],
 ])(
   "rejects %s Python before installing npm packages",
   (_description, result) => {
@@ -297,6 +300,20 @@ test.each([
     expect(
       spawnSyncMock.mock.calls.some(([, args]) => args.includes("ci")),
     ).toBe(false);
+  },
+);
+
+test.each(["3.15.1", "3.16.0", "4.0.0"])(
+  "accepts stable Python %s above the declared minimum",
+  (version) => {
+    const successfulCommand = spawnSyncMock.getMockImplementation();
+    spawnSyncMock.mockImplementation((executable, args, options) =>
+      args[0] === "--version"
+        ? createCommandResult(`Python ${version}\n`)
+        : successfulCommand(executable, args, options),
+    );
+    setUpDevelopmentEnvironment({ repositoryRoot });
+    expect(spawnSyncMock.mock.calls.some(([, args]) => args.includes("ci"))).toBe(true);
   },
 );
 

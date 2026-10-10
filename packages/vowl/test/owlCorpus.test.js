@@ -1,8 +1,10 @@
 import { encode } from "vowl";
 import { fromOwl } from "vowl/owl";
 import { assertAdapterRun } from "../conformance/supplemental/owl-mapping/assert-adapter.mjs";
-import { loadCorpus } from "../conformance/supplemental/owl-mapping/source-v2/catalog-portable.mjs";
-import { readPinned } from "../conformance/supplemental/owl-mapping/support.mjs";
+import {
+  loadCorpus,
+  readPinned,
+} from "../conformance/supplemental/owl-mapping/source-v2/catalog-npm-layout.mjs";
 
 const scope = JSON.parse(
   await readPinned({

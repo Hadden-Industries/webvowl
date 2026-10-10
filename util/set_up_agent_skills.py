@@ -121,9 +121,9 @@ def lf_git_environment() -> dict[str, str]:
 
 def require_python_version() -> None:
     # This entry point can be invoked directly before repository setup.
-    if sys.version_info < (3, 14):  # noqa: UP036
+    if sys.version_info < (3, 15):  # noqa: UP036
         raise SetupError(
-            "Python 3.14 or newer is required; use the selected latest stable patch in .python-version. "
+            "Python 3.15 or newer is required; see the minimum in .python-version. "
             f"Running: {sys.version.split()[0]}"
         )
 

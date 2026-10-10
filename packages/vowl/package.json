@@ -23,12 +23,12 @@
     "test": "npm --prefix ../.. run test:vowl"
   },
   "dependencies": {
-    "@hyperjump/uri": "1.3.8",
+    "@hyperjump/uri": "1.3.9",
     "@streamparser/json": "0.0.26",
     "ajv": "8.20.0",
     "bcp-47": "2.1.1",
     "canonicalize": "5.1.0",
-    "owlapi": "git+https://github.com/Hadden-Industries/owlapi.git#ccace6afe201c6e2cc6a49e53b2d50bd6617916f",
+    "owlapi": "*",
     "rdf-canonize": "5.0.0"
   }
 }
