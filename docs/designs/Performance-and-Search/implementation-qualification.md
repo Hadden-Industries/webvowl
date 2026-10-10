@@ -15,7 +15,7 @@ HISEW execution `b51c2afe-dae9-44e6-aeee-8b2222441f6d` retains the exact accepte
 | 006     | Add a temporary depth-two neighbourhood, with exact semantic role and occurrence identity. Human search and two explicit WebMCP tools share the controller operation.             |
 | 007     | Prepare merged semantic records and label lookup once per accepted session revision. Each query still reads current visibility and language and returns owned result values.      |
 | 008     | Share nine PlainLink methods through its prototype, retaining private per-instance state and receiver/return behavior. ArrowLink and BoxArrowLink remain compatible.              |
-| 009     | Conditional expansion remains deferred at GATE-004. The pilot does not authorize wider constructor migration.                                                                     |
+| 009     | Follow-up assessment declines broader expansion: the pilot benefit does not establish receiver compatibility or savings for another coherent family.                              |
 | 010     | Remove redundant inspection copies; retire search/neighbourhood preparation on accepted edit, replacement and disposal. Preserve checkpoint and failed-operation recovery owners. |
 | 011     | Reuse inspection presentation for visibility-only updates; refresh it for language/prefix changes. No new general cache policy or substring component is introduced.              |
 
@@ -51,9 +51,10 @@ These are isolated allocation results, not browser whole-graph savings.
 The scene and search differential harness agrees with the protected baseline at 1,000/10,000 scene occurrences and 1,000/10,000/100,000 search records.
 
 The unchanged timing guard rejected measurements because host CPU usage exceeded its 10% limit; the final attempt observed 22.9%.
-No latency, warmed-search p95, first-paint or numerical responsiveness acceptance is claimed.
-Browser heap snapshot output was unavailable because the browser connector rejected the configured external evidence destinations; weak-owner observations do not replace that analysis.
-GATE-002 latency qualification and broader GATE-004 expansion remain open.
+At the implementation handoff, no latency or numerical responsiveness acceptance was claimed and connector path restrictions prevented heap snapshots.
+The subsequent [qualification follow-up](qualification-followup.md) supplies admitted paired Node/browser latency, real positive-control heap-retainer comparison, and the constructor expansion assessment.
+It retains the original thresholds and failed attempts, qualifies the exercised environment and declines wider migration.
+Production navigation/Core Web Vitals and absolute first-paint guarantees remain outside those measurements.
 No new cache eviction/recovery policy (GATE-005) or substring index (GATE-006) was selected.
 
 Raw operator evidence is retained under `C:/Users/maksy/.hi/w/e/operator/2d1a0a2427314cfbbb3c4a25a2341881/`.
