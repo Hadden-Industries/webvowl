@@ -89,6 +89,8 @@ For a deliberate upgrade, add `--upgrade-package NAME`, review the lock diff, re
 
 ### Python and Markdown checks
 
+For opt-in dependency views and conservative affected Jest feedback, see [Dependency graphs and affected Jest tests](docs/dependency-graph-and-tests.md).
+
 The standard `npm run format`, `npm run format:check`, and `npm run lint` commands cover application files, maintained JavaScript in `util/` and `tooling/`, Python, and authored Markdown.
 `npm run fix:all` applies application and tooling JavaScript lint fixes, safe Python lint fixes, and all formatting.
 Node.js helpers use Node globals and do not receive browser-compatibility checks.

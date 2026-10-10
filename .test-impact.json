@@ -1,0 +1,177 @@
+{
+  "schemaVersion": 1,
+  "fullDomains": [
+    ".github/",
+    "docs/",
+    "tooling/",
+    "util/",
+    "tests/",
+    "packages/vowl/scripts/",
+    "packages/vowl/schema/",
+    "packages/vowl/conformance/",
+    "packages/vowl/test/browser/",
+    "src/app/data/",
+    "src/canonical-examples/",
+    "test/fixtures/"
+  ],
+  "fullFiles": [
+    "package.json",
+    "package-lock.json",
+    "packages/vowl/package.json",
+    "src/package.json",
+    ".dependency-cruiser.json",
+    ".test-impact.json",
+    ".node-version",
+    ".python-version",
+    ".gitignore",
+    ".gitattributes",
+    "vite.config.mjs",
+    "eslint.config.js",
+    ".markdown-quality-execution.json",
+    ".markdown-quality-policy.json",
+    "requirements.txt",
+    "requirements.lock.txt",
+    "pyproject.toml"
+  ],
+  "boundaryFiles": [
+    "src/app/js/controller/canonicalVowlWorkerClient.js",
+    "src/app/js/controller/importResolver.js",
+    "src/productionBundle.integration.test.js",
+    "src/d3EsmBuild.integration.test.js",
+    "src/d3EsmDevelopmentServer.integration.test.js",
+    "src/productionModuleFormat.architecture.test.js",
+    "src/productionGraph.architecture.test.js",
+    "src/owlapiConsumerBoundary.architecture.test.js",
+    "src/renderedGraphDecoupling.architecture.test.js",
+    "src/testRunnerScope.architecture.test.js",
+    "src/esmConfiguration.integration.test.js",
+    "src/generatedJavaScriptCleanup.integration.test.js",
+    "src/initialPageStyles.test.js",
+    "src/app/css/fontDelivery.test.js",
+    "src/app/css/toolstyle.test.js",
+    "src/webvowl/css/vowl.test.js",
+    "src/app/js/webmcp/webMcpArchitecture.test.js"
+  ],
+  "relations": [
+    {
+      "id": "generated-cleanup-source-reader",
+      "dependency": "src/",
+      "consumer": "src/generatedJavaScriptCleanup.integration.test.js",
+      "kind": "source-reader",
+      "evidence": "src/generatedJavaScriptCleanup.integration.test.js: authored source inventory",
+      "fixture": "architecture-source-reader"
+    },
+    {
+      "id": "esm-configuration-source-reader",
+      "dependency": "src/",
+      "consumer": "src/esmConfiguration.integration.test.js",
+      "kind": "source-reader",
+      "evidence": "src/esmConfiguration.integration.test.js: source ESM assertions",
+      "fixture": "architecture-source-reader"
+    },
+    {
+      "id": "workspace-runner-scope",
+      "dependency": "packages/vowl/",
+      "consumer": "src/testRunnerScope.architecture.test.js",
+      "kind": "source-reader",
+      "evidence": "src/testRunnerScope.architecture.test.js: workspace discovery assertions",
+      "fixture": "workspace-history"
+    },
+    {
+      "id": "worker-client",
+      "dependency": "src/app/js/controller/canonicalVowlWorker.js",
+      "consumer": "src/app/js/controller/canonicalVowlWorkerClient.js",
+      "kind": "worker-entry",
+      "evidence": "src/app/js/controller/canonicalVowlWorkerClient.js: new Worker(new URL(...))",
+      "fixture": "worker-resource"
+    },
+    {
+      "id": "module-format-source-reader",
+      "dependency": "src/",
+      "consumer": "src/productionModuleFormat.architecture.test.js",
+      "kind": "source-reader",
+      "evidence": "src/productionModuleFormat.architecture.test.js: authored-source analysis",
+      "fixture": "architecture-source-reader"
+    },
+    {
+      "id": "production-graph-source-reader",
+      "dependency": "src/",
+      "consumer": "src/productionGraph.architecture.test.js",
+      "kind": "source-reader",
+      "evidence": "src/productionGraph.architecture.test.js: localDependencies reads source",
+      "fixture": "architecture-source-reader"
+    },
+    {
+      "id": "owlapi-source-reader",
+      "dependency": "src/",
+      "consumer": "src/owlapiConsumerBoundary.architecture.test.js",
+      "kind": "source-reader",
+      "evidence": "src/owlapiConsumerBoundary.architecture.test.js: source and installed dependency inventory",
+      "fixture": "architecture-source-reader"
+    },
+    {
+      "id": "rendered-graph-source-reader",
+      "dependency": "src/",
+      "consumer": "src/renderedGraphDecoupling.architecture.test.js",
+      "kind": "source-reader",
+      "evidence": "src/renderedGraphDecoupling.architecture.test.js: source traversal",
+      "fixture": "architecture-source-reader"
+    },
+    {
+      "id": "runner-scope-source-reader",
+      "dependency": "src/",
+      "consumer": "src/testRunnerScope.architecture.test.js",
+      "kind": "source-reader",
+      "evidence": "src/testRunnerScope.architecture.test.js: default Jest inventory",
+      "fixture": "architecture-source-reader"
+    },
+    {
+      "id": "workspace-format-source-reader",
+      "dependency": "packages/vowl/",
+      "consumer": "src/productionModuleFormat.architecture.test.js",
+      "kind": "source-reader",
+      "evidence": "src/productionModuleFormat.architecture.test.js: workspace ESM policy",
+      "fixture": "workspace-history"
+    },
+    {
+      "id": "workspace-owlapi-source-reader",
+      "dependency": "packages/vowl/",
+      "consumer": "src/owlapiConsumerBoundary.architecture.test.js",
+      "kind": "source-reader",
+      "evidence": "src/owlapiConsumerBoundary.architecture.test.js: package consumer boundaries",
+      "fixture": "workspace-history"
+    },
+    {
+      "id": "bundle-generated-program",
+      "dependency": "src/",
+      "consumer": "src/productionBundle.integration.test.js",
+      "kind": "generated-program",
+      "evidence": "src/productionBundle.integration.test.js: generated Vite verification program",
+      "fixture": "worker-resource"
+    },
+    {
+      "id": "d3-build",
+      "dependency": "src/",
+      "consumer": "src/d3EsmBuild.integration.test.js",
+      "kind": "generated-program",
+      "evidence": "src/d3EsmBuild.integration.test.js: spawned Vite build",
+      "fixture": "worker-resource"
+    },
+    {
+      "id": "d3-server",
+      "dependency": "src/",
+      "consumer": "src/d3EsmDevelopmentServer.integration.test.js",
+      "kind": "process",
+      "evidence": "src/d3EsmDevelopmentServer.integration.test.js: spawned Vite dev server",
+      "fixture": "worker-resource"
+    },
+    {
+      "id": "webmcp-source-reader",
+      "dependency": "src/app/js/webmcp/",
+      "consumer": "src/app/js/webmcp/webMcpArchitecture.test.js",
+      "kind": "source-reader",
+      "evidence": "src/app/js/webmcp/webMcpArchitecture.test.js: source architecture assertions",
+      "fixture": "architecture-source-reader"
+    }
+  ]
+}
