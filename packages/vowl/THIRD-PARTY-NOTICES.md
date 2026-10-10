@@ -5,7 +5,7 @@ The following resolved runtime dependency closure retains its original grants an
 Distinct installed versions are listed separately.
 Dependencies are installed separately; these notices do not relicense them.
 
-owlapi is selected by the exact native npm alias `npm:@hadden-industries/owlapi@0.1.0-rc.1`, preserving public `owlapi/*` imports.
+owlapi is selected by the native dependency reference `npm:@hadden-industries/owlapi@0.1.0-rc.2`, preserving public `owlapi/*` imports.
 
 ## @digitalbazaar/http-client@4.4.0
 
@@ -40,7 +40,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
 
-## @hadden-industries/owlapi@0.1.0-rc.1
+## @hadden-industries/owlapi@0.1.0-rc.2
 
 LICENSE
 
@@ -512,7 +512,7 @@ See LICENSE for the complete, unmodified licence text.
 Ordinary npm dependencies are installed separately and remain under their own
 licences. Neither LICENSE nor this NOTICE relicenses them. The version-matched
 material inventory for this package version is maintained at:
-https://github.com/Hadden-Industries/owlapi/blob/v0.1.0-rc.1/docs/provenance/third-party-material.json
+https://github.com/Hadden-Industries/owlapi/blob/v0.1.0-rc.2/docs/provenance/third-party-material.json
 
 Java OWLAPI names and package identities appear in compatibility documentation
 generated from the pinned Java OWLAPI reference. owlapi is independently
@@ -554,7 +554,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## @hyperjump/uri@1.3.8
+## @hyperjump/uri@1.3.9
 
 LICENSE
 
@@ -766,7 +766,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## @types/node@26.2.0
+## @types/node@26.6.5
 
 LICENSE
 
@@ -794,7 +794,7 @@ LICENSE
     SOFTWARE
 ```
 
-## @types/readable-stream@4.0.24
+## @types/readable-stream@4.0.25
 
 LICENSE
 
@@ -1811,7 +1811,7 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
 
-## rdf-data-factory@2.0.2
+## rdf-data-factory@2.1.0
 
 LICENSE.txt
 
@@ -1867,7 +1867,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ```
 
-## readable-stream@4.7.0
+## readable-stream@4.8.0
 
 LICENSE
 
@@ -2086,7 +2086,7 @@ IN THE SOFTWARE.
 """
 ```
 
-## undici-types@8.3.0
+## undici-types@8.9.0
 
 LICENSE
 

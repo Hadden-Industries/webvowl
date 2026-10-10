@@ -12,6 +12,34 @@ const gate = workflow.jobs.required.steps.find((step) =>
   step.run?.endsWith(" gate"),
 );
 
+test("Python provisioning preserves the repository selector and isolated locked environment", () => {
+  const steps = workflow.jobs.tooling.steps;
+  const provisioning = steps.find((step) =>
+    step.uses?.startsWith("astral-sh/setup-uv@"),
+  );
+  expect(provisioning.uses).toBe(
+    "astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884",
+  );
+  expect(provisioning.with).toEqual({
+    version: "0.13.0",
+    "activate-environment": true,
+    "venv-path": "${{ runner.temp }}/python",
+    "no-project": true,
+    "enable-cache": false,
+  });
+  // With no Python override, uv discovers the repository's sole version file.
+  expect(
+    readFileSync(new URL("../.python-version", import.meta.url), "utf8").trim(),
+  ).toMatch(/^\d+\.\d+\.\d+$/);
+  const environment = steps.findIndex(
+    (step) => step.run === "python -m venv .venv",
+  );
+  expect(environment).toBeGreaterThan(steps.indexOf(provisioning));
+  expect(steps[environment + 1].run.trim()).toBe(
+    "node util/runRepositoryPython.mjs -m pip install --require-hashes --only-binary=:all: --no-binary=PyYAML -r requirements.lock.txt",
+  );
+});
+
 test("reuse wiring authenticates a bounded immutable receipt and preserves required gate", () => {
   expect(workflow.jobs.scope.permissions).toEqual({
     contents: "read",

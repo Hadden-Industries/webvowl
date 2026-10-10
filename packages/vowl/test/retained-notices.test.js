@@ -107,3 +107,104 @@ test("does not accept a manifest whose owner differs from the declared alias", (
   );
   expect(existsSync(join(packageRoot, "THIRD-PARTY-NOTICES.md"))).toBe(false);
 });
+
+function inheritedOwlapiFixture(selector) {
+  write(
+    "package.json",
+    JSON.stringify({
+      dependencies: { owlapi: selector },
+      overrides: { owlapi: "$owlapi" },
+    }),
+  );
+  write(
+    "package-lock.json",
+    JSON.stringify({
+      packages: {
+        "": { dependencies: { owlapi: selector } },
+        "node_modules/owlapi": { name: "@example/owner", version: "1.0.0" },
+      },
+    }),
+  );
+  write(
+    "packages/vowl/package.json",
+    JSON.stringify({ dependencies: { owlapi: "*" } }),
+  );
+  write("node_modules/owlapi/index.js", "module.exports = {};\n");
+  write("node_modules/owlapi/LICENSE", "Owning package grant\n");
+  write(
+    "node_modules/owlapi/package.json",
+    JSON.stringify({
+      name: "@example/owner",
+      version: "1.0.0",
+      exports: "./index.js",
+      dependencies: { leaf: "2.0.0" },
+    }),
+  );
+}
+
+function generateFixtureNotices() {
+  return spawnSync(
+    process.execPath,
+    [join(packageRoot, "scripts/retain-notices.mjs")],
+    { encoding: "utf8" },
+  );
+}
+
+test.each([
+  "npm:@example/owner@1.0.0",
+  `git+https://github.com/example/owner.git#${"a".repeat(40)}`,
+])("retains inherited workspace OwlAPI notices for %s", (selector) => {
+  inheritedOwlapiFixture(selector);
+  // Run the copied generator against only the fixture, not the real checkout.
+  const fixtureResult = spawnSync(
+    process.execPath,
+    [join(packageRoot, "scripts/retain-notices.mjs")],
+    { encoding: "utf8" },
+  );
+  expect(fixtureResult.stderr).toBe("");
+  expect(fixtureResult.status).toBe(0);
+  const notices = readFileSync(
+    join(packageRoot, "THIRD-PARTY-NOTICES.md"),
+    "utf8",
+  );
+  expect(notices).toContain(selector);
+  expect(notices).toContain("## @example/owner@1.0.0");
+  expect(notices).toContain("Owning package grant");
+  expect(notices).toContain("Transitive package grant");
+});
+
+test("refuses a Git selector whose native lock describes a different selection", () => {
+  inheritedOwlapiFixture(
+    `git+https://github.com/example/owner.git#${"a".repeat(40)}`,
+  );
+  write(
+    "package-lock.json",
+    JSON.stringify({
+      packages: {
+        "": { dependencies: { owlapi: "npm:@example/owner@1.0.0" } },
+      },
+    }),
+  );
+  const result = generateFixtureNotices();
+  expect(result.status).not.toBe(0);
+  expect(result.stderr).toContain(
+    "The root OwlAPI selector and lockfile disagree.",
+  );
+  expect(existsSync(join(packageRoot, "THIRD-PARTY-NOTICES.md"))).toBe(false);
+});
+
+test("refuses a Git package whose installed owner differs from its native lock", () => {
+  inheritedOwlapiFixture(
+    `git+https://github.com/example/owner.git#${"a".repeat(40)}`,
+  );
+  write(
+    "node_modules/owlapi/package.json",
+    JSON.stringify({ name: "owlapi", version: "1.0.0" }),
+  );
+  const result = generateFixtureNotices();
+  expect(result.status).not.toBe(0);
+  expect(result.stderr).toContain(
+    "Could not resolve the package root for owlapi",
+  );
+  expect(existsSync(join(packageRoot, "THIRD-PARTY-NOTICES.md"))).toBe(false);
+});

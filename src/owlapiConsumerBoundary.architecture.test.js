@@ -1,5 +1,16 @@
 import { createHash } from "node:crypto";
-import { existsSync, lstatSync, readdirSync, readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import {
+  existsSync,
+  lstatSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { createRequire } from "node:module";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -18,17 +29,34 @@ const LOCAL_PACKAGE_SOURCE_PATH = path.join(ROOT, "src", "owlapi-js");
 const INSTALLED_PACKAGE_PATH = path.join(ROOT, "node_modules", "owlapi");
 const UTILITY_PATH = path.join(ROOT, "util");
 
-const EXPECTED_PACKAGE_SPECIFIER =
-  "git+https://github.com/Hadden-Industries/owlapi.git#ccace6afe201c6e2cc6a49e53b2d50bd6617916f";
-const EXPECTED_RESOLUTION = EXPECTED_PACKAGE_SPECIFIER;
-const EXPECTED_INTEGRITY =
-  "sha512-365L3S4K3Z/kiZwl3ubDLWECRvTK+bHfwBtaekZk7myLd8kJ/RgEDmsPJODEYi5MY5rbPfwaWiFYKOaloufhzg==";
-// Independently derived from git archive of the approved commit, then npm pack
-// --ignore-scripts. npm skips integrity verification for Git dependencies.
-// Archive SHA-256: a2a3575864489ac8a3a9000f2e70992877b2c90076894570663ec52f5d4fb346.
-const EXPECTED_PAYLOAD_SHA256 =
-  "848a8ea563216ea4acc91d733ec22930b5efb5358951743d09b9fd5b0d653be5";
-const EXPECTED_PACKAGE_VERSION = "0.1.0-rc.1";
+// The root manifest is the only editable OwlAPI source/version selector.
+const EXPECTED_PACKAGE_SPECIFIER = JSON.parse(
+  readFileSync(PACKAGE_JSON_PATH, "utf8"),
+).dependencies.owlapi;
+const LOCKED_PACKAGE = JSON.parse(readFileSync(PACKAGE_LOCK_PATH, "utf8"))
+  .packages["node_modules/owlapi"];
+const npmRequire = createRequire(process.env.npm_execpath);
+const parsePackageSpecifier = npmRequire("npm-package-arg");
+const exactPackageCoordinate = (specifier) => {
+  try {
+    const parsed = parsePackageSpecifier.resolve("owlapi", specifier, ROOT);
+    return parsed.type === "alias" && parsed.subSpec.type === "version"
+      ? { name: parsed.subSpec.name, version: parsed.subSpec.fetchSpec }
+      : undefined;
+  } catch {
+    return undefined;
+  }
+};
+const immutableGitCoordinate = (specifier) => {
+  try {
+    const parsed = parsePackageSpecifier.resolve("owlapi", specifier, ROOT);
+    return (
+      parsed.type === "git" && /^[a-f0-9]{40}$/u.test(parsed.gitCommittish)
+    );
+  } catch {
+    return false;
+  }
+};
 const EXPECTED_EXPORTS = {
   ".": "./index.js",
   "./apibinding": "./apibinding/index.js",
@@ -64,7 +92,7 @@ const javascriptLinter = new Linter({ cwd: ROOT });
 
 const readJson = (filePath) => JSON.parse(readFileSync(filePath, "utf8"));
 
-const packagePayload = (directory = INSTALLED_PACKAGE_PATH) =>
+const packagePayload = (directory = INSTALLED_PACKAGE_PATH, root = directory) =>
   readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     // Nested installed dependencies have their own lock identities.
     if (entry.name === "node_modules") {
@@ -72,14 +100,14 @@ const packagePayload = (directory = INSTALLED_PACKAGE_PATH) =>
     }
     const filePath = path.join(directory, entry.name);
     if (entry.isDirectory()) {
-      return packagePayload(filePath);
+      return packagePayload(filePath, root);
     }
     if (!entry.isFile()) {
       throw new Error(`Unexpected non-file in OwlAPI payload: ${filePath}`);
     }
     return [
       [
-        path.relative(INSTALLED_PACKAGE_PATH, filePath).replaceAll("\\", "/"),
+        path.relative(root, filePath).replaceAll("\\", "/"),
         createHash("sha256").update(readFileSync(filePath)).digest("hex"),
       ],
     ];
@@ -88,6 +116,9 @@ const packagePayload = (directory = INSTALLED_PACKAGE_PATH) =>
 const hasUnexpectedOwlapiReference = (manifest) => {
   const manifestWithoutCoordinate = structuredClone(manifest);
   delete manifestWithoutCoordinate.dependencies?.owlapi;
+  if (manifestWithoutCoordinate.overrides?.owlapi === "$owlapi") {
+    delete manifestWithoutCoordinate.overrides.owlapi;
+  }
   return /\bowlapi(?:-js)?\b/iu.test(JSON.stringify(manifestWithoutCoordinate));
 };
 
@@ -283,6 +314,25 @@ const packageDevelopmentMaterial = () => {
 };
 
 describe("installed owlapi consumer boundary", () => {
+  test.each([
+    ["npm:@example/ontology@1.2.3", true],
+    ["npm:ontology@1.2.3-rc.4", true],
+    [`git+https://github.com/example/ontology.git#${"a".repeat(40)}`, true],
+    ["npm:@example/ontology@latest", false],
+    ["npm:@example/ontology@^1.2.3", false],
+    ["git+https://github.com/example/ontology.git#main", false],
+    ["git+https://github.com/example/ontology.git#abc123", false],
+    ["*", false],
+  ])(
+    "accepts only exact registry or Git source selection: %s",
+    (specifier, accepted) => {
+      expect(
+        Boolean(exactPackageCoordinate(specifier)) ||
+          immutableGitCoordinate(specifier),
+      ).toBe(accepted);
+    },
+  );
+
   test("collects supported static, dynamic, and CommonJS module references", () => {
     const source = [
       'import model from "owlapi/model";',
@@ -325,6 +375,11 @@ describe("installed owlapi consumer boundary", () => {
     const manifest = readJson(PACKAGE_JSON_PATH);
 
     expect(manifest.dependencies?.owlapi).toBe(EXPECTED_PACKAGE_SPECIFIER);
+    expect(
+      Boolean(exactPackageCoordinate(EXPECTED_PACKAGE_SPECIFIER)) ||
+        immutableGitCoordinate(EXPECTED_PACKAGE_SPECIFIER),
+    ).toBe(true);
+    expect(manifest.overrides?.owlapi).toBe("$owlapi");
     expect(manifest.devDependencies?.owlapi).toBeUndefined();
     expect(manifest.dependencies?.["@xmldom/xmldom"]).toBe(
       WEBVOWL_OWNED_XML_DEPENDENCY,
@@ -338,46 +393,90 @@ describe("installed owlapi consumer boundary", () => {
     ).toEqual([]);
   });
 
-  test("locks the approved Git source and archive integrity for both consumers", () => {
+  test("locks the single root-selected source and archive integrity for both consumers", () => {
     const lockfile = readJson(PACKAGE_LOCK_PATH);
     const rootPackage = lockfile.packages?.[""];
     const installedPackage = lockfile.packages?.["node_modules/owlapi"];
 
     expect(lockfile.lockfileVersion).toBe(3);
     expect(rootPackage?.dependencies?.owlapi).toBe(EXPECTED_PACKAGE_SPECIFIER);
-    expect(installedPackage?.resolved).toBe(EXPECTED_RESOLUTION);
-    expect(installedPackage?.integrity).toBe(EXPECTED_INTEGRITY);
-    expect(installedPackage?.name).toBe("@hadden-industries/owlapi");
+    expect(installedPackage?.integrity).toMatch(
+      /^sha512-[A-Za-z0-9+/]+={0,2}$/u,
+    );
+    const coordinate = exactPackageCoordinate(EXPECTED_PACKAGE_SPECIFIER);
+    if (coordinate) {
+      expect(installedPackage?.name).toBe(coordinate.name);
+      expect(installedPackage?.version).toBe(coordinate.version);
+      expect(installedPackage?.resolved).toMatch(/^https:\/\//u);
+    } else {
+      expect(installedPackage?.resolved).toBe(EXPECTED_PACKAGE_SPECIFIER);
+    }
     expect(lockfile.packages?.["packages/vowl"]?.dependencies?.owlapi).toBe(
-      EXPECTED_PACKAGE_SPECIFIER,
+      "*",
     );
     expect(
       Object.keys(lockfile.packages).filter((key) =>
         key.endsWith("node_modules/owlapi"),
       ),
     ).toEqual(["node_modules/owlapi"]);
-    expect(installedPackage?.version).toBe(EXPECTED_PACKAGE_VERSION);
+    expect(
+      readJson(path.join(ROOT, "packages/vowl/package.json")).dependencies
+        .owlapi,
+    ).toBe("*");
     expect(installedPackage?.link).toBeUndefined();
   });
 
-  test("installed Git payload matches the independently packed producer commit", () => {
+  test("installed payload matches the selected cached source with no second pinned identity", async () => {
     expect(lstatSync(INSTALLED_PACKAGE_PATH).isSymbolicLink()).toBe(false);
-    const inventory = packagePayload().sort(([left], [right]) =>
-      left < right ? -1 : left > right ? 1 : 0,
+    const directory = mkdtempSync(
+      path.join(tmpdir(), "webvowl-owlapi-payload-"),
     );
-    expect(inventory).toHaveLength(114);
-    expect(
-      createHash("sha256").update(JSON.stringify(inventory)).digest("hex"),
-    ).toBe(EXPECTED_PAYLOAD_SHA256);
-  });
+    try {
+      // Reuse npm's bundled cache reader: npm ci stored the original archive
+      // by integrity. No network, lifecycle scripts or installed-file reference.
+      const cache = execFileSync(
+        process.execPath,
+        [process.env.npm_execpath, "config", "get", "cache"],
+        {
+          cwd: ROOT,
+          encoding: "utf8",
+          windowsHide: true,
+        },
+      ).trim();
+      const cacache = npmRequire("cacache");
+      const bytes = await cacache.get.byDigest(
+        path.join(cache, "_cacache"),
+        LOCKED_PACKAGE.integrity,
+      );
+      expect(
+        `sha512-${createHash("sha512").update(bytes).digest("base64")}`,
+      ).toBe(LOCKED_PACKAGE.integrity);
+      const archive = path.join(directory, "owlapi.tgz");
+      writeFileSync(archive, bytes);
+      execFileSync("tar", ["-xzf", archive, "-C", directory], {
+        windowsHide: true,
+      });
+      const sort = (inventory) =>
+        inventory.sort(([left], [right]) =>
+          left < right ? -1 : left > right ? 1 : 0,
+        );
+      expect(sort(packagePayload())).toEqual(
+        sort(packagePayload(path.join(directory, "package"))),
+      );
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  }, 30000);
 
   test("observes the approved installed identity and public exports", () => {
     expect(existsSync(INSTALLED_PACKAGE_JSON_PATH)).toBe(true);
     const installedManifest = readJson(INSTALLED_PACKAGE_JSON_PATH);
 
-    expect(installedManifest.name).toBe("@hadden-industries/owlapi");
-    expect(installedManifest.version).toBe(EXPECTED_PACKAGE_VERSION);
-    expect(installedManifest.exports).toEqual(EXPECTED_EXPORTS);
+    expect(installedManifest.name).toBe(LOCKED_PACKAGE.name);
+    expect(installedManifest.version).toBe(LOCKED_PACKAGE.version);
+    expect(installedManifest.exports).toEqual(
+      expect.objectContaining(EXPECTED_EXPORTS),
+    );
   });
 
   test("imports owlapi only through approved public package specifiers", () => {
@@ -394,7 +493,7 @@ describe("installed owlapi consumer boundary", () => {
     });
   });
 
-  test("permits only the VOWL workspace and no OWLAPI resolver overrides", () => {
+  test("permits only the VOWL workspace and the native root selector reference", () => {
     const manifest = readJson(PACKAGE_JSON_PATH);
     const forbiddenKeys = PACKAGE_CONFIGURATION_KEYS.filter((key) =>
       Object.hasOwn(manifest, key),
@@ -416,7 +515,10 @@ describe("installed owlapi consumer boundary", () => {
     expect(
       hasUnexpectedOwlapiReference({
         dependencies: { owlapi: EXPECTED_PACKAGE_SPECIFIER },
-        overrides: { "development-tool": { "yaml-parser": "4.0.0" } },
+        overrides: {
+          owlapi: "$owlapi",
+          "development-tool": { "yaml-parser": "4.0.0" },
+        },
       }),
     ).toBe(false);
   });

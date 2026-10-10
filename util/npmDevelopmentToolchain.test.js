@@ -93,7 +93,7 @@ test("setup accepts npm admitted by devEngines even when its exact reference dif
       }
       writeFileSync(join(directory, ".node-version"), process.versions.node);
       // Stop at Python validation, before installation; npm eligibility is already proved.
-      writeFileSync(join(directory, ".python-version"), "0.0.0");
+      writeFileSync(join(directory, ".python-version"), "999.0.0");
       writeFileSync(
         join(directory, "runner.mjs"),
         `import { setUpDevelopmentEnvironment } from ${JSON.stringify(setupUrl)};\nsetUpDevelopmentEnvironment({ repositoryRoot: ${JSON.stringify(directory)} });\n`,
@@ -103,7 +103,9 @@ test("setup accepts npm admitted by devEngines even when its exact reference dif
   );
   expect(result.error).toBeUndefined();
   expect(result.status).not.toBe(0);
-  expect(result.stderr).toContain("Development setup requires Python 0.0.0");
+  expect(result.stderr).toContain(
+    "Development setup requires Python >=999.0.0",
+  );
   expect(result.stderr).not.toContain("Use npm@");
 });
 

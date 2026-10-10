@@ -122,9 +122,26 @@ export function setUpDevelopmentEnvironment({
     ["--version"],
     { captureOutput: true },
   );
-  if (pythonVersionOutput !== `Python ${selectedPythonVersion}`) {
+  const pythonVersion = /^Python (\d+)\.(\d+)\.(\d+)$/u
+    .exec(pythonVersionOutput)
+    ?.slice(1)
+    .map(Number);
+  if (!/^\d+\.\d+\.\d+$/u.test(selectedPythonVersion)) {
     throw new Error(
-      `Development setup requires Python ${selectedPythonVersion}; found ${pythonVersionOutput}.`,
+      ".python-version must contain a stable major.minor.patch version.",
+    );
+  }
+  const minimumPythonVersion = selectedPythonVersion.split(".").map(Number);
+  const firstDifference = pythonVersion?.findIndex(
+    (part, index) => part !== minimumPythonVersion[index],
+  );
+  if (
+    !pythonVersion ||
+    (firstDifference !== -1 &&
+      pythonVersion[firstDifference] < minimumPythonVersion[firstDifference])
+  ) {
+    throw new Error(
+      `Development setup requires Python >=${selectedPythonVersion}; found ${pythonVersionOutput}.`,
     );
   }
 
@@ -157,6 +174,7 @@ export function setUpDevelopmentEnvironment({
       "install",
       "--require-hashes",
       "--only-binary=:all:",
+      "--no-binary=PyYAML",
       "-r",
       join(repositoryRoot, "requirements.lock.txt"),
     ],
