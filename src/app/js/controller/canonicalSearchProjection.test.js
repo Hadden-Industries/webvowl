@@ -1,4 +1,6 @@
 import { createCanonicalSearchProjection } from "./canonicalSearchProjection.js";
+import { runCanonicalVowlOperation } from "./canonicalVowlWorkerOperations.js";
+import { createCanonicalSemanticReferences } from "./canonicalVowlInspectionProjector.js";
 
 const ref = (iri, roleKind = "class") => ({
   kind: roleKind === "class" ? "class" : "property",
@@ -206,7 +208,7 @@ test("an independent adjacency-matrix oracle agrees on induced depth-two subgrap
   }
 });
 
-test("inverse, n-ary and restriction properties seed their exact canonical occurrences", () => {
+test("inverse and restriction properties seed their exact canonical occurrences", () => {
   const references = new Map([
     ["p", ref("urn:p", "object-property")],
     ["q", ref("urn:q", "object-property")],
@@ -221,7 +223,7 @@ test("inverse, n-ary and restriction properties seed their exact canonical occur
       ...Array.from({ length: 4 }, (_, i) => ({
         id: `n${i}`,
         kind: "class-node",
-        target: `r${i}`,
+        targets: [`r${i}`],
       })),
       {
         id: "inverse",
@@ -232,12 +234,6 @@ test("inverse, n-ary and restriction properties seed their exact canonical occur
         reverse: ["q"],
       },
       {
-        id: "nary",
-        kind: "relation-edge",
-        ends: ["n1", "n2", "n3"],
-        properties: ["p", "q"],
-      },
-      {
         id: "restriction-edge",
         kind: "restriction-edge",
         from: "n0",
@@ -245,15 +241,80 @@ test("inverse, n-ary and restriction properties seed their exact canonical occur
         construct: "c",
       },
       { id: "inverse-label", kind: "label", edge: "inverse" },
-      { id: "nary-label", kind: "label", edge: "nary" },
     ],
   };
   const index = createCanonicalSearchProjection(inspection, references, 7);
   for (const iri of ["urn:p", "urn:q"]) {
     expect(index.plan([ref(iri, "object-property")])).toMatchObject({
       canReveal: true,
-      hidden: [],
-      counts: { nodes: 4, edges: 3, labels: 2 },
+      hidden: ["n2"],
+      counts: { nodes: 3, edges: 2, labels: 1 },
     });
   }
+});
+
+test("a real three-member disjoint construct reveals its admitted pairwise occurrences", async () => {
+  const result = await runCanonicalVowlOperation(
+    {
+      operation: "open-owl-model",
+      documentIri: "urn:disjoint",
+      mediaType: "text/owl-functional",
+      bytes: new TextEncoder().encode(
+        "Ontology(<urn:disjoint> Declaration(Class(<urn:A>)) Declaration(Class(<urn:B>)) Declaration(Class(<urn:C>)) DisjointClasses(<urn:A> <urn:B> <urn:C>))",
+      ),
+    },
+    undefined,
+    { loadGeneration: 7, baseRevision: 0 },
+  );
+  const inspection = result.inspection;
+  const references = createCanonicalSemanticReferences(
+    inspection,
+    7,
+    (_id) => ({ loadGeneration: 7, recordToken: 1 }),
+  );
+  const disjoint = inspection.records.constructs.find(
+    ({ kind }) => kind === "disjoint-classes",
+  );
+  expect(disjoint.members).toHaveLength(3);
+  const edges = inspection.occurrences.filter(
+    ({ kind }) => kind === "disjoint-edge",
+  );
+  expect(edges).toHaveLength(3);
+  expect(
+    edges.every(
+      ({ construct, ends }) => construct === disjoint.id && ends.length <= 2,
+    ),
+  ).toBe(true);
+  const requested = ref("urn:A");
+  const role = [...references].find(
+    ([, reference]) => reference.iri === requested.iri,
+  )[0];
+  const nodes = new Set(
+    inspection.occurrences
+      .filter((row) => row.kind === "class-node" && row.targets.includes(role))
+      .map(({ id }) => id),
+  );
+  for (let depth = 0; depth < 2; depth++) {
+    const next = edges
+      .filter(({ ends }) => ends.some((id) => nodes.has(id)))
+      .flatMap(({ ends }) => ends);
+    next.forEach((id) => nodes.add(id));
+  }
+  const visible = new Set(nodes);
+  edges
+    .filter(({ ends }) => ends.every((id) => nodes.has(id)))
+    .forEach(({ id }) => visible.add(id));
+  inspection.occurrences
+    .filter((row) => row.kind === "label" && visible.has(row.edge))
+    .forEach(({ id }) => visible.add(id));
+  expect(
+    createCanonicalSearchProjection(inspection, references, 7).plan([
+      requested,
+    ]),
+  ).toMatchObject({
+    canReveal: true,
+    hidden: inspection.occurrences
+      .filter(({ id }) => !visible.has(id))
+      .map(({ id }) => id),
+  });
 });

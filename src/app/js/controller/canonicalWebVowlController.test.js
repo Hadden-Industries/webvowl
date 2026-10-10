@@ -138,9 +138,13 @@ test("the candidate controller preserves selection through rename and focuses ne
     drawing = request;
   };
   runtime.clearRenderedGraph = () => {};
+  let pendingEditGate;
   const session = createCanonicalVowlDocumentSession({
     workerClient: {
       async run(request, context) {
+        if (request.operation === "edit-model" && pendingEditGate) {
+          await pendingEditGate.promise;
+        }
         const received = JSON.parse(
           JSON.stringify({ ...request, bytes: undefined }),
         );
@@ -254,12 +258,24 @@ test("the candidate controller preserves selection through rename and focuses ne
     loadGeneration: 1,
     payload: { recordTarget: target },
   });
-  await controller.editOntologyRecord({
+  pendingEditGate = deferred();
+  const pendingEdit = controller.editOntologyRecord({
     loadGeneration: 1,
     documentRevision: 0,
     recordTarget: target,
     changes: { iri: "urn:Renamed" },
   });
+  const editingScene = session.scene().snapshot();
+  await expect(
+    controller.revealOntologyNeighborhood({
+      ontologyElementReferences: [reference],
+    }),
+  ).rejects.toMatchObject({ code: "VIEW_REJECTED" });
+  expect(session.scene().snapshot()).toEqual(editingScene);
+  expect(session.hasNeighborhood()).toBe(false);
+  pendingEditGate.resolve();
+  await pendingEdit;
+  pendingEditGate = undefined;
   expect(controller.getState().selection).toEqual([
     { ...reference, iri: "urn:Renamed" },
   ]);

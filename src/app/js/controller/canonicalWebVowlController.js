@@ -194,6 +194,7 @@ export function createCanonicalWebVowlController({
     return request;
   }
   function acceptRevision(result, selectionTargets) {
+    ordinaryPresentation = undefined;
     revealCache = undefined;
     pendingView?.abort();
     pendingView = undefined;
@@ -868,6 +869,13 @@ export function createCanonicalWebVowlController({
     ) {
       const accepted = current();
       signal?.throwIfAborted();
+      if (edits.size > 0) {
+        throw new WebVowlOperationError({
+          code: "VIEW_REJECTED",
+          message:
+            "Wait for the current edit before revealing a neighbourhood.",
+        });
+      }
       const plan = session.planNeighborhood(ontologyElementReferences);
       if (!plan.canReveal) {
         return Object.freeze({
