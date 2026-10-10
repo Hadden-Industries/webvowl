@@ -9,7 +9,7 @@ The work changes verification tooling and evidence documentation; it does not mi
 The previous WeakRef-only observation is supplemented by actual Chrome 155.0.8059.40 / V8 15.5.35.20 main-target heap snapshots, using a dedicated task profile and native Windows Job containment.
 The fixture intentionally holds seven named live owners at a checkpoint, then removes that instrumentation root and finishes ten load/search/reveal/export/clear/edit/reload/dispose cycles.
 The live snapshot contains every positive control and its strong root path.
-Stable V8 object IDs identify session 195533, controller 199943, runtime 195523, graph 188723, worker-client 195987, scene 195995 and search-preparation 204185.
+Stable V8 object IDs in the final owned-server run identify session 97375, controller 97379, runtime 97381, graph 97383, worker-client 97385, scene 97387 and search-preparation 97389.
 All seven IDs are absent from the retirement snapshot, so none has a surviving strong retainer path.
 None of 90 weakly observed retired owners remains live after that snapshot.
 The native process exited 0 with `producersQuiescent:true`; both snapshots and the substantive analysis are retained.
@@ -25,6 +25,8 @@ The live graph's ArrowLink cohort is absent after retirement.
 
 The first native attempt timed out before reaching its live checkpoint and remains retained as a failure.
 The second attempt foregrounded the page and completed after dependency preparation, with all lifecycle checks passing.
+That earlier attempt-02 receipt predates source hashing and the owned-server readiness fix.
+The final attempt-03 repeats the successful lifecycle and retainer checks with the fixed driver, records the source directory and lock/three production-file hashes, and supplies the positive-control IDs cited above.
 The connector's snapshot path restriction was not changed; the isolated native browser wrote directly to the allocated evidence store.
 Snapshot comparison and retainer interpretation follow [Chrome's heap-snapshot guidance](https://developer.chrome.com/docs/devtools/memory-problems/heap-snapshots).
 
@@ -94,5 +96,10 @@ Its default mode runs the heap lifecycle checkpoint; `--latency` runs the guarde
 Raw evidence, including failures, is retained under `C:/Users/maksy/.hi/w/e/operator/c72016ed20e14414a99653b05d9e5943/`.
 `paired-attempt-05.json` contains the admitted Node samples, source hashes and separate preparation/allocation results.
 `latency-attempt-04-{1-baseline,2-candidate,3-candidate,4-baseline}/browser-qualification.json` contains every browser sample and complete answer; `latency-summary.json` binds and compares those receipts.
-`browser-attempt-02/` contains the two heap snapshots and their lifecycle/retainer analysis.
+`browser-attempt-03/` contains the final two heap snapshots and their lifecycle/retainer analysis; `browser-attempt-03-process.json` records native completion.
+The earlier `browser-attempt-02/` snapshots and receipt remain supporting observations with the provenance limitation described above.
+To reproduce the browser comparison, run Python 3 on `summarize-latency.py` in the retained evidence directory, beside the four `latency-attempt-04-*` directories.
+That retained standard-library script requires every cohort and native process to pass, ten samples per cohort, matching browser/fixture/lock/harness identities, exact structural equality of every ordered `latency.answers` value, and equal ordered fixture/visible-count pairs.
+It pools the two cohorts per version and fixture, sorts each metric, selects index `ceil(n * p) - 1` for the median and p95, and compares candidate-minus-baseline load medians with `max(25 ms, baseline * 0.10)`.
+It writes `latency-summary.json` with source-receipt hashes and per-cohort metrics; any assertion failure rejects the comparison instead of producing a passing summary.
 Native process receipts and HISEW verification records keep their own provenance; supplemental measurement reports are not relabelled as engine-verified tests.
