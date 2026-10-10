@@ -84,7 +84,7 @@ jobs:
           package-manager-cache: false
       - name: Select package manager and install locked dependencies
         run: |
-          npm install --global --no-audit --no-fund npm@12.2.0
+          node util/installSelectedNpm.mjs
           npm ci --ignore-scripts
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
@@ -118,7 +118,7 @@ jobs:
       - name: Acquire the exact isolated Markdown graph
         run: npm ci --prefix tooling/markdown --ignore-scripts --no-audit --no-fund
       - name: Select package manager before root documentation commands
-        run: npm install --global --no-audit --no-fund npm@12.2.0
+        run: node util/installSelectedNpm.mjs
       - name: Check the full authored corpus
         run: npm run check:docs && npm run test:markdown
 
@@ -158,7 +158,7 @@ jobs:
           package-manager-cache: false
       - name: Select package manager and install locked dependencies
         run: |
-          npm install --global --no-audit --no-fund npm@12.2.0
+          node util/installSelectedNpm.mjs
           npm ci --ignore-scripts
       - run: npm test -- --runInBand
       - run: npm run build

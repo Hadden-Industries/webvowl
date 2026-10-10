@@ -4,8 +4,10 @@
  * @returns {{}}
  */
 
+import { DEFAULT_VISUALIZATION_MODES } from "../visualizationDefaults.js";
+
 export function createCompactNotationSwitch(graph) {
-  const DEFAULT_STATE = false;
+  const DEFAULT_STATE = DEFAULT_VISUALIZATION_MODES.compactNotation;
 
   const filter = {};
   let nodes;

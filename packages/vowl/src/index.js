@@ -39,6 +39,13 @@ import {
 import { admitCompatibleArtifact } from "./compatibleArtifact.js";
 
 export { profiles, compatibleArtifactProfile, VowlError };
+export {
+  namespaces,
+  migrationDialect,
+  compatibleViewPolicy,
+} from "./profiles.js";
+export { dataRangeKinds } from "./modelContract.js";
+export { operationLimitPolicy } from "./resourceBudget.js";
 const admitted = new WeakMap();
 const admittedModels = new WeakSet();
 

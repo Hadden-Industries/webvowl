@@ -125,7 +125,7 @@ test.each(["tooling", "application"])(
     expect(steps[setupIndex].with.cache).toBeUndefined();
     const commands = steps[installIndex].run.trim().split("\n");
     expect(commands).toEqual([
-      "npm install --global --no-audit --no-fund npm@12.2.0",
+      "node util/installSelectedNpm.mjs",
       "npm ci --ignore-scripts",
     ]);
     expect(repositoryManifest.packageManager).toBe("npm@12.2.0");
@@ -135,8 +135,7 @@ test.each(["tooling", "application"])(
 test("documentation selects npm before invoking the root devEngines policy", () => {
   const steps = workflow.jobs.documentation.steps;
   const bootstrapIndex = steps.findIndex(
-    (step) =>
-      step.run === "npm install --global --no-audit --no-fund npm@12.2.0",
+    (step) => step.run === "node util/installSelectedNpm.mjs",
   );
   const rootCommandIndex = steps.findIndex((step) =>
     step.run?.includes("npm run check:docs"),

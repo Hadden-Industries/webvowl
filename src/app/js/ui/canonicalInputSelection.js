@@ -1,12 +1,10 @@
 import { OWLDocumentFormats } from "owlapi/formats";
 import { OWLOntologyLoaderConfiguration } from "owlapi/model";
-import { profiles } from "vowl";
+import { profiles, migrationDialect as LEGACY_DIALECT } from "vowl";
 import { isIri } from "@hyperjump/uri";
 import "../../css/canonicalMergeDialog.css";
 import { requestCanonicalCreation } from "./canonicalCreationDialog.js";
 
-const LEGACY_DIALECT =
-  "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0";
 let nextId = 0;
 
 /** Document identity is explicit; OWL syntax defaults to owning-parser detection. */

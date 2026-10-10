@@ -1,12 +1,13 @@
 import { createSet as createElementSet } from "../util/set.js";
 import { createElementTools as elementToolsFactory } from "../util/elementTools.js";
+import { DEFAULT_VISUALIZATION_FILTERS } from "../visualizationDefaults.js";
 const elementTools = elementToolsFactory();
 
 export function createSubclassFilter() {
   const filter = {};
   let nodes;
   let properties;
-  let enabled = false;
+  let enabled = DEFAULT_VISUALIZATION_FILTERS.subclasses === "hide";
   let filteredNodes;
   let filteredProperties;
 

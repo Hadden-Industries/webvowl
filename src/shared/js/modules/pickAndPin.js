@@ -1,10 +1,11 @@
 import _ from "lodash/array.js";
 import { createElementTools as elementToolsFactory } from "../util/elementTools.js";
+import { DEFAULT_VISUALIZATION_MODES } from "../visualizationDefaults.js";
 const elementTools = elementToolsFactory();
 
 export function createPickAndPin() {
   const pap = {};
-  let enabled = false;
+  let enabled = DEFAULT_VISUALIZATION_MODES.pickAndPin;
   const pinnedElements = [];
 
   pap.addPinnedElement = function (element) {

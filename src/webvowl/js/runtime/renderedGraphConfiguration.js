@@ -1,20 +1,5 @@
-export const RENDERED_GRAPH_CONFIGURATION_DEFAULTS = Object.freeze({
-  charge: -500,
-  classDistance: 200,
-  compactNotation: false,
-  datatypeDistance: 120,
-  dynamicLabelWidth: true,
-  gravity: 0.025,
-  heightPx: 600,
-  linkStrength: 1,
-  loopDistance: 150,
-  maxLabelWidth: 120,
-  maxMagnification: 4,
-  minMagnification: 0.01,
-  rectangularRepresentation: false,
-  scaleNodesByIndividuals: true,
-  widthPx: 800,
-});
+import { RENDERED_GRAPH_CONFIGURATION_DEFAULTS } from "../../../shared/js/visualizationDefaults.js";
+export { RENDERED_GRAPH_CONFIGURATION_DEFAULTS };
 
 const FINITE_NUMBER_SETTING_NAMES = Object.freeze(["charge", "gravity"]);
 const NON_NEGATIVE_NUMBER_SETTING_NAMES = Object.freeze([

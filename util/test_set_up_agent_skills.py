@@ -37,6 +37,23 @@ class PythonMinimumTests(unittest.TestCase):
             ):
                 subject.require_python_version()
 
+    def test_reads_changed_patch_minimum_from_repository_version_file(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            repo = Path(temp)
+            (repo / ".python-version").write_text("3.16.2\n", encoding="utf-8")
+            with mock.patch.object(
+                subject, "__file__", str(repo / "util" / "setup.py")
+            ):
+                for version in ((3, 16, 0), (3, 16, 1)):
+                    with (
+                        self.subTest(version=version),
+                        mock.patch.object(subject.sys, "version_info", version),
+                        self.assertRaisesRegex(subject.SetupError, "Python 3.16.2"),
+                    ):
+                        subject.require_python_version()
+                with mock.patch.object(subject.sys, "version_info", (3, 16, 2)):
+                    subject.require_python_version()
+
 
 class BrooksReviewInvocationPolicyTests(unittest.TestCase):
     def _apply_policy(

@@ -6,8 +6,8 @@ import {
   sourceStatementUncertainty,
 } from "./retainedSourceStatements.js";
 
-export const compatibleViewPolicy =
-  "https://haddenindustries.com/ontology/profiles/vowl/compatible-view/v1";
+import { compatibleViewPolicy } from "./profiles.js";
+export { compatibleViewPolicy };
 export const sourceMappingRule = `${compatibleViewPolicy}#typed-owl-model`;
 // Owning RC1 literal-assessment rules; profile membership remains a separate axis.
 export const lexicalAssessmentRules = new Set([

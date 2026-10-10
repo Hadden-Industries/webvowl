@@ -1,10 +1,8 @@
 // B4/B5 display belongs to the application. This module never creates semantic
 // facts or occurrences, and its derived strings are not canonical wire fields.
 const encoder = new TextEncoder();
-const OWL = "http://www.w3.org/2002/07/owl#";
-const RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
-const RDFS = "http://www.w3.org/2000/01/rdf-schema#";
-const XSD = "http://www.w3.org/2001/XMLSchema#";
+import { namespaces } from "vowl";
+const { owl: OWL, rdf: RDF, rdfs: RDFS, xsd: XSD } = namespaces;
 const builtinNames = new Map([
   [OWL + "Thing", "Thing"],
   [OWL + "Nothing", "Nothing"],

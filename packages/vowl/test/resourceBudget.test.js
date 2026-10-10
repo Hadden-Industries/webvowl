@@ -1,5 +1,13 @@
 import { readFileSync } from "node:fs";
-import { canonicalize, decode, edit, encode, profiles, VowlError } from "vowl";
+import {
+  canonicalize,
+  decode,
+  edit,
+  encode,
+  profiles,
+  VowlError,
+  operationLimitPolicy,
+} from "vowl";
 
 const fixture = (name) =>
   JSON.parse(
@@ -9,6 +17,24 @@ const fixture = (name) =>
   );
 const empty = () => fixture("empty-structural");
 const options = (limits) => ({ profile: profiles.structuralContent, limits });
+
+test("public limit metadata cannot mutate the package admission policy", async () => {
+  expect(() => {
+    operationLimitPolicy.inputBytes[1] = 1;
+  }).toThrow(TypeError);
+  expect(() => {
+    operationLimitPolicy.depth = [1, 1];
+  }).toThrow(TypeError);
+  await expect(
+    canonicalize(empty(), options({ inputBytes: 268435457 })),
+  ).rejects.toMatchObject({
+    code: "OPTION_INVALID",
+    pointer: "/limits/inputBytes",
+  });
+  await expect(
+    canonicalize(empty(), options({ depth: 512 })),
+  ).resolves.toBeDefined();
+});
 
 test.each([false, true])(
   "option value errors follow UTF-16 field order: reversed=%s",

@@ -3,23 +3,20 @@ import {
   canonicalLoadingMessage,
 } from "./canonicalVowlFailure.js";
 
-const DEFAULT_DEADLINE_MS = 10000;
+import { operationLimitPolicy } from "vowl";
+import {
+  MODEL_OPERATION_NAMES,
+  MODEL_OPERATION_LIMITS,
+} from "./canonicalVowlWorkerPolicy.js";
+
+const [DEFAULT_DEADLINE_MS, MAXIMUM_DEADLINE_MS] =
+  operationLimitPolicy.deadlineMs;
 // The owner-approved desktop allowance covers the entire model lifecycle;
 // the same whole-job deadline travels to the package in the worker request.
-const MODEL_OPERATION_DEADLINE_MS = 60000;
-const modelOperations = new Set([
-  "open-owl-model",
-  "open-canonical-model",
-  "open-legacy-model",
-  "recover-model",
-  "edit-model",
-  "capture-model",
-  "read-model-source",
-  "export-model-rdf",
-]);
-const MAXIMUM_DEADLINE_MS = 300000;
-const DEFAULT_INPUT_BYTES = 33554432;
-const MAXIMUM_INPUT_BYTES = 268435456;
+const MODEL_OPERATION_DEADLINE_MS = MODEL_OPERATION_LIMITS.deadlineMs;
+const modelOperations = new Set(MODEL_OPERATION_NAMES);
+const [DEFAULT_INPUT_BYTES, MAXIMUM_INPUT_BYTES] =
+  operationLimitPolicy.inputBytes;
 const typedArrayPrototype = Object.getPrototypeOf(Uint8Array.prototype);
 const byteBuffer = Object.getOwnPropertyDescriptor(
   typedArrayPrototype,
@@ -282,7 +279,10 @@ export function createCanonicalVowlWorkerClient({
       let acquiredBytes = bytes?.byteLength ?? 0;
       let checkpointPayload;
       if (checkpointOperation) {
-        const depth = positiveLimit(limits.depth, 128, 512);
+        const depth = positiveLimit(
+          limits.depth,
+          ...operationLimitPolicy.depth,
+        );
         const allowed = [
           "operation",
           "checkpoint",

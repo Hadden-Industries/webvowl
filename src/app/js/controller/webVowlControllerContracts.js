@@ -48,7 +48,7 @@ export const GENERATION_SCOPED_CONTROLLER_STATE_FIELDS = Object.freeze({
   translation: null,
 });
 
-const ONTOLOGY_ELEMENT_KINDS = Object.freeze([
+export const ONTOLOGY_ELEMENT_KINDS = Object.freeze([
   "class",
   "datatype",
   "individual",

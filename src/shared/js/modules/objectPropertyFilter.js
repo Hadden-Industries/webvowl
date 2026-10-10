@@ -1,11 +1,12 @@
 import { createElementTools as elementToolsFactory } from "../util/elementTools.js";
+import { DEFAULT_VISUALIZATION_FILTERS } from "../visualizationDefaults.js";
 const elementTools = elementToolsFactory();
 
 export function createObjectPropertyFilter() {
   const filter = {};
   let nodes;
   let properties;
-  let enabled = false;
+  let enabled = DEFAULT_VISUALIZATION_FILTERS.objectProperties === "hide";
   let filteredNodes;
   let filteredProperties;
 

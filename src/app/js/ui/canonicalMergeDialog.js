@@ -1,7 +1,8 @@
 import "../../css/canonicalMergeDialog.css";
 
 let nextDialogId = 0;
-const SVG = "http://www.w3.org/2000/svg";
+import { namespaces } from "vowl";
+const SVG = namespaces.svg;
 
 /**
  * Ask only about genuinely conflicting placements. The controller supplies

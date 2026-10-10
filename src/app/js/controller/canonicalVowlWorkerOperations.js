@@ -17,27 +17,16 @@ import {
 import { fromOwl, openOwl, exportModelRdf } from "vowl/owl";
 import { migrate } from "vowl/migrate";
 import { canonicalFailureDetails } from "./canonicalVowlFailure.js";
+import {
+  MODEL_OPERATION_NAMES,
+  MODEL_OPERATION_LIMITS as modelOperationLimits,
+} from "./canonicalVowlWorkerPolicy.js";
 
-const modelOperations = new Set([
-  "open-owl-model",
-  "open-canonical-model",
-  "open-legacy-model",
-  "recover-model",
-  "edit-model",
-  "capture-model",
-  "read-model-source",
-  "export-model-rdf",
-]);
+const modelOperations = new Set(MODEL_OPERATION_NAMES);
 
 // Owner-approved desktop profile, measured on a 10,000-class hierarchy.
 // One model must remain usable across opening, editing, recovery and export;
 // explicit limits still win, and parser bytes/RDF/canonicalization caps stay native.
-const modelOperationLimits = Object.freeze({
-  deadlineMs: 60000,
-  totalStringBytes: 67108864,
-  primaryRecords: 200000,
-  embeddedValues: 4000000,
-});
 
 async function rankingIdentity(model, limits) {
   const start = performance.now();

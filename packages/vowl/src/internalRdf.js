@@ -1,6 +1,6 @@
 import rdf from "rdf-canonize";
 import { VowlError, fail } from "./errors.js";
-import { categories, namespaces } from "./profiles.js";
+import { categories, namespaces, collectionTypeNames } from "./profiles.js";
 import { descriptorFor, walkTyped } from "./typedValues.js";
 import { envelope } from "./modelContract.js";
 import { jsonKey } from "./canonicalJson.js";
@@ -12,13 +12,6 @@ const literal = (value, datatype) => ({
   datatype: named(datatype),
   language: "",
 });
-const typeNames = {
-  subjects: "Subject",
-  roles: "Role",
-  expressions: "Expression",
-  constructs: "Construct",
-  occurrences: "Occurrence",
-};
 const type = named(namespaces.rdf + "type");
 const graph = { termType: "DefaultGraph", value: "" };
 
@@ -28,7 +21,7 @@ function mappingContract(document) {
     collections: Object.entries(categories).map(([collection, prefix]) => ({
       records: document.structural[collection],
       prefix,
-      type: typeNames[collection],
+      type: collectionTypeNames[collection],
     })),
   };
 }

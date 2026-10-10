@@ -16,10 +16,14 @@ import {
   VISUALIZATION_SLIDER_LIMITS,
   createVisualizationModesRequest,
   createForceLayoutDistancesRequest,
+  VISIBILITY_FILTER_FIELD_NAMES,
+  VISUALIZATION_VIEW_REQUEST_FIELD_NAMES as SET_VISUALIZATION_VIEW_FIELD_NAMES,
+  MAX_VISUALIZATION_FOCUS_REFERENCE_COUNT as MAXIMUM_FOCUS_REFERENCE_COUNT,
 } from "../controller/renderedGraphRuntimeContracts.js";
 import {
   normalizeVisualizationFilename,
   ONTOLOGY_ROLE_KINDS,
+  ONTOLOGY_ELEMENT_KINDS,
 } from "../controller/webVowlControllerContracts.js";
 
 // The agent-facing surface of this page. Each tool is a
@@ -36,13 +40,6 @@ const ONTOLOGY_TEXT_FORMAT_KEYS = Object.freeze(
   Object.values(OWLDocumentFormats).map((documentFormat) => documentFormat.key),
 );
 
-const ONTOLOGY_ELEMENT_KINDS = Object.freeze([
-  "class",
-  "datatype",
-  "individual",
-  "property",
-]);
-
 const VISIBILITY_FILTER_VALUES = Object.freeze(["show", "hide"]);
 
 // A location an agent may name. Long enough for a real IRI, short enough that a
@@ -53,7 +50,6 @@ const MAXIMUM_LOCATION_LENGTH = 2048;
 const MAXIMUM_DOCUMENT_TEXT_LENGTH = 1048576;
 const MAXIMUM_TOOL_DOCUMENT_BYTES = 1048576;
 const MAXIMUM_ANONYMOUS_LOCAL_ID_LENGTH = 256;
-const MAXIMUM_FOCUS_REFERENCE_COUNT = 25;
 
 // The renderer's configured magnification bounds. A request outside them is
 // refused here rather than clamped silently, so an agent learns what it asked
@@ -1089,14 +1085,6 @@ function assertBooleanPredicate(candidateValue, fieldName) {
   return candidateValue;
 }
 
-const VISIBILITY_FILTER_FIELD_NAMES = Object.freeze([
-  "datatypes",
-  "objectProperties",
-  "subclasses",
-  "disjointness",
-  "setOperators",
-]);
-
 function normalizeVisibilityFilters(requestedFilters) {
   try {
     rejectObsoleteNodeSelection(requestedFilters);
@@ -1188,17 +1176,6 @@ function normalizeOntologyElementReference(requestedReference) {
     ),
   });
 }
-
-const SET_VISUALIZATION_VIEW_FIELD_NAMES = Object.freeze([
-  "nodesShown",
-  "language",
-  "filters",
-  "focus",
-  "layout",
-  "viewport",
-  "zoomScale",
-  "translation",
-]);
 
 export function normalizeSetVisualizationViewToolInput(toolInput = {}) {
   try {

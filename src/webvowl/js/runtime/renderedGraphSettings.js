@@ -1,6 +1,10 @@
 // Renderer-owned settings: force and dimension parameters, graph style
 // choices, and the filter and selection registries the renderer drives.
 // Split out of the retired options god-object during the D3 cutover.
+import {
+  RENDERED_GRAPH_CONFIGURATION_DEFAULTS as defaults,
+  DEFAULT_RENDERER_INTERACTION_SETTINGS as interactionDefaults,
+} from "../../../shared/js/visualizationDefaults.js";
 export function createRenderedGraphSettings() {
   const renderedGraphSettings = {};
 
@@ -8,19 +12,19 @@ export function createRenderedGraphSettings() {
   // settings object holds no presentation module of its own.
   let data,
     graphContainerElement,
-    classDistance = 200,
-    datatypeDistance = 120,
-    loopDistance = 150,
-    charge = -500,
-    gravity = 0.025,
-    linkStrength = 1,
-    height = 600,
-    width = 800,
+    classDistance = defaults.classDistance,
+    datatypeDistance = defaults.datatypeDistance,
+    loopDistance = defaults.loopDistance,
+    charge = defaults.charge,
+    gravity = defaults.gravity,
+    linkStrength = defaults.linkStrength,
+    height = defaults.heightPx,
+    width = defaults.widthPx,
     filterModules = [],
-    minMagnification = 0.01,
-    maxMagnification = 4,
-    compactNotation = false,
-    dynamicLabelWidth = true,
+    minMagnification = defaults.minMagnification,
+    maxMagnification = defaults.maxMagnification,
+    compactNotation = defaults.compactNotation,
+    dynamicLabelWidth = defaults.dynamicLabelWidth,
     // some filters
     literalFilter,
     datatypeFilter,
@@ -31,15 +35,16 @@ export function createRenderedGraphSettings() {
   let objectPropertyFilter;
   let subclassFilter;
   let setOperatorFilter;
-  let maxLabelWidth = 120;
+  let maxLabelWidth = defaults.maxLabelWidth;
   let disjointPropertyFilter;
-  let rectangularRep = false;
-  let drawPropertyDraggerOnHover = true;
-  let showDraggerObject = false;
-  let scaleNodesByIndividuals = true;
-  let useAccuracyHelper = true;
-  let showRenderingStatistic = true;
-  let showInputModality = false;
+  let rectangularRep = defaults.rectangularRepresentation;
+  let drawPropertyDraggerOnHover =
+    interactionDefaults.drawPropertyDraggerOnHover;
+  let showDraggerObject = interactionDefaults.showDraggerObject;
+  let scaleNodesByIndividuals = defaults.scaleNodesByIndividuals;
+  let useAccuracyHelper = interactionDefaults.useAccuracyHelper;
+  let showRenderingStatistic = interactionDefaults.showRenderingStatistic;
+  let showInputModality = interactionDefaults.showInputModality;
   let pickAndPinModule;
 
   // Presentation supplies the channel that surfaces a rejected setting; the

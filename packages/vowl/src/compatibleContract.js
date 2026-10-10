@@ -1,4 +1,8 @@
-import { categories } from "./profiles.js";
+import {
+  categories,
+  collectionTypeNames,
+  compatibleViewPolicy as policy,
+} from "./profiles.js";
 import { fail } from "./errors.js";
 import { validateFields, walkTyped } from "./typedValues.js";
 import { jsonKey, orderSets } from "./canonicalJson.js";
@@ -6,8 +10,6 @@ import { definitions, schemaFor } from "./modelContract.js";
 
 export const compatibleArtifactProfile =
   "https://haddenindustries.com/ontology/profiles/vowl/canonical/compatible-artifact/v1";
-const policy =
-  "https://haddenindustries.com/ontology/profiles/vowl/compatible-view/v1";
 const rules = new Set(
   [
     "original-assessment",
@@ -192,20 +194,13 @@ export function compatibleArtifactSchema() {
 
 /** Separate inventory: existing v1 descriptors and identifier categories stay frozen. */
 export function compatibleMappingContract(document) {
-  const types = {
-    subjects: "Subject",
-    roles: "Role",
-    expressions: "Expression",
-    constructs: "Construct",
-    occurrences: "Occurrence",
-  };
   return {
     descriptor: compatibleDocumentContract,
     collections: [
       ...Object.entries(categories).map(([key, prefix]) => ({
         records: document.structural[key],
         prefix,
-        type: types[key],
+        type: collectionTypeNames[key],
       })),
       {
         records: document.qualifications.documents,

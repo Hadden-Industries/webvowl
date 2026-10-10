@@ -121,9 +121,16 @@ def lf_git_environment() -> dict[str, str]:
 
 def require_python_version() -> None:
     # This entry point can be invoked directly before repository setup.
-    if sys.version_info < (3, 15):  # noqa: UP036
+    version_path = Path(__file__).resolve().parent.parent / ".python-version"
+    selected = version_path.read_text(encoding="utf-8").strip()
+    if re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", selected) is None:
+        raise SetupError(f"Invalid Python version in {version_path}: {selected}")
+    minimum = tuple(int(part) for part in selected.split("."))
+    if sys.version_info[:3] < minimum:
+        display_minimum = selected.removesuffix(".0") if minimum[2] == 0 else selected
         raise SetupError(
-            "Python 3.15 or newer is required; see the minimum in .python-version. "
+            f"Python {display_minimum} or newer is required; "
+            "see the minimum in .python-version. "
             f"Running: {sys.version.split()[0]}"
         )
 

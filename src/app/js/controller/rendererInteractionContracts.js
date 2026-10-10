@@ -1,26 +1,15 @@
 import {
   VOWL_EDITOR_CLASS_TYPES,
   VOWL_EDITOR_DATATYPE_NAMES,
-  VOWL_EDITOR_PROPERTY_TYPES,
-} from "./ontologyEditorDrawingRecords.js";
-
-export const DEFAULT_ONTOLOGY_EDITOR_OPTIONS = Object.freeze({
-  isEditorMode: false,
-  defaultClass: "owl:Class",
-  defaultDatatype: "rdfs:Literal",
-  defaultProperty: "owl:objectProperty",
-  useAccuracyHelper: true,
-  showDraggerObject: false,
-});
+  VOWL_EDITOR_CREATABLE_PROPERTY_TYPES,
+  DEFAULT_ONTOLOGY_EDITOR_OPTIONS,
+} from "../../../shared/js/ontologyEditorVocabulary.js";
+export { DEFAULT_ONTOLOGY_EDITOR_OPTIONS };
 
 export const ONTOLOGY_CREATION_TYPES = Object.freeze({
   supportedClasses: VOWL_EDITOR_CLASS_TYPES,
   supportedDatatypes: VOWL_EDITOR_DATATYPE_NAMES,
-  supportedProperties: Object.freeze(
-    VOWL_EDITOR_PROPERTY_TYPES.filter(
-      (type) => type !== "owl:datatypeProperty",
-    ),
-  ),
+  supportedProperties: VOWL_EDITOR_CREATABLE_PROPERTY_TYPES,
 });
 
 function assertRecord(request) {

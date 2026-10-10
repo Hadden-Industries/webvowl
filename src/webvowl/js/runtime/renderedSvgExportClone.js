@@ -6,6 +6,7 @@
 // style onto its counterpart in the clone.
 //
 // The live SVG is never touched. Everything here happens on the clone.
+import { namespaces } from "vowl";
 
 const EXPORTED_VISUAL_PROPERTIES = [
   "fill",
@@ -74,7 +75,7 @@ export function createRenderedSvgExportClone(
     });
   });
   exportedSvg.setAttribute("version", "1.1");
-  exportedSvg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  exportedSvg.setAttribute("xmlns", namespaces.svg);
 
   // An exported view is the view on screen. The drawn content is positioned
   // for the live viewport, so framing the clone on any other canvas would clip

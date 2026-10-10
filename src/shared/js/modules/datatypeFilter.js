@@ -1,5 +1,6 @@
 import { createFilterTools as filterToolsFactory } from "../util/filterTools.js";
 import { createElementTools as elementToolsFactory } from "../util/elementTools.js";
+import { DEFAULT_VISUALIZATION_FILTERS } from "../visualizationDefaults.js";
 const elementTools = elementToolsFactory();
 const filterTools = filterToolsFactory();
 
@@ -7,7 +8,7 @@ export function createDatatypeFilter() {
   const filter = {};
   let nodes;
   let properties;
-  let enabled = false;
+  let enabled = DEFAULT_VISUALIZATION_FILTERS.datatypes === "hide";
   let filteredNodes;
   let filteredProperties;
 

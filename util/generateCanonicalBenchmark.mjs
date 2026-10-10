@@ -1,5 +1,5 @@
 import { readFile, writeFile } from "node:fs/promises";
-import { canonicalize, edit, encode, profiles } from "vowl";
+import { canonicalize, edit, encode, profiles, namespaces } from "vowl";
 import { createCanonicalVowlScene } from "../src/app/js/controller/canonicalVowlScene.js";
 
 if (process.argv.length > 3) {
@@ -15,10 +15,7 @@ const legacy = JSON.parse(
 );
 const root = "https://haddenindustries.com/webvowl/benchmark";
 const external = "https://example.org/webvowl-benchmark#";
-const OWL = "http://www.w3.org/2002/07/owl#";
-const RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
-const RDFS = "http://www.w3.org/2000/01/rdf-schema#";
-const XSD = "http://www.w3.org/2001/XMLSchema#";
+const { owl: OWL, rdf: RDF, rdfs: RDFS, xsd: XSD } = namespaces;
 const changes = [];
 let ordinal = 0;
 function insert(collection, fields) {

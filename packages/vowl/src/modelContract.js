@@ -25,6 +25,13 @@ export const roleKinds = Object.freeze([
   "rdf-property",
   "individual",
 ]);
+export const dataRangeKinds = Object.freeze([
+  "data-intersection",
+  "data-union",
+  "data-complement",
+  "data-enumeration",
+  "datatype-restriction",
+]);
 export const expressionPayloads = {
   "class-intersection": { members: set(ref.C, 1) },
   "class-union": { members: set(ref.C, 1) },

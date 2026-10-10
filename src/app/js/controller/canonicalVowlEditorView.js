@@ -1,8 +1,7 @@
 import { isVowlExternal } from "./vowlDisplayProjector.js";
 
-const OWL = "http://www.w3.org/2002/07/owl#";
-const RDFS = "http://www.w3.org/2000/01/rdf-schema#";
-const DC = "http://purl.org/dc/elements/1.1/";
+import { namespaces } from "vowl";
+const { owl: OWL, rdfs: RDFS, dc: DC } = namespaces;
 
 /** Human-editor presentation only; these rows are never parser or save input. */
 export function createCanonicalVowlEditorView(

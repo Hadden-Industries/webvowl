@@ -1,4 +1,54 @@
 import { createPrefixRepresentationModule as prefixRepresentationModule } from "./util/prefixRepresentationModule.js";
+import { namespaces } from "vowl";
+import {
+  VOWL_EDITOR_DATATYPE_NAMES,
+  VOWL_EDITOR_CLASS_TYPES,
+  VOWL_EDITOR_CREATABLE_PROPERTY_TYPES,
+  DEFAULT_VOWL_EDITOR_PREFIXES,
+  DEFAULT_ONTOLOGY_EDITOR_OPTIONS,
+} from "./ontologyEditorVocabulary.js";
+import {
+  DEFAULT_FORCE_LAYOUT_DISTANCES,
+  DEFAULT_VISUALIZATION_MODES,
+  DEFAULT_VISUALIZATION_FILTERS,
+  RENDERED_GRAPH_CONFIGURATION_DEFAULTS,
+} from "./visualizationDefaults.js";
+
+function initialOptions(includePickAndPin) {
+  return {
+    sidebar: "1",
+    cd: DEFAULT_FORCE_LAYOUT_DISTANCES.classDistancePx,
+    dd: DEFAULT_FORCE_LAYOUT_DISTANCES.datatypeDistancePx,
+    editorMode: String(DEFAULT_ONTOLOGY_EDITOR_OPTIONS.isEditorMode),
+    filter_datatypes: String(
+      DEFAULT_VISUALIZATION_FILTERS.datatypes === "hide",
+    ),
+    filter_objectProperties: String(
+      DEFAULT_VISUALIZATION_FILTERS.objectProperties === "hide",
+    ),
+    filter_sco: String(DEFAULT_VISUALIZATION_FILTERS.subclasses === "hide"),
+    filter_disjoint: String(
+      DEFAULT_VISUALIZATION_FILTERS.disjointness === "hide",
+    ),
+    filter_setOperator: String(
+      DEFAULT_VISUALIZATION_FILTERS.setOperators === "hide",
+    ),
+    mode_dynamic: String(DEFAULT_VISUALIZATION_MODES.dynamicLabelWidth),
+    mode_scaling: String(DEFAULT_VISUALIZATION_MODES.nodeScaling),
+    mode_compact: String(DEFAULT_VISUALIZATION_MODES.compactNotation),
+    mode_colorExt: String(DEFAULT_VISUALIZATION_MODES.colorExternals),
+    mode_multiColor: String(
+      DEFAULT_VISUALIZATION_MODES.colorExternalsMode === "gradient",
+    ),
+    ...(includePickAndPin
+      ? { mode_pnp: String(DEFAULT_VISUALIZATION_MODES.pickAndPin) }
+      : {}),
+    debugFeatures: "false",
+    rect: Number(
+      RENDERED_GRAPH_CONFIGURATION_DEFAULTS.rectangularRepresentation,
+    ),
+  };
+}
 
 // Ontology and application state: prefixes, ontology metadata, supported
 // element types, default elements, and editor configuration. Split out of
@@ -19,70 +69,16 @@ export function createOntologyEditingState() {
   let hideDebugOptions = true;
   let onDebugFeatureVisibilityChanged = () => undefined;
   // Sourced from the W3C OWL 2 Specification (https://www.w3.org/TR/owl2-syntax/#Real_Numbers.2C_Decimal_Numbers.2C_and_Integers)
-  const supportedDatatypes = [
-    "rdfs:Literal",
-    "owl:real",
-    "owl:rational",
-    "xsd:decimal",
-    "xsd:integer",
-    "xsd:nonNegativeInteger",
-    "xsd:nonPositiveInteger",
-    "xsd:positiveInteger",
-    "xsd:negativeInteger",
-    "xsd:long",
-    "xsd:int",
-    "xsd:short",
-    "xsd:byte",
-    "xsd:unsignedLong",
-    "xsd:unsignedInt",
-    "xsd:unsignedShort",
-    "xsd:unsignedByte",
-    "xsd:boolean",
-    "xsd:double",
-    "xsd:float",
-    "xsd:string",
-    "xsd:dateTime",
-    "undefined",
-  ];
-  const supportedClasses = ["owl:Thing", "owl:Class", "owl:DeprecatedClass"];
-  const supportedProperties = [
-    "owl:objectProperty",
-    "rdfs:subClassOf",
-    "owl:disjointWith",
-    "owl:allValuesFrom",
-    "owl:someValuesFrom",
-  ];
-  const prefixList = {
-    rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-    rdfs: "http://www.w3.org/2000/01/rdf-schema#",
-    owl: "http://www.w3.org/2002/07/owl#",
-    xsd: "http://www.w3.org/2001/XMLSchema#",
-    dc: "http://purl.org/dc/elements/1.1/#",
-    xml: "http://www.w3.org/XML/1998/namespace",
-  };
+  const supportedDatatypes = [...VOWL_EDITOR_DATATYPE_NAMES];
+  const supportedClasses = [...VOWL_EDITOR_CLASS_TYPES];
+  const supportedProperties = [...VOWL_EDITOR_CREATABLE_PROPERTY_TYPES];
+  const prefixList = { ...DEFAULT_VOWL_EDITOR_PREFIXES };
+  const defaultOptionsConfig = initialOptions(false);
 
-  const defaultOptionsConfig = {};
-  defaultOptionsConfig.sidebar = "1";
-  defaultOptionsConfig.cd = 200;
-  defaultOptionsConfig.dd = 120;
-  defaultOptionsConfig.editorMode = "false";
-  defaultOptionsConfig.filter_datatypes = "false";
-  defaultOptionsConfig.filter_objectProperties = "false";
-  defaultOptionsConfig.filter_sco = "false";
-  defaultOptionsConfig.filter_disjoint = "true";
-  defaultOptionsConfig.filter_setOperator = "false";
-  defaultOptionsConfig.mode_dynamic = "true";
-  defaultOptionsConfig.mode_scaling = "true";
-  defaultOptionsConfig.mode_compact = "false";
-  defaultOptionsConfig.mode_colorExt = "true";
-  defaultOptionsConfig.mode_multiColor = "false";
-  defaultOptionsConfig.debugFeatures = "false";
-  defaultOptionsConfig.rect = 0;
-
-  let defaultClass = "owl:Class";
-  let defaultProperty = "owl:objectProperty";
-  let defaultDatatype = "rdfs:Literal";
-  let baseIri = "http://www.w3.org/2002/07/owl#";
+  let defaultClass = DEFAULT_ONTOLOGY_EDITOR_OPTIONS.defaultClass;
+  let defaultProperty = DEFAULT_ONTOLOGY_EDITOR_OPTIONS.defaultProperty;
+  let defaultDatatype = DEFAULT_ONTOLOGY_EDITOR_OPTIONS.defaultDatatype;
+  let baseIri = namespaces.owl;
   // Presentation supplies the channel that surfaces a rejected setting; the
   // settings object never holds a presentation module itself.
 
@@ -228,25 +224,7 @@ export function createOntologyEditingState() {
     prefixModule = val;
   };
   ontologyEditingState.initialConfig = function () {
-    const initCfg = {};
-    initCfg.sidebar = "1";
-    initCfg.cd = 200;
-    initCfg.dd = 120;
-    initCfg.editorMode = "false";
-    initCfg.filter_datatypes = "false";
-    initCfg.filter_objectProperties = "false";
-    initCfg.filter_sco = "false";
-    initCfg.filter_disjoint = "true";
-    initCfg.filter_setOperator = "false";
-    initCfg.mode_dynamic = "true";
-    initCfg.mode_scaling = "true";
-    initCfg.mode_compact = "false";
-    initCfg.mode_colorExt = "true";
-    initCfg.mode_multiColor = "false";
-    initCfg.mode_pnp = "false";
-    initCfg.debugFeatures = "false";
-    initCfg.rect = 0;
-    return initCfg;
+    return initialOptions(true);
   };
   ontologyEditingState.setEditorModeForDefaultObject = function (val) {
     defaultOptionsConfig.editorMode = String(val);
