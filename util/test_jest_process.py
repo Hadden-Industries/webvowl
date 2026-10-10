@@ -223,7 +223,15 @@ class JestProcessTests(unittest.TestCase):
             facts = json.loads(result.stdout)
             self.assertTrue(facts["quiescent"], facts)
             self.assertIsNone(facts["reason"], facts)
-            self.assertEqual(facts["exitCode"], 0, facts)
+            self.assertEqual(
+                facts["exitCode"],
+                0,
+                {
+                    "facts": facts,
+                    "stdout": (destination / "stdout.txt").read_text(encoding="utf-8"),
+                    "stderr": (destination / "stderr.txt").read_text(encoding="utf-8"),
+                },
+            )
             native = json.loads((destination / "jest.json").read_text(encoding="utf-8"))
             self.assertTrue(native["success"])
             self.assertEqual(
