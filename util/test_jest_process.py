@@ -177,6 +177,18 @@ class JestProcessTests(unittest.TestCase):
         self.assertTrue(jest.is_file(), "Locked root dependencies must be installed")
         with tempfile.TemporaryDirectory(prefix="webvowl-native-jest-") as temporary:
             root = Path(temporary)
+            if sys.platform == "win32":
+                # Exercise a short-name alias when the filesystem supplies one.
+                short = ctypes.create_unicode_buffer(32768)
+                self.assertGreater(
+                    ctypes.windll.kernel32.GetShortPathNameW(
+                        str(root), short, len(short)
+                    ),
+                    0,
+                )
+                root = Path(short.value)
+            # Jest canonicalizes rootDir; its explicit file argv must agree.
+            root = root.resolve()
             test_file = root / "native.test.mjs"
             test_file.write_text(
                 "test('duplicate',()=>expect(1).toBe(1));"
