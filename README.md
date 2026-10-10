@@ -124,6 +124,7 @@ Prose tests require the locked Node dependencies as well as the Python environme
 Installed skills, environments, generated data, and fixtures are outside the formatting scope.
 
 CI runs Python checks on Windows and Linux and Markdown checks on Linux.
+Python CI uses pinned uv tooling to read `.python-version` and activate an isolated runner environment before creating the repository's `.venv` and installing its hash-locked requirements.
 Both feed the existing required `WebVOWL application` job.
 The application build continues to require only its existing Node.js tooling.
 Its `prebuild` runs `format:app:check` and `lint:app` explicitly.

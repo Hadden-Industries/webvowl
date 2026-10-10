@@ -6,13 +6,42 @@ import { readdir, readFile, writeFile } from "node:fs/promises";
 
 const packageRoot = fileURLToPath(new URL("../", import.meta.url));
 const packages = new Map();
+const manifest = JSON.parse(
+  await readFile(join(packageRoot, "package.json"), "utf8"),
+);
+let owlapiSelector = manifest.dependencies.owlapi;
+let gitOwlapiOwner;
+if (owlapiSelector === "*") {
+  const root = JSON.parse(
+    await readFile(new URL("../../../package.json", import.meta.url), "utf8"),
+  );
+  if (root.overrides?.owlapi !== "$owlapi" || !root.dependencies?.owlapi) {
+    throw new Error("The workspace OwlAPI selector must inherit root $owlapi.");
+  }
+  owlapiSelector = root.dependencies.owlapi;
+  if (/^git\+https:\/\/[^#]+#[a-f0-9]{40}$/.test(owlapiSelector)) {
+    const lock = JSON.parse(
+      await readFile(
+        new URL("../../../package-lock.json", import.meta.url),
+        "utf8",
+      ),
+    );
+    if (lock.packages?.[""]?.dependencies?.owlapi !== owlapiSelector) {
+      throw new Error("The root OwlAPI selector and lockfile disagree.");
+    }
+    gitOwlapiOwner = lock.packages?.["node_modules/owlapi"]?.name ?? "owlapi";
+  }
+}
 
 async function collect(name, parent) {
   const require = createRequire(join(parent, "package.json"));
   const parentManifest = JSON.parse(
     await readFile(join(parent, "package.json"), "utf8"),
   );
-  const declaredSpecifier = parentManifest.dependencies?.[name];
+  const isWorkspaceOwlapi = parent === packageRoot && name === "owlapi";
+  const declaredSpecifier = isWorkspaceOwlapi
+    ? owlapiSelector
+    : parentManifest.dependencies?.[name];
   let entry;
   try {
     entry = require.resolve(`${name}/package.json`);
@@ -28,11 +57,13 @@ async function collect(name, parent) {
       );
       // npm aliases resolve by the local dependency key but retain the owning
       // package's real name in its manifest and license notices.
-      if (
-        candidate.name === name ||
-        declaredSpecifier === `npm:${candidate.name}` ||
-        declaredSpecifier?.startsWith(`npm:${candidate.name}@`)
-      ) {
+      const matchesOwner =
+        isWorkspaceOwlapi && gitOwlapiOwner
+          ? gitOwlapiOwner === candidate.name
+          : candidate.name === name ||
+            declaredSpecifier === `npm:${candidate.name}` ||
+            declaredSpecifier?.startsWith(`npm:${candidate.name}@`);
+      if (matchesOwner) {
         manifest = candidate;
         break;
       }
@@ -54,15 +85,12 @@ async function collect(name, parent) {
   }
 }
 
-const manifest = JSON.parse(
-  await readFile(join(packageRoot, "package.json"), "utf8"),
-);
 for (const name of Object.keys(manifest.dependencies).sort()) {
   await collect(name, packageRoot);
 }
 let notices =
   "# Third-party notices\n\nThe package's authored code is AGPL-3.0-only.\nThe following resolved runtime dependency closure retains its original grants and notices.\nDistinct installed versions are listed separately.\nDependencies are installed separately; these notices do not relicense them.\n";
-notices += `\nowlapi is selected by the exact native npm alias \`${manifest.dependencies.owlapi}\`, preserving public \`owlapi/*\` imports.\n`;
+notices += `\nowlapi is selected by the native dependency reference \`${owlapiSelector}\`, preserving public \`owlapi/*\` imports.\n`;
 const ordered = [...packages.values()].sort((left, right) => {
   const a = `${left.manifest.name}@${left.manifest.version}`;
   const b = `${right.manifest.name}@${right.manifest.version}`;
