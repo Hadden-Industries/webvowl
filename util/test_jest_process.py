@@ -47,6 +47,36 @@ if (mode === 'nested') {
     "Node and a supported native platform required",
 )
 class JestProcessTests(unittest.TestCase):
+    @unittest.skipUnless(
+        sys.platform == "linux", "Linux adapter end-to-end qualification"
+    )
+    def test_linux_selected_and_shadow_execution(self):
+        """Run the JS adapter regressions in the existing Python matrix's selected venv."""
+        result = subprocess.run(
+            [
+                NODE,
+                "--experimental-vm-modules",
+                "--disable-warning=ExperimentalWarning",
+                str(ROOT / "node_modules/jest/bin/jest.js"),
+                "--runInBand",
+                "--runTestsByPath",
+                str(ROOT / "util/dependency-tooling.test.mjs"),
+                "--testNamePattern",
+                "native Jest result integrity",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            encoding="utf-8",
+            timeout=180,
+            check=False,
+            env={
+                **os.environ,
+                "NODE_OPTIONS": "--experimental-vm-modules --disable-warning=ExperimentalWarning",
+                "NODE_PATH": "",
+            },
+        )
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+
     def test_identity_readback_loss_never_crosses_execution_gate(self):
         """Inject only an OS identity readback failure, never a successful containment result."""
         spec = importlib.util.spec_from_file_location(

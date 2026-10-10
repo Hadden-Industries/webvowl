@@ -104,7 +104,11 @@ export function discoverTests(root, admission = admitJest(root)) {
       timeout: limits.discoveryMs,
       maxBuffer: limits.graphBytes,
       windowsHide: true,
-      env: { ...process.env, NODE_OPTIONS: "", NODE_PATH: "" },
+      env: {
+        ...process.env,
+        NODE_OPTIONS: admission.flags.join(" "),
+        NODE_PATH: "",
+      },
     },
   );
   if (result.error || result.status !== 0)
@@ -163,6 +167,7 @@ export function readPolicy(root) {
     for (const path of policy[key])
       safePath(key === "fullDomains" ? path.replace(/\/$/u, "") : path);
   }
+  for (const path of policy.boundaryFiles) readOwned(root, path);
   if (
     !Array.isArray(policy.relations) ||
     policy.relations.length > 128 ||
@@ -291,6 +296,8 @@ export async function selectFromGraphs(graphs, changed, tests, relations) {
             path,
             {
               kind: changed.includes(path) ? "direct-change" : "native-reach",
+              scope:
+                "selection-wide context; consult native subgraphs for file reachability",
               seeds: [...seeds].sort(),
               relations: [...applied].sort(),
             },
@@ -354,14 +361,20 @@ function historicalSources(root, base, policy) {
   if (git(root, ["rev-parse", "--is-shallow-repository"]).trim() !== "false")
     throw new Error("Shallow baseline");
   const entries = nulRecords(
-    git(root, ["ls-tree", "-r", "-z", "--full-tree", base], true),
+    git(root, ["ls-tree", "-r", "-l", "-z", "--full-tree", base], true),
   );
   if (entries.length > limits.entries)
     throw new Error("Historical inventory budget exceeded");
   const records = entries.map((entry) => {
     const tab = entry.indexOf("\t");
-    const [mode, type, oid] = entry.slice(0, tab).split(" ");
-    return { path: safePath(entry.slice(tab + 1)), mode, type, oid };
+    const [mode, type, oid, size] = entry.slice(0, tab).trim().split(/\s+/u);
+    return {
+      path: safePath(entry.slice(tab + 1)),
+      mode,
+      type,
+      oid,
+      size: Number(size),
+    };
   });
   if (
     new Set(records.map((entry) => entry.path.toLowerCase())).size !==
@@ -398,25 +411,55 @@ function historicalSources(root, base, policy) {
       throw new Error(`Incompatible baseline control:${path}`);
   }
   let bytes = 0;
-  const blobs = [];
+  const wanted = [];
+  const leaves = [];
   for (const entry of records) {
     if (authoredRole(entry.path) === "unknown")
       throw new Error(`Unknown historical authored root:${entry.path}`);
     if (
-      ["authored", "control"].includes(authoredRole(entry.path)) ||
+      (["authored", "control"].includes(authoredRole(entry.path)) &&
+        isJavaScript(entry.path)) ||
       /(?:^|\/)package\.json$/u.test(entry.path)
     ) {
-      const content = git(root, ["cat-file", "blob", entry.oid], true);
-      bytes += content.length;
+      bytes += entry.size;
       if (
-        content.length > limits.fileBytes ||
+        !Number.isSafeInteger(entry.size) ||
+        entry.size < 0 ||
+        entry.size > limits.fileBytes ||
         bytes > limits.sourceBytes ||
-        blobs.length >= limits.sources
+        wanted.length >= limits.sources
       )
         throw new Error("Historical source budget exceeded");
-      blobs.push({ path: entry.path, content });
+      wanted.push(entry);
+    } else if (authoredRole(entry.path) === "authored") {
+      // Native resolution needs resource existence, never historical resource execution.
+      leaves.push({ path: entry.path, content: Buffer.alloc(0) });
     }
   }
+  const batch = git(root, ["cat-file", "--batch"], true, {
+    input: wanted.map((entry) => entry.oid).join("\n") + "\n",
+    maxBuffer: limits.sourceBytes + limits.sources * 128,
+  });
+  let offset = 0;
+  const blobs = wanted.map((entry) => {
+    const end = batch.indexOf(10, offset);
+    if (
+      end < offset ||
+      end - offset > 128 ||
+      batch.subarray(offset, end).toString("ascii") !==
+        `${entry.oid} blob ${entry.size}`
+    )
+      throw new Error("Invalid native Git batch header");
+    offset = end + 1;
+    const content = batch.subarray(offset, offset + entry.size);
+    offset += entry.size;
+    if (content.length !== entry.size || batch[offset++] !== 10)
+      throw new Error("Incomplete native Git batch content");
+    return { path: entry.path, content };
+  });
+  if (offset !== batch.length)
+    throw new Error("Unexpected native Git batch output");
+  blobs.push(...leaves);
   return {
     blobs,
     paths: new Set(records.map((entry) => entry.path)),
@@ -579,48 +622,73 @@ export async function planAffected({
   } catch (error) {
     return full(`analysis-unavailable:${error.message}`);
   } finally {
-    assertUnchanged(root, before);
-    report.timings.selectionMs = performance.now() - started;
-    if (temporary) rmSync(temporary, { recursive: true, force: true });
+    try {
+      assertUnchanged(root, before);
+    } finally {
+      report.timings.planningMs = performance.now() - started;
+      report.timings.selectionMs =
+        report.timings.planningMs - inventory.elapsedMs;
+      if (temporary) rmSync(temporary, { recursive: true, force: true });
+    }
   }
 }
 
 export async function executePlan(report, { shadow = false, output } = {}) {
   const root = report.root;
-  assertUnchanged(root, report.candidate);
-  const admission = admitJest(root);
-  const fresh = discoverTests(root, admission);
-  if (fresh.digest !== report.inventoryDigest)
-    throw new Error("Jest inventory drift");
   const destination = output
     ? reserveOutput(root, output)
     : mkdtempSync(join(tmpdir(), "webvowl-jest-result-"));
   const started = performance.now();
-  const selected = await runJest(
-    root,
-    admission,
-    report.selected,
-    join(destination, "selected"),
-  );
-  assertUnchanged(root, report.candidate);
-  let full = null;
-  let agreement = null;
-  if (shadow && report.mode === "selected") {
-    const independent = discoverTests(root, admission);
-    if (independent.digest !== report.inventoryDigest)
-      throw new Error("Shadow inventory drift");
-    full = await runJest(
+  const timings = {
+    ...report.timings,
+    rediscoveryMs: 0,
+    selectedExecutionMs: 0,
+    fullExecutionMs: 0,
+  };
+  let selected = null,
+    full = null,
+    agreement = null,
+    incomplete = null;
+  try {
+    assertUnchanged(root, report.candidate);
+    const admission = admitJest(root);
+    const fresh = discoverTests(root, admission);
+    timings.rediscoveryMs += fresh.elapsedMs;
+    if (fresh.digest !== report.inventoryDigest)
+      throw new Error("Jest inventory drift");
+    let executionStarted = performance.now();
+    selected = await runJest(
       root,
       admission,
-      independent.tests,
-      join(destination, "full"),
+      report.selected,
+      join(destination, "selected"),
     );
+    timings.selectedExecutionMs = performance.now() - executionStarted;
     assertUnchanged(root, report.candidate);
-    agreement = compareOutcomes(selected, full);
+    if (shadow && report.mode === "selected") {
+      const independent = discoverTests(root, admission);
+      timings.rediscoveryMs += independent.elapsedMs;
+      if (independent.digest !== report.inventoryDigest)
+        throw new Error("Shadow inventory drift");
+      executionStarted = performance.now();
+      full = await runJest(
+        root,
+        admission,
+        independent.tests,
+        join(destination, "full"),
+      );
+      timings.fullExecutionMs = performance.now() - executionStarted;
+      assertUnchanged(root, report.candidate);
+      agreement = compareOutcomes(selected, full);
+    }
+  } catch (error) {
+    incomplete = error.message;
   }
+  timings.executionMs = performance.now() - started;
+  timings.totalMs = (timings.planningMs ?? 0) + timings.executionMs;
   const result = {
     ...report,
-    executed: true,
+    executed: selected !== null,
     requestedMode: shadow ? "shadow" : "execute",
     actualMode: full
       ? "shadow"
@@ -630,9 +698,13 @@ export async function executePlan(report, { shadow = false, output } = {}) {
     selectedRun: selected,
     fullRun: full,
     agreement,
+    incomplete,
     evidenceDirectory: destination,
-    success: selected.success && (!full || (full.success && agreement.equal)),
-    timings: { ...report.timings, executionMs: performance.now() - started },
+    success:
+      !incomplete &&
+      selected?.success === true &&
+      (!full || (full.success && agreement.equal)),
+    timings,
   };
   writeFileSync(
     join(destination, "report.json"),

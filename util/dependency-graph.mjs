@@ -143,7 +143,7 @@ const gitExecutable = (process.env.PATH ?? process.env.Path ?? "")
       lstatSync(path).isFile() &&
       !isInside(repositoryRoot, realpathSync(path)),
   );
-export function git(root, args, binary = false) {
+export function git(root, args, binary = false, options = {}) {
   if (!gitExecutable) throw new Error("Host Git unavailable");
   const result = spawnSync(
     gitExecutable,
@@ -152,9 +152,18 @@ export function git(root, args, binary = false) {
       cwd: root,
       encoding: binary ? undefined : "utf8",
       timeout: 10000,
-      maxBuffer: limits.graphBytes,
+      maxBuffer: options.maxBuffer ?? limits.graphBytes,
+      input: options.input,
       windowsHide: true,
-      env: { ...process.env, GIT_NO_LAZY_FETCH: "1", GIT_TERMINAL_PROMPT: "0" },
+      env: {
+        ...Object.fromEntries(
+          Object.entries(process.env).filter(
+            ([key]) => !key.toUpperCase().startsWith("GIT_"),
+          ),
+        ),
+        GIT_NO_LAZY_FETCH: "1",
+        GIT_TERMINAL_PROMPT: "0",
+      },
     },
   );
   if (result.error || result.status !== 0)
@@ -283,7 +292,11 @@ function admittedGraphConfig(root) {
 }
 
 /** The worker imports only the installed analyzer, never the captured candidate. */
-export function captureGraph(root, controls = root) {
+export function captureGraph(
+  root,
+  controls = root,
+  vendors = vendorDirectories,
+) {
   root = resolve(root);
   const roots = sourcePaths(root);
   let bytes = 0;
@@ -333,7 +346,7 @@ export function captureGraph(root, controls = root) {
         root,
         roots,
         config: admittedGraphConfig(controls),
-        vendors: vendorDirectories,
+        vendors,
       }),
       encoding: "utf8",
       windowsHide: true,
@@ -355,7 +368,7 @@ export function captureGraph(root, controls = root) {
     throw new Error("Incomplete or duplicate native graph inventory");
   for (const module of graph.modules) {
     const externalVendor = (path) =>
-      vendorDirectories.some((directory) =>
+      vendors.some((directory) =>
         isInside(realpathSync(directory), resolve(root, path)),
       );
     if (

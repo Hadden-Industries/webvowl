@@ -25,6 +25,8 @@ The complete graph includes disconnected authored application, utility, workspac
 Installed vendor internals are leaves.
 Each source snapshot resolves `vowl` through its own package exports before installed vendor directories.
 Historical source is read from Git blobs into an owned temporary directory; historical code, config, hooks and dependency installations never run.
+JavaScript and package manifests retain exact blob bytes; other authored resources are empty resolution leaves.
+Resource contents are never interpreted by the historical import graph, and resource changes force full testing.
 
 Supply an immutable full commit ID representing the entire intended comparison.
 Intermediate implementation commits do not authorize moving that comparison forward.
@@ -34,6 +36,7 @@ Paths are literal, including spaces, Unicode and regular-expression punctuation.
 
 `--list` independently discovers the full current Jest inventory and runs no test modules.
 The report explains selected whole files, native reachability, activated relations and full fallback.
+Seed and relation lists describe the selection-wide context; retained native subgraphs supply file reachability evidence.
 A missing/invalid baseline, incompatible policy or controls, resources, deleted tests, uncertain loading boundary, unknown root, unresolved graph, no changes or empty reachability uses full current inventory.
 Unsafe inventory, configuration, path or candidate drift fails nonzero.
 A baseline predating this feature normally falls back because its policy differs.
@@ -51,10 +54,13 @@ When the selection is already full, one full execution is honestly reported as f
 
 Selective execution supports Windows and Linux with the selected repository Python environment.
 Platform containment probes run in the existing Python matrix, including an actual native ESM Jest run.
+The Linux Python job also runs the selected/shadow JavaScript adapter regressions with its selected environment.
 Use shadow mode to qualify unfamiliar changes and retain any disagreement as a failed result.
 Ordinary full Jest is the immediate recovery route.
 
 Runtime results retain raw stdout/stderr, Jest JSON, native process facts, selected paths, outcome comparison and timings in the reported external result directory.
+Timing fields distinguish initial discovery, remaining planning, execution rediscovery, selected execution, full execution and total planning plus execution cost.
+An incomplete execution still writes a failed report when its reserved output directory remains writable.
 They are operator provenance, not authenticated GitHub evidence or HISEW receipts.
 Keep failed runs and incomplete cleanup evidence until their consumers release them.
 Do not overwrite an earlier bundle or delete a shared temporary/evidence root.
@@ -63,6 +69,7 @@ Candidate content, index and HEAD are checked for drift around the operation; ch
 Initial limits are 8,192 repository records, 4,096 authored modules, 8 MiB per source, 64 MiB materialized source, 16 MiB graph output, a 30-second analyzer deadline with a 256 MiB V8 old-space limit, 120-second discovery, 600-second test execution, 64 MiB combined result/stream capture, and five seconds for cleanup.
 The V8 heap limit is not a native RSS limit.
 Exceeding a bound never yields a truncated successful result.
+Windows command-line capacity can impose a smaller whole-file execution bound; a native launch rejection remains a failed, incomplete run.
 Measure selection, execution and total cost against an independent full run; selected-file count alone is not a speedup claim.
 
 The impact registry in `.test-impact.json` is a reviewed completeness boundary.

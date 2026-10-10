@@ -59,7 +59,12 @@ export async function runJest(
     cwd: root,
     windowsHide: true,
     stdio: ["pipe", "pipe", "pipe"],
-    env: { ...process.env, NODE_OPTIONS: "", NODE_PATH: "", PYTHONPATH: "" },
+    env: {
+      ...process.env,
+      NODE_OPTIONS: admission.flags.join(" "),
+      NODE_PATH: "",
+      PYTHONPATH: "",
+    },
   });
   let stdout = "",
     stderr = "",
@@ -73,7 +78,6 @@ export async function runJest(
   process.on("SIGTERM", interrupt);
   signal?.addEventListener("abort", cancel, { once: true });
   if (signal?.aborted) cancel();
-  const watchdog = setTimeout(cancel, timeoutMs);
   const outerDeadline = setTimeout(
     () => child.kill(),
     timeoutMs + limits.cleanupMs + 5000,
@@ -100,7 +104,6 @@ export async function runJest(
       );
     });
   } finally {
-    clearTimeout(watchdog);
     clearTimeout(outerDeadline);
     process.off("SIGINT", interrupt);
     process.off("SIGTERM", interrupt);

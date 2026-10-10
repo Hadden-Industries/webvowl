@@ -182,7 +182,7 @@ describe("native graph and source boundary", () => {
       "node_modules/vowl/sentinel.js",
       "throw new Error('CURRENT_LINK_EXECUTED');\n",
     );
-    const graph = captureGraph(root);
+    const graph = captureGraph(root, root, [join(root, "node_modules")]);
     expect(graph.summary.violations).toEqual([]);
     const consumer = graph.modules.find(
       (module) => module.source === "src/workspace.js",
@@ -508,6 +508,42 @@ describe("independently expected selection and discovery", () => {
 });
 
 describe("native Jest result integrity", () => {
+  test("Git observation ignores ambient repository overrides", () => {
+    const first = fixture(),
+      second = fixture();
+    const expected = first.commit();
+    second.write("src/extra.js", "export const extra = 1;\n");
+    second.commit();
+    const old = process.env.GIT_DIR;
+    try {
+      process.env.GIT_DIR = join(second.root, ".git");
+      expect(git(first.root, ["rev-parse", "HEAD"]).trim()).toBe(expected);
+    } finally {
+      if (old === undefined) delete process.env.GIT_DIR;
+      else process.env.GIT_DIR = old;
+    }
+  });
+
+  test("large unrelated historical resources do not consume source budget", async () => {
+    const { root, write, commit } = fixture();
+    write("src/resources/large.bin", Buffer.alloc(9 * 1024 * 1024));
+    const base = commit();
+    write("src/leaf.js", "export const value = 1; // edit\n");
+    const report = await planAffected({ root, base });
+    expect(report.mode).toBe("selected");
+    expect(report.selected).toEqual(["src/old.test.js"]);
+  }, 30000);
+
+  test("stale boundary paths force conservative full disposition", async () => {
+    const { root, write, policy, commit } = fixture();
+    policy.boundaryFiles.push("src/missing.js");
+    write(".test-impact.json", JSON.stringify(policy));
+    const base = commit();
+    write("src/leaf.js", "export const value = 1; // edit\n");
+    const report = await planAffected({ root, base });
+    expect(report.mode).toBe("full");
+    expect(report.fallback).toMatch(/^analysis-unavailable:/u);
+  });
   test("preserves duplicate titles, skips and todos and detects disagreement", () => {
     const root = resolve(tmpdir(), "outcome-fixture");
     const suite = {
@@ -558,6 +594,69 @@ describe("native Jest result integrity", () => {
     ),
   );
   const nativeTest = hasRepositoryPython ? test : test.skip;
+  nativeTest(
+    "native execution deadline remains distinct from cancellation",
+    async () => {
+      const { root, write } = fixture();
+      write(
+        "src/deadline.test.js",
+        "test('hang',()=>new Promise(()=>{}),60000);\n",
+      );
+      const destination = mkdtempSync(join(tmpdir(), "webvowl-jest-result-"));
+      ownedDirectories.push(destination);
+      const result = await runJest(
+        root,
+        admitJest(root),
+        ["src/deadline.test.js"],
+        join(destination, "run"),
+        { timeoutMs: 1000 },
+      );
+      expect(result.success).toBe(false);
+      expect(result.processFacts.reason).toBe("deadline");
+      expect(result.processFacts.quiescent).toBe(true);
+    },
+    15000,
+  );
+  nativeTest(
+    "retains a failed report when execution inputs drift",
+    async () => {
+      const { root, write, commit } = fixture();
+      const base = commit();
+      write("src/leaf.js", "export const value = 1; // edit\n");
+      const plan = await planAffected({ root, base });
+      write("src/leaf.js", "export const value = 2;\n");
+      const result = await executePlan(plan);
+      ownedDirectories.push(result.evidenceDirectory);
+      expect(result.success).toBe(false);
+      expect(result.incomplete).toMatch(/drift/iu);
+      expect(
+        JSON.parse(readFileSync(join(result.evidenceDirectory, "report.json")))
+          .success,
+      ).toBe(false);
+    },
+    30000,
+  );
+
+  nativeTest(
+    "Jest descendants inherit only the trusted VM flags",
+    async () => {
+      const { root, write } = fixture();
+      write(
+        "src/descendant.test.js",
+        "import {spawnSync} from 'node:child_process';test('descendant VM',()=>{const child=spawnSync(process.execPath,['-e',\"console.log(typeof require('node:vm').SourceTextModule)\"],{encoding:'utf8'});expect(child.status).toBe(0);expect(child.stdout.trim()).toBe('function');});\n",
+      );
+      const destination = mkdtempSync(join(tmpdir(), "webvowl-jest-result-"));
+      ownedDirectories.push(destination);
+      const result = await runJest(
+        root,
+        admitJest(root),
+        ["src/descendant.test.js"],
+        join(destination, "run"),
+      );
+      expect(result.success).toBe(true);
+    },
+    30000,
+  );
   nativeTest(
     "a real repository VM source reader detects an omitted import-edge failure",
     async () => {
