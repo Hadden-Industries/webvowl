@@ -38,6 +38,8 @@
     "yaml": ">=2.9.1"
   },
   "scripts": {
+    "graph:dependencies": "node util/dependency-graph.mjs",
+    "check:affected": "node util/affected-tests.mjs",
     "dev": "vite --open",
     "prebuild": "npm run format:app:check && npm run lint:app",
     "build": "npm run build:bundle",

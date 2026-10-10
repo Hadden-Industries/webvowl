@@ -1,0 +1,417 @@
+{
+  "schemaVersion": 1,
+  "fullDomains": [
+    ".github/",
+    "docs/",
+    "tooling/",
+    "util/",
+    "tests/",
+    "packages/vowl/scripts/",
+    "packages/vowl/schema/",
+    "packages/vowl/conformance/",
+    "packages/vowl/test/browser/",
+    "src/app/data/",
+    "src/canonical-examples/",
+    "test/fixtures/"
+  ],
+  "fullFiles": [
+    "package.json",
+    "package-lock.json",
+    "packages/vowl/package.json",
+    "src/package.json",
+    ".dependency-cruiser.json",
+    ".test-impact.json",
+    ".node-version",
+    ".python-version",
+    ".gitignore",
+    ".gitattributes",
+    "vite.config.mjs",
+    "eslint.config.js",
+    ".markdown-quality-execution.json",
+    ".markdown-quality-policy.json",
+    "requirements.txt",
+    "requirements.lock.txt",
+    "pyproject.toml"
+  ],
+  "boundaryFiles": [
+    "src/app/js/controller/canonicalVowlWorkerClient.js",
+    "src/app/js/controller/importResolver.js",
+    "src/productionBundle.integration.test.js",
+    "src/d3EsmBuild.integration.test.js",
+    "src/d3EsmDevelopmentServer.integration.test.js",
+    "src/productionModuleFormat.architecture.test.js",
+    "src/productionGraph.architecture.test.js",
+    "src/owlapiConsumerBoundary.architecture.test.js",
+    "src/renderedGraphDecoupling.architecture.test.js",
+    "src/testRunnerScope.architecture.test.js",
+    "src/esmConfiguration.integration.test.js",
+    "src/generatedJavaScriptCleanup.integration.test.js",
+    "src/initialPageStyles.test.js",
+    "src/app/css/fontDelivery.test.js",
+    "src/app/css/toolstyle.test.js",
+    "src/webvowl/css/vowl.test.js",
+    "src/app/js/webmcp/webMcpArchitecture.test.js"
+  ],
+  "relations": [
+    {
+      "id": "vm-source-reader-1",
+      "dependency": "src/app/js/directInputModule.js",
+      "consumer": "src/app/js/directInputModule.test.js",
+      "kind": "source-reader",
+      "evidence": "src/app/js/directInputModule.test.js: native source-byte read or VM module root",
+      "fixture": "vm-source-reader"
+    },
+    {
+      "id": "vm-source-reader-2",
+      "dependency": "src/app/js/leftSidebar.js",
+      "consumer": "src/app/js/leftSidebar.test.js",
+      "kind": "source-reader",
+      "evidence": "src/app/js/leftSidebar.test.js: native source-byte read or VM module root",
+      "fixture": "vm-source-reader"
+    },
+    {
+      "id": "vm-source-reader-3",
+      "dependency": "src/app/js/loadingModule.js",
+      "consumer": "src/app/js/loadingModule.test.js",
+      "kind": "source-reader",
+      "evidence": "src/app/js/loadingModule.test.js: native source-byte read or VM module root",
+      "fixture": "vm-source-reader"
+    },
+    {
+      "id": "vm-source-reader-4",
+      "dependency": "src/app/js/sidebar.js",
+      "consumer": "src/app/js/sidebar.test.js",
+      "kind": "source-reader",
+      "evidence": "src/app/js/sidebar.test.js: native source-byte read or VM module root",
+      "fixture": "vm-source-reader"
+    },
+    {
+      "id": "vm-source-reader-5",
+      "dependency": "src/app/js/ontologyLifecycle.js",
+      "consumer": "src/app/js/ontologyLifecycle.test.js",
+      "kind": "source-reader",
+      "evidence": "src/app/js/ontologyLifecycle.test.js: native source-byte read or VM module root",
+      "fixture": "vm-source-reader"
+    },
+    {
+      "id": "vm-source-reader-6",
+      "dependency": "src/app/js/controller/webVowlControllerContracts.js",
+      "consumer": "src/app/js/controller/webVowlControllerContracts.test.js",
+      "kind": "source-reader",
+      "evidence": "src/app/js/controller/webVowlControllerContracts.test.js: native source-byte read or VM module root",
+      "fixture": "vm-source-reader"
+    },
+    {
+      "id": "vm-source-reader-7",
+      "dependency": "src/app/js/menu/ontologyMenu.js",
+      "consumer": "src/app/js/menu/ontologyMenu.test.js",
+      "kind": "source-reader",
+      "evidence": "src/app/js/menu/ontologyMenu.test.js: native source-byte read or VM module root",
+      "fixture": "vm-source-reader"
+    },
+    {
+      "id": "vm-source-reader-8",
+      "dependency": "src/app/js/ui/visualizationArtifactDownloadAdapter.js",
+      "consumer": "src/app/js/ui/visualizationArtifactDownloadAdapter.test.js",
+      "kind": "source-reader",
+      "evidence": "src/app/js/ui/visualizationArtifactDownloadAdapter.test.js: native source-byte read or VM module root",
+      "fixture": "vm-source-reader"
+    },
+    {
+      "id": "vm-source-reader-9",
+      "dependency": "src/app/js/warningModule.js",
+      "consumer": "src/app/js/warningModule.test.js",
+      "kind": "source-reader",
+      "evidence": "src/app/js/warningModule.test.js: native source-byte read or VM module root",
+      "fixture": "vm-source-reader"
+    },
+    {
+      "id": "vm-source-reader-10",
+      "dependency": "src/shared/js/util/resolveFetchUrl.js",
+      "consumer": "src/shared/js/util/resolveFetchUrl.test.js",
+      "kind": "source-reader",
+      "evidence": "src/shared/js/util/resolveFetchUrl.test.js: native source-byte read or VM module root",
+      "fixture": "vm-source-reader"
+    },
+    {
+      "id": "vm-source-reader-11",
+      "dependency": "src/shared/js/ontologyEditingState.js",
+      "consumer": "src/shared/js/ontologyEditingState.test.js",
+      "kind": "source-reader",
+      "evidence": "src/shared/js/ontologyEditingState.test.js: native source-byte read or VM module root",
+      "fixture": "vm-source-reader"
+    },
+    {
+      "id": "vm-source-reader-12",
+      "dependency": "src/webvowl/js/runtime/renderedGraphConfiguration.js",
+      "consumer": "src/webvowl/js/runtime/renderedGraphConfiguration.test.js",
+      "kind": "source-reader",
+      "evidence": "src/webvowl/js/runtime/renderedGraphConfiguration.test.js: native source-byte read or VM module root",
+      "fixture": "vm-source-reader"
+    },
+    {
+      "id": "vm-source-reader-13",
+      "dependency": "src/webvowl/js/runtime/d3RenderedGraphAdapter.js",
+      "consumer": "src/webvowl/js/runtime/d3RenderedGraphAdapter.test.js",
+      "kind": "source-reader",
+      "evidence": "src/webvowl/js/runtime/d3RenderedGraphAdapter.test.js: native source-byte read or VM module root",
+      "fixture": "vm-source-reader"
+    },
+    {
+      "id": "vm-source-reader-14",
+      "dependency": "src/app/js/controller/webVowlControllerContracts.js",
+      "consumer": "src/app/js/directInputModule.test.js",
+      "kind": "source-reader",
+      "evidence": "src/app/js/directInputModule.test.js: native source-byte read or VM module root",
+      "fixture": "vm-source-reader"
+    },
+    {
+      "id": "vm-source-reader-15",
+      "dependency": "src/app/js/ui/visualizationControlAction.js",
+      "consumer": "src/app/js/sidebar.test.js",
+      "kind": "source-reader",
+      "evidence": "src/app/js/sidebar.test.js: native source-byte read or VM module root",
+      "fixture": "vm-source-reader"
+    },
+    {
+      "id": "vm-source-reader-16",
+      "dependency": "src/app/js/ui/visualizationControlAction.js",
+      "consumer": "src/app/js/warningModule.test.js",
+      "kind": "source-reader",
+      "evidence": "src/app/js/warningModule.test.js: native source-byte read or VM module root",
+      "fixture": "vm-source-reader"
+    },
+    {
+      "id": "vm-source-reader-17",
+      "dependency": "src/app/js/ui/visualizationControlAction.js",
+      "consumer": "src/app/js/menu/ontologyMenu.test.js",
+      "kind": "source-reader",
+      "evidence": "src/app/js/menu/ontologyMenu.test.js: native source-byte read or VM module root",
+      "fixture": "vm-source-reader"
+    },
+    {
+      "id": "vm-source-reader-18",
+      "dependency": "src/app/js/ontologyLifecycle.js",
+      "consumer": "src/app/js/loadingModule.test.js",
+      "kind": "source-reader",
+      "evidence": "src/app/js/loadingModule.test.js: native source-byte read or VM module root",
+      "fixture": "vm-source-reader"
+    },
+    {
+      "id": "vm-source-reader-19",
+      "dependency": "src/shared/js/util/resolveFetchUrl.js",
+      "consumer": "src/app/js/loadingModule.test.js",
+      "kind": "source-reader",
+      "evidence": "src/app/js/loadingModule.test.js: native source-byte read or VM module root",
+      "fixture": "vm-source-reader"
+    },
+    {
+      "id": "vm-source-reader-20",
+      "dependency": "src/webvowl/js/runtime/renderedGraphConfiguration.js",
+      "consumer": "src/webvowl/js/runtime/d3RenderedGraphAdapter.test.js",
+      "kind": "source-reader",
+      "evidence": "src/webvowl/js/runtime/d3RenderedGraphAdapter.test.js: native source-byte read or VM module root",
+      "fixture": "vm-source-reader"
+    },
+    {
+      "id": "vm-source-reader-21",
+      "dependency": "src/app/test/renderedGraphRuntimeContract.js",
+      "consumer": "src/webvowl/js/runtime/d3RenderedGraphAdapter.test.js",
+      "kind": "source-reader",
+      "evidence": "src/webvowl/js/runtime/d3RenderedGraphAdapter.test.js: native source-byte read or VM module root",
+      "fixture": "vm-source-reader"
+    },
+    {
+      "id": "vm-source-reader-22",
+      "dependency": "src/webvowl/js/runtime/d3RenderedGraphAdapter.js",
+      "consumer": "src/webvowl/js/runtime/renderedGraphSeamConformance.test.js",
+      "kind": "source-reader",
+      "evidence": "src/webvowl/js/runtime/renderedGraphSeamConformance.test.js: native source-byte read or VM module root",
+      "fixture": "vm-source-reader"
+    },
+    {
+      "id": "vm-source-reader-23",
+      "dependency": "src/webvowl/js/runtime/d3RenderedGraphAdapter.test.js",
+      "consumer": "src/webvowl/js/runtime/renderedGraphSeamConformance.test.js",
+      "kind": "source-reader",
+      "evidence": "src/webvowl/js/runtime/renderedGraphSeamConformance.test.js: native source-byte read or VM module root",
+      "fixture": "vm-source-reader"
+    },
+    {
+      "id": "vm-source-reader-24",
+      "dependency": "src/webvowl/js/runtime/renderedGraphInternals.js",
+      "consumer": "src/webvowl/js/runtime/renderedGraphSeamConformance.test.js",
+      "kind": "source-reader",
+      "evidence": "src/webvowl/js/runtime/renderedGraphSeamConformance.test.js: native source-byte read or VM module root",
+      "fixture": "vm-source-reader"
+    },
+    {
+      "id": "vm-source-reader-25",
+      "dependency": "src/webvowl/js/runtime/renderedGraphSettings.js",
+      "consumer": "src/webvowl/js/runtime/renderedGraphSeamConformance.test.js",
+      "kind": "source-reader",
+      "evidence": "src/webvowl/js/runtime/renderedGraphSeamConformance.test.js: native source-byte read or VM module root",
+      "fixture": "vm-source-reader"
+    },
+    {
+      "id": "vm-source-reader-26",
+      "dependency": "src/shared/js/modules/datatypeFilter.js",
+      "consumer": "src/webvowl/js/runtime/renderedGraphSeamConformance.test.js",
+      "kind": "source-reader",
+      "evidence": "src/webvowl/js/runtime/renderedGraphSeamConformance.test.js: native source-byte read or VM module root",
+      "fixture": "vm-source-reader"
+    },
+    {
+      "id": "vm-source-reader-27",
+      "dependency": "src/shared/js/modules/disjointFilter.js",
+      "consumer": "src/webvowl/js/runtime/renderedGraphSeamConformance.test.js",
+      "kind": "source-reader",
+      "evidence": "src/webvowl/js/runtime/renderedGraphSeamConformance.test.js: native source-byte read or VM module root",
+      "fixture": "vm-source-reader"
+    },
+    {
+      "id": "vm-source-reader-28",
+      "dependency": "src/shared/js/modules/objectPropertyFilter.js",
+      "consumer": "src/webvowl/js/runtime/renderedGraphSeamConformance.test.js",
+      "kind": "source-reader",
+      "evidence": "src/webvowl/js/runtime/renderedGraphSeamConformance.test.js: native source-byte read or VM module root",
+      "fixture": "vm-source-reader"
+    },
+    {
+      "id": "vm-source-reader-29",
+      "dependency": "src/shared/js/modules/setOperatorFilter.js",
+      "consumer": "src/webvowl/js/runtime/renderedGraphSeamConformance.test.js",
+      "kind": "source-reader",
+      "evidence": "src/webvowl/js/runtime/renderedGraphSeamConformance.test.js: native source-byte read or VM module root",
+      "fixture": "vm-source-reader"
+    },
+    {
+      "id": "vm-source-reader-30",
+      "dependency": "src/shared/js/modules/subclassFilter.js",
+      "consumer": "src/webvowl/js/runtime/renderedGraphSeamConformance.test.js",
+      "kind": "source-reader",
+      "evidence": "src/webvowl/js/runtime/renderedGraphSeamConformance.test.js: native source-byte read or VM module root",
+      "fixture": "vm-source-reader"
+    },
+    {
+      "id": "generated-cleanup-source-reader",
+      "dependency": "src/",
+      "consumer": "src/generatedJavaScriptCleanup.integration.test.js",
+      "kind": "source-reader",
+      "evidence": "src/generatedJavaScriptCleanup.integration.test.js: authored source inventory",
+      "fixture": "architecture-source-reader"
+    },
+    {
+      "id": "esm-configuration-source-reader",
+      "dependency": "src/",
+      "consumer": "src/esmConfiguration.integration.test.js",
+      "kind": "source-reader",
+      "evidence": "src/esmConfiguration.integration.test.js: source ESM assertions",
+      "fixture": "architecture-source-reader"
+    },
+    {
+      "id": "workspace-runner-scope",
+      "dependency": "packages/vowl/",
+      "consumer": "src/testRunnerScope.architecture.test.js",
+      "kind": "source-reader",
+      "evidence": "src/testRunnerScope.architecture.test.js: workspace discovery assertions",
+      "fixture": "workspace-history"
+    },
+    {
+      "id": "worker-client",
+      "dependency": "src/app/js/controller/canonicalVowlWorker.js",
+      "consumer": "src/app/js/controller/canonicalVowlWorkerClient.js",
+      "kind": "worker-entry",
+      "evidence": "src/app/js/controller/canonicalVowlWorkerClient.js: new Worker(new URL(...))",
+      "fixture": "worker-resource"
+    },
+    {
+      "id": "module-format-source-reader",
+      "dependency": "src/",
+      "consumer": "src/productionModuleFormat.architecture.test.js",
+      "kind": "source-reader",
+      "evidence": "src/productionModuleFormat.architecture.test.js: authored-source analysis",
+      "fixture": "architecture-source-reader"
+    },
+    {
+      "id": "production-graph-source-reader",
+      "dependency": "src/",
+      "consumer": "src/productionGraph.architecture.test.js",
+      "kind": "source-reader",
+      "evidence": "src/productionGraph.architecture.test.js: localDependencies reads source",
+      "fixture": "architecture-source-reader"
+    },
+    {
+      "id": "owlapi-source-reader",
+      "dependency": "src/",
+      "consumer": "src/owlapiConsumerBoundary.architecture.test.js",
+      "kind": "source-reader",
+      "evidence": "src/owlapiConsumerBoundary.architecture.test.js: source and installed dependency inventory",
+      "fixture": "architecture-source-reader"
+    },
+    {
+      "id": "rendered-graph-source-reader",
+      "dependency": "src/",
+      "consumer": "src/renderedGraphDecoupling.architecture.test.js",
+      "kind": "source-reader",
+      "evidence": "src/renderedGraphDecoupling.architecture.test.js: source traversal",
+      "fixture": "architecture-source-reader"
+    },
+    {
+      "id": "runner-scope-source-reader",
+      "dependency": "src/",
+      "consumer": "src/testRunnerScope.architecture.test.js",
+      "kind": "source-reader",
+      "evidence": "src/testRunnerScope.architecture.test.js: default Jest inventory",
+      "fixture": "architecture-source-reader"
+    },
+    {
+      "id": "workspace-format-source-reader",
+      "dependency": "packages/vowl/",
+      "consumer": "src/productionModuleFormat.architecture.test.js",
+      "kind": "source-reader",
+      "evidence": "src/productionModuleFormat.architecture.test.js: workspace ESM policy",
+      "fixture": "workspace-history"
+    },
+    {
+      "id": "workspace-owlapi-source-reader",
+      "dependency": "packages/vowl/",
+      "consumer": "src/owlapiConsumerBoundary.architecture.test.js",
+      "kind": "source-reader",
+      "evidence": "src/owlapiConsumerBoundary.architecture.test.js: package consumer boundaries",
+      "fixture": "workspace-history"
+    },
+    {
+      "id": "bundle-generated-program",
+      "dependency": "src/",
+      "consumer": "src/productionBundle.integration.test.js",
+      "kind": "generated-program",
+      "evidence": "src/productionBundle.integration.test.js: generated Vite verification program",
+      "fixture": "worker-resource"
+    },
+    {
+      "id": "d3-build",
+      "dependency": "src/",
+      "consumer": "src/d3EsmBuild.integration.test.js",
+      "kind": "generated-program",
+      "evidence": "src/d3EsmBuild.integration.test.js: spawned Vite build",
+      "fixture": "worker-resource"
+    },
+    {
+      "id": "d3-server",
+      "dependency": "src/",
+      "consumer": "src/d3EsmDevelopmentServer.integration.test.js",
+      "kind": "process",
+      "evidence": "src/d3EsmDevelopmentServer.integration.test.js: spawned Vite dev server",
+      "fixture": "worker-resource"
+    },
+    {
+      "id": "webmcp-source-reader",
+      "dependency": "src/app/js/webmcp/",
+      "consumer": "src/app/js/webmcp/webMcpArchitecture.test.js",
+      "kind": "source-reader",
+      "evidence": "src/app/js/webmcp/webMcpArchitecture.test.js: source architecture assertions",
+      "fixture": "architecture-source-reader"
+    }
+  ]
+}

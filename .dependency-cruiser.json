@@ -1,0 +1,53 @@
+{
+  "forbidden": [
+    {
+      "name": "unresolved",
+      "severity": "error",
+      "from": {},
+      "to": { "couldNotResolve": true }
+    },
+    {
+      "name": "production-to-test-or-tooling",
+      "severity": "error",
+      "from": {
+        "path": "^(src/|packages/vowl/src/)",
+        "pathNot": "(?:\\.(?:test|spec)\\.[cm]?js$|/(?:test|tests|test-support)/)"
+      },
+      "to": {
+        "path": "(?:\\.(?:test|spec)\\.[cm]?js$|/(?:test|tests|test-support)/|^(?:util|tooling)/)"
+      }
+    },
+    {
+      "name": "production-to-development-package",
+      "severity": "error",
+      "from": {
+        "path": "^(src/|packages/vowl/src/)",
+        "pathNot": "(?:\\.(?:test|spec)\\.[cm]?js$|/(?:test|tests|test-support)/)"
+      },
+      "to": {
+        "dependencyTypes": ["npm-dev"],
+        "pathNot": "^node_modules/@oddbird/popover-polyfill/"
+      }
+    },
+    {
+      "name": "polyfill-importer-boundary",
+      "severity": "error",
+      "from": {
+        "path": "^(src/|packages/vowl/src/)",
+        "pathNot": "(?:^src/(?:main|canonical-main)\\.js$|\\.(?:test|spec)\\.[cm]?js$|/(?:test|tests|test-support)/)"
+      },
+      "to": { "path": "^node_modules/@oddbird/popover-polyfill/" }
+    },
+    {
+      "name": "cycles",
+      "severity": "warn",
+      "from": {},
+      "to": { "circular": true }
+    }
+  ],
+  "options": {
+    "doNotFollow": { "path": "(?:^|/)node_modules/" },
+    "moduleSystems": ["es6", "cjs"],
+    "preserveSymlinks": false
+  }
+}
