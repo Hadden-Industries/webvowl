@@ -1,12 +1,11 @@
 import { isIri } from "@hyperjump/uri";
 import { at, fail } from "../errors.js";
 import { compareBytes, jsonBytes } from "../canonicalJson.js";
-import { profiles } from "../profiles.js";
+import { profiles, migrationDialect as dialect } from "../profiles.js";
 import { snapshotSource } from "../snapshot.js";
 import { validateOperationOptions } from "../resourceBudget.js";
 
-export const dialect =
-  "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0";
+export { dialect };
 
 /** Validate flat option data before allocating the operation's listeners/timer. */
 export function migrationChecks(options, startedAt) {

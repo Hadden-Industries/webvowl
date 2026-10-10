@@ -1,8 +1,9 @@
 import _ from "lodash/core";
 import * as d3 from "d3";
+import { DEFAULT_VISUALIZATION_MODES } from "../../../shared/js/visualizationDefaults.js";
 
 export function createColorExternalsSwitch() {
-  const DEFAULT_STATE = true;
+  const DEFAULT_STATE = DEFAULT_VISUALIZATION_MODES.colorExternals;
   const COLOR_MODES = [
     { type: "same", range: [d3.rgb("#36C"), d3.rgb("#36C")] },
     { type: "gradient", range: [d3.rgb("#36C"), d3.rgb("#EE2867")] }, // taken from LD-VOWL
@@ -14,7 +15,7 @@ export function createColorExternalsSwitch() {
   let enabled = DEFAULT_STATE;
   let filteredNodes;
   let filteredProperties;
-  let colorModeType = "same";
+  let colorModeType = DEFAULT_VISUALIZATION_MODES.colorExternalsMode;
 
   filter.filter = function (untouchedNodes, untouchedProperties) {
     nodes = untouchedNodes;

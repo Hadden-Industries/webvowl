@@ -1,11 +1,12 @@
 import { OwlDisjointWith } from "../../../webvowl/js/elements/properties/implementations/OwlDisjointWith.js";
+import { DEFAULT_VISUALIZATION_FILTERS } from "../visualizationDefaults.js";
 
 export function createDisjointFilter() {
   const filter = {};
   let nodes;
   let properties;
   // According to the specification enabled by default
-  let enabled = true;
+  let enabled = DEFAULT_VISUALIZATION_FILTERS.disjointness === "hide";
   let filteredNodes;
   let filteredProperties;
 

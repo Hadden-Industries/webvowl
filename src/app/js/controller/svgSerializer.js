@@ -3,7 +3,8 @@ import {
   createAppliedVisualizationView,
 } from "./renderedGraphRuntimeContracts.js";
 
-const SVG_NAMESPACE_IRI = "http://www.w3.org/2000/svg";
+import { namespaces } from "vowl";
+const SVG_NAMESPACE_IRI = namespaces.svg;
 const SVG_SERIALIZER_DEPENDENCY_FIELD_NAMES = Object.freeze([
   "XMLSerializerConstructor",
   "documentObject",

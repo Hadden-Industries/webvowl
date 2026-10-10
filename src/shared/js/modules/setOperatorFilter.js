@@ -1,11 +1,12 @@
 import { createFilterTools } from "../util/filterTools.js";
+import { DEFAULT_VISUALIZATION_FILTERS } from "../visualizationDefaults.js";
 import { SetOperatorNode } from "../../../webvowl/js/elements/nodes/SetOperatorNode.js";
 
 export function createSetOperatorFilter() {
   const filter = {};
   let nodes;
   let properties;
-  let enabled = false;
+  let enabled = DEFAULT_VISUALIZATION_FILTERS.setOperators === "hide";
   let filteredNodes;
   let filteredProperties;
   const filterTools = createFilterTools();

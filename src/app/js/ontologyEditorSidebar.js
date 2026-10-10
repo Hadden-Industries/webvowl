@@ -6,6 +6,7 @@ import {
 } from "./controller/ontologyEditorDrawingRecords.js";
 import { createLanguageTools } from "../../shared/js/util/languageTools.js";
 import { PROTECTED_ONTOLOGY_EDITOR_PREFIXES } from "./controller/ontologyEditorPrefixes.js";
+import { namespaces } from "vowl";
 
 // This presentation reads immutable document records. Only application
 // operations can accept an edit; no drawn element is an editing authority.
@@ -537,7 +538,7 @@ export function createOntologyEditorSidebar({
     }
   }
 
-  const SVG_NAMESPACE_IRI = "http://www.w3.org/2000/svg";
+  const SVG_NAMESPACE_IRI = namespaces.svg;
   const PROTECTED_PREFIX_NAMES = new Set(PROTECTED_ONTOLOGY_EDITOR_PREFIXES);
   const PREFIX_EDITOR_ICON_PATHS = Object.freeze({
     edit: {

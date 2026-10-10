@@ -10,8 +10,9 @@ function rejected(code) {
   return error;
 }
 
-const RDFS_LABEL = "http://www.w3.org/2000/01/rdf-schema#label";
-const XSD_STRING = "http://www.w3.org/2001/XMLSchema#string";
+import { namespaces } from "vowl";
+const RDFS_LABEL = `${namespaces.rdfs}label`;
+const XSD_STRING = `${namespaces.xsd}string`;
 function editorLabelLanguage(language) {
   return ["default", "undefined", "IRI-based"].includes(language)
     ? ""

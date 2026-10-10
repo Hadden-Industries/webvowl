@@ -3,8 +3,10 @@
  *
  * @returns {{}}
  */
+import { DEFAULT_VISUALIZATION_MODES } from "../visualizationDefaults.js";
+
 export function createNodeScalingSwitch(graph) {
-  const DEFAULT_STATE = true;
+  const DEFAULT_STATE = DEFAULT_VISUALIZATION_MODES.nodeScaling;
 
   const filter = {};
   let nodes;

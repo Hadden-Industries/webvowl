@@ -1,4 +1,5 @@
 import { runVisualizationControlAction } from "../ui/visualizationControlAction.js";
+import { DEFAULT_VISUALIZATION_MODES as DEFAULT_DISPLAY_MODES } from "../../../shared/js/visualizationDefaults.js";
 
 /**
  * Contains the logic for connecting the modes with the website.
@@ -10,16 +11,8 @@ export function createModeMenu({
   documentObject = globalThis.document,
   windowObject = globalThis.window,
 } = {}) {
-  // The states the renderer's own modules start from. Supplied here rather
-  // than read back out of the renderer, which is what let this menu drop its
-  // module references.
-  const DEFAULT_DISPLAY_MODES = Object.freeze({
-    colorExternals: true,
-    compactNotation: false,
-    nodeScaling: true,
-    pickAndPin: false,
-  });
-  const dynamicLabelWidthDefault = true;
+  // Read the shared starting policy without retaining renderer module references.
+  const dynamicLabelWidthDefault = DEFAULT_DISPLAY_MODES.dynamicLabelWidth;
 
   const SAME_COLOR_MODE = { text: "Same color", type: "same" };
   const GRADIENT_COLOR_MODE = { text: "Gradient", type: "gradient" };

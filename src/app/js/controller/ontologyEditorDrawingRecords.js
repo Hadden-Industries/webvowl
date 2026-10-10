@@ -1,53 +1,18 @@
 import { createVowlDocumentRecordTarget } from "./webVowlControllerContracts.js";
 
 // Drawing creation records and editor vocabulary; canonical semantics are owned by vowl.edit.
-export const VOWL_EDITOR_CLASS_TYPES = Object.freeze([
-  "owl:Thing",
-  "owl:Class",
-  "owl:DeprecatedClass",
-]);
-export const VOWL_EDITOR_PROPERTY_TYPES = Object.freeze([
-  "owl:objectProperty",
-  "rdfs:subClassOf",
-  "owl:disjointWith",
-  "owl:allValuesFrom",
-  "owl:someValuesFrom",
-  "owl:datatypeProperty",
-]);
-export const VOWL_EDITOR_DATATYPE_NAMES = Object.freeze([
-  "rdfs:Literal",
-  "owl:real",
-  "owl:rational",
-  "xsd:decimal",
-  "xsd:integer",
-  "xsd:nonNegativeInteger",
-  "xsd:nonPositiveInteger",
-  "xsd:positiveInteger",
-  "xsd:negativeInteger",
-  "xsd:long",
-  "xsd:int",
-  "xsd:short",
-  "xsd:byte",
-  "xsd:unsignedLong",
-  "xsd:unsignedInt",
-  "xsd:unsignedShort",
-  "xsd:unsignedByte",
-  "xsd:boolean",
-  "xsd:double",
-  "xsd:float",
-  "xsd:string",
-  "xsd:dateTime",
-  "undefined",
-]);
-
-export const DEFAULT_VOWL_EDITOR_PREFIXES = Object.freeze({
-  rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-  rdfs: "http://www.w3.org/2000/01/rdf-schema#",
-  owl: "http://www.w3.org/2002/07/owl#",
-  xsd: "http://www.w3.org/2001/XMLSchema#",
-  dc: "http://purl.org/dc/elements/1.1/#",
-  xml: "http://www.w3.org/XML/1998/namespace",
-});
+import {
+  VOWL_EDITOR_CLASS_TYPES,
+  VOWL_EDITOR_PROPERTY_TYPES,
+  VOWL_EDITOR_DATATYPE_NAMES,
+  DEFAULT_VOWL_EDITOR_PREFIXES,
+} from "../../../shared/js/ontologyEditorVocabulary.js";
+export {
+  VOWL_EDITOR_CLASS_TYPES,
+  VOWL_EDITOR_PROPERTY_TYPES,
+  VOWL_EDITOR_DATATYPE_NAMES,
+  DEFAULT_VOWL_EDITOR_PREFIXES,
+};
 
 function assertFields(value, fields, description) {
   if (

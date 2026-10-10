@@ -4,18 +4,12 @@ import {
   resolveOntologyElementReference,
   truncateOntologyDerivedText,
   WEB_VOWL_OPERATION_LIMITS,
+  ONTOLOGY_ELEMENT_KINDS as SEARCHABLE_ONTOLOGY_ELEMENT_KINDS,
 } from "./webVowlControllerContracts.js";
 import { createLanguageTools } from "../../../shared/js/util/languageTools.js";
 import { selectVowlLabel } from "./vowlDisplayProjector.js";
 
 const languageTools = createLanguageTools();
-
-const SEARCHABLE_ONTOLOGY_ELEMENT_KINDS = Object.freeze([
-  "class",
-  "datatype",
-  "individual",
-  "property",
-]);
 
 const RECORD_COLLECTION_FIELD_NAMES_BY_KIND = Object.freeze({
   class: "classRecords",

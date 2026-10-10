@@ -1,5 +1,5 @@
 import { at, fail } from "./errors.js";
-import { envelope } from "./modelContract.js";
+import { envelope, dataRangeKinds } from "./modelContract.js";
 import { categories, namespaces } from "./profiles.js";
 import { semanticKey } from "./semanticKeys.js";
 import { occurrenceKey } from "./projection.js";
@@ -12,13 +12,7 @@ const categoryNames = {
   constructs: "K",
   occurrences: "O",
 };
-const dataKinds = new Set([
-  "data-intersection",
-  "data-union",
-  "data-complement",
-  "data-enumeration",
-  "datatype-restriction",
-]);
+const dataKinds = new Set(dataRangeKinds);
 const endpointKind = /^(object|data|rdf)-(domain|range)$/;
 const classRole = (record) => ["class", "rdf-class"].includes(record.kind);
 

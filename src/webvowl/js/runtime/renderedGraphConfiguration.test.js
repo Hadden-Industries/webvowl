@@ -17,7 +17,10 @@ beforeAll(async () => {
     { identifier: CONFIGURATION_MODULE_URL.href },
   );
   await configurationModule.link((specifier) => {
-    throw new Error(`Unexpected configuration dependency: ${specifier}`);
+    const dependency = new URL(specifier, CONFIGURATION_MODULE_URL);
+    return new SourceTextModule(readFileSync(dependency, "utf8"), {
+      identifier: dependency.href,
+    });
   });
   await configurationModule.evaluate();
 

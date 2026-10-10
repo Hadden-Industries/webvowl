@@ -12,6 +12,18 @@ import {
   VOWL_EDITOR_PROPERTY_TYPES,
 } from "./ontologyEditorDrawingRecords.js";
 import { createRenderedOccurrenceReference } from "./renderedArrangementContracts.js";
+import {
+  DEFAULT_VISUALIZATION_FILTERS,
+  DEFAULT_VISUALIZATION_MODES,
+  DEFAULT_FORCE_LAYOUT_DISTANCES,
+  VISUALIZATION_ZOOM_LIMITS,
+} from "../../../shared/js/visualizationDefaults.js";
+import { namespaces } from "vowl";
+export {
+  DEFAULT_VISUALIZATION_FILTERS,
+  DEFAULT_VISUALIZATION_MODES,
+  DEFAULT_FORCE_LAYOUT_DISTANCES,
+};
 
 export const RENDERED_GRAPH_RUNTIME_METHOD_NAMES = Object.freeze([
   "replaceVowlModel",
@@ -61,9 +73,9 @@ export const RENDERED_GRAPH_EVENT_KINDS = Object.freeze([
   "rendering-statistics-changed",
 ]);
 
-const SVG_NAMESPACE_IRI = "http://www.w3.org/2000/svg";
-const MAX_VISUALIZATION_FOCUS_REFERENCE_COUNT = 25;
-const VISIBILITY_FILTER_FIELD_NAMES = Object.freeze([
+const SVG_NAMESPACE_IRI = namespaces.svg;
+export const MAX_VISUALIZATION_FOCUS_REFERENCE_COUNT = 25;
+export const VISIBILITY_FILTER_FIELD_NAMES = Object.freeze([
   "datatypes",
   "objectProperties",
   "subclasses",
@@ -80,7 +92,7 @@ const APPLIED_VISUALIZATION_VIEW_FIELD_NAMES = Object.freeze([
   "modes",
   "forceDistances",
 ]);
-const VISUALIZATION_VIEW_REQUEST_FIELD_NAMES = Object.freeze([
+export const VISUALIZATION_VIEW_REQUEST_FIELD_NAMES = Object.freeze([
   "nodesShown",
   "language",
   "filters",
@@ -92,8 +104,7 @@ const VISUALIZATION_VIEW_REQUEST_FIELD_NAMES = Object.freeze([
 ]);
 
 export const VISUALIZATION_VIEWPORT_LIMITS = Object.freeze({
-  minimumZoomScale: 0.01,
-  maximumZoomScale: 4,
+  ...VISUALIZATION_ZOOM_LIMITS,
   maximumAbsoluteTranslationPx: Number.MAX_SAFE_INTEGER,
 });
 
@@ -1217,29 +1228,6 @@ const VISUALIZATION_MODE_PREDICATE_FIELD_NAMES = Object.freeze([
 // How external elements are coloured when that mode is on: one shared colour,
 // or a gradient across them.
 const COLOR_EXTERNALS_MODES = Object.freeze(["same", "gradient"]);
-
-export const DEFAULT_VISUALIZATION_FILTERS = Object.freeze({
-  datatypes: "show",
-  objectProperties: "show",
-  subclasses: "show",
-  disjointness: "hide",
-  setOperators: "show",
-});
-
-export const DEFAULT_VISUALIZATION_MODES = Object.freeze({
-  colorExternals: true,
-  compactNotation: false,
-  nodeScaling: true,
-  dynamicLabelWidth: true,
-  pickAndPin: false,
-  maxLabelWidthPx: 120,
-  colorExternalsMode: "same",
-});
-
-export const DEFAULT_FORCE_LAYOUT_DISTANCES = Object.freeze({
-  classDistancePx: 200,
-  datatypeDistancePx: 120,
-});
 
 export const VISUALIZATION_SLIDER_LIMITS = Object.freeze({
   minimumLabelWidthPx: 20,

@@ -1,10 +1,9 @@
 import { createOntologyInspectionSnapshot } from "./renderedGraphRuntimeContracts.js";
 import { createOntologyElementReference } from "./webVowlControllerContracts.js";
 import { indexVowlLabelCandidates } from "./vowlDisplayProjector.js";
+import { namespaces, dataRangeKinds } from "vowl";
 
-const RDFS = "http://www.w3.org/2000/01/rdf-schema#";
-const DC = "http://purl.org/dc/elements/1.1/";
-const OWL = "http://www.w3.org/2002/07/owl#";
+const { rdfs: RDFS, dc: DC, owl: OWL } = namespaces;
 const KINDS = new Map([
   ["class", "class"],
   ["rdf-class", "class"],
@@ -15,13 +14,7 @@ const KINDS = new Map([
   ["annotation-property", "property"],
   ["rdf-property", "property"],
 ]);
-const DATA_RANGES = new Set([
-  "data-intersection",
-  "data-union",
-  "data-complement",
-  "data-enumeration",
-  "datatype-restriction",
-]);
+const DATA_RANGES = new Set(dataRangeKinds);
 
 /** Project admitted semantic records, never legacy topology or renderer state. */
 export function createCanonicalSemanticReferences(

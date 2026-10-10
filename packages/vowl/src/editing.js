@@ -1,18 +1,18 @@
 import { fail } from "./errors.js";
-import { envelope } from "./modelContract.js";
-import { namespaces, profiles } from "./profiles.js";
+import { envelope, dataRangeKinds } from "./modelContract.js";
+import { namespaces, profiles, collectionTypeNames } from "./profiles.js";
 import { validateFields, walkTyped, descriptorFor } from "./typedValues.js";
 import { semanticKey } from "./semanticKeys.js";
 import { validateGraph, validateMeaning } from "./validateGraph.js";
 import { generateProjection, occurrenceKey } from "./projection.js";
 import { snapshotSource } from "./snapshot.js";
 
-const collections = {
-  subjects: "Subject",
-  roles: "Role",
-  expressions: "Expression",
-  constructs: "Construct",
-};
+const collections = Object.fromEntries(
+  ["subjects", "roles", "expressions", "constructs"].map((name) => [
+    name,
+    collectionTypeNames[name],
+  ]),
+);
 const operationFields = {
   insert: ["kind", "collection", "record"],
   replace: ["kind", "id", "record"],
@@ -362,14 +362,7 @@ export function normalizeDraft(source, budget, reservedHandles = []) {
         budget.check();
         const record = endpointGraph.get(id);
         return (
-          record.kind === "datatype" ||
-          [
-            "data-intersection",
-            "data-union",
-            "data-complement",
-            "data-enumeration",
-            "datatype-restriction",
-          ].includes(record.kind)
+          record.kind === "datatype" || dataRangeKinds.includes(record.kind)
         );
       });
       if (new Set(data).size !== 1) {

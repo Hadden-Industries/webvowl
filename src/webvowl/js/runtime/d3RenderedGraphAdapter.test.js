@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { SourceTextModule, SyntheticModule } from "node:vm";
 import { color } from "d3";
+import { namespaces } from "vowl";
 
 let assertRenderedGraphRuntimeContract;
 let createD3RenderedGraphAdapter;
@@ -51,6 +52,11 @@ async function loadRepositoryModule(moduleUrl) {
     if (specifier === "d3") {
       return new SyntheticModule(["color"], function () {
         this.setExport("color", color);
+      });
+    }
+    if (specifier === "vowl") {
+      return new SyntheticModule(["namespaces"], function () {
+        this.setExport("namespaces", namespaces);
       });
     }
     return instantiateRepositoryModule(
