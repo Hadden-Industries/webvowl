@@ -1245,6 +1245,27 @@ export function createD3RenderedGraphAdapter(dependencies) {
       });
     },
 
+    // Recovery restores standing highlights synchronously with the drawing.
+    // Unlike a user view transition, this has no framing or first-paint wait.
+    setVisualizationFocus({ loadGeneration, focus }) {
+      assertNotDisposed();
+      const request = createVisualizationViewApplicationRequest({
+        loadGeneration,
+        focus,
+      });
+      if (loadGeneration !== activeLoadGeneration) {
+        throw createAbortError(
+          "The visualization focus targets a retired load.",
+        );
+      }
+      applyVisualizationViewToRenderer({ focus: request.focus });
+      appliedVisualizationView = {
+        ...readAppliedVisualizationView(),
+        focus: request.focus,
+      };
+      return renderedGraphRuntime.readVisualizationView();
+    },
+
     async applyVisualizationView(request, { signal } = {}) {
       assertNotDisposed();
       const viewApplicationRequest =

@@ -3,6 +3,8 @@ import { Label } from "./Label.js";
 
 export { PlainLink };
 
+const states = new WeakMap();
+
 /**
  * A link connects at least two VOWL nodes.
  * The properties connecting the VOWL nodes are stored separately into the label.
@@ -11,66 +13,72 @@ export { PlainLink };
  * @param property
  */
 function PlainLink(domain, range, property) {
-  let layers, layerIndex, loops, loopIndex, pathEl;
   const label = new Label(property, this);
-
-  const backPart = createLinkPart(domain, label, this),
-    frontPart = createLinkPart(label, range, this);
-
-  this.layers = function (p) {
-    if (!arguments.length) {
-      return layers;
-    }
-    layers = p;
-    return this;
-  };
-
-  this.layerIndex = function (p) {
-    if (!arguments.length) {
-      return layerIndex;
-    }
-    layerIndex = p;
-    return this;
-  };
-
-  this.loops = function (p) {
-    if (!arguments.length) {
-      return loops;
-    }
-    loops = p;
-    return this;
-  };
-
-  this.loopIndex = function (p) {
-    if (!arguments.length) {
-      return loopIndex;
-    }
-    loopIndex = p;
-    return this;
-  };
-
-  this.domain = function () {
-    return domain;
-  };
-
-  this.label = function () {
-    return label;
-  };
-
-  this.linkParts = function () {
-    return [frontPart, backPart];
-  };
-
-  this.range = function () {
-    return range;
-  };
-  this.pathObj = function (pE) {
-    if (!arguments.length) {
-      return pathEl;
-    }
-    pathEl = pE;
-  };
+  states.set(this, {
+    domain,
+    range,
+    label,
+    frontPart: createLinkPart(label, range, this),
+    backPart: createLinkPart(domain, label, this),
+    layers: undefined,
+    layerIndex: undefined,
+    loops: undefined,
+    loopIndex: undefined,
+    pathEl: undefined,
+  });
 }
+
+PlainLink.prototype.layers = function (value) {
+  if (!arguments.length) {
+    return states.get(this).layers;
+  }
+  states.get(this).layers = value;
+  return this;
+};
+
+PlainLink.prototype.layerIndex = function (value) {
+  if (!arguments.length) {
+    return states.get(this).layerIndex;
+  }
+  states.get(this).layerIndex = value;
+  return this;
+};
+
+PlainLink.prototype.loops = function (value) {
+  if (!arguments.length) {
+    return states.get(this).loops;
+  }
+  states.get(this).loops = value;
+  return this;
+};
+
+PlainLink.prototype.loopIndex = function (value) {
+  if (!arguments.length) {
+    return states.get(this).loopIndex;
+  }
+  states.get(this).loopIndex = value;
+  return this;
+};
+
+PlainLink.prototype.domain = function () {
+  return states.get(this).domain;
+};
+PlainLink.prototype.range = function () {
+  return states.get(this).range;
+};
+PlainLink.prototype.label = function () {
+  return states.get(this).label;
+};
+PlainLink.prototype.linkParts = function () {
+  const { frontPart, backPart } = states.get(this);
+  return [frontPart, backPart];
+};
+PlainLink.prototype.pathObj = function (value) {
+  if (!arguments.length) {
+    return states.get(this).pathEl;
+  }
+  states.get(this).pathEl = value;
+};
 
 PlainLink.prototype.draw = function (linkGroup) {
   const property = this.label().property();

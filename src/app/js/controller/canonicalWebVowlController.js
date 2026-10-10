@@ -93,6 +93,24 @@ export function createCanonicalWebVowlController({
   let viewSequence = 0;
   let pendingView;
   let revealCache;
+  let ordinaryPresentation;
+  function clearNeighborhood() {
+    if (!ordinaryPresentation) {
+      return undefined;
+    }
+    pendingView?.abort();
+    pendingView = undefined;
+    viewSequence++;
+    session.clearNeighborhood({ renderedGraphRuntime: runtime });
+    const restored = ordinaryPresentation;
+    runtime.setVisualizationFocus({
+      loadGeneration: session.identity().loadGeneration,
+      focus: restored.focus,
+    });
+    ordinaryPresentation = undefined;
+    publish({ view: readView(), ...runtime.readVisualizationViewport() });
+    return restored;
+  }
   function readUpstreamHidden() {
     return retainedHidden.flatMap((reference) => {
       try {
@@ -172,9 +190,11 @@ export function createCanonicalWebVowlController({
           "The editor request is invalid or belongs to a retired document revision.",
       });
     }
+    clearNeighborhood();
     return request;
   }
   function acceptRevision(result, selectionTargets) {
+    ordinaryPresentation = undefined;
     revealCache = undefined;
     pendingView?.abort();
     pendingView = undefined;
@@ -229,6 +249,8 @@ export function createCanonicalWebVowlController({
   }
   async function command(intent, { signal } = {}) {
     const accepted = current();
+    signal?.throwIfAborted();
+    clearNeighborhood();
     const references = createCanonicalSemanticReferences(
       session.inspectRecords(),
       accepted.loadGeneration,
@@ -501,6 +523,7 @@ export function createCanonicalWebVowlController({
         });
       }
       const retained = structuredClone(source);
+      clearNeighborhood();
       revealCache = undefined;
       loadSequence += 1;
       pendingView?.abort();
@@ -829,6 +852,109 @@ export function createCanonicalWebVowlController({
         requestedCount,
       });
     },
+    getOntologyNeighborhoodRevealPlan(ontologyElementReferences) {
+      current();
+      const { canReveal, reason, counts } = session.planNeighborhood(
+        ontologyElementReferences,
+      );
+      return Object.freeze({
+        canReveal,
+        ...(reason ? { reason } : {}),
+        counts,
+      });
+    },
+    async revealOntologyNeighborhood(
+      { ontologyElementReferences },
+      { signal } = {},
+    ) {
+      const accepted = current();
+      signal?.throwIfAborted();
+      if (edits.size > 0) {
+        throw new WebVowlOperationError({
+          code: "VIEW_REJECTED",
+          message:
+            "Wait for the current edit before revealing a neighbourhood.",
+        });
+      }
+      const plan = session.planNeighborhood(ontologyElementReferences);
+      if (!plan.canReveal) {
+        return Object.freeze({
+          ...accepted,
+          status: "refused",
+          reason: plan.reason,
+          counts: plan.counts,
+        });
+      }
+      activeExport?.abort();
+      pendingView?.abort();
+      const viewRevision = ++viewSequence;
+      const sequence = loadSequence;
+      const owner = new AbortController();
+      pendingView = owner;
+      const viewSignal = signal
+        ? AbortSignal.any([signal, owner.signal])
+        : owner.signal;
+      const ordinary = ordinaryPresentation ?? {
+        viewport: runtime.readVisualizationViewport(),
+        focus: state.view?.focus ?? [],
+      };
+      try {
+        session.revealNeighborhood(plan.hidden, {
+          renderedGraphRuntime: runtime,
+        });
+        ordinaryPresentation = ordinary;
+        await runtime.applyVisualizationView(
+          {
+            loadGeneration: accepted.loadGeneration,
+            focus: ontologyElementReferences,
+          },
+          { signal: viewSignal },
+        );
+        if (
+          disposed ||
+          sequence !== loadSequence ||
+          viewRevision !== viewSequence ||
+          session.identity().documentRevision !== accepted.documentRevision ||
+          viewSignal.aborted
+        ) {
+          throw new DOMException(
+            "The neighborhood was superseded.",
+            "AbortError",
+          );
+        }
+        session.synchronizeDrawing(runtime.readCanonicalDrawingState());
+        publish({ view: readView() });
+        return Object.freeze({
+          ...accepted,
+          status: "revealed",
+          counts: plan.counts,
+        });
+      } catch (error) {
+        if (
+          !disposed &&
+          sequence === loadSequence &&
+          viewRevision === viewSequence &&
+          session.identity().documentRevision === accepted.documentRevision
+        ) {
+          clearNeighborhood();
+        }
+        throw error;
+      } finally {
+        if (pendingView === owner) {
+          pendingView = undefined;
+        }
+      }
+    },
+    async clearOntologyNeighborhood(_request = {}, { signal } = {}) {
+      const accepted = current();
+      signal?.throwIfAborted();
+      activeExport?.abort();
+      const restored = clearNeighborhood();
+      if (restored) {
+        await this.setVisualizationView({ focus: restored.focus }, { signal });
+      }
+      return Object.freeze({ ...accepted, status: "cleared" });
+    },
     async revealOntologyElements({ ontologyElementReferences }, options) {
       const plan = this.getOntologyElementRevealPlan(ontologyElementReferences);
       if (!plan.canReveal) {
@@ -847,11 +973,16 @@ export function createCanonicalWebVowlController({
       );
     },
     findOntologyElements(request) {
-      return inspector.findOntologyElements({
-        ...snapshots(),
-        ...request,
-        language: state.view?.language,
-      });
+      current();
+      return session.findOntologyElements(
+        {
+          visibleRenderedGraphSnapshot:
+            runtime.readVisibleRenderedGraphSnapshot(),
+          ...request,
+          language: state.view?.language,
+        },
+        inspector,
+      );
     },
     describeOntologyElements(request) {
       return inspector.describeOntologyElements({
@@ -903,7 +1034,14 @@ export function createCanonicalWebVowlController({
         loadGeneration: accepted.loadGeneration,
         url: createVisualizationShareLink(
           applicationUrl,
-          { ...state, ...runtime.readVisualizationViewport() },
+          {
+            ...state,
+            ...(ordinaryPresentation?.viewport ??
+              runtime.readVisualizationViewport()),
+            ...(ordinaryPresentation
+              ? { view: { ...state.view, focus: ordinaryPresentation.focus } }
+              : {}),
+          },
           request.presentation,
         ),
       });
@@ -996,6 +1134,14 @@ export function createCanonicalWebVowlController({
         loadGeneration: accepted.loadGeneration,
       });
       signal?.throwIfAborted();
+      const restored =
+        validated.filters !== undefined ||
+        validated.nodesShown !== undefined ||
+        validated.language !== undefined ||
+        validated.layout !== undefined ||
+        validated.focus?.length === 0
+          ? clearNeighborhood()
+          : undefined;
       activeExport?.abort();
       const sequence = loadSequence;
       const {
@@ -1004,6 +1150,9 @@ export function createCanonicalWebVowlController({
         language,
         ...nativeView
       } = validated;
+      if (restored && nativeView.focus === undefined) {
+        nativeView.focus = restored.focus;
+      }
       const nextNodesShown = requestedNodesShown ?? nodesShown;
       // Validate references before changing the scene; determine visibility afterwards.
       if (nativeView.focus !== undefined) {
@@ -1133,6 +1282,7 @@ export function createCanonicalWebVowlController({
       current();
       const modes = createVisualizationModesRequest(request);
       signal?.throwIfAborted();
+      clearNeighborhood();
       activeExport?.abort();
       const { compactNotation, nodeScaling, colorExternals, ...nativeModes } =
         modes;
@@ -1166,6 +1316,7 @@ export function createCanonicalWebVowlController({
     async setForceLayoutDistances(request, { signal } = {}) {
       current();
       signal?.throwIfAborted();
+      clearNeighborhood();
       activeExport?.abort();
       runtime.setForceLayoutDistances(request);
       publish({ view: readView() });
@@ -1174,6 +1325,7 @@ export function createCanonicalWebVowlController({
     async resetVisualization({ signal } = {}) {
       current();
       signal?.throwIfAborted();
+      clearNeighborhood();
       activeExport?.abort();
       const sequence = loadSequence;
       const resetNodesShown = { mode: "auto" };
@@ -1252,6 +1404,7 @@ export function createCanonicalWebVowlController({
     },
     setGraphLayoutPaused(request) {
       const accepted = current();
+      clearNeighborhood();
       const result = runtime.setGraphLayoutPaused({
         loadGeneration: accepted.loadGeneration,
         isPaused: request?.isPaused,
@@ -1375,6 +1528,7 @@ export function createCanonicalWebVowlController({
         return;
       }
       disposed = true;
+      ordinaryPresentation = undefined;
       revealCache = undefined;
       viewSequence += 1;
       pendingView?.abort();

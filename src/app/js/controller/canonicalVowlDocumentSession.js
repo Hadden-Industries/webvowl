@@ -1,6 +1,8 @@
 import { createCanonicalVowlScene } from "./canonicalVowlScene.js";
 import { readCanonicalFacts } from "./canonicalVowlFacts.js";
 import { createCanonicalVowlRenderProjection } from "./canonicalVowlRenderProjection.js";
+import { prepareOntologySearch } from "./ontologyInspector.js";
+import { createCanonicalSearchProjection } from "./canonicalSearchProjection.js";
 import {
   createCanonicalVowlInspectionProjection,
   createCanonicalSemanticReferences,
@@ -39,11 +41,12 @@ function readResult(result, revision) {
   ) {
     throw rejected("DOCUMENT_WORKER_RESULT_INVALID");
   }
+  const inspection = structuredClone(result.inspection);
   return {
-    inspection: structuredClone(result.inspection),
+    inspection,
     checkpoint: structuredClone(result.checkpoint),
     selectNodes: createCanonicalNodeSelector(
-      result.inspection,
+      inspection,
       result.rankingIdentity,
     ),
   };
@@ -286,6 +289,62 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
     inspectOntology() {
       return structuredClone(loaded().ontologyInspection);
     },
+    findOntologyElements(request, inspector) {
+      const accepted = loaded();
+      if (accepted.search?.inspector !== inspector) {
+        accepted.search = {
+          inspector,
+          prepared: prepareOntologySearch(
+            accepted.ontologyInspection,
+            inspector,
+          ),
+        };
+      }
+      return accepted.search.prepared.findOntologyElements(request);
+    },
+    planNeighborhood(references) {
+      const accepted = loaded();
+      accepted.neighborhood ??= createCanonicalSearchProjection(
+        accepted.inspection,
+        createCanonicalSemanticReferences(
+          accepted.inspection,
+          accepted.generation,
+          target,
+        ),
+        accepted.generation,
+      );
+      return accepted.neighborhood.plan(references);
+    },
+    revealNeighborhood(hidden, options = {}) {
+      const accepted = loaded();
+      if (options.renderedGraphRuntime) {
+        this.synchronizeDrawing(
+          options.renderedGraphRuntime.readCanonicalDrawingState(),
+        );
+      }
+      const ordinaryScene = accepted.ordinaryScene ?? accepted.scene.snapshot();
+      this.updateView(
+        { hidden: hidden.map(accepted.scene.reference) },
+        options,
+      );
+      accepted.ordinaryScene = ordinaryScene;
+    },
+    clearNeighborhood(options = {}) {
+      const accepted = loaded();
+      if (!accepted.ordinaryScene) {
+        return false;
+      }
+      const ordinary = accepted.ordinaryScene;
+      this.updateView(
+        { ...ordinary, hidden: ordinary.hidden.map(accepted.scene.reference) },
+        options,
+      );
+      accepted.ordinaryScene = undefined;
+      return true;
+    },
+    hasNeighborhood() {
+      return Boolean(loaded().ordinaryScene);
+    },
     inspectFacts(request) {
       const accepted = loaded();
       return {
@@ -354,12 +413,15 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
           ]),
         ),
       );
-      const ontologyInspection = projectInspection(
-        base.inspection,
-        visualization,
-        base.generation,
-        base.records,
-      );
+      const ontologyInspection =
+        changes.labelSelection !== undefined || changes.prefixes !== undefined
+          ? projectInspection(
+              base.inspection,
+              visualization,
+              base.generation,
+              base.records,
+            )
+          : base.ontologyInspection;
       presenting = true;
       try {
         proposal.commit({
@@ -377,6 +439,12 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
       // Keep this document identity stable while a worker edit is pending: its
       // later scene reconciliation must observe the newly accepted view state.
       base.ontologyInspection = ontologyInspection;
+      if (
+        changes.labelSelection !== undefined ||
+        changes.prefixes !== undefined
+      ) {
+        base.search?.prepared.updatePresentation(ontologyInspection);
+      }
       return { ...this.snapshot(), projection };
     },
     synchronizeDrawing({
@@ -857,6 +925,9 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
           nextRecordToken,
           revision: base.revision + 1,
           ontologyInspection,
+          search: undefined,
+          neighborhood: undefined,
+          ordinaryScene: undefined,
         };
         return {
           ...this.snapshot(),
@@ -939,7 +1010,11 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
             profile,
             ...(profile === profiles.structuralContent
               ? {}
-              : { visualization: base.scene.snapshot() }),
+              : {
+                  visualization: structuredClone(
+                    base.ordinaryScene ?? base.scene.snapshot(),
+                  ),
+                }),
             limits,
           },
           {

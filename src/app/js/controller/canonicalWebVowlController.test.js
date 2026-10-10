@@ -4,6 +4,7 @@ import { createCanonicalWebVowlController } from "./canonicalWebVowlController.j
 import { createCanonicalVowlDocumentSession } from "./canonicalVowlDocumentSession.js";
 import { runCanonicalVowlOperation } from "./canonicalVowlWorkerOperations.js";
 import { createCanonicalVowlSourceAcquisition } from "./canonicalVowlSourceAcquisition.js";
+import { createVisualizationViewApplicationRequest } from "./renderedGraphRuntimeContracts.js";
 
 function deferred() {
   let resolve, reject;
@@ -137,9 +138,13 @@ test("the candidate controller preserves selection through rename and focuses ne
     drawing = request;
   };
   runtime.clearRenderedGraph = () => {};
+  let pendingEditGate;
   const session = createCanonicalVowlDocumentSession({
     workerClient: {
       async run(request, context) {
+        if (request.operation === "edit-model" && pendingEditGate) {
+          await pendingEditGate.promise;
+        }
         const received = JSON.parse(
           JSON.stringify({ ...request, bytes: undefined }),
         );
@@ -196,7 +201,17 @@ test("the candidate controller preserves selection through rename and focuses ne
       .flatMap(({ semanticReferences }) => semanticReferences),
     visibleRelationshipReferences: [],
   });
-  runtime.applyVisualizationView = jest.fn(async () => {});
+  let focus = [];
+  runtime.readVisualizationView = () => ({ language: "en", focus });
+  runtime.setVisualizationFocus = jest.fn((request) => {
+    focus = [...request.focus];
+  });
+  runtime.applyVisualizationView = jest.fn(async (request) => {
+    createVisualizationViewApplicationRequest(request);
+    if (request.focus !== undefined) {
+      focus = [...request.focus];
+    }
+  });
   runtime.resizeVisualizationViewport = jest.fn();
   controller.resizeVisualizationViewport({
     widthPx: 800,
@@ -243,12 +258,24 @@ test("the candidate controller preserves selection through rename and focuses ne
     loadGeneration: 1,
     payload: { recordTarget: target },
   });
-  await controller.editOntologyRecord({
+  pendingEditGate = deferred();
+  const pendingEdit = controller.editOntologyRecord({
     loadGeneration: 1,
     documentRevision: 0,
     recordTarget: target,
     changes: { iri: "urn:Renamed" },
   });
+  const editingScene = session.scene().snapshot();
+  await expect(
+    controller.revealOntologyNeighborhood({
+      ontologyElementReferences: [reference],
+    }),
+  ).rejects.toMatchObject({ code: "VIEW_REJECTED" });
+  expect(session.scene().snapshot()).toEqual(editingScene);
+  expect(session.hasNeighborhood()).toBe(false);
+  pendingEditGate.resolve();
+  await pendingEdit;
+  pendingEditGate = undefined;
   expect(controller.getState().selection).toEqual([
     { ...reference, iri: "urn:Renamed" },
   ]);
@@ -260,6 +287,56 @@ test("the candidate controller preserves selection through rename and focuses ne
     runtime.readVisibleRenderedGraphSnapshot().visibleElementReferences,
   ).toEqual([]);
   const renamed = controller.getState().selection[0];
+  const ordinary = session.scene().snapshot();
+  const ordinaryCapture = await session.capture();
+  expect(
+    await controller.revealOntologyNeighborhood({
+      ontologyElementReferences: [renamed],
+    }),
+  ).toMatchObject({ status: "revealed", counts: { nodes: 1 } });
+  expect(session.hasNeighborhood()).toBe(true);
+  expect(controller.getState().view.nodesShown).toEqual({
+    mode: "exact",
+    requestedCount: 0,
+  });
+  expect(await session.capture()).toEqual(ordinaryCapture);
+  await controller.setVisualizationView({ focus: [] });
+  expect(session.hasNeighborhood()).toBe(false);
+  expect(session.scene().snapshot()).toEqual(ordinary);
+  runtime.applyVisualizationView.mockImplementationOnce(async (request) => {
+    focus = [...request.focus];
+    throw new Error("neighborhood paint rejected");
+  });
+  await expect(
+    controller.revealOntologyNeighborhood({
+      ontologyElementReferences: [renamed],
+    }),
+  ).rejects.toThrow("neighborhood paint rejected");
+  expect(session.scene().snapshot()).toEqual(ordinary);
+  expect(focus).toEqual([]);
+  await controller.revealOntologyNeighborhood({
+    ontologyElementReferences: [renamed],
+  });
+  expect(focus).toEqual([renamed]);
+  await controller.setVisualizationModes({ compactNotation: true });
+  expect(focus).toEqual([]);
+  expect(session.hasNeighborhood()).toBe(false);
+  await controller.setVisualizationModes({ compactNotation: false });
+  const neighborhoodGate = deferred();
+  runtime.applyVisualizationView.mockImplementationOnce(
+    () => neighborhoodGate.promise,
+  );
+  const supersededNeighborhood = controller.revealOntologyNeighborhood({
+    ontologyElementReferences: [renamed],
+  });
+  const supersededNeighborhoodRejected = expect(
+    supersededNeighborhood,
+  ).rejects.toMatchObject({ name: "AbortError" });
+  await controller.clearOntologyNeighborhood();
+  neighborhoodGate.resolve();
+  await supersededNeighborhoodRejected;
+  expect(session.scene().snapshot()).toEqual(ordinary);
+  expect(session.hasNeighborhood()).toBe(false);
   expect(controller.getOntologyElementRevealPlan([renamed])).toEqual({
     canReveal: true,
     requestedCount: 1,

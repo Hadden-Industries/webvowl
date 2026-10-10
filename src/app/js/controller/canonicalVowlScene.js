@@ -170,6 +170,9 @@ export function createCanonicalVowlScene(
   }
   let nextToken = 0;
   let registry = new Map(current.map(({ id }) => [id, ++nextToken]));
+  let occurrencesByToken = new Map(
+    [...registry].map(([id, token]) => [`runtime-${token}`, id]),
+  );
   let state = structuredClone(
     visualization ?? {
       placements: [],
@@ -208,13 +211,10 @@ export function createCanonicalVowlScene(
     if (ref?.loadGeneration !== loadGeneration) {
       throw sceneError("SCENE_REFERENCE_EXPIRED");
     }
-    const found = [...registry].find(
-      ([, token]) => `runtime-${token}` === ref.occurrenceId,
-    );
-    if (!found) {
+    if (!occurrencesByToken.has(ref.occurrenceId)) {
       throw sceneError("SCENE_REFERENCE_EXPIRED");
     }
-    return found[0];
+    return occurrencesByToken.get(ref.occurrenceId);
   }
   return Object.freeze({
     reference,
@@ -226,6 +226,9 @@ export function createCanonicalVowlScene(
     arrange(changes, { camera } = {}) {
       checkWritable();
       const candidate = structuredClone(state);
+      const placementsByOccurrence = new Map(
+        candidate.placements.map((entry) => [entry.occurrence, entry]),
+      );
       if (camera !== undefined) {
         if (!Number.isFinite(camera.zoom) || camera.zoom <= 0) {
           throw sceneError("SCENE_CAMERA_INVALID");
@@ -242,9 +245,7 @@ export function createCanonicalVowlScene(
           throw sceneError("SCENE_PLACEMENT_INVALID");
         }
         changed.add(id);
-        const placement = candidate.placements.find(
-          (entry) => entry.occurrence === id,
-        );
+        const placement = placementsByOccurrence.get(id);
         if (!placement) {
           throw sceneError("SCENE_OCCURRENCE_NOT_POSITIONABLE");
         }
@@ -276,13 +277,33 @@ export function createCanonicalVowlScene(
         !changes ||
         Object.keys(changes).some(
           (key) =>
-            !["hidden", "labelSelection", "display", "prefixes"].includes(key),
+            ![
+              "hidden",
+              "labelSelection",
+              "display",
+              "prefixes",
+              "placements",
+              "camera",
+            ].includes(key),
         )
       ) {
         throw sceneError("SCENE_VIEW_INVALID");
       }
       const baseRevision = revision;
       const candidate = structuredClone(state);
+      if (changes.placements !== undefined) {
+        candidate.placements = structuredClone(changes.placements);
+        validatePlacements(current, candidate);
+      }
+      if (changes.camera !== undefined) {
+        if (!Number.isFinite(changes.camera.zoom) || changes.camera.zoom <= 0) {
+          throw sceneError("SCENE_CAMERA_INVALID");
+        }
+        candidate.camera = {
+          center: finitePoint(changes.camera.center),
+          zoom: changes.camera.zoom,
+        };
+      }
       if (changes.prefixes !== undefined) {
         const seen = new Set();
         if (
@@ -408,6 +429,10 @@ export function createCanonicalVowlScene(
         occurrences.map((record) => [record.id, record]),
       );
       const groups = new Map();
+      const placementsByOccurrence = new Map(
+        state.placements.map((entry) => [entry.occurrence, entry]),
+      );
+      const hiddenOccurrences = new Set(state.hidden);
       const seen = new Set();
       for (const pair of result.correspondence) {
         if (!registry.has(pair.previous)) {
@@ -428,10 +453,8 @@ export function createCanonicalVowlScene(
           id: pair.previous,
           reference: reference(pair.previous),
           token: registry.get(pair.previous),
-          placement: state.placements.find(
-            (entry) => entry.occurrence === pair.previous,
-          ),
-          hidden: state.hidden.includes(pair.previous),
+          placement: placementsByOccurrence.get(pair.previous),
+          hidden: hiddenOccurrences.has(pair.previous),
         });
         groups.set(pair.current, group);
       }
@@ -512,7 +535,10 @@ export function createCanonicalVowlScene(
           hidden: closeVowlVisibility(occurrences, hiddenOverride ?? hidden),
         };
         validatePlacements(occurrences, candidate);
-        return { candidate, nextRegistry, allocated };
+        const nextOccurrencesByToken = new Map(
+          [...nextRegistry].map(([id, token]) => [`runtime-${token}`, id]),
+        );
+        return { candidate, nextRegistry, nextOccurrencesByToken, allocated };
       }
       return Object.freeze({
         conflicts: structuredClone(conflicts),
@@ -544,6 +570,7 @@ export function createCanonicalVowlScene(
           current = occurrences;
           state = prepared.candidate;
           registry = prepared.nextRegistry;
+          occurrencesByToken = prepared.nextOccurrencesByToken;
           nextToken = prepared.allocated;
           revision++;
           committed = true;

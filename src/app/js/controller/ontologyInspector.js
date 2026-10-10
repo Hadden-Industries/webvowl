@@ -373,6 +373,60 @@ function semanticSearchRecords(records) {
   return [...merged.values()];
 }
 
+/** Takes a session-owned immutable snapshot; query results own their values. */
+export function prepareOntologySearch(snapshot, inspector) {
+  const ontologyInspectionSnapshot = {
+    loadGeneration: snapshot.loadGeneration,
+    relationGroups: snapshot.relationGroups ?? [],
+  };
+  const recordsByKind = new Map();
+  for (const [kind, field] of Object.entries(
+    RECORD_COLLECTION_FIELD_NAMES_BY_KIND,
+  )) {
+    ontologyInspectionSnapshot[field] = snapshot[field];
+    recordsByKind.set(
+      kind,
+      semanticSearchRecords(ontologyInspectionSnapshot[field]),
+    );
+  }
+  const preparation = {
+    recordsByKind,
+    labelTextsByReferenceKey: indexLabelTextsByReferenceKey(
+      ontologyInspectionSnapshot,
+    ),
+  };
+  return Object.freeze({
+    findOntologyElements(request) {
+      return inspector.findOntologyElements(
+        { ...request, ontologyInspectionSnapshot },
+        preparation,
+      );
+    },
+    updatePresentation(snapshot) {
+      for (const [kind, field] of Object.entries(
+        RECORD_COLLECTION_FIELD_NAMES_BY_KIND,
+      )) {
+        const displays = new Map();
+        for (const record of snapshot[field]) {
+          const key = ontologyElementReferenceKey(
+            record.ontologyElementReference,
+          );
+          if (!displays.has(key)) {
+            displays.set(key, record.canonicalDisplay);
+          }
+        }
+        for (const record of recordsByKind.get(kind)) {
+          record.canonicalDisplay = structuredClone(
+            displays.get(
+              ontologyElementReferenceKey(record.ontologyElementReference),
+            ),
+          );
+        }
+      }
+    },
+  });
+}
+
 export function createOntologyInspector() {
   return Object.freeze({
     getOntologySummary({
@@ -459,16 +513,19 @@ export function createOntologyInspector() {
       });
     },
 
-    findOntologyElements({
-      ontologyInspectionSnapshot,
-      visibleRenderedGraphSnapshot,
-      query,
-      kinds,
-      limit,
-      offset = 0,
-      includeNeighborhood = false,
-      language,
-    }) {
+    findOntologyElements(
+      {
+        ontologyInspectionSnapshot,
+        visibleRenderedGraphSnapshot,
+        query,
+        kinds,
+        limit,
+        offset = 0,
+        includeNeighborhood = false,
+        language,
+      },
+      preparation,
+    ) {
       const loadGeneration = assertAgreeingLoadGeneration(
         ontologyInspectionSnapshot,
         visibleRenderedGraphSnapshot,
@@ -488,9 +545,9 @@ export function createOntologyInspector() {
       const normalizedQuery = query.trim().toLowerCase();
       const truncationTracker = createTruncationTracker();
 
-      const labelTextsByReferenceKey = indexLabelTextsByReferenceKey(
-        ontologyInspectionSnapshot,
-      );
+      const labelTextsByReferenceKey =
+        preparation?.labelTextsByReferenceKey ??
+        indexLabelTextsByReferenceKey(ontologyInspectionSnapshot);
       const matchingGroups = new Set();
       for (const [index, group] of (
         ontologyInspectionSnapshot.relationGroups ?? []
@@ -515,7 +572,8 @@ export function createOntologyInspector() {
           ontologyInspectionSnapshot[
             RECORD_COLLECTION_FIELD_NAMES_BY_KIND[kind]
           ];
-        for (const elementRecord of semanticSearchRecords(elementRecords)) {
+        for (const elementRecord of preparation?.recordsByKind.get(kind) ??
+          semanticSearchRecords(elementRecords)) {
           const matchRank = matchRankForRecord(
             elementRecord,
             normalizedQuery,
@@ -558,7 +616,9 @@ export function createOntologyInspector() {
 
       const optionalFactsTracker = createTruncationTracker();
       const matches = retainedMatches.map(({ elementRecord, kind }) => {
-        const ontologyElementReference = elementRecord.ontologyElementReference;
+        const ontologyElementReference = structuredClone(
+          elementRecord.ontologyElementReference,
+        );
         const match = {
           ontologyElementReference,
           kind,
@@ -572,11 +632,15 @@ export function createOntologyInspector() {
           ),
         };
         if (includeNeighborhood) {
-          match.neighborhoodFacts = createNeighborhoodFacts(
-            elementRecord,
-            kind,
-            optionalFactsTracker,
-            ontologyInspectionSnapshot,
+          match.neighborhoodFacts = Object.freeze(
+            structuredClone(
+              createNeighborhoodFacts(
+                elementRecord,
+                kind,
+                optionalFactsTracker,
+                ontologyInspectionSnapshot,
+              ),
+            ),
           );
         }
         return Object.freeze(match);

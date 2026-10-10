@@ -38,6 +38,8 @@ const EXPECTED_TOOL_NAMES = Object.freeze([
   "load_ontology",
   "get_ontology_summary",
   "find_ontology_elements",
+  "reveal_ontology_neighborhood",
+  "clear_ontology_neighborhood",
   "set_visualization_view",
   "export_visualization",
   "get_visualization_state",
@@ -69,6 +71,10 @@ test("focus input preserves an exact semantic role and rejects mismatched role k
 });
 
 const EXPECTED_TOOL_DESCRIPTIONS = Object.freeze({
+  reveal_ontology_neighborhood:
+    "Temporarily reveal the complete admitted depth-two neighbourhood of exact semantic references. Refuses atomically above 25 references, 500 nodes, 1000 edges, 2000 labels or 10000 inspected adjacency entries. Canonical export and Share retain the ordinary view.",
+  clear_ontology_neighborhood:
+    "Restore the ordinary visibility, positions, pins and camera after a temporary neighbourhood reveal.",
   get_visualization_share_link:
     "Read a share URL for the accepted remote ontology and current view, as in the Export menu. Local documents require JSON export. Continue long URLs using the returned continuation.",
   get_ontology_element_details:
@@ -100,6 +106,14 @@ const EXPECTED_TOOL_DESCRIPTIONS = Object.freeze({
 });
 
 const EXPECTED_TOOL_ANNOTATIONS = Object.freeze({
+  reveal_ontology_neighborhood: {
+    readOnlyHint: false,
+    untrustedContentHint: true,
+  },
+  clear_ontology_neighborhood: {
+    readOnlyHint: false,
+    untrustedContentHint: true,
+  },
   get_visualization_share_link: {
     readOnlyHint: true,
     untrustedContentHint: true,

@@ -711,12 +711,13 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
           },
         ],
       });
-      sharedSearchController.getOntologyElementRevealPlan = () => ({
+      sharedSearchController.getOntologyNeighborhoodRevealPlan = () => ({
         canReveal: true,
         requestedCount: 73,
       });
-      sharedSearchController.revealOntologyElements = async (request) => {
+      sharedSearchController.revealOntologyNeighborhood = async (request) => {
         revealed.push(request);
+        return { status: "revealed", counts: { nodes: 3 } };
       };
       const menu = searchMenuFactory({
         documentObject: mockDoc,
@@ -752,6 +753,51 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
       expect(sharedViewRequests).toEqual([]);
       expect(searchInput.value).toBe("Person");
       expect(listbox.classList.contains("hidden")).toBe(true);
+    },
+  );
+
+  test.each(["clear", "input"])(
+    "%s cancels a reveal before its first paint and ignores its late completion",
+    async (action) => {
+      let complete;
+      const pending = new Promise((resolve) => {
+        complete = resolve;
+      });
+      const status = new MockElement("visualizationActionStatus");
+      mockDoc.elements.visualizationActionStatus = status;
+      sharedSearchController.findOntologyElements = () => ({
+        matches: [
+          {
+            displayLabel: "Person",
+            isFocusable: false,
+            ontologyElementReference: { kind: "class", iri: "urn:Person" },
+          },
+        ],
+      });
+      sharedSearchController.getOntologyNeighborhoodRevealPlan = () => ({
+        canReveal: true,
+      });
+      sharedSearchController.revealOntologyNeighborhood = () => pending;
+      const menu = searchMenuFactory({
+        documentObject: mockDoc,
+        windowObject: global.window,
+        webVowlController: sharedSearchController,
+      });
+      menu.setup();
+      searchInput.value = "Per";
+      searchInput.dispatchEvent({ type: "input", target: searchInput });
+      listbox.children[0].onclick({ stopPropagation() {} });
+      if (action === "clear") {
+        menu.clearVisualizationFocus();
+      } else {
+        searchInput.value = "Other";
+        searchInput.dispatchEvent({ type: "input", target: searchInput });
+      }
+      expect(sharedViewRequests).toEqual([{ focus: [] }]);
+      complete({ status: "revealed", counts: { nodes: 3 } });
+      await new Promise((resolve) => setImmediate(resolve));
+      expect(status.hidden).toBe(true);
+      expect(mockDoc.elements.locateSearchResult.disabled).toBe(true);
     },
   );
 

@@ -13,7 +13,7 @@ jest.unstable_mockModule("../elements/links/ArrowLink.js", () => ({
       const readEndpoint = link[name];
       link[name] = () => {
         endpointReads++;
-        return readEndpoint();
+        return readEndpoint.call(link);
       };
     }
     return link;
