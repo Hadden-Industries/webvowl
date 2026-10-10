@@ -257,13 +257,16 @@ describe("native graph and source boundary", () => {
     ownedDirectories.push(container);
     const output = join(container, "bundle");
     await writeBundle(root, output);
-    const manifest = JSON.parse(readFileSync(join(output, "provenance.json")));
+    const published = join(output, "bundle");
+    const manifest = JSON.parse(
+      readFileSync(join(published, "provenance.json")),
+    );
     expect(manifest.complete).toBe(true);
-    expect(sha256(readFileSync(join(output, "graph.json")))).toBe(
+    expect(sha256(readFileSync(join(published, "graph.json")))).toBe(
       manifest.graphDigest,
     );
     for (const view of ["overview", "runtime", "tests"])
-      expect(readFileSync(join(output, `${view}.mmd`), "utf8")).toContain(
+      expect(readFileSync(join(published, `${view}.mmd`), "utf8")).toContain(
         manifest.graphDigest,
       );
     await expect(writeBundle(root, output)).rejects.toThrow();
@@ -555,6 +558,47 @@ describe("native Jest result integrity", () => {
     ),
   );
   const nativeTest = hasRepositoryPython ? test : test.skip;
+  nativeTest(
+    "a real repository VM source reader detects an omitted import-edge failure",
+    async () => {
+      const { root, write, policy, commit } = fixture();
+      const source = "src/app/js/ontologyLifecycle.js",
+        consumer = "src/app/js/ontologyLifecycle.test.js";
+      const original = readFileSync(join(repositoryRoot, source), "utf8");
+      write(source, original);
+      const testSource = readFileSync(join(repositoryRoot, consumer), "utf8");
+      // The fixture uses the installed public Jest globals; no candidate config is executed.
+      write(
+        consumer,
+        testSource.replace(/import \{[^}]+\} from "@jest\/globals";\s*/u, ""),
+      );
+      const registry = JSON.parse(
+        readFileSync(join(repositoryRoot, ".test-impact.json")),
+      );
+      policy.relations = registry.relations.filter(
+        (rule) => rule.dependency === source && rule.consumer === consumer,
+      );
+      expect(policy.relations).toHaveLength(1);
+      write(".test-impact.json", JSON.stringify(policy));
+      const base = commit();
+      write(
+        source,
+        original.replace(
+          "graphControls: ontologyLifecycleState === ONTOLOGY_LIFECYCLE_STATES.READY",
+          "graphControls: false",
+        ),
+      );
+      const report = await planAffected({ root, base });
+      expect(report.mode).toBe("selected");
+      expect(report.selected).toEqual([consumer]);
+      const result = await executePlan(report, { shadow: true });
+      ownedDirectories.push(result.evidenceDirectory);
+      expect(result.selectedRun.outcomes[consumer].status).toBe("failed");
+      expect(result.fullRun.outcomes[consumer].status).toBe("failed");
+      expect(result.success).toBe(false);
+    },
+    30000,
+  );
   nativeTest(
     "executes a real whole-file subset without shadow duplication",
     async () => {

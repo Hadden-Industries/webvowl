@@ -14,9 +14,10 @@ npm run check:affected
 
 Graph output requires a new external directory.
 Existing destinations and linked parents are refused.
-The bundle contains native JSON, overview/runtime/tests Mermaid views, native policy findings, separately labelled declared relations and provenance.
+The command reserves the requested directory exclusively, prepares its contents privately, then atomically publishes the complete `bundle/` subdirectory.
+That bundle contains native JSON, overview/runtime/tests Mermaid views, native policy findings, separately labelled declared relations and provenance.
 All views bind the same JSON digest.
-`provenance.json` is the completion marker; a directory without that marker is incomplete.
+An interrupted reservation without `bundle/provenance.json` is incomplete; retain its `.incomplete-*` diagnostics.
 Native policy errors retain diagnostics and return nonzero.
 This is a Node/import graph; Vite transforms and browser resource loading are not represented as native import edges.
 

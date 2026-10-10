@@ -13,6 +13,8 @@ import {
   fstatSync,
   readdirSync,
   mkdirSync,
+  mkdtempSync,
+  renameSync,
   writeFileSync,
 } from "node:fs";
 import {
@@ -392,7 +394,7 @@ export async function nativeReach(graph, seeds) {
   return JSON.parse(result.output);
 }
 
-/** Reserve the exact destination exclusively; a provenance manifest is the completion marker. */
+/** Reserve the exact destination exclusively, including against competing callers. */
 export function reserveOutput(root, output) {
   output = resolve(output);
   if (isInside(realpathSync(root), output))
@@ -440,11 +442,12 @@ export async function writeBundle(root, output) {
       `%% Node/import context; graph sha256 ${graphDigest}\n${(await format(graph, { outputType: "mermaid", ...filter })).output}`;
   assertUnchanged(root, before);
   output = reserveOutput(root, output);
+  const staging = mkdtempSync(join(output, ".incomplete-"));
   for (const [path, content] of Object.entries(files))
-    writeFileSync(join(output, path), content, { flag: "wx" });
+    writeFileSync(join(staging, path), content, { flag: "wx" });
   assertUnchanged(root, before);
   writeFileSync(
-    join(output, "provenance.json"),
+    join(staging, "provenance.json"),
     JSON.stringify(
       {
         schemaVersion: 1,
@@ -477,6 +480,10 @@ export async function writeBundle(root, output) {
     ) + "\n",
     { flag: "wx" },
   );
+  // The exclusively owned parent keeps publication separate from destination reservation.
+  // Readers see either no bundle or the whole validated directory, on the same filesystem.
+  assertUnchanged(root, before);
+  renameSync(staging, join(output, "bundle"));
   return graph;
 }
 

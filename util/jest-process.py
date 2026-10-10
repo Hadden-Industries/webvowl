@@ -257,13 +257,22 @@ class LinuxJestChildren:
                 os._exit(2)
         os.close(gate_read)
         self.exit_code = None
-        self.root_handle = os.pidfd_open(self.pid)
-        stat = Path(f"/proc/{self.pid}/stat").read_text().rsplit(")", 1)[1].split()
-        self.identity = {
-            "pid": self.pid,
-            "creationTime": stat[19],
-            "ownership": "pidfd-and-child-subreaper",
-        }
+        self.root_handle = None
+        try:
+            self.root_handle = os.pidfd_open(self.pid)
+            stat = Path(f"/proc/{self.pid}/stat").read_text().rsplit(")", 1)[1].split()
+            self.identity = {
+                "pid": self.pid,
+                "creationTime": stat[19],
+                "ownership": "pidfd-and-child-subreaper",
+            }
+        except BaseException:
+            # The child has not crossed its execution gate. EOF makes it exit without exec.
+            os.close(gate_write)
+            os.waitpid(self.pid, 0)
+            if self.root_handle is not None:
+                os.close(self.root_handle)
+            raise
         os.write(gate_write, b"G")
         os.close(gate_write)
 

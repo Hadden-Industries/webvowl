@@ -6,6 +6,7 @@ Program source is static; all runtime paths are passed as argv data.
 
 # SPDX-License-Identifier: AGPL-3.0-only
 import ctypes
+import importlib.util
 import json
 import os
 import shutil
@@ -14,6 +15,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parent.parent
 NODE = shutil.which("node")
@@ -45,6 +47,76 @@ if (mode === 'nested') {
     "Node and a supported native platform required",
 )
 class JestProcessTests(unittest.TestCase):
+    def test_identity_readback_loss_never_crosses_execution_gate(self):
+        """Inject only an OS identity readback failure, never a successful containment result."""
+        spec = importlib.util.spec_from_file_location(
+            "jest_process_probe", ROOT / "util/jest-process.py"
+        )
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        with tempfile.TemporaryDirectory(prefix="webvowl-identity-loss-") as temporary:
+            root = Path(temporary)
+            marker = root / "executed"
+            argv = [
+                NODE,
+                "-e",
+                "require('node:fs').writeFileSync(process.argv[1],'unsafe')",
+                str(marker),
+            ]
+            pipes = [os.pipe(), os.pipe()]
+            try:
+                if sys.platform == "win32":
+                    calls = 0
+                    original = module.WindowsJestJob.check
+
+                    def lose_identity(result):
+                        nonlocal calls
+                        calls += 1
+                        if calls == 4:
+                            raise OSError("Injected GetProcessTimes identity loss")
+                        original(result)
+
+                    with (
+                        patch.object(
+                            module.WindowsJestJob, "check", side_effect=lose_identity
+                        ),
+                        self.assertRaisesRegex(OSError, "identity loss"),
+                    ):
+                        module.WindowsJestJob(argv, str(root), pipes[0][1], pipes[1][1])
+                else:
+                    with (
+                        patch.object(
+                            module.os,
+                            "pidfd_open",
+                            side_effect=OSError("Injected pidfd identity loss"),
+                        ),
+                        self.assertRaisesRegex(OSError, "identity loss"),
+                    ):
+                        module.LinuxJestChildren(
+                            argv, str(root), pipes[0][1], pipes[1][1]
+                        )
+                self.assertFalse(marker.exists(), "Unowned source must never execute")
+            finally:
+                for pipe in pipes:
+                    for descriptor in pipe:
+                        os.close(descriptor)
+
+    def test_cleanup_does_not_terminate_an_unrelated_same_image_process(self):
+        with subprocess.Popen(
+            [NODE, "-e", "setInterval(()=>{},1000)"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        ) as unrelated:
+            try:
+                self.invoke("nested", timeout=2500)
+                self.assertIsNone(
+                    unrelated.poll(),
+                    "Cleanup must target ownership, not image names or unrelated PIDs",
+                )
+            finally:
+                unrelated.terminate()
+                unrelated.wait(timeout=5)
+
     def test_real_jest_esm_results_inside_native_containment(self):
         """The unchanged Python CI matrix supplies actual Windows/Linux Jest proof."""
         jest = ROOT / "node_modules/jest/bin/jest.js"
