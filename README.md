@@ -51,7 +51,7 @@ See [WebMCP usage and limits](docs/webmcp.md) and the [recorded browser qualific
 
 ## Run locally
 
-Clone this repository, then use its selected **Node.js** ([version](.node-version)), **npm** ([native minimum and exact reference](package.json)), and **Python >=3.15.0** ([minimum and CI reference](.python-version)).
+Clone this repository, then use its selected **Node.js** ([version](.node-version)), **npm** ([native minimum and exact reference](package.json)), and **stable Python** ([minimum and CI reference](.python-version)).
 Native npm `devEngines` requires npm `>=12.2.0`; `packageManager` and CI select exact npm 12.2.0 as the reproducible reference.
 Registry development dependencies use floating `>=` minimums; the committed lockfile selects the exact qualified graph for `npm ci`.
 Both application and VOWL consumers retain the `owlapi` import name and share one source selector: `dependencies.owlapi` in the root [package.json](package.json).
@@ -111,7 +111,8 @@ The full check requires the [test corpus](#test-corpus).
 | `npm run test:prose`          | Test prose selection, literal preservation, and check-mode behavior.     |
 
 Both Python tools run from this checkout's `.venv`; rerun `npm run setup:development` after pulling dependency changes.
-Ruff targets Python 3.15, uses 88-character lines, and disables unsafe fixes.
+Ruff's target is generated from [.python-version](.python-version); run `node util/pythonTarget.mjs --write` after changing the pin.
+Ruff uses 88-character lines and disables unsafe fixes.
 Snapper uses its native formatter with one sentence per source line, no fixed column limit, and no clause splitting.
 Prettier preserves prose wrapping and disables embedded-language formatting, but it can still normalize whitespace inside code fences.
 Put `<!-- prettier-ignore -->` immediately before a literal example whose exact whitespace must be preserved, such as a Markdown example containing two-space hard breaks.

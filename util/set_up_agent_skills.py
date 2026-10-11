@@ -126,10 +126,12 @@ def require_python_version() -> None:
     if re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", selected) is None:
         raise SetupError(f"Invalid Python version in {version_path}: {selected}")
     minimum = tuple(int(part) for part in selected.split("."))
-    if sys.version_info[:3] < minimum:
-        display_minimum = selected.removesuffix(".0") if minimum[2] == 0 else selected
+    if (
+        sys.version_info[:3] < minimum
+        or getattr(sys.version_info, "releaselevel", "final") != "final"
+    ):
         raise SetupError(
-            f"Python {display_minimum} or newer is required; "
+            f"Stable Python {selected} or newer is required; "
             "see the minimum in .python-version. "
             f"Running: {sys.version.split()[0]}"
         )
