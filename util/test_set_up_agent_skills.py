@@ -22,15 +22,25 @@ policy:
 
 
 class PythonMinimumTests(unittest.TestCase):
+    target = tuple(
+        int(part)
+        for part in (Path(__file__).resolve().parents[1] / ".python-version")
+        .read_text(encoding="utf-8")
+        .strip()
+        .split(".")
+    )
+
     def test_rejects_previous_python_minor(self) -> None:
         with (
-            mock.patch.object(subject.sys, "version_info", (3, 14, 8)),
-            self.assertRaisesRegex(subject.SetupError, "Python 3.15"),
+            mock.patch.object(
+                subject.sys, "version_info", (self.target[0], self.target[1] - 1, 99)
+            ),
+            self.assertRaisesRegex(subject.SetupError, "Stable Python"),
         ):
             subject.require_python_version()
 
     def test_accepts_minimum_and_newer_python(self) -> None:
-        for version in ((3, 15, 0), (3, 15, 1), (3, 16, 0), (4, 0, 0)):
+        for version in (self.target, (*self.target[:2], self.target[2] + 1)):
             with (
                 self.subTest(version=version),
                 mock.patch.object(subject.sys, "version_info", version),
@@ -38,13 +48,16 @@ class PythonMinimumTests(unittest.TestCase):
                 subject.require_python_version()
 
     def test_reads_changed_patch_minimum_from_repository_version_file(self) -> None:
+        class Prerelease(tuple):
+            releaselevel = "candidate"
+
         with tempfile.TemporaryDirectory() as temp:
             repo = Path(temp)
             (repo / ".python-version").write_text("3.16.2\n", encoding="utf-8")
             with mock.patch.object(
                 subject, "__file__", str(repo / "util" / "setup.py")
             ):
-                for version in ((3, 16, 0), (3, 16, 1)):
+                for version in ((3, 16, 0), (3, 16, 1), Prerelease((3, 16, 2))):
                     with (
                         self.subTest(version=version),
                         mock.patch.object(subject.sys, "version_info", version),
