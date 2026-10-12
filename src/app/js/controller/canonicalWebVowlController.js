@@ -427,6 +427,7 @@ export function createCanonicalWebVowlController({
           view: {
             ...payload.appliedVisualizationView,
             filters: { ...filters },
+            nodesShown: { ...nodesShown },
           },
         });
         break;

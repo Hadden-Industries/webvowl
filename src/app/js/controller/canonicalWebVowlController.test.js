@@ -87,6 +87,33 @@ function setup() {
   };
 }
 
+test("visualization mode events preserve node-count intent for UI subscribers", async () => {
+  const { controller, load, emit } = setup();
+  await load("https://example.test/ontology");
+  const modes = [];
+  controller.subscribeToState((state) =>
+    modes.push(state.view.nodesShown.mode),
+  );
+  expect(() =>
+    emit({
+      kind: "visualization-view-changed",
+      loadGeneration: controller.getState().loadGeneration,
+      payload: {
+        appliedVisualizationView: {
+          language: "en",
+          modes: { colorExternalsMode: "gradient" },
+        },
+      },
+    }),
+  ).not.toThrow();
+  expect(modes).toEqual(["auto"]);
+  expect(controller.getState().view).toMatchObject({
+    nodesShown: { mode: "auto" },
+    modes: { colorExternalsMode: "gradient" },
+  });
+  controller.dispose();
+});
+
 test("layout ticks publish controller state only when its status changes", async () => {
   const { controller, load, emit } = setup();
   await load("https://example.test/ontology");

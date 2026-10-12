@@ -351,6 +351,11 @@ export function createSearchMenu({
     if (event.key === "Enter") {
       event.preventDefault();
       if (selectedEntry >= 0 && selectedEntry < numEntries) {
+        if (
+          htmlCollection[selectedEntry].getAttribute("aria-disabled") === "true"
+        ) {
+          return;
+        }
         const elementId =
           htmlCollection[selectedEntry].getAttribute("elementID");
         selectSearchResult(parseInt(elementId, 10), event);
@@ -453,6 +458,39 @@ export function createSearchMenu({
     return label;
   }
 
+  // Reveal refusals describe graph representation or bounded work, not whether
+  // the reader enabled a filter. A group refusal need not apply to every match.
+  function describeUnavailableSearchResults(reason, references) {
+    const grouped = references.length > 1;
+    if (reason === "no-drawable-neighborhood") {
+      if (grouped) {
+        return "At least one matching element has no node or link in this graph. These matches cannot be revealed together.";
+      }
+      return references[0]?.roleKind === "annotation-property"
+        ? "Annotation property used for metadata. It has no node or link in this graph."
+        : "This element has no node or link in this graph.";
+    }
+    if (reason === "reference-limit") {
+      return "Too many matching elements to reveal together.";
+    }
+    const subject = grouped ? "these results together" : "this result";
+    const possessive = grouped ? "their" : "its";
+    if (reason === "adjacency-limit") {
+      return `Cannot reveal ${subject}: finding ${possessive} neighbourhood exceeds the search limit.`;
+    }
+    const limit = {
+      "node-limit": "node",
+      "edge-limit": "link",
+      "label-limit": "label",
+    }[reason];
+    if (limit) {
+      return `Cannot reveal ${subject}: ${possessive} neighbourhood exceeds the ${limit} limit.`;
+    }
+    return grouped
+      ? "These results cannot be revealed together in the current graph view."
+      : "This result cannot be revealed in the current graph view.";
+  }
+
   function createDropDownElements() {
     if (!listbox) {
       return;
@@ -500,7 +538,10 @@ export function createSearchMenu({
 
       const rawTitle = newResults[i];
       const queryStr = searchLineEdit.value;
-      testEntry.appendChild(highlightQueryMatch(rawTitle, queryStr));
+      const resultLabel = highlightQueryMatch(rawTitle, queryStr);
+      resultLabel.id = `${optionId}-label`;
+      testEntry.appendChild(resultLabel);
+      testEntry.setAttribute("aria-labelledby", resultLabel.id);
 
       if (eLen > 1 && allSame === false) {
         const badge = documentObject.createElement("span");
@@ -510,32 +551,51 @@ export function createSearchMenu({
         testEntry.appendChild(badge);
       }
 
+      let availabilityDescription;
       if (reveal?.canReveal) {
         const cue = documentObject.createElement("span");
         cue.textContent = " · Reveal in graph";
         testEntry.appendChild(cue);
-        testEntry.title =
-          "Temporarily reveal this result and its neighbourhood. Clear search to restore the ordinary view.";
-      } else if (eLen === 1 || allSame === true) {
-        if (visible < 1) {
+        availabilityDescription =
+          (visible === 0
+            ? "Not shown in the current graph view. "
+            : `${visible} of ${eLen} matching elements are shown. `) +
+          (eLen > 1
+            ? "Temporarily show these results and their connected nodes and links. "
+            : "Temporarily show this result and its connected nodes and links. ") +
+          "Clear search to restore the ordinary view.";
+      } else if (visible < eLen) {
+        availabilityDescription = describeUnavailableSearchResults(
+          reveal?.reason,
+          entries,
+        );
+        if (visible === 0) {
           testEntry.classList.add("search-entry-disabled");
-          testEntry.title =
-            rawTitle +
-            "\nNo complete neighbourhood is available within the reveal limits. Details remain available.";
+          testEntry.setAttribute("aria-disabled", "true");
           testEntry.onclick = function () {};
-        }
-      } else {
-        if (visible < 1) {
-          testEntry.classList.add("search-entry-disabled");
-          testEntry.onclick = function () {};
-          testEntry.title = rawTitle + "\nAll elements are filtered out.";
+          const cue = documentObject.createElement("span");
+          cue.textContent =
+            reveal?.reason === "no-drawable-neighborhood"
+              ? eLen > 1
+                ? " · Cannot reveal together"
+                : " · No graph representation"
+              : reveal?.reason?.endsWith("-limit")
+                ? " · Reveal limit reached"
+                : " · Not shown";
+          cue.setAttribute("aria-hidden", "true");
+          testEntry.appendChild(cue);
         } else {
-          testEntry.classList.remove("search-entry-disabled");
+          availabilityDescription = `${visible} of ${eLen} matching elements are shown. ${availabilityDescription}`;
         }
-        if (visible < eLen && visible > 1) {
-          testEntry.title =
-            rawTitle + "\n" + visible + "/" + eLen + " elements are visible.";
-        }
+      }
+      if (availabilityDescription) {
+        testEntry.title = `${rawTitle}\n${availabilityDescription}`;
+        const description = documentObject.createElement("span");
+        description.id = `${optionId}-availability`;
+        description.classList.add("sr-only");
+        description.textContent = availabilityDescription;
+        testEntry.appendChild(description);
+        testEntry.setAttribute("aria-describedby", description.id);
       }
 
       listbox.appendChild(testEntry);
@@ -682,7 +742,10 @@ export function createSearchMenu({
             status.textContent =
               result.status === "revealed"
                 ? `Temporary neighbourhood: ${result.counts.nodes} nodes. Clear search to restore the ordinary view.`
-                : "The complete neighbourhood exceeds the reveal limits or has no drawable representation.";
+                : describeUnavailableSearchResults(
+                    result.reason,
+                    correspondingIds,
+                  );
             status.hidden = false;
           }
         }, documentObject);

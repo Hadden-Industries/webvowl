@@ -141,11 +141,16 @@ test("the selectable 50 marker follows eligibility and restores an unfinished dr
   const { controls, onChange, control, render } = setup();
   render(50, 100);
   expect(controls.fifty.hidden).toBe(false);
-  expect(controls.fifty.disabled).toBe(false);
+  expect(controls.fifty.disabled).toBe(true);
+  controls.fifty.dispatchEvent(new Event("click"));
+  await flush();
+  expect(onChange).not.toHaveBeenCalled();
   expect(controls.markers.style.setProperty).toHaveBeenLastCalledWith(
     "--nodes-shown-fifty-position",
     "50%",
   );
+  render(49, 100);
+  expect(controls.fifty.disabled).toBe(false);
   controls.exact.value = "1.5";
   controls.exact.dispatchEvent(new Event("input"));
   key(controls.exact, "Enter");
@@ -155,6 +160,7 @@ test("the selectable 50 marker follows eligibility and restores an unfinished dr
     mode: "exact",
     requestedCount: 50,
   });
+  render(50, 100, { mode: "exact", requestedCount: 50 });
   expect(controls.exact.value).toBe("50");
   expect(controls.exact.attributes.has("aria-invalid")).toBe(false);
   render(50, 10000);
@@ -175,7 +181,7 @@ test("the selectable 50 marker follows eligibility and restores an unfinished dr
   expect(controls.fifty.disabled).toBe(true);
   control.dispose();
 });
-test("FOAF's 56 to 29 to 56 filter cycle restores the selectable 50 shortcut", async () => {
+test("FOAF's filter cycle restores the 50 shortcut only when another count is shown", async () => {
   const { controls, onChange, control, render } = setup();
   render(50, 56);
   expect(controls.fifty.hidden).toBe(false);
@@ -184,6 +190,8 @@ test("FOAF's 56 to 29 to 56 filter cycle restores the selectable 50 shortcut", a
   expect(controls.fifty.disabled).toBe(true);
   render(50, 56);
   expect(controls.fifty.hidden).toBe(false);
+  expect(controls.fifty.disabled).toBe(true);
+  render(51, 56);
   expect(controls.fifty.disabled).toBe(false);
   controls.fifty.dispatchEvent(new Event("click"));
   await flush();
@@ -191,6 +199,11 @@ test("FOAF's 56 to 29 to 56 filter cycle restores the selectable 50 shortcut", a
     mode: "exact",
     requestedCount: 50,
   });
+  render(50, 56, { mode: "exact", requestedCount: 50 });
+  expect(controls.fifty.disabled).toBe(true);
+  controls.fifty.dispatchEvent(new Event("click"));
+  await flush();
+  expect(onChange).toHaveBeenCalledTimes(1);
   control.dispose();
 });
 test("wheel scrolling is never cancelled or bound to count; buttons use the applied count", async () => {

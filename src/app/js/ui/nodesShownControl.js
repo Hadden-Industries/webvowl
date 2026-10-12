@@ -146,7 +146,7 @@ export function createNodesShownControl({
         });
       });
       listen("fifty", "click", () => {
-        if (status.eligibleNodeCount > 50) {
+        if (status.eligibleNodeCount > 50 && status.shownNodeCount !== 50) {
           restore();
           submit({ mode: "exact", requestedCount: 50 });
         }
@@ -190,7 +190,8 @@ export function createNodesShownControl({
       controls.range.disabled = status.eligibleNodeCount === 0;
       controls.exact.disabled = false;
       controls.fifty.hidden = status.eligibleNodeCount <= 50;
-      controls.fifty.disabled = controls.fifty.hidden;
+      controls.fifty.disabled =
+        controls.fifty.hidden || status.shownNodeCount === 50;
       if (!controls.fifty.hidden) {
         controls.markers.style.setProperty(
           "--nodes-shown-fifty-position",

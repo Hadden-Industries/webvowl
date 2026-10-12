@@ -695,6 +695,113 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
     expect(listbox.classList.contains("hidden")).toBe(true);
   });
 
+  test.each([
+    [
+      "no-drawable-neighborhood",
+      "annotation-property",
+      1,
+      "Annotation property used for metadata. It has no node or link in this graph.",
+    ],
+    [
+      "no-drawable-neighborhood",
+      "class",
+      1,
+      "This element has no node or link in this graph.",
+    ],
+    [
+      "no-drawable-neighborhood",
+      "class",
+      2,
+      "At least one matching element has no node or link in this graph. These matches cannot be revealed together.",
+    ],
+    [
+      "node-limit",
+      "class",
+      1,
+      "Cannot reveal this result: its neighbourhood exceeds the node limit.",
+    ],
+    [
+      "edge-limit",
+      "class",
+      2,
+      "Cannot reveal these results together: their neighbourhood exceeds the link limit.",
+    ],
+    [
+      "label-limit",
+      "class",
+      1,
+      "Cannot reveal this result: its neighbourhood exceeds the label limit.",
+    ],
+    [
+      "adjacency-limit",
+      "class",
+      1,
+      "Cannot reveal this result: finding its neighbourhood exceeds the search limit.",
+    ],
+    [
+      "reference-limit",
+      "class",
+      2,
+      "Too many matching elements to reveal together.",
+    ],
+    [
+      undefined,
+      "class",
+      2,
+      "These results cannot be revealed together in the current graph view.",
+    ],
+  ])(
+    "explains unavailable results precisely (%s, %s, %i matches)",
+    (reason, roleKind, count, message) => {
+      sharedSearchController.findOntologyElements = () => ({
+        matches: Array.from({ length: count }, (_, i) => ({
+          displayLabel: "description",
+          isFocusable: false,
+          ontologyElementReference: {
+            kind: roleKind === "class" ? "class" : "property",
+            roleKind,
+            iri: `urn:description:${i}`,
+          },
+        })),
+      });
+      sharedSearchController.getOntologyNeighborhoodRevealPlan = () => ({
+        canReveal: false,
+        reason,
+      });
+      const menu = searchMenuFactory({
+        documentObject: mockDoc,
+        windowObject: global.window,
+        webVowlController: sharedSearchController,
+      });
+      menu.setup();
+      searchInput.value = "desc";
+      searchInput.dispatchEvent({ type: "input", target: searchInput });
+      const option = listbox.children[0];
+      expect(option.title).toBe(`description\n${message}`);
+      expect(option.getAttribute("aria-disabled")).toBe("true");
+      const description = option.children.find(
+        (child) => child.id === option.getAttribute("aria-describedby"),
+      );
+      expect(description.textContent).toBe(message);
+      expect(option.textContent).not.toMatch(
+        /Details remain available|filtered out/,
+      );
+      option.onclick({ stopPropagation() {} });
+      searchInput.dispatchEvent({
+        type: "keydown",
+        key: "ArrowDown",
+        target: searchInput,
+      });
+      searchInput.dispatchEvent({
+        type: "keydown",
+        key: "Enter",
+        target: searchInput,
+      });
+      expect(searchInput.value).toBe("desc");
+      expect(sharedViewRequests).toEqual([]);
+    },
+  );
+
   test.each(["pointer", "keyboard"])(
     "reveals a count-hidden search result through %s activation",
     async (activation) => {
@@ -728,6 +835,12 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
       searchInput.value = "Per";
       searchInput.dispatchEvent({ type: "input", target: searchInput });
       expect(listbox.children[0].textContent).toContain("Reveal in graph");
+      expect(listbox.children[0].title).toContain(
+        "Not shown in the current graph view.",
+      );
+      expect(listbox.children[0].getAttribute("aria-disabled")).not.toBe(
+        "true",
+      );
       if (activation === "pointer") {
         listbox.children[0].onclick({ stopPropagation() {} });
       } else {
