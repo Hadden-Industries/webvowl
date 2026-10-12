@@ -616,48 +616,86 @@ Reassess the higher-level outcome if maintaining an abstraction costs more than 
 - No unapproved configuration change, new dependency, shim, duplicate state store or publication action.
 - Consolidated review complete, findings resolved, and final ownership/evidence handoff recorded.
 
-These criteria are evaluated in the final HISEW handoff and its operator evidence, after the signed source and this implementation record are settled. This document does not itself attest to a later verification receipt or hosted result.
+These criteria are evaluated in the final HISEW handoff and its operator evidence, after the signed source and this implementation record are settled.
+This document does not itself attest to a later verification receipt or hosted result.
 
 ## 15. Implementation record
 
-The owner's 2026-10-13 instruction accepts this plan, its R2 route and DEC-005, authorizes task commits/messages/pushes and configuration changes required by the plan, and selects available local review agents. No configuration change is currently required.
+The owner's 2026-10-13 instruction accepts this plan, its R2 route and DEC-005, authorizes task commits/messages/pushes and configuration changes required by the plan, and selects available local review agents.
+No configuration change is currently required.
 
 HISEW execution: `e106f977-41cc-467b-a8d7-595718bb9eb8`; accepted snapshot: `f42ba088-d108-445f-9c1e-16a3ecdf0bf3`.
 Implementation starts from `79ae9c33c7ce9600ab1f4931e91de164d07a0fbe`.
-The seven previously modified paths in section 2.2 are now committed through PR #77; only this plan was untracked at kickoff. There are no unrelated working changes to absorb.
+The seven previously modified paths in section 2.2 are now committed through PR #77; only this plan was untracked at kickoff.
+There are no unrelated working changes to absorb.
 
-The first checkpoint includes the plan and characterization tests. Before extraction, 85 existing sidebar/editor-command/reset/state-adapter tests and 32 new dragger/menu cases passed. Native dependency capture found 565 modules and zero findings.
+The first checkpoint includes the plan and characterization tests.
+Before extraction, 85 existing sidebar/editor-command/reset/state-adapter tests and 32 new dragger/menu cases passed.
+Native dependency capture found 565 modules and zero findings.
 Chrome 155 on Windows reproduced the wheel differences in DEC-005: a zero-delta width event changes 200 to 310, bound events emit redundant requests, and disabled gravity inputs still change and cancel scrolling.
 
-Actual D3 selections confirmed the three paths, selection identity and accuracy-target construction. With accuracy helpers disabled, existing domain/range update paths throw when dereferencing the absent circle; class updates pass. This pre-existing experimental-mode defect remains deferred outside the presentation extraction, with its original behavior preserved and its coverage limitation explicit. No fabricated circle or geometry repair is included.
+Actual D3 selections confirmed the three paths, selection identity and accuracy-target construction.
+With accuracy helpers disabled, existing domain/range update paths throw when dereferencing the absent circle; class updates pass.
+This pre-existing experimental-mode defect remains deferred outside the presentation extraction, with its original behavior preserved and its coverage limitation explicit.
+No fabricated circle or geometry repair is included.
 
 The configured `full` profile runs `npm run check`: lint, formatting, Python/setup and Markdown probes, all Jest tests and production bundling. Dependency capture, lazy-chunk validation and native-browser cases supplement it. Final canonical verification follows authorized commits so HEAD/index changes do not require redundant full runs.
 
-Operator evidence is retained under `C:/Users/maksy/.hi/w/e/operator/4c440b1b4b4b49e0b6f5828ce3013710`. HISEW capability discovery did not bind its ordinary reviewer to this active session; the owner's explicit local-review instruction supplies the task-scoped review route. The maintained committing-to-git procedure is loaded and used directly.
+Operator evidence is retained under `C:/Users/maksy/.hi/w/e/operator/4c440b1b4b4b49e0b6f5828ce3013710`.
+HISEW capability discovery did not bind its ordinary reviewer to this active session; the owner's explicit local-review instruction supplies the task-scoped review route.
+The maintained committing-to-git procedure is loaded and used directly.
 
 The first signed commit is `3de9605e30af571898bb6a8ac93b2d90c38c92e2`, containing this plan and baseline tests.
 
 ### Consolidated ownership and evidence
 
-- `packages/vowl/src/profiles.js` owns all inventoried standard namespace bases, including SKOS and DC Terms. Application and renderer consumers use the existing public export; migration/refined RDF use package-local imports. Sidebar retains its seven-prefix subset, and editor/migration retain the exact legacy DC hash spelling. The strict sidebar VM linker supplies the actual package namespace export.
-- `src/webvowl/js/dragHandleView.js` owns group/line/path/accuracy-target construction and guarded visibility. Three factories retain their path data, geometry, mouse transitions, selection fields and runtime listener replacement. Reachability searches found no callers of old unguarded visibility methods or copied no-op helpers; those definitions are removed.
-- `src/app/js/ui/numericRangeControl.js` owns native initialization, finite-positive input handling, stepping, wheel capture and listener disposal. Both menus retain command mapping and action feedback. Rebinding consumes the disposer; configuration checkbox listeners also follow the same setup lifetime. The unused gravity reset copy is removed; controller reset and the state adapter remain authoritative.
-- Authored runtime standard-base literals remain only in the vocabulary declaration. Historical ontology inputs, independent test expectations, generated artifacts, profile/mapping identities and user-prefix parsing remain separate.
+- `packages/vowl/src/profiles.js` owns all inventoried standard namespace bases, including SKOS and DC Terms.
+  Application and renderer consumers use the existing public export; migration/refined RDF use package-local imports. Sidebar retains its seven-prefix subset, and editor/migration retain the exact legacy DC hash spelling.
+  The strict sidebar VM linker supplies the actual package namespace export.
+- `src/webvowl/js/dragHandleView.js` owns group/line/path/accuracy-target construction and guarded visibility.
+  Three factories retain their path data, geometry, mouse transitions, selection fields and runtime listener replacement.
+  Reachability searches found no callers of old unguarded visibility methods or copied no-op helpers; those definitions are removed.
+- `src/app/js/ui/numericRangeControl.js` owns native initialization, finite-positive input handling, stepping, wheel capture and listener disposal.
+  Both menus retain command mapping and action feedback.
+  Rebinding consumes the disposer; configuration checkbox listeners also follow the same setup lifetime.
+  The unused gravity reset copy is removed; controller reset and the state adapter remain authoritative.
+- Authored runtime standard-base literals remain only in the vocabulary declaration.
+  Historical ontology inputs, independent test expectations, generated artifacts, profile/mapping identities and user-prefix parsing remain separate.
 
-Focused evidence includes 7,761 namespace/package cases, 83 menu/controller/state cases and 49 dragger/range mechanics cases; these inventories overlap and are not summed. Additional sidebar/vocabulary tests cover all seven fallback prefixes, explicit precedence, unknown/case-sensitive prefixes, multi-colon names, and independent DC spellings.
+Focused evidence includes 7,761 namespace/package cases, 83 menu/controller/state cases and 49 dragger/range mechanics cases; these inventories overlap and are not summed.
+Additional sidebar/vocabulary tests cover all seven fallback prefixes, explicit precedence, unknown/case-sensitive prefixes, multi-colon names, and independent DC spellings.
 
-Chrome 155 native controls pass positive/negative wheel steps, zero/horizontal input, both bounds and disabled handling across all three inputs. Actual keyboard ArrowRight changes class distance 200→210, datatype distance 120→130 and label width 120→130 with matching labels. The real Reset control restores 200/120/120. Visible metadata links preserve DC title/description IRIs, and the FOAF graph renders without console warnings/errors after a clean reload.
+Chrome 155 native controls pass positive/negative wheel steps, zero/horizontal input, both bounds and disabled handling across all three inputs.
+Actual keyboard ArrowRight changes class distance 200→210, datatype distance 120→130 and label width 120→130 with matching labels.
+The real Reset control restores 200/120/120.
+Visible metadata links preserve DC title/description IRIs, and the FOAF graph renders without console warnings/errors after a clean reload.
 
-The final dependency capture reports 571 modules and zero native findings, including the newly added helpers/tests. No package, lockfile, markup bounds, build policy or other configuration was changed. Canonical expected fixtures were not regenerated. Geometry and prototype-based test doubles remain bounded; real D3/native browser observations provide the separate browser evidence. No performance improvement or deployment is claimed.
+The final dependency capture reports 571 modules and zero native findings, including the newly added helpers/tests. No package, lockfile, markup bounds, build policy or other configuration was changed. Canonical expected fixtures were not regenerated. Geometry and prototype-based test doubles remain bounded; real D3/native browser observations provide the separate browser evidence.
+No performance improvement or deployment is claimed.
 
 ### Final review and native interaction boundaries
 
-The consolidated local OpenAI Review Agent inspected `90551cb6b99a36a3b55ca2f7d513157576eff2fc` against the starting revision and found no introduced actionable defect. Its narrowly scoped follow-up ran five suites with 97 passing tests in a clean, independent plain clone of that revision, then independently selected 12 passing mechanical probes for initialization, non-cancelable wheel handling, rebinding/disposal and actual D3 SVG construction. The final documentation-only checkpoint does not change that executable source. Reports retain the exact commands, revisions and mock limitations.
+The consolidated local OpenAI Review Agent inspected `90551cb6b99a36a3b55ca2f7d513157576eff2fc` against the starting revision and found no introduced actionable defect.
+Its narrowly scoped follow-up ran five suites with 97 passing tests in a clean, independent plain clone of that revision, then independently selected 12 passing mechanical probes for initialization, non-cancelable wheel handling, rebinding/disposal and actual D3 SVG construction.
+The final documentation-only checkpoint does not change that executable source.
+Reports retain the exact commands, revisions and mock limitations.
 
-The owner's explicit local-review route is used for this task. Cross-vendor execution was attempted separately: Claude Code 2.1.296 returned API 429 `usage_limit_reached` before any tools; Antigravity read the frozen helper but denied the test command in sandboxed headless mode. No permission setting was changed or bypassed. Local independent execution is same-vendor evidence, not a successful cross-vendor run.
+The owner's explicit local-review route is used for this task.
+Cross-vendor execution was attempted separately: Claude Code 2.1.296 returned API 429 `usage_limit_reached` before any tools; Antigravity read the frozen helper but denied the test command in sandboxed headless mode.
+No permission setting was changed or bypassed.
+Local independent execution is same-vendor evidence, not a successful cross-vendor run.
 
-In Chrome 155, real DOM mouse events through actual D3 handlers in an isolated legacy renderer completed class creation and domain/range endpoint requests with the expected independent coordinates. A replay of the accepted range request at the data owner rendered the changed endpoint. An inverse-loop fixture retained endpoint selection and completed a range request; a forbidden subclass loop emitted `SUBCLASS_LOOP_REJECTED` without an edit. A noncentral class-loop drop emitted finite records accepted by the existing insertion-record converter. The native application accepted a metadata title edit, and its JSON export contained the new title and exact DC title IRI.
+In Chrome 155, real DOM mouse events through actual D3 handlers in an isolated legacy renderer completed class creation and domain/range endpoint requests with the expected independent coordinates.
+A replay of the accepted range request at the data owner rendered the changed endpoint.
+An inverse-loop fixture retained endpoint selection and completed a range request; a forbidden subclass loop emitted `SUBCLASS_LOOP_REJECTED` without an edit.
+A noncentral class-loop drop emitted finite records accepted by the existing insertion-record converter.
+The native application accepted a metadata title edit, and its JSON export contained the new title and exact DC title IRI.
 
-Two additional pre-existing boundaries were observed and retained outside this refactor: canonical rendering's unchanged positionable-binding filter rejects editor-handle gestures before their handlers, and dropping a class loop at the exact center yields nonfinite placement in unchanged geometry. The legacy-renderer interaction evidence does not claim successful canonical editor gestures. No hit-testing repair, geometry change or scope expansion is included. Browser checks cover Chrome only; other engines are not observed. These limitations and the earlier accuracy-helper-disabled defect remain explicit in the handoff.
+Two additional pre-existing boundaries were observed and retained outside this refactor: canonical rendering's unchanged positionable-binding filter rejects editor-handle gestures before their handlers, and dropping a class loop at the exact center yields nonfinite placement in unchanged geometry.
+The legacy-renderer interaction evidence does not claim successful canonical editor gestures.
+No hit-testing repair, geometry change or scope expansion is included.
+Browser checks cover Chrome only; other engines are not observed.
+These limitations and the earlier accuracy-helper-disabled defect remain explicit in the handoff.
 
-Final qualification uses the configured native `full` profile on the settled signed revision, with lazy-chunk validation immediately after production bundling. Native receipts and actual publication/hosted results are retained separately in the HISEW handoff and evidence index; they are not anticipated by this pre-verification commit.
+Final qualification uses the configured native `full` profile on the settled signed revision, with lazy-chunk validation immediately after production bundling.
+Native receipts and actual publication/hosted results are retained separately in the HISEW handoff and evidence index; they are not anticipated by this pre-verification commit.
