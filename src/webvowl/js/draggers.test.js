@@ -199,8 +199,11 @@ test.each(cases.slice(0, 2))(
     };
     dragger.updateElement = jest.fn();
     graph.genericPropertySanityCheck.mockReturnValue(false);
-    if (name === "domain") {dragger.updateDomain({});}
-    else {dragger.updateRange({});}
+    if (name === "domain") {
+      dragger.updateDomain({});
+    } else {
+      dragger.updateRange({});
+    }
     expect(graph.requestPropertyEndpointEdit).not.toHaveBeenCalled();
     expect(graph.propertyCheckExistenceChecker).not.toHaveBeenCalled();
   },
