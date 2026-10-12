@@ -1,7 +1,7 @@
 # WebVOWL DRY remediation implementation plan
 
 Date: 2026-10-12.
-Status: **SLICE-001 through SLICE-005 implemented; consolidated candidate awaiting final review and verification**.
+Status: **SLICE-001 through SLICE-006 implemented and reviewed; final qualification is reported by the signed-candidate HISEW handoff**.
 
 ## 1. Outcome and recommended approach
 
@@ -606,17 +606,17 @@ Re-plan the affected slice when concurrent edits change its contracts, a shared 
 Continue independent authorized work when one slice has a bounded unresolved issue; do not claim that blocked acceptance passed.
 Reassess the higher-level outcome if maintaining an abstraction costs more than keeping the contextual implementations separate.
 
-## 14. Completion checklist
+## 14. Completion criteria
 
-- [ ] Draft requirements, R2 route and consequential decisions accepted for implementation.
-- [ ] Current baseline and pre-existing change ownership recorded.
-- [ ] Each of the three rule families has one agreed implementation/declaration owner and a complete current consumer inventory.
-- [ ] Contextual prefixes, distinct geometry, controller validation and independent fixtures remain intact.
-- [ ] Focused and final required verification passes on the identified candidate; browser limitations are explicit.
-- [ ] No unapproved configuration change, new dependency, shim, duplicate state store or publication action.
-- [ ] Consolidated review complete, findings resolved, and final ownership/evidence handoff recorded.
+- Draft requirements, R2 route and consequential decisions accepted for implementation.
+- Current baseline and pre-existing change ownership recorded.
+- Each of the three rule families has one agreed implementation/declaration owner and a complete current consumer inventory.
+- Contextual prefixes, distinct geometry, controller validation and independent fixtures remain intact.
+- Focused and final required verification passes on the identified candidate; browser limitations are explicit.
+- No unapproved configuration change, new dependency, shim, duplicate state store or publication action.
+- Consolidated review complete, findings resolved, and final ownership/evidence handoff recorded.
 
-Until these implementation criteria are met, this document is a plan and not a claim that WebVOWL's remaining duplication has been remediated.
+These criteria are evaluated in the final HISEW handoff and its operator evidence, after the signed source and this implementation record are settled. This document does not itself attest to a later verification receipt or hosted result.
 
 ## 15. Implementation record
 
@@ -649,3 +649,15 @@ Focused evidence includes 7,761 namespace/package cases, 83 menu/controller/stat
 Chrome 155 native controls pass positive/negative wheel steps, zero/horizontal input, both bounds and disabled handling across all three inputs. Actual keyboard ArrowRight changes class distance 200→210, datatype distance 120→130 and label width 120→130 with matching labels. The real Reset control restores 200/120/120. Visible metadata links preserve DC title/description IRIs, and the FOAF graph renders without console warnings/errors after a clean reload.
 
 The final dependency capture reports 571 modules and zero native findings, including the newly added helpers/tests. No package, lockfile, markup bounds, build policy or other configuration was changed. Canonical expected fixtures were not regenerated. Geometry and prototype-based test doubles remain bounded; real D3/native browser observations provide the separate browser evidence. No performance improvement or deployment is claimed.
+
+### Final review and native interaction boundaries
+
+The consolidated local OpenAI Review Agent inspected `90551cb6b99a36a3b55ca2f7d513157576eff2fc` against the starting revision and found no introduced actionable defect. Its narrowly scoped follow-up ran five suites with 97 passing tests in a clean, independent plain clone of that revision, then independently selected 12 passing mechanical probes for initialization, non-cancelable wheel handling, rebinding/disposal and actual D3 SVG construction. The final documentation-only checkpoint does not change that executable source. Reports retain the exact commands, revisions and mock limitations.
+
+The owner's explicit local-review route is used for this task. Cross-vendor execution was attempted separately: Claude Code 2.1.296 returned API 429 `usage_limit_reached` before any tools; Antigravity read the frozen helper but denied the test command in sandboxed headless mode. No permission setting was changed or bypassed. Local independent execution is same-vendor evidence, not a successful cross-vendor run.
+
+In Chrome 155, real DOM mouse events through actual D3 handlers in an isolated legacy renderer completed class creation and domain/range endpoint requests with the expected independent coordinates. A replay of the accepted range request at the data owner rendered the changed endpoint. An inverse-loop fixture retained endpoint selection and completed a range request; a forbidden subclass loop emitted `SUBCLASS_LOOP_REJECTED` without an edit. A noncentral class-loop drop emitted finite records accepted by the existing insertion-record converter. The native application accepted a metadata title edit, and its JSON export contained the new title and exact DC title IRI.
+
+Two additional pre-existing boundaries were observed and retained outside this refactor: canonical rendering's unchanged positionable-binding filter rejects editor-handle gestures before their handlers, and dropping a class loop at the exact center yields nonfinite placement in unchanged geometry. The legacy-renderer interaction evidence does not claim successful canonical editor gestures. No hit-testing repair, geometry change or scope expansion is included. Browser checks cover Chrome only; other engines are not observed. These limitations and the earlier accuracy-helper-disabled defect remain explicit in the handoff.
+
+Final qualification uses the configured native `full` profile on the settled signed revision, with lazy-chunk validation immediately after production bundling. Native receipts and actual publication/hosted results are retained separately in the HISEW handoff and evidence index; they are not anticipated by this pre-verification commit.
