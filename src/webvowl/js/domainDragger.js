@@ -1,3 +1,9 @@
+import {
+  appendDragHandleGroup,
+  drawDragHandle,
+  hideDragHandle,
+} from "./dragHandleView.js";
+
 export function createDomainDragger(graph) {
   /** variable defs **/
   const Domain_dragger = {};
@@ -23,12 +29,6 @@ export function createDomainDragger(graph) {
   // TODO: We need the endPoint of the Link here!
   Domain_dragger.parentNode = function () {
     return Domain_dragger.parent;
-  };
-
-  Domain_dragger.hide_dragger = function (val) {
-    Domain_dragger.pathElement.classed("hidden", val);
-    Domain_dragger.nodeElement.classed("hidden", val);
-    Domain_dragger.draggerObject.classed("hidden", val);
   };
 
   Domain_dragger.reDrawEverthing = function () {
@@ -116,15 +116,7 @@ export function createDomainDragger(graph) {
   };
 
   Domain_dragger.hideDragger = function (val) {
-    if (Domain_dragger.pathElement) {
-      Domain_dragger.pathElement.classed("hidden", val);
-    }
-    if (Domain_dragger.nodeElement) {
-      Domain_dragger.nodeElement.classed("hidden", val);
-    }
-    if (Domain_dragger.draggerObject) {
-      Domain_dragger.draggerObject.classed("hidden", val);
-    }
+    hideDragHandle(Domain_dragger, val);
   };
   /** BASE HANDLING FUNCTIONS ------------------------------------------------- **/
   Domain_dragger.id = function (index) {
@@ -135,7 +127,7 @@ export function createDomainDragger(graph) {
   };
 
   Domain_dragger.svgPathLayer = function (layer) {
-    Domain_dragger.pathLayer = layer.append("g");
+    Domain_dragger.pathLayer = appendDragHandleGroup(layer);
   };
 
   Domain_dragger.svgRoot = function (root) {
@@ -143,40 +135,25 @@ export function createDomainDragger(graph) {
       return Domain_dragger.rootElement;
     }
     Domain_dragger.rootElement = root;
-    Domain_dragger.rootNodeLayer = Domain_dragger.rootElement.append("g");
+    Domain_dragger.rootNodeLayer = appendDragHandleGroup(
+      Domain_dragger.rootElement,
+    );
     Domain_dragger.addMouseEvents();
   };
 
   /** DRAWING FUNCTIONS ------------------------------------------------- **/
   Domain_dragger.drawNode = function () {
-    Domain_dragger.pathElement = Domain_dragger.pathLayer
-      .append("line")
-      .classed("classNodeDragPath", true);
-    Domain_dragger.pathElement
-      .attr("x1", 0)
-      .attr("y1", 0)
-      .attr("x2", 0)
-      .attr("y2", 0);
-
-    const pathData =
-      "M 10,40 C -10,15 -10,-15 10,-40 -8.8233455,-13.641384 -36.711107,-5.1228436 -50,0 -36.696429,4.9079017 -8.6403157,13.745728 10,40 Z";
-    Domain_dragger.nodeElement = Domain_dragger.rootNodeLayer
-      .append("path")
-      .attr("d", pathData);
-    Domain_dragger.nodeElement.classed("classDraggerNode", true);
-    if (graph.options().useAccuracyHelper()) {
-      Domain_dragger.draggerObject =
-        Domain_dragger.rootNodeLayer.append("circle");
-      Domain_dragger.draggerObject
-        .attr("r", 40)
-        .attr("cx", 0)
-        .attr("cy", 0)
-        .classed("superHiddenElement", true);
-      Domain_dragger.draggerObject.classed(
-        "superOpacityElement",
-        !graph.options().showDraggerObject(),
-      );
-    }
+    Object.assign(
+      Domain_dragger,
+      drawDragHandle({
+        pathLayer: Domain_dragger.pathLayer,
+        rootNodeLayer: Domain_dragger.rootNodeLayer,
+        pathData:
+          "M 10,40 C -10,15 -10,-15 10,-40 -8.8233455,-13.641384 -36.711107,-5.1228436 -50,0 -36.696429,4.9079017 -8.6403157,13.745728 10,40 Z",
+        useAccuracyHelper: graph.options().useAccuracyHelper(),
+        showDraggerObject: graph.options().showDraggerObject(),
+      }),
+    );
   };
   Domain_dragger.updateElementViaRangeDragger = function (x, y) {
     const range_x = x;
@@ -379,9 +356,5 @@ export function createDomainDragger(graph) {
     Domain_dragger.y = y;
   };
 
-  Domain_dragger.setAdditionalClassForClass_dragger = function (name, val) {
-    // console.log("Class_dragger should sett the class here")
-    // Class_dragger.nodeElement.classed(name,val);
-  };
   return Domain_dragger;
 }

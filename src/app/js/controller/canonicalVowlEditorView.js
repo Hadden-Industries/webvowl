@@ -1,7 +1,7 @@
 import { isVowlExternal } from "./vowlDisplayProjector.js";
 
 import { namespaces } from "vowl";
-const { owl: OWL, rdfs: RDFS, dc: DC } = namespaces;
+const { owl: OWL, rdfs: RDFS, dc: DC, xsd: XSD } = namespaces;
 
 /** Human-editor presentation only; these rows are never parser or save input. */
 export function createCanonicalVowlEditorView(
@@ -23,8 +23,7 @@ export function createCanonicalVowlEditorView(
       const value = annotation.value;
       if (!(
         value.kind === "language" ||
-        (value.kind === "typed" &&
-          value.datatype === "http://www.w3.org/2001/XMLSchema#string")
+        (value.kind === "typed" && value.datatype === XSD + "string")
       )) {
         ambiguous = true;
         continue;
@@ -106,8 +105,7 @@ export function createCanonicalVowlEditorView(
           (fact) =>
             fact.predicate === OWL + "deprecated" &&
             fact.value.kind === "typed" &&
-            fact.value.datatype ===
-              "http://www.w3.org/2001/XMLSchema#boolean" &&
+            fact.value.datatype === XSD + "boolean" &&
             ["true", "1"].includes(fact.value.lexical),
         )
       ) {

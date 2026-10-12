@@ -20,8 +20,8 @@ const defaults = {
   rdfs: namespaces.rdfs,
   owl: namespaces.owl,
   xsd: namespaces.xsd,
-  dc: "http://purl.org/dc/elements/1.1/#",
-  xml: "http://www.w3.org/XML/1998/namespace",
+  dc: namespaces.dc + "#",
+  xml: namespaces.xml,
 };
 
 function numeric(

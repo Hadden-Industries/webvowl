@@ -1,3 +1,4 @@
+import { namespaces } from "vowl";
 import * as d3 from "d3";
 import { createLegacyForceSimulation } from "./legacyForceSimulation.js";
 import { createLinkCreator as createLinkCreatorModule } from "../parsing/linkCreator.js";
@@ -4249,8 +4250,8 @@ function createGraph(
       prototype = NodePrototypeMap.get("rdfs:literal");
       aNode = new prototype(graph);
       aNode.label("Literal");
-      aNode.iri("http://www.w3.org/2000/01/rdf-schema#Literal");
-      aNode.baseIri("http://www.w3.org/2000/01/rdf-schema#");
+      aNode.iri(namespaces.rdfs + "Literal");
+      aNode.baseIri(namespaces.rdfs);
     } else {
       prototype = NodePrototypeMap.get("rdfs:datatype");
       aNode = new prototype(graph);
@@ -4267,8 +4268,8 @@ function createGraph(
         identifier = defaultDatatypeName.split(":")[1];
         aNode.label(identifier);
         aNode.dType(defaultDatatypeName);
-        aNode.iri("http://www.w3.org/2001/XMLSchema#" + identifier);
-        aNode.baseIri("http://www.w3.org/2001/XMLSchema#");
+        aNode.iri(namespaces.xsd + identifier);
+        aNode.baseIri(namespaces.xsd);
       }
     }
 

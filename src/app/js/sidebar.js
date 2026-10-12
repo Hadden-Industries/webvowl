@@ -1,4 +1,15 @@
+import { namespaces } from "vowl";
 import { runVisualizationControlAction } from "./ui/visualizationControlAction.js";
+
+const ANNOTATION_FALLBACK_NAMESPACES = Object.freeze({
+  rdf: namespaces.rdf,
+  rdfs: namespaces.rdfs,
+  owl: namespaces.owl,
+  xsd: namespaces.xsd,
+  skos: namespaces.skos,
+  dcterms: namespaces.dcterms,
+  dc: namespaces.dc,
+});
 
 const NAVIGABLE_IRI_SCHEMES = new Set(["http:", "https:", "urn:"]);
 
@@ -674,20 +685,11 @@ export function createSidebar({
         predicateIri = d.predicateNs + rawLocal;
         localName = rawLocal;
       } else if (d.identifier && d.identifier.indexOf(":") !== -1) {
-        const WELL_KNOWN = {
-          rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-          rdfs: "http://www.w3.org/2000/01/rdf-schema#",
-          owl: "http://www.w3.org/2002/07/owl#",
-          xsd: "http://www.w3.org/2001/XMLSchema#",
-          skos: "http://www.w3.org/2004/02/skos/core#",
-          dcterms: "http://purl.org/dc/terms/",
-          dc: "http://purl.org/dc/elements/1.1/",
-        };
         const parts = d.identifier.split(":");
         const prefix = parts[0];
         localName = parts.slice(1).join(":");
-        if (WELL_KNOWN[prefix]) {
-          predicateIri = WELL_KNOWN[prefix] + localName;
+        if (ANNOTATION_FALLBACK_NAMESPACES[prefix]) {
+          predicateIri = ANNOTATION_FALLBACK_NAMESPACES[prefix] + localName;
         }
       }
 

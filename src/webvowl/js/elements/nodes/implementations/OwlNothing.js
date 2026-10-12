@@ -1,3 +1,4 @@
+import { namespaces } from "vowl";
 import { OwlThing } from "./OwlThing.js";
 
 const OwlNothing = (function () {
@@ -6,7 +7,7 @@ const OwlNothing = (function () {
 
     this.label("Nothing")
       .type("owl:Nothing")
-      .iri("http://www.w3.org/2002/07/owl#Nothing");
+      .iri(namespaces.owl + "Nothing");
   };
   o.prototype = Object.create(OwlThing.prototype);
   o.prototype.constructor = o;

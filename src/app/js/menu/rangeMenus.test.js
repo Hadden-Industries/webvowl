@@ -55,6 +55,20 @@ const cases = [
   ["maxLabelWidth", "setVisualizationModes", "maxLabelWidthPx", 120],
 ];
 describe.each(cases)("%s slider", (id, method, field, initial) => {
+  test("rebinding disposes the previous input listener", () => {
+    const { lookup, controller, gravity, config, zoom } = setup();
+    gravity.setup();
+    config.setup(zoom);
+    const input = lookup("#" + id + "Slider");
+    input.value = "240";
+    input.dispatchEvent(new Event("input"));
+    expect(controller[method]).toHaveBeenCalledTimes(1);
+    expect(controller[method]).toHaveBeenCalledWith({ [field]: 240 });
+    const checkbox = lookup("#showZoomSliderConfigCheckbox");
+    zoom.showSlider.mockClear();
+    checkbox.dispatchEvent(new Event("click"));
+    expect(zoom.showSlider).toHaveBeenCalledTimes(1);
+  });
   test("initializes from passed defaults and requests the menu-specific value once", () => {
     const { lookup, controller } = setup();
     const input = lookup("#" + id + "Slider");

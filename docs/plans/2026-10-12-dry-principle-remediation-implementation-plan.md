@@ -1,7 +1,7 @@
 # WebVOWL DRY remediation implementation plan
 
 Date: 2026-10-12.
-Status: **accepted for implementation on 2026-10-13; SLICE-001 baseline established**.
+Status: **SLICE-001 through SLICE-005 implemented; consolidated candidate awaiting final review and verification**.
 
 ## 1. Outcome and recommended approach
 
@@ -634,3 +634,18 @@ Actual D3 selections confirmed the three paths, selection identity and accuracy-
 The configured `full` profile runs `npm run check`: lint, formatting, Python/setup and Markdown probes, all Jest tests and production bundling. Dependency capture, lazy-chunk validation and native-browser cases supplement it. Final canonical verification follows authorized commits so HEAD/index changes do not require redundant full runs.
 
 Operator evidence is retained under `C:/Users/maksy/.hi/w/e/operator/4c440b1b4b4b49e0b6f5828ce3013710`. HISEW capability discovery did not bind its ordinary reviewer to this active session; the owner's explicit local-review instruction supplies the task-scoped review route. The maintained committing-to-git procedure is loaded and used directly.
+
+The first signed commit is `3de9605e30af571898bb6a8ac93b2d90c38c92e2`, containing this plan and baseline tests.
+
+### Consolidated ownership and evidence
+
+- `packages/vowl/src/profiles.js` owns all inventoried standard namespace bases, including SKOS and DC Terms. Application and renderer consumers use the existing public export; migration/refined RDF use package-local imports. Sidebar retains its seven-prefix subset, and editor/migration retain the exact legacy DC hash spelling. The strict sidebar VM linker supplies the actual package namespace export.
+- `src/webvowl/js/dragHandleView.js` owns group/line/path/accuracy-target construction and guarded visibility. Three factories retain their path data, geometry, mouse transitions, selection fields and runtime listener replacement. Reachability searches found no callers of old unguarded visibility methods or copied no-op helpers; those definitions are removed.
+- `src/app/js/ui/numericRangeControl.js` owns native initialization, finite-positive input handling, stepping, wheel capture and listener disposal. Both menus retain command mapping and action feedback. Rebinding consumes the disposer; configuration checkbox listeners also follow the same setup lifetime. The unused gravity reset copy is removed; controller reset and the state adapter remain authoritative.
+- Authored runtime standard-base literals remain only in the vocabulary declaration. Historical ontology inputs, independent test expectations, generated artifacts, profile/mapping identities and user-prefix parsing remain separate.
+
+Focused evidence includes 7,761 namespace/package cases, 83 menu/controller/state cases and 49 dragger/range mechanics cases; these inventories overlap and are not summed. Additional sidebar/vocabulary tests cover all seven fallback prefixes, explicit precedence, unknown/case-sensitive prefixes, multi-colon names, and independent DC spellings.
+
+Chrome 155 native controls pass positive/negative wheel steps, zero/horizontal input, both bounds and disabled handling across all three inputs. Actual keyboard ArrowRight changes class distance 200→210, datatype distance 120→130 and label width 120→130 with matching labels. The real Reset control restores 200/120/120. Visible metadata links preserve DC title/description IRIs, and the FOAF graph renders without console warnings/errors after a clean reload.
+
+The final dependency capture reports 571 modules and zero native findings, including the newly added helpers/tests. No package, lockfile, markup bounds, build policy or other configuration was changed. Canonical expected fixtures were not regenerated. Geometry and prototype-based test doubles remain bounded; real D3/native browser observations provide the separate browser evidence. No performance improvement or deployment is claimed.

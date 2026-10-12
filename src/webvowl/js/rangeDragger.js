@@ -1,3 +1,9 @@
+import {
+  appendDragHandleGroup,
+  drawDragHandle,
+  hideDragHandle,
+} from "./dragHandleView.js";
+
 export function createRangeDragger(graph) {
   /** variable defs **/
   const Range_dragger = {};
@@ -25,21 +31,8 @@ export function createRangeDragger(graph) {
     return Range_dragger.parent;
   };
 
-  Range_dragger.hide_dragger = function (val) {
-    Range_dragger.pathElement.classed("hidden", val);
-    Range_dragger.nodeElement.classed("hidden", val);
-    Range_dragger.draggerObject.classed("hidden", val);
-  };
   Range_dragger.hideDragger = function (val) {
-    if (Range_dragger.pathElement) {
-      Range_dragger.pathElement.classed("hidden", val);
-    }
-    if (Range_dragger.nodeElement) {
-      Range_dragger.nodeElement.classed("hidden", val);
-    }
-    if (Range_dragger.draggerObject) {
-      Range_dragger.draggerObject.classed("hidden", val);
-    }
+    hideDragHandle(Range_dragger, val);
   };
 
   Range_dragger.reDrawEverthing = function () {
@@ -125,7 +118,7 @@ export function createRangeDragger(graph) {
   };
 
   Range_dragger.svgPathLayer = function (layer) {
-    Range_dragger.pathLayer = layer.append("g");
+    Range_dragger.pathLayer = appendDragHandleGroup(layer);
   };
 
   Range_dragger.svgRoot = function (root) {
@@ -133,48 +126,24 @@ export function createRangeDragger(graph) {
       return Range_dragger.rootElement;
     }
     Range_dragger.rootElement = root;
-    Range_dragger.rootNodeLayer = Range_dragger.rootElement.append("g");
+    Range_dragger.rootNodeLayer = appendDragHandleGroup(
+      Range_dragger.rootElement,
+    );
     Range_dragger.addMouseEvents();
   };
 
   /** DRAWING FUNCTIONS ------------------------------------------------- **/
   Range_dragger.drawNode = function () {
-    Range_dragger.pathElement = Range_dragger.pathLayer
-      .append("line")
-      .classed("classNodeDragPath", true);
-    Range_dragger.pathElement
-      .attr("x1", 0)
-      .attr("y1", 0)
-      .attr("x2", 0)
-      .attr("y2", 0);
-
-    // var lineData = [
-    //     {"x": 0, "y": 0},
-    //     {"x": 0, "y": 40},
-    //     {"x": -40, "y": 0},
-    //     {"x": 0, "y": -40},
-    //     {"x": 0, "y": 0}
-    // ];
-
-    const pathData = "M 61,40 C 41,15 41,-15 61,-40 L 1,0 Z";
-
-    Range_dragger.nodeElement = Range_dragger.rootNodeLayer
-      .append("path")
-      .attr("d", pathData);
-    Range_dragger.nodeElement.classed("classDraggerNode", true);
-    if (graph.options().useAccuracyHelper()) {
-      Range_dragger.draggerObject =
-        Range_dragger.rootNodeLayer.append("circle");
-      Range_dragger.draggerObject
-        .attr("r", 40)
-        .attr("cx", 0)
-        .attr("cy", 0)
-        .classed("superHiddenElement", true);
-      Range_dragger.draggerObject.classed(
-        "superOpacityElement",
-        !graph.options().showDraggerObject(),
-      );
-    }
+    Object.assign(
+      Range_dragger,
+      drawDragHandle({
+        pathLayer: Range_dragger.pathLayer,
+        rootNodeLayer: Range_dragger.rootNodeLayer,
+        pathData: "M 61,40 C 41,15 41,-15 61,-40 L 1,0 Z",
+        useAccuracyHelper: graph.options().useAccuracyHelper(),
+        showDraggerObject: graph.options().showDraggerObject(),
+      }),
+    );
   };
 
   Range_dragger.updateElementViaDomainDragger = function (x, y) {
@@ -385,6 +354,5 @@ export function createRangeDragger(graph) {
     Range_dragger.y = y;
   };
 
-  Range_dragger.setAdditionalClassForClass_dragger = function (name, val) {};
   return Range_dragger;
 }

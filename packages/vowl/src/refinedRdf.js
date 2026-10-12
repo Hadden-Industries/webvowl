@@ -1,3 +1,4 @@
+import { namespaces } from "./profiles.js";
 import { fail } from "./errors.js";
 
 const predicate = {
@@ -7,7 +8,7 @@ const predicate = {
 };
 const datatype = {
   termType: "NamedNode",
-  value: "http://www.w3.org/2001/XMLSchema#hexBinary",
+  value: namespaces.xsd + "hexBinary",
 };
 const encoder = new TextEncoder();
 const hexBytes = Array.from({ length: 256 }, (_, byte) =>

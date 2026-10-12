@@ -1,3 +1,9 @@
+import {
+  appendDragHandleGroup,
+  drawDragHandle,
+  hideDragHandle,
+} from "./dragHandleView.js";
+
 export function createClassDragger(graph) {
   /** variable defs **/
   const Class_dragger = {};
@@ -23,12 +29,6 @@ export function createClassDragger(graph) {
     return Class_dragger.parent;
   };
 
-  Class_dragger.hideClass_dragger = function (val) {
-    Class_dragger.pathElement.classed("hidden", val);
-    Class_dragger.nodeElement.classed("hidden", val);
-    Class_dragger.draggerObject.classed("hidden", val);
-  };
-
   Class_dragger.setParentNode = function (parentNode) {
     Class_dragger.parent = parentNode;
 
@@ -50,15 +50,7 @@ export function createClassDragger(graph) {
   };
 
   Class_dragger.hideDragger = function (val) {
-    if (Class_dragger.pathElement) {
-      Class_dragger.pathElement.classed("hidden", val);
-    }
-    if (Class_dragger.nodeElement) {
-      Class_dragger.nodeElement.classed("hidden", val);
-    }
-    if (Class_dragger.draggerObject) {
-      Class_dragger.draggerObject.classed("hidden", val);
-    }
+    hideDragHandle(Class_dragger, val);
   };
   /** BASE HANDLING FUNCTIONS ------------------------------------------------- **/
   Class_dragger.id = function (index) {
@@ -69,7 +61,7 @@ export function createClassDragger(graph) {
   };
 
   Class_dragger.svgPathLayer = function (layer) {
-    Class_dragger.pathLayer = layer.append("g");
+    Class_dragger.pathLayer = appendDragHandleGroup(layer);
   };
 
   Class_dragger.svgRoot = function (root) {
@@ -77,49 +69,25 @@ export function createClassDragger(graph) {
       return Class_dragger.rootElement;
     }
     Class_dragger.rootElement = root;
-    Class_dragger.rootNodeLayer = Class_dragger.rootElement.append("g");
+    Class_dragger.rootNodeLayer = appendDragHandleGroup(
+      Class_dragger.rootElement,
+    );
     Class_dragger.addMouseEvents();
   };
 
   /** DRAWING FUNCTIONS ------------------------------------------------- **/
   Class_dragger.drawNode = function () {
-    Class_dragger.pathElement = Class_dragger.pathLayer
-      .append("line")
-      .classed("classNodeDragPath", true);
-    Class_dragger.pathElement
-      .attr("x1", 0)
-      .attr("y1", 0)
-      .attr("x2", 0)
-      .attr("y2", 0);
-
-    // var lineData = [
-    //     {"x": 0, "y": 0},
-    //     {"x": 0, "y": 40},
-    //     {"x": -40, "y": 0},
-    //     {"x": 0, "y": -40},
-    //     {"x": 0, "y": 0}
-    // ];
-
-    const pathData = "M 20,40 C 0,15 0,-15 20,-40 L -40,0 Z";
-    // var pathData="M 20,40 C 0,15 0,-15 20,-40 20,-40 -35.22907,-23.905556 -45.113897,0.06313453 -35.22907,20.095453 20,40 20,40 Z";
-    // var pathData="M 39.107144,51.25 C 0,17.362169 0,-13.75 39.285715,-49.821429 c 0,0 -69.58321,34.511175 -100.714286,50.35714329 C -22.96643,20.324376 39.107144,51.25 39.107144,51.25 Z";
-
-    Class_dragger.nodeElement = Class_dragger.rootNodeLayer
-      .append("path")
-      .attr("d", pathData);
-    Class_dragger.nodeElement.classed("classDraggerNode", true);
-    Class_dragger.draggerObject = Class_dragger.rootNodeLayer.append("circle");
-    if (graph.options().useAccuracyHelper()) {
-      Class_dragger.draggerObject
-        .attr("r", 40)
-        .attr("cx", 0)
-        .attr("cy", 0)
-        .classed("superHiddenElement", true);
-      Class_dragger.draggerObject.classed(
-        "superOpacityElement",
-        !graph.options().showDraggerObject(),
-      );
-    }
+    Object.assign(
+      Class_dragger,
+      drawDragHandle({
+        pathLayer: Class_dragger.pathLayer,
+        rootNodeLayer: Class_dragger.rootNodeLayer,
+        pathData: "M 20,40 C 0,15 0,-15 20,-40 L -40,0 Z",
+        useAccuracyHelper: graph.options().useAccuracyHelper(),
+        createAccuracyTarget: true,
+        showDraggerObject: graph.options().showDraggerObject(),
+      }),
+    );
   };
 
   Class_dragger.updateElement = function () {
@@ -251,9 +219,5 @@ export function createClassDragger(graph) {
     Class_dragger.updateElement();
   };
 
-  Class_dragger.setAdditionalClassForClass_dragger = function (name, val) {
-    // console.warn("Class_dragger should sett the class here")
-    // Class_dragger.nodeElement.classed(name,val);
-  };
   return Class_dragger;
 }

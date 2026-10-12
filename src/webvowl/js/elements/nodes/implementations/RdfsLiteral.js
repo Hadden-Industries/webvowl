@@ -1,3 +1,4 @@
+import { namespaces } from "vowl";
 import { DatatypeNode } from "../DatatypeNode.js";
 
 const RdfsLiteral = (function () {
@@ -11,7 +12,7 @@ const RdfsLiteral = (function () {
       .label("Literal")
       .styleClass("literal")
       .type("rdfs:Literal")
-      .iri("http://www.w3.org/2000/01/rdf-schema#Literal");
+      .iri(namespaces.rdfs + "Literal");
 
     this.draw = function (element) {
       superDrawFunction(element, ["dashed"]);

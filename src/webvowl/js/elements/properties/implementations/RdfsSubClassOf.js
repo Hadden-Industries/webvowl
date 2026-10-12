@@ -1,3 +1,4 @@
+import { namespaces } from "vowl";
 import { BaseProperty } from "../BaseProperty.js";
 
 const RdfsSubClassOf = (function () {
@@ -26,8 +27,8 @@ const RdfsSubClassOf = (function () {
       .styleClass("subclass")
       .type("rdfs:subClassOf");
 
-    that.baseIri("http://www.w3.org/2000/01/rdf-schema#");
-    that.iri("http://www.w3.org/2000/01/rdf-schema#subClassOf");
+    that.baseIri(namespaces.rdfs);
+    that.iri(namespaces.rdfs + "subClassOf");
   };
   o.prototype = Object.create(BaseProperty.prototype);
   o.prototype.constructor = o;

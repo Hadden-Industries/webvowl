@@ -20,14 +20,21 @@ class Selection {
     return child;
   }
   attr(name, value) {
-    if (arguments.length === 1) return this.attributes[name];
+    if (arguments.length === 1) {
+      return this.attributes[name];
+    }
     this.attributes[name] = value;
     return this;
   }
   classed(name, value) {
-    if (arguments.length === 1) return this.classes.has(name);
-    if (value) this.classes.add(name);
-    else this.classes.delete(name);
+    if (arguments.length === 1) {
+      return this.classes.has(name);
+    }
+    if (value) {
+      this.classes.add(name);
+    } else {
+      this.classes.delete(name);
+    }
     return this;
   }
   selectAll() {
@@ -101,8 +108,9 @@ describe.each(cases)("%s dragger presentation", (name, factory, path) => {
         dragger.pathElement,
         dragger.nodeElement,
         dragger.draggerObject,
-      ])
+      ]) {
         expect(element.classed("hidden")).toBe(hidden);
+      }
     }
   });
   test("retains the distinct accuracy-disabled construction", () => {
@@ -110,7 +118,9 @@ describe.each(cases)("%s dragger presentation", (name, factory, path) => {
     if (name === "class") {
       expect(dragger.draggerObject.tag).toBe("circle");
       expect(dragger.draggerObject.attributes).toEqual({});
-    } else expect(dragger.draggerObject).toBeUndefined();
+    } else {
+      expect(dragger.draggerObject).toBeUndefined();
+    }
     expect(() => dragger.hideDragger(true)).not.toThrow();
   });
   test("keeps mouse transitions and root replacement local", () => {
@@ -177,3 +187,63 @@ test.each(cases.slice(0, 2))(
     expect(graph.requestPropertyEndpointEdit).not.toHaveBeenCalled();
   },
 );
+
+test.each(cases.slice(0, 2))(
+  "%s rejects invalid endpoints before requesting edits",
+  (name, factory) => {
+    const { dragger, graph } = mount(factory);
+    dragger.parent = {
+      domain: () => ({}),
+      range: () => ({}),
+      type: () => "owl:objectProperty",
+    };
+    dragger.updateElement = jest.fn();
+    graph.genericPropertySanityCheck.mockReturnValue(false);
+    if (name === "domain") {dragger.updateDomain({});}
+    else {dragger.updateRange({});}
+    expect(graph.requestPropertyEndpointEdit).not.toHaveBeenCalled();
+    expect(graph.propertyCheckExistenceChecker).not.toHaveBeenCalled();
+  },
+);
+
+test.each(cases.slice(0, 2))(
+  "%s keeps inverse and loop endpoint selection",
+  (name, factory) => {
+    const { dragger } = mount(factory);
+    const endpoint = {};
+    const property = {
+      domain: () => endpoint,
+      range: () => endpoint,
+      labelElement: () => ({ attr: () => "translate(0,15)" }),
+      labelObject: () => ({
+        linkDomainIntersection: { x: 10, y: 20 },
+        linkRangeIntersection: { x: 110, y: 120 },
+      }),
+    };
+    dragger.updateElement = jest.fn();
+    dragger.setParentProperty(property, true);
+    expect(dragger.isLoopProperty).toBe(true);
+    expect([dragger.x, dragger.y]).toEqual(
+      name === "domain" ? [110, 120] : [10, 20],
+    );
+    expect(dragger.updateElement).toHaveBeenCalledTimes(1);
+  },
+);
+
+test("class placement and transient state remain independent", () => {
+  const first = mount(createClassDragger).dragger;
+  const second = mount(createClassDragger).dragger;
+  first.setParentNode({ x: 10, y: 20, actualRadius: () => 30 });
+  expect([first.x, first.y]).toEqual([50, 60]);
+  expect(first.pathElement.attr("x1")).toBeCloseTo(31.2132034356);
+  expect(first.pathElement.attr("y1")).toBeCloseTo(41.2132034356);
+  expect(first.pathElement.attr("x2")).toBe(50);
+  expect(first.pathElement.attr("y2")).toBe(60);
+  first.mouseButtonPressed = true;
+  first.mouseEntered(true);
+  first.hideDragger(true);
+  expect(second.parent).toBeUndefined();
+  expect(second.mouseButtonPressed).toBe(false);
+  expect(second.mouseEntered()).toBe(false);
+  expect(second.nodeElement.classed("hidden")).toBe(false);
+});
