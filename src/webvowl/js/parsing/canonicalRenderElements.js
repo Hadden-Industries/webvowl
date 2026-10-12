@@ -1,3 +1,4 @@
+import { namespaces } from "vowl";
 import { createNodeMap } from "../elements/nodes/nodeMap.js";
 import { createPropertyMap } from "../elements/properties/propertyMap.js";
 import { createAttributeParser } from "./attributeParser.js";
@@ -11,10 +12,10 @@ const nodeTypes = {
   "class-complement": "owl:complementOf",
 };
 const builtinTypes = new Map([
-  ["http://www.w3.org/2002/07/owl#Thing", "owl:Thing"],
-  ["http://www.w3.org/2002/07/owl#Nothing", "owl:Nothing"],
-  ["http://www.w3.org/2000/01/rdf-schema#Resource", "rdfs:Resource"],
-  ["http://www.w3.org/2000/01/rdf-schema#Literal", "rdfs:Literal"],
+  [namespaces.owl + "Thing", "owl:Thing"],
+  [namespaces.owl + "Nothing", "owl:Nothing"],
+  [namespaces.rdfs + "Resource", "rdfs:Resource"],
+  [namespaces.rdfs + "Literal", "rdfs:Literal"],
 ]);
 const propertyTypes = {
   "object-property": "owl:ObjectProperty",

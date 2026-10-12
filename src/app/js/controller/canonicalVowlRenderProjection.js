@@ -1,3 +1,4 @@
+import { namespaces } from "vowl";
 import {
   cardinalityText,
   indexDirectMemberships,
@@ -10,8 +11,8 @@ import {
 } from "./vowlDisplayProjector.js";
 
 const GENERIC = new Set([
-  "http://www.w3.org/2002/07/owl#Thing",
-  "http://www.w3.org/2000/01/rdf-schema#Resource",
+  namespaces.owl + "Thing",
+  namespaces.rdfs + "Resource",
 ]);
 const OPERATORS = new Map([
   ["class-union", "union"],

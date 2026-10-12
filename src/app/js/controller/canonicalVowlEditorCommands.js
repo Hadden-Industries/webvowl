@@ -19,10 +19,10 @@ function editorLabelLanguage(language) {
     : language;
 }
 const FIXED_IRIS = new Set([
-  "http://www.w3.org/2002/07/owl#Thing",
-  "http://www.w3.org/2002/07/owl#Nothing",
-  "http://www.w3.org/2000/01/rdf-schema#Literal",
-  "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+  namespaces.owl + "Thing",
+  namespaces.owl + "Nothing",
+  namespaces.rdfs + "Literal",
+  namespaces.rdf + "Property",
 ]);
 
 function selectedRole(inspection, id) {
@@ -348,10 +348,10 @@ export function prepareCanonicalInsertion(
         id: localHandle(inspection, "editor-created-deprecation"),
         kind: "annotation-assertion",
         subject,
-        predicate: "http://www.w3.org/2002/07/owl#deprecated",
+        predicate: namespaces.owl + "deprecated",
         value: {
           kind: "typed",
-          datatype: "http://www.w3.org/2001/XMLSchema#boolean",
+          datatype: namespaces.xsd + "boolean",
           lexical: "true",
         },
       },
@@ -709,10 +709,10 @@ export function prepareCanonicalDatatypeEdit(
 export function prepareCanonicalMetadataEdit(inspection, changes) {
   const ontology = structuredClone(inspection.records.ontology);
   const predicates = {
-    title: "http://purl.org/dc/elements/1.1/title",
-    description: "http://purl.org/dc/elements/1.1/description",
-    author: "http://purl.org/dc/elements/1.1/creator",
-    version: "http://www.w3.org/2002/07/owl#versionInfo",
+    title: namespaces.dc + "title",
+    description: namespaces.dc + "description",
+    author: namespaces.dc + "creator",
+    version: namespaces.owl + "versionInfo",
   };
   for (const [field, change] of Object.entries(changes)) {
     if (field === "iri") {
@@ -789,7 +789,7 @@ export function prepareCanonicalCharacteristicEdit(
   }
   const normalized = characteristic.replaceAll(" ", "-");
   const deprecated = characteristic === "deprecated";
-  const predicate = "http://www.w3.org/2002/07/owl#deprecated";
+  const predicate = namespaces.owl + "deprecated";
   const matches = inspection.records.constructs.filter((record) =>
     deprecated
       ? record.kind === "annotation-assertion" &&
@@ -806,7 +806,7 @@ export function prepareCanonicalCharacteristicEdit(
   if (deprecated && previous) {
     if (
       previous.value.kind !== "typed" ||
-      previous.value.datatype !== "http://www.w3.org/2001/XMLSchema#boolean" ||
+      previous.value.datatype !== namespaces.xsd + "boolean" ||
       !["true", "false", "1", "0"].includes(previous.value.lexical)
     ) {
       throw rejected("EDITOR_CHARACTERISTIC_AMBIGUOUS");
@@ -861,7 +861,7 @@ export function prepareCanonicalCharacteristicEdit(
         predicate,
         value: {
           kind: "typed",
-          datatype: "http://www.w3.org/2001/XMLSchema#boolean",
+          datatype: namespaces.xsd + "boolean",
           lexical: "true",
         },
       }
@@ -903,7 +903,7 @@ export function prepareCanonicalClassTypeEdit(inspection, { target, type }) {
       throw rejected("EDITOR_ATTACHED_RESTRICTION_PREVENTS_TYPE_CHANGE");
     }
   }
-  const thing = "http://www.w3.org/2002/07/owl#Thing";
+  const thing = namespaces.owl + "Thing";
   if (
     FIXED_IRIS.has(subject.iri) &&
     !(subject.iri === thing && type === "owl:Thing")

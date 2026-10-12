@@ -19,6 +19,8 @@ export const namespaces = Object.freeze({
   rdfs: "http://www.w3.org/2000/01/rdf-schema#",
   xsd: "http://www.w3.org/2001/XMLSchema#",
   dc: "http://purl.org/dc/elements/1.1/",
+  skos: "http://www.w3.org/2004/02/skos/core#",
+  dcterms: "http://purl.org/dc/terms/",
   svg: "http://www.w3.org/2000/svg",
   xml: "http://www.w3.org/XML/1998/namespace",
   mapping: "https://haddenindustries.com/ontology/vowl/canonical-mapping/v1#",

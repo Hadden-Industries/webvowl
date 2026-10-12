@@ -1,4 +1,5 @@
 import { runVisualizationControlAction } from "../ui/visualizationControlAction.js";
+import { bindNumericRangeControl } from "../ui/numericRangeControl.js";
 
 export function createConfigMenu({
   webVowlController,
@@ -7,9 +8,12 @@ export function createConfigMenu({
   windowObject = globalThis.window,
 } = {}) {
   const configMenu = {},
-    checkboxes = [];
+    checkboxes = [],
+    bindings = [];
 
   configMenu.setup = function (zoomSlider) {
+    bindings.splice(0).forEach((dispose) => dispose());
+    checkboxes.length = 0;
     addCheckBox(
       "showZoomSlider",
       "Zoom controls",
@@ -29,51 +33,27 @@ export function createConfigMenu({
     const sliderValueLabel = sliderContainer.querySelector(
       "#" + identifier + "SliderValue",
     );
-    sliderValueLabel.textContent = defaultWidthPx;
     const slider = sliderContainer.querySelector("#" + identifier + "Slider");
-    slider.setAttribute("value", defaultWidthPx);
 
     // The slider states the width a reader asked for. Whether that width is
     // currently visible, and whether to animate labels into it, is renderer
     // behaviour.
-    function requestLabelWidth() {
-      const requestedWidthPx = Number(slider.value);
-      if (!Number.isFinite(requestedWidthPx) || requestedWidthPx < 1) {
-        return;
-      }
-      sliderValueLabel.textContent = slider.value;
-      void runVisualizationControlAction(
-        () =>
-          webVowlController.setVisualizationModes({
-            maxLabelWidthPx: requestedWidthPx,
-          }),
-        documentObject,
-      );
-    }
-
-    slider.addEventListener("input", requestLabelWidth);
-
-    // add wheel event to the slider
-    slider.addEventListener("wheel", function (event) {
-      if (slider.disabled === true) {
-        return;
-      }
-      const wheelEvent = event;
-      let offset;
-      if (wheelEvent.deltaY < 0) {
-        offset = 10;
-      }
-      if (wheelEvent.deltaY > 0) {
-        offset = -10;
-      }
-      const oldVal = parseInt(slider.value);
-      const newSliderValue = oldVal + offset;
-      if (newSliderValue !== oldVal) {
-        slider.value = newSliderValue;
-        slider.dispatchEvent(new Event("input"));
-      }
-      event.preventDefault();
-    });
+    bindings.push(
+      bindNumericRangeControl(
+        slider,
+        sliderValueLabel,
+        defaultWidthPx,
+        (requestedWidthPx) => {
+          void runVisualizationControlAction(
+            () =>
+              webVowlController.setVisualizationModes({
+                maxLabelWidthPx: requestedWidthPx,
+              }),
+            documentObject,
+          );
+        },
+      ),
+    );
   }
 
   function addCheckBox(identifier, modeName, selector, onChangeFunc) {
@@ -90,6 +70,9 @@ export function createConfigMenu({
     };
 
     configCheckbox.addEventListener("click", clickHandler);
+    bindings.push(() =>
+      configCheckbox.removeEventListener("click", clickHandler),
+    );
     checkboxes.push({
       id: configCheckbox.id,
       element: configCheckbox,

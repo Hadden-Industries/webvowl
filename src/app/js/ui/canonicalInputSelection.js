@@ -1,6 +1,6 @@
 import { OWLDocumentFormats } from "owlapi/formats";
 import { OWLOntologyLoaderConfiguration } from "owlapi/model";
-import { profiles, migrationDialect as LEGACY_DIALECT } from "vowl";
+import { namespaces, profiles, migrationDialect as LEGACY_DIALECT } from "vowl";
 import { isIri } from "@hyperjump/uri";
 import "../../css/canonicalMergeDialog.css";
 import { requestCanonicalCreation } from "./canonicalCreationDialog.js";
@@ -293,9 +293,9 @@ export async function createCanonicalOntologySource({
     documentIri: created.iri,
     displayName: "New ontology",
     text:
-      `<${created.iri}> a <http://www.w3.org/2002/07/owl#Ontology> .\n` +
+      `<${created.iri}> a <${namespaces.owl}Ontology> .\n` +
       (created.text
-        ? `<${created.iri}> <http://purl.org/dc/elements/1.1/title> ${JSON.stringify(created.text)} .\n`
+        ? `<${created.iri}> <${namespaces.dc}title> ${JSON.stringify(created.text)} .\n`
         : ""),
   };
 }

@@ -1,4 +1,5 @@
 import { runVisualizationControlAction } from "../ui/visualizationControlAction.js";
+import { bindNumericRangeControl } from "../ui/numericRangeControl.js";
 
 /**
  * Contains the logic for setting up the gravity sliders.
@@ -14,9 +15,10 @@ export function createGravityMenu({
   documentObject = globalThis.document,
 } = {}) {
   const gravityMenu = {};
-  const sliders = [];
+  const bindings = [];
 
   gravityMenu.setup = function () {
+    bindings.splice(0).forEach((dispose) => dispose());
     addDistanceSlider(
       "#classSliderOption",
       "class",
@@ -41,62 +43,27 @@ export function createGravityMenu({
     const sliderValueLabel = sliderContainer.querySelector(
       "#" + identifier + "DistanceSliderValue",
     );
-    sliderValueLabel.textContent = defaultDistancePx;
 
     const slider = sliderContainer.querySelector(
       "#" + identifier + "DistanceSlider",
     );
-    slider.setAttribute("value", defaultDistancePx);
-
-    // Stored so the reset control can return every slider to its default.
-    sliders.push({
-      reset: function () {
-        slider.value = defaultDistancePx;
-        slider.dispatchEvent(new Event("input"));
-      },
-    });
-
-    function handleInput() {
-      const requestedDistancePx = Number(slider.value);
-      if (!Number.isFinite(requestedDistancePx) || requestedDistancePx < 1) {
-        return;
-      }
-      sliderValueLabel.textContent = slider.value;
-      void runVisualizationControlAction(
-        () =>
-          webVowlController.setForceLayoutDistances({
-            [distanceFieldName]: requestedDistancePx,
-          }),
-        documentObject,
-      );
-    }
-    slider.addEventListener("input", handleInput);
-
-    slider.addEventListener("wheel", function (event) {
-      let offset = 0;
-      if (event.deltaY < 0) {
-        offset = 10;
-      } else if (event.deltaY > 0) {
-        offset = -10;
-      }
-      const previousDistancePx = parseInt(slider.value, 10);
-      const nextDistancePx = previousDistancePx + offset;
-      if (nextDistancePx !== previousDistancePx && !isNaN(nextDistancePx)) {
-        slider.value = nextDistancePx;
-        slider.dispatchEvent(new Event("input"));
-      }
-      event.preventDefault();
-    });
+    bindings.push(
+      bindNumericRangeControl(
+        slider,
+        sliderValueLabel,
+        defaultDistancePx,
+        (requestedDistancePx) => {
+          void runVisualizationControlAction(
+            () =>
+              webVowlController.setForceLayoutDistances({
+                [distanceFieldName]: requestedDistancePx,
+              }),
+            documentObject,
+          );
+        },
+      ),
+    );
   }
-
-  /**
-   * Resets the gravity sliders to their default.
-   */
-  gravityMenu.reset = function () {
-    sliders.forEach(function (s) {
-      s.reset();
-    });
-  };
 
   return gravityMenu;
 }

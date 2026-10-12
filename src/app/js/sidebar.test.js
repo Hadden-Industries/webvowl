@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { createContext, SourceTextModule, SyntheticModule } from "node:vm";
+import { namespaces } from "vowl";
 
 // Interface modules collaborate through the application registry.
 const registeredUiModulesForTest = new Map();
@@ -35,6 +36,15 @@ beforeAll(async () => {
     { context: sidebarModuleContext, identifier: moduleUrl.href },
   );
   await sourceModule.link(async (specifier) => {
+    if (specifier === "vowl") {
+      return new SyntheticModule(
+        ["namespaces"],
+        function provideNamespaces() {
+          this.setExport("namespaces", namespaces);
+        },
+        { context: sidebarModuleContext, identifier: specifier },
+      );
+    }
     if (specifier === "./ui/visualizationControlAction.js") {
       const actionUrl = new URL(specifier, moduleUrl);
       const actionModule = new SourceTextModule(
@@ -570,6 +580,66 @@ describe("sidebar ontology summary presentation", () => {
         (child) => child.textContent === "No annotations available.",
       ),
     ).toBe(false);
+  });
+
+  test.each([
+    ["rdf:type", "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"],
+    ["rdfs:comment", "http://www.w3.org/2000/01/rdf-schema#comment"],
+    ["owl:versionInfo", "http://www.w3.org/2002/07/owl#versionInfo"],
+    ["xsd:string", "http://www.w3.org/2001/XMLSchema#string"],
+    ["skos:definition", "http://www.w3.org/2004/02/skos/core#definition"],
+    ["dcterms:title", "http://purl.org/dc/terms/title"],
+    ["dc:title", "http://purl.org/dc/elements/1.1/title"],
+    ["dc:title:detail", "http://purl.org/dc/elements/1.1/title:detail"],
+    ["unknown:title", null],
+    ["DC:title", null],
+    ["svg:title", null],
+    ["xml:lang", null],
+    ["mapping:title", null],
+  ])(
+    "keeps contextual annotation fallback for %s",
+    (identifier, expectedIri) => {
+      const summary = summaryFixture();
+      summary.ontologyHeader.annotationRecords = [
+        {
+          propertyIri: null,
+          localName: identifier,
+          valueKind: "literal",
+          languageTag: null,
+          text: "<plain>",
+        },
+      ];
+      sidebar.renderOntologySummary(summary);
+      const row = controls
+        .get("#ontology-metadata")
+        .querySelectorAll(".annotation")[0];
+      const predicate = row.children[0];
+      if (expectedIri) {
+        expect(predicate.attributes.href).toBe(expectedIri);
+      } else {
+        expect(predicate.tagName).toBe("#TEXT");
+        expect(predicate.textContent).toBe(identifier + ": ");
+      }
+      expect(row.children.at(-1).textContent).toBe("<plain>");
+    },
+  );
+
+  test("supplied annotation namespace takes precedence over prefix fallback", () => {
+    const summary = summaryFixture();
+    summary.ontologyHeader.annotationRecords = [
+      {
+        propertyIri: "https://example.test/dc:title",
+        localName: "dc:title",
+        valueKind: "literal",
+        languageTag: null,
+        text: "title",
+      },
+    ];
+    sidebar.renderOntologySummary(summary);
+    const row = controls
+      .get("#ontology-metadata")
+      .querySelectorAll(".annotation")[0];
+    expect(row.children[0].attributes.href).toBe("https://example.test/title");
   });
 
   test("shows the editing details when the reported editor mode changes", () => {

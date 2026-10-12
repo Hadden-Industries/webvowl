@@ -1,3 +1,4 @@
+import { namespaces } from "vowl";
 import "../../css/canonicalMergeDialog.css";
 import { DEFAULT_VOWL_EDITOR_PREFIXES } from "../controller/ontologyEditorDrawingRecords.js";
 
@@ -17,7 +18,7 @@ export function requestCanonicalCreation(
     return Promise.resolve({ relation });
   }
   if (type === "owl:Thing") {
-    return Promise.resolve({ iri: "http://www.w3.org/2002/07/owl#Thing" });
+    return Promise.resolve({ iri: namespaces.owl + "Thing" });
   }
   const restriction = {
     "owl:someValuesFrom": "some",
