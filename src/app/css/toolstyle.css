@@ -604,12 +604,6 @@ a:hover {
   color: #fbbf24;
 }
 
-.popover-menu-list li.highlighted .nodes-shown input[type="number"] {
-  border-color: #fbbf24;
-  color: #fef3c7;
-  background: rgb(245 158 11 / 25%);
-}
-
 #unsupported-browser {
   position: fixed;
   z-index: 10000;
