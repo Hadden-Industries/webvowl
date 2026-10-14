@@ -8,7 +8,7 @@ Load an ontology, inspect its structure, and export a figure for a paper, lectur
 
 ![WebVOWL displaying the MUTO tagging ontology, with connected classes and properties, ontology details, and exploration controls.](docs/images/webvowl-muto.png)
 
-_The bundled MUTO example in the hosted application._
+*The bundled MUTO example in the hosted application.*
 
 ## Try it
 
@@ -126,21 +126,47 @@ Ruff excludes the same preserved documentation directories for Python files.
 Prose tests require the locked Node dependencies as well as the Python environment.
 Installed skills, environments, generated data, and fixtures are outside the formatting scope.
 
-CI runs Python checks on Windows and Linux and Markdown checks on Linux. Fresh JSON jobs run on Ubuntu 24.04 and Windows 2025 for every workflow route, including documentation-only changes and runs reusing application evidence. The required gate rejects missing, skipped or failed JSON checks.
+CI runs Python checks on Windows and Linux and Markdown checks on Linux.
+Fresh JSON jobs run on Ubuntu 24.04 and Windows 2025 for every workflow route, including documentation-only changes and runs reusing application evidence.
+The required gate rejects missing, skipped or failed JSON checks.
 
 ### JSON quality and producer ownership
 
-Run `npm run install:json` explicitly after pulling JSON tool changes. The engine uses one source selector, `devDependencies["@hadden-industries/json-quality"]` in `tooling/json/package.json`: an exact npm version or `git+https://github.com/Hadden-Industries/json-quality.git#FULL_40_CHARACTER_COMMIT`. Native npm generates the lockfile. Installation is script-free and verifies the installed payload against the locked native cache; retain that cache for `npm run test:json`. The engine remains an isolated development tool.
-The shared package owns the generated acquisition bootstrap, isolated export guard and installed-payload checks. Update the bootstrap through `jsonQualityAcquisitionBootstrap()` rather than editing parallel consumer implementations. The consumer test also rejects bootstrap drift.
-`npm run check:json:inventory` reports scope and resolved contracts without validating document contents. `npm run check:json` checks bytes, strict syntax, duplicate and meaningful keys, numeric and Unicode interoperability, all-string NFC and presentation. `-- --json` requests machine results; capacity flags such as `-- --max-files 100000` and `-- --no-limits` override resource limits without weakening semantic checks.
+Run `npm run install:json` explicitly after pulling JSON tool changes.
+The engine uses one source selector, `devDependencies["@hadden-industries/json-quality"]` in `tooling/json/package.json`: an exact npm version or `git+https://github.com/Hadden-Industries/json-quality.git#FULL_40_CHARACTER_COMMIT`.
+Native npm generates the lockfile.
+Installation is script-free and verifies the installed payload against the locked native cache; retain that cache for `npm run test:json`.
+The engine remains an isolated development tool.
+The shared package owns the generated acquisition bootstrap, isolated export guard and installed-payload checks.
+Update the bootstrap through `jsonQualityAcquisitionBootstrap()` rather than editing parallel consumer implementations.
+The consumer test also rejects bootstrap drift.
+`npm run check:json:inventory` reports scope and resolved contracts without validating document contents.
+`npm run check:json` checks bytes, strict syntax, duplicate and meaningful keys, numeric and Unicode interoperability, all-string NFC and presentation.
+`-- --json` requests machine results; capacity flags such as `-- --max-files 100000` and `-- --no-limits` override resource limits without weakening semantic checks.
 
-All owned physical JSON is checked by default, including untracked and ignored generated files. The adapter independently verifies corpus storage and adds every inventory-declared bundled JSON member; JSONL is checked per record. `npm run check:json -- --require-generated` additionally requires current Vite JSON outputs. The [policy](.json-quality.json) lists only explicit exceptions, each with an owner and reason. External installations and named local state are scope boundaries; `.mcp.json` remains checked. Tracked JSON always overrides an external boundary.
+All owned physical JSON is checked by default, including untracked and ignored generated files.
+The adapter independently verifies corpus storage and adds every inventory-declared bundled JSON member; JSONL is checked per record.
+`npm run check:json -- --require-generated` additionally requires current Vite JSON outputs.
+The [policy](.json-quality.json) lists only explicit exceptions, each with an owner and reason.
+External installations and named local state are scope boundaries; `.mcp.json` remains checked.
+Tracked JSON always overrides an external boundary.
 
-Conformance vectors remain fully checked. Canonical JSON retains its producer's compact presentation and pinned byte identity; corpus, archives, evidence, deployment outputs and npm locks are protected against generic rewrites. Exact expected-negative contracts retain visible diagnostics and independently pinned bytes; they never excuse an extra violation. Narrow NFC preservation covers six exact decoded strings in two fixtures, with a unique JSONL record selector. Changed or missing values fail, and every key and other string remains checked. Three separately byte-pinned W3C fixtures retain their original literal spelling.
+Conformance vectors remain fully checked.
+Canonical JSON retains its producer's compact presentation and pinned byte identity; corpus, archives, evidence, deployment outputs and npm locks are protected against generic rewrites.
+Exact expected-negative contracts retain visible diagnostics and independently pinned bytes; they never excuse an extra violation.
+Narrow NFC preservation covers six exact decoded strings in two fixtures, with a unique JSONL record selector.
+Changed or missing values fail, and every key and other string remains checked.
+Three separately byte-pinned W3C fixtures retain their original literal spelling.
 
-`npm run format:json` repairs eligible authored presentation only. `npm run normalize:json -- -- path/to/source.json` requires explicit writable source paths and performs collision preflight. Protected output repairs belong to their owning source or producer. `.prettierignore` guards direct JSON writes; it does not define JSON checking scope. Existing VOWL/schema/domain validators retain their separate obligations.
+`npm run format:json` repairs eligible authored presentation only.
+`npm run normalize:json -- -- path/to/source.json` requires explicit writable source paths and performs collision preflight.
+Protected output repairs belong to their owning source or producer.
+`.prettierignore` guards direct JSON writes; it does not define JSON checking scope.
+Existing VOWL/schema/domain validators retain their separate obligations.
 
-The shared ESLint guard rejects raw `JSON.stringify` used as semantic identity. Intentional ordered scalar tuples, byte contracts and digest preimages require one immediately attached `json-identity-contract` declaration with an owner and reason; stale declarations and unused ESLint suppressions fail. Structured comparisons use existing library/native equality, preserving ordered arrays.
+The shared ESLint guard rejects raw `JSON.stringify` used as semantic identity.
+Intentional ordered scalar tuples, byte contracts and digest preimages require one immediately attached `json-identity-contract` declaration with an owner and reason; stale declarations and unused ESLint suppressions fail.
+Structured comparisons use existing library/native equality, preserving ordered arrays.
 Python CI uses pinned uv tooling to read `.python-version` and activate an isolated runner environment before creating the repository's `.venv` and installing its hash-locked requirements.
 Both feed the existing required `WebVOWL application` job.
 The application build continues to require only its existing Node.js tooling.
