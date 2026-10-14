@@ -24,6 +24,62 @@ const STRING_DATATYPE_IRI = "http://www.w3.org/2001/XMLSchema#string";
 const ALICE_IRI = "https://example.test/ontology#Alice";
 const LOAD_GENERATION = 4;
 
+test("duplicate semantic search facts use an index with linear reference reads", () => {
+  const count = 1000;
+  let referenceReads = 0;
+  const references = Array.from({ length: count }, (_, index) =>
+    Object.freeze({
+      kind: "class",
+      get iri() {
+        referenceReads += 1;
+        return `urn:superclass:${index}`;
+      },
+    }),
+  );
+  const snapshot = Object.freeze({
+    ...createInspectionSnapshot(),
+    classRecords: Object.freeze([
+      Object.freeze(
+        classRecord({
+          iri: PERSON_IRI,
+          labelRecords: englishLabel("Person"),
+          superclassReferences: Object.freeze(references),
+        }),
+      ),
+      Object.freeze(
+        classRecord({
+          iri: PERSON_IRI,
+          labelRecords: englishLabel("Person"),
+          superclassReferences: Object.freeze(
+            references.map((reference) =>
+              Object.freeze({ iri: reference.iri, kind: reference.kind }),
+            ),
+          ),
+        }),
+      ),
+    ]),
+  });
+  referenceReads = 0;
+  const prepared = prepareOntologySearch(snapshot, createOntologyInspector());
+  expect(referenceReads).toBeLessThanOrEqual(count * 10);
+  const result = prepared.findOntologyElements({
+    query: "person",
+    kinds: ["class"],
+    includeNeighborhood: true,
+    visibleRenderedGraphSnapshot: createVisibleSnapshot(),
+  });
+  expect(result.totalMatchCount).toBe(1);
+  expect(result.matches[0].neighborhoodFacts.superclassReferences).toHaveLength(
+    WEB_VOWL_OPERATION_LIMITS.maxFocusReferences,
+  );
+  expect(result.matches[0].neighborhoodFacts.superclassReferences).toEqual(
+    Array.from(
+      { length: WEB_VOWL_OPERATION_LIMITS.maxFocusReferences },
+      (_, index) => ({ kind: "class", iri: `urn:superclass:${index}` }),
+    ),
+  );
+});
+
 test("revision-owned search matches the direct oracle without cloning retained facts or exposing cached values", () => {
   const inspector = createOntologyInspector();
   const snapshot = {
