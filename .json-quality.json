@@ -42,7 +42,6 @@
         "packages/vowl/conformance/**",
         "src/canonical-examples/**",
         "src/owl2vowl/test/fixtures/**",
-        "tooling/json/archives/**",
         "deploy/**"
       ],
       "allowFormatWrites": false,
@@ -77,14 +76,6 @@
       "formatContract": "producer-json-compact-body",
       "owner": "Canonical VOWL serializer and retained legacy deployment serializer",
       "reason": "Validate native compact JSON without a final LF, preserving canonical member/array order and producer ownership."
-    },
-    {
-      "paths": [
-        "tooling/json/archives/*.provenance.json"
-      ],
-      "formatContract": "producer-json-indent",
-      "owner": "Shared JSON-engine package producer",
-      "reason": "Immutable archive provenance uses native two-space JSON with a final LF and remains independently integrity-bound."
     },
     {
       "paths": [
