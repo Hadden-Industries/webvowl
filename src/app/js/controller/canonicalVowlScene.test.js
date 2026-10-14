@@ -48,7 +48,9 @@ test("fresh nodes have distinct deterministic positions translated around the ca
     }).snapshot().placements;
   const placements = create({ x: 0, y: 0 });
   expect(
-    new Set(placements.map(({ position }) => JSON.stringify(position))).size,
+    // json-identity-contract: ordered-tuple; owner: Scene placement regression; reason: Coordinate order is x then y and both values are finite numeric scalars.
+    new Set(placements.map(({ position: { x, y } }) => JSON.stringify([x, y])))
+      .size,
   ).toBe(occurrences.length);
   expect(create({ x: 0, y: 0 })).toEqual(placements);
   const translated = create({ x: 40, y: -20 });

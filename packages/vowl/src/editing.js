@@ -333,6 +333,7 @@ export function normalizeDraft(source, budget, reservedHandles = []) {
     if (!endpoint(construct.kind)) {
       continue;
     }
+    // json-identity-contract: ordered-tuple; owner: VOWL endpoint editing; reason: Validated construct-kind and property-ID scalars form an ordered endpoint tuple.
     const key = JSON.stringify([construct.kind, construct.property]);
     if (!aggregates.has(key)) {
       aggregates.set(key, []);

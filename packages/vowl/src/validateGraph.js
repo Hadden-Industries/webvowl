@@ -187,6 +187,7 @@ export function validateGraph(
         seen = seenSubjects;
       }
       if (collection === "roles") {
+        // json-identity-contract: ordered-tuple; owner: VOWL graph validation; reason: Validated role-kind, property-ID, subject-ID or IRI scalars form ordered semantic lookup tuples.
         key = JSON.stringify([record.subject, record.kind]);
         seen = seenRoles;
       }
@@ -257,6 +258,7 @@ export function createAssertionSupportLookup(model, get, budget) {
   const endpoints = new Map();
   for (const construct of model.constructs) {
     if (endpointKind.test(construct.kind)) {
+      // json-identity-contract: ordered-tuple; owner: VOWL graph validation; reason: Validated role-kind, property-ID, subject-ID or IRI scalars form ordered semantic lookup tuples.
       const key = JSON.stringify([construct.property, construct.kind]);
       if (!endpoints.has(key)) {
         endpoints.set(key, construct);
@@ -275,6 +277,7 @@ export function createAssertionSupportLookup(model, get, budget) {
     }
     if (endpointKind.test(assertion.kind)) {
       const aggregate = endpoints.get(
+        // json-identity-contract: ordered-tuple; owner: VOWL graph validation; reason: Validated role-kind, property-ID, subject-ID or IRI scalars form ordered semantic lookup tuples.
         JSON.stringify([assertion.property, assertion.kind]),
       );
       const target = aggregate && get(aggregate.target);
@@ -315,6 +318,7 @@ export function validateMeaning(source, context, budget) {
   const endpointSeen = new Set();
   for (const construct of model.constructs) {
     if (endpointKind.test(construct.kind)) {
+      // json-identity-contract: ordered-tuple; owner: VOWL graph validation; reason: Validated role-kind, property-ID, subject-ID or IRI scalars form ordered semantic lookup tuples.
       const key = JSON.stringify([construct.property, construct.kind]);
       if (endpointSeen.has(key)) {
         fail("NORMALIZATION_INVALID", locations.get(construct.id));
@@ -338,6 +342,7 @@ export function validateMeaning(source, context, budget) {
     kinds.add(role.kind);
     rolesBySubject.set(role.subject, kinds);
     if (subject.iri !== undefined) {
+      // json-identity-contract: ordered-tuple; owner: VOWL graph validation; reason: Validated role-kind, property-ID, subject-ID or IRI scalars form ordered semantic lookup tuples.
       roleMap.set(JSON.stringify([subject.iri, role.kind]), role);
     }
     if (
@@ -366,6 +371,7 @@ export function validateMeaning(source, context, budget) {
     }
     if (descriptor.fields.predicate) {
       if (
+        // json-identity-contract: ordered-tuple; owner: VOWL graph validation; reason: Validated role-kind, property-ID, subject-ID or IRI scalars form ordered semantic lookup tuples.
         !roleMap.has(JSON.stringify([value.predicate, "annotation-property"]))
       ) {
         fail("NORMALIZATION_INVALID", at(pointer, "predicate"));
@@ -391,6 +397,7 @@ export function validateMeaning(source, context, budget) {
       if (
         (value.kind === "typed" &&
           datatype === namespaces.rdf + "langString") ||
+        // json-identity-contract: ordered-tuple; owner: VOWL graph validation; reason: Validated role-kind, property-ID, subject-ID or IRI scalars form ordered semantic lookup tuples.
         !roleMap.has(JSON.stringify([datatype, "datatype"]))
       ) {
         fail("NORMALIZATION_INVALID", pointer);

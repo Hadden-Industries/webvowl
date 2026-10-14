@@ -179,6 +179,7 @@ function importEvidence(prepared, documents, budget) {
   for (const source of prepared.sourceDocuments) {
     budget.check();
     if (source.acquisition) {
+      // json-identity-contract: ordered-tuple; owner: OWL import provenance; reason: Parent document and requested import IRI strings form an ordered acquisition identity.
       const key = JSON.stringify([
         source.acquisition.parentDocumentIri,
         source.acquisition.requestedIri,
@@ -193,6 +194,7 @@ function importEvidence(prepared, documents, budget) {
     prepared.diagnostics
       .filter(({ diagnostic }) => diagnostic.code === "MISSING_IMPORT")
       .map(({ documentIri, diagnostic }) =>
+        // json-identity-contract: ordered-tuple; owner: OWL import provenance; reason: Parent document and requested import IRI strings form an ordered acquisition identity.
         JSON.stringify([documentIri, diagnostic.importIRI.value]),
       ),
   );
@@ -200,6 +202,7 @@ function importEvidence(prepared, documents, budget) {
     for (const declaration of document.ontology.getImportsDeclarations()) {
       budget.check();
       const requestedIri = declaration.iri.value;
+      // json-identity-contract: ordered-tuple; owner: OWL import provenance; reason: Parent document and requested import IRI strings form an ordered acquisition identity.
       const key = JSON.stringify([document.documentIri, requestedIri]);
       const targetDocument = missing.has(key)
         ? null

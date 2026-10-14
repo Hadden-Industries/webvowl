@@ -162,6 +162,7 @@ export async function verifyCompleteCodeqlProof({
       analysis.commit_sha !== merge ||
       analysis.ref !== `refs/pull/${pullRequestNumber}/merge` ||
       analysis.analysis_key !== ".github/workflows/codeql.yml:analyze" ||
+      // json-identity-contract: bytes; owner: GitHub CodeQL evidence admission; reason: The provider environment is the exact serialized language field required by this analysis contract.
       analysis.environment !== JSON.stringify({ language }) ||
       analysis.error !== "" ||
       analysis.warning !== "" ||

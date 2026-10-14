@@ -89,6 +89,7 @@ export function buildLegacyModel(input, joined, profile, budget, policy) {
     roleSubjects = new Map();
   function subject(iri, anonymous = false) {
     budget.check();
+    // json-identity-contract: ordered-tuple; owner: Legacy model migration; reason: Validated anonymity or subject-ID and IRI or role-kind scalars form ordered identity tuples.
     const key = JSON.stringify([anonymous, iri]);
     if (!subjects.has(key)) {
       subjects.set(key, append("subjects", anonymous ? {} : { iri }));
@@ -97,6 +98,7 @@ export function buildLegacyModel(input, joined, profile, budget, policy) {
   }
   function role(iri, kind) {
     const target = subject(iri);
+    // json-identity-contract: ordered-tuple; owner: Legacy model migration; reason: Validated anonymity or subject-ID and IRI or role-kind scalars form ordered identity tuples.
     const key = JSON.stringify([target, kind]);
     if (!roles.has(key)) {
       roles.set(key, append("roles", { kind, subject: target }));

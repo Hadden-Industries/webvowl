@@ -7,6 +7,7 @@ import {
 import { createLanguageTools } from "../../shared/js/util/languageTools.js";
 import { PROTECTED_ONTOLOGY_EDITOR_PREFIXES } from "./controller/ontologyEditorPrefixes.js";
 import { namespaces } from "vowl";
+import isEqual from "lodash/isEqual.js";
 
 // This presentation reads immutable document records. Only application
 // operations can accept an edit; no drawn element is an editing authority.
@@ -29,8 +30,8 @@ export function createOntologyEditorSidebar({
   let selectedRecord;
   let selectedTarget;
   let language = "default";
-  let presentedSelectionKey;
-  let presentedPrefixKey;
+  let presentedSelection;
+  let presentedPrefixes;
   let presentedMetadataKey;
   const availabilityBeforeLoading = new Map();
 
@@ -333,21 +334,21 @@ export function createOntologyEditorSidebar({
     }
     selectedTarget = state.selectedDocumentRecord;
     selectedRecord = snapshot.selectedRecord;
-    const selectionKey = JSON.stringify([
+    const selection = structuredClone([
       snapshot.loadGeneration,
       state.documentRevision,
       language,
       selectedTarget,
     ]);
-    if (force || presentedSelectionKey !== selectionKey) {
+    if (force || !isEqual(presentedSelection, selection)) {
       renderSelectedRecord();
-      presentedSelectionKey = selectionKey;
+      presentedSelection = selection;
     }
-    const prefixKey = JSON.stringify([
+    const prefixes = structuredClone([
       state.editorMode?.isEditorMode,
       snapshot.prefixes,
     ]);
-    if (force || prefixKey !== presentedPrefixKey) {
+    if (force || !isEqual(prefixes, presentedPrefixes)) {
       prefixControlsAbortController.abort();
       prefixControlsAbortController = new AbortController();
       document.getElementById("prefixURL_Container").replaceChildren();
@@ -366,7 +367,7 @@ export function createOntologyEditorSidebar({
           });
         }
       }
-      presentedPrefixKey = prefixKey;
+      presentedPrefixes = prefixes;
     }
   }
 

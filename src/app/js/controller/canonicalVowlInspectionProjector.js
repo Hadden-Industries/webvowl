@@ -225,9 +225,13 @@ export function createCanonicalVowlInspectionProjection(
     };
     const neighbors = (kind, field, result) =>
       (
-        factsByKindAndField.get(JSON.stringify([kind, field, record.id])) ?? []
+        factsByKindAndField.get(
+          // json-identity-contract: ordered-tuple; owner: Canonical inspection index; reason: Kind, field and record-ID scalars form ordered lookup tuples matching the producer index.
+          JSON.stringify([kind, field, record.id]),
+        ) ?? []
       ).map((fact) => ref(fact[result]));
     const groups = (kind) =>
+      // json-identity-contract: ordered-tuple; owner: Canonical inspection index; reason: Kind, field and record-ID scalars form ordered lookup tuples matching the producer index.
       membersByKindAndId.get(JSON.stringify([kind, record.id])) ?? [];
     if (reference.kind === "class") {
       snapshot.classRecords.push({

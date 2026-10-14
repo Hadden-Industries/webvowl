@@ -342,6 +342,28 @@ function resolveMatchLimit(limit) {
 
 // Drawn occurrences may repeat a semantic identity with additional labels or
 // relations. Merge those facts before matching so every alias remains searchable.
+function searchFactKey(field, value) {
+  if (field.endsWith("References")) {
+    return ontologyElementReferenceKey(value);
+  }
+  if (typeof value === "string") {
+    return value;
+  }
+  const tuple =
+    field === "annotationRecords"
+      ? [
+          value.localName,
+          value.propertyIri,
+          value.languageTag,
+          value.text,
+          value.valueKind,
+        ]
+      : [value.languageTag, value.text];
+  // Snapshot contracts define these exact scalar fields. Tuple positions
+  // distinguish values independently of object member order.
+  return JSON.stringify(tuple);
+}
+
 function semanticSearchRecords(records) {
   const merged = new Map();
   for (const record of records) {
@@ -357,10 +379,11 @@ function semanticSearchRecords(records) {
           field === "labelRecords"
             ? [...values, ...(previous[field] ?? [])]
             : [...(previous[field] ?? []), ...values];
-        const entries = new Map(
-          combined.map((value) => [JSON.stringify(value), value]),
-        );
-        previous[field] = [...entries.values()];
+        previous[field] = [
+          ...new Map(
+            combined.map((value) => [searchFactKey(field, value), value]),
+          ).values(),
+        ];
       }
     }
   }

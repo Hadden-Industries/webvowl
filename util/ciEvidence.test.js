@@ -58,6 +58,7 @@ function needs(full = "true") {
     application: { result: full === "true" ? "success" : "skipped" },
     tooling: { result: full === "true" ? "success" : "skipped" },
     documentation: { result: "success" },
+    json: { result: "success" },
   };
 }
 
@@ -79,6 +80,33 @@ test("a successful same-repository PR records its actual tested merge and check 
     },
   });
 });
+
+test.each(["true", "false"])(
+  "JSON must execute for full=%s even when prior application evidence is reused",
+  (full) => {
+    const jobs = needs(full);
+    jobs.scope.outputs = {
+      full,
+      reuse: "true",
+      source_run_id: "41",
+      source_run_attempt: "1",
+      source_receipt_id: "9",
+      source_receipt_digest: "sha256:" + "a".repeat(64),
+      source_commit: hash("c"),
+    };
+    for (const name of ["application", "tooling", "documentation"]) {
+      jobs[name].result = "skipped";
+    }
+    expect(requireChecks(jobs)).toEqual({
+      full: full === "true",
+      reused: true,
+    });
+    for (const result of ["skipped", "failure", "cancelled", undefined]) {
+      jobs.json.result = result;
+      expect(() => requireChecks(jobs)).toThrow(/JSON/);
+    }
+  },
+);
 
 test("documentation receipts retain explicit application/tooling skips", () => {
   expect(
@@ -189,6 +217,8 @@ function proofFixture(full = true, now = Date.parse("2026-10-09T12:10:00Z")) {
         ]
       : [["Python tooling (${{ matrix.os }})", "skipped"]]),
     ["Markdown checks", "success"],
+    ["JSON quality (ubuntu-24.04)", "success"],
+    ["JSON quality (windows-2025)", "success"],
     ["WebVOWL application", "success"],
   ].map(([name, conclusion]) => ({
     name,
@@ -214,7 +244,7 @@ function proofFixture(full = true, now = Date.parse("2026-10-09T12:10:00Z")) {
       parents: [{ sha: hash("a") }, { sha: hash("b") }],
     },
     "/actions/runs/41/jobs?filter=latest&per_page=100": {
-      total_count: full ? 6 : 5,
+      total_count: jobs.length,
       jobs,
     },
   };
@@ -475,6 +505,7 @@ test.each(["application", "tooling", "documentation"])(
       application: { result: "skipped" },
       tooling: { result: "skipped" },
       documentation: { result: "skipped" },
+      json: { result: "success" },
     };
     checks[job].result = "success";
     expect(() => requireChecks(checks)).toThrow(`Unexpected ${job} result`);

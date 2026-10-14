@@ -90,6 +90,7 @@ self.addEventListener("message", async ({ data: suite }) => {
               [
                 ...new Set(
                   values.map(({ importIri, importingDocumentIri }) =>
+                    // json-identity-contract: ordered-tuple; owner: Browser import regression; reason: Requested and importing document IRI strings are ordered pair identities.
                     JSON.stringify([importIri, importingDocumentIri]),
                   ),
                 ),

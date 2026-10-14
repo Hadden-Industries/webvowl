@@ -241,6 +241,7 @@ function inspection(state, archive, budget) {
   );
   const signature = new Map(
     records.roles.map((role) => [
+      // json-identity-contract: ordered-tuple; owner: VOWL live role index; reason: Validated subject IRI and role-kind scalars form the same ordered lookup tuple.
       JSON.stringify([index.get(role.subject).iri, role.kind]),
       role.id,
     ]),
@@ -257,6 +258,7 @@ function inspection(state, archive, budget) {
       if (shape?.fields?.predicate) {
         required.add(
           signature.get(
+            // json-identity-contract: ordered-tuple; owner: VOWL live role index; reason: Validated subject IRI and role-kind scalars form the same ordered lookup tuple.
             JSON.stringify([item.predicate, "annotation-property"]),
           ),
         );
@@ -264,6 +266,7 @@ function inspection(state, archive, budget) {
       if (shape?.fields?.lexical && ["typed", "language"].includes(item.kind)) {
         required.add(
           signature.get(
+            // json-identity-contract: ordered-tuple; owner: VOWL live role index; reason: Validated subject IRI and role-kind scalars form the same ordered lookup tuple.
             JSON.stringify([
               item.kind === "language"
                 ? namespaces.rdf + "langString"

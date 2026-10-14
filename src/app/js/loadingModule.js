@@ -658,6 +658,7 @@ export function createLoadingModule({
         );
         document.querySelector("#loadingInfo_msgBox").hidden =
           detailMessages.length === 0;
+        // json-identity-contract: ordered-tuple; owner: Load-error presentation; reason: Load generation, message text and the ordered detail-message strings identify one rendered error presentation.
         const identity = JSON.stringify([
           controllerState.loadGeneration,
           error.message,
