@@ -103,5 +103,6 @@ test("CI executes the complete authored corpus unless verified PR evidence is re
     "application",
     "tooling",
     "documentation",
+    "json",
   ]);
 });
