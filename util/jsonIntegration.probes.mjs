@@ -1,15 +1,16 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Consumer tests retain WebVOWL's independent corpus and archive identities.
+// Consumer tests retain WebVOWL's independent corpus and installed-source identities.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readRepositoryLogicalJson } from "./runRepositoryJsonQuality.mjs";
 import { readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
+import { fileURLToPath } from "node:url";
 import {
   checkJsonDocument,
   checkJsonLines,
   jsonContract,
+  verifyJsonQualityInstallation,
 } from "../tooling/json/public-api.mjs";
 
 test("the repository adapter exposes every independently inventoried JSON member", () => {
@@ -32,28 +33,14 @@ test("the repository adapter exposes every independently inventoried JSON member
   );
 });
 
-test("the installed archive, consumer lock and retained provenance identify one qualified source", () => {
-  const base = new URL("../tooling/json/", import.meta.url);
-  const manifest = JSON.parse(readFileSync(new URL("package.json", base)));
-  const reference = manifest.devDependencies["@hadden-industries/json-quality"];
-  const archive = new URL(reference.slice(5), base);
-  const pin = JSON.parse(
-    readFileSync(new URL(reference.slice(5) + ".provenance.json", base)),
-  );
-  const lock = JSON.parse(readFileSync(new URL("package-lock.json", base)));
-  assert.equal(pin.sourceClean, true);
-  assert.equal(
-    createHash("sha256").update(readFileSync(archive)).digest("hex"),
-    pin.sha256,
-  );
-  assert.equal(
-    lock.packages["node_modules/@hadden-industries/json-quality"].integrity,
-    pin.integrity,
-  );
-  assert.equal(
-    lock.packages[""].devDependencies["@hadden-industries/json-quality"],
-    reference,
-  );
+test("the native source selector, lock, generated bootstrap and installed payload agree", async () => {
+  const result = await verifyJsonQualityInstallation({
+    toolingRoot: fileURLToPath(new URL("../tooling/json/", import.meta.url)),
+    bootstrapPath: fileURLToPath(
+      new URL("./installRepositoryQualityTools.mjs", import.meta.url),
+    ),
+  });
+  assert.ok(result.files > 0);
 });
 
 test("all physical vectors remain checked and only canonical presentation has an alternate producer contract", () => {
