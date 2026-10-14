@@ -122,6 +122,33 @@ jobs:
       - name: Check the full authored corpus
         run: npm run check:docs && npm run test:markdown
 
+  json:
+    name: JSON quality (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+      - name: Acquire locked root and isolated JSON tooling
+        run: |
+          node util/installSelectedNpm.mjs
+          npm ci --ignore-scripts
+          npm run install:json
+      - run: npm run test:json
+      - name: Produce current Vite JSON outputs without formatting source
+        run: npm run build:bundle
+      - name: Require every owned physical, logical and generated JSON document
+        run: npm run check:json -- --require-generated
+
   application:
     needs: scope
     if: needs.scope.outputs.full == 'true' && needs.scope.outputs.reuse != 'true'
@@ -160,13 +187,14 @@ jobs:
         run: |
           node util/installSelectedNpm.mjs
           npm ci --ignore-scripts
+      - run: npm run install:json
       - run: npm test -- --runInBand
       - run: npm run build
 
   required:
     name: WebVOWL application
     if: always()
-    needs: [scope, application, tooling, documentation]
+    needs: [scope, application, tooling, documentation, json]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:

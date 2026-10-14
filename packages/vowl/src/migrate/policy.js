@@ -104,6 +104,7 @@ export function migrationChecks(options, startedAt) {
         } else if (!isIri(data.iri)) {
           fail("MIGRATION_RESOLUTION_INVALID", at(pointer, "iri"));
         }
+        // json-identity-contract: ordered-tuple; owner: Legacy migration resolution policy; reason: Resolution kind or diagnostic code and source-pointer strings form ordered lookup tuples.
         const key = JSON.stringify([data.kind, data.sourcePointer]);
         if (seen.has(key)) {
           fail("MIGRATION_RESOLUTION_INVALID", pointer);
@@ -122,6 +123,7 @@ export function migrationPolicy(options, budget) {
   ).resolutions;
   const entries = new Map(
     resolutions.map((record, index) => [
+      // json-identity-contract: ordered-tuple; owner: Legacy migration resolution policy; reason: Resolution kind or diagnostic code and source-pointer strings form ordered lookup tuples.
       JSON.stringify([record.kind, record.sourcePointer]),
       { record, index },
     ]),
@@ -141,6 +143,7 @@ export function migrationPolicy(options, budget) {
           : "Applied an explicit resolution at the unresolved legacy field.",
     };
     const snapshot = snapshotSource({ diagnostic: value }, budget).diagnostic;
+    // json-identity-contract: ordered-tuple; owner: Legacy migration resolution policy; reason: Resolution kind or diagnostic code and source-pointer strings form ordered lookup tuples.
     diagnostics.set(JSON.stringify([code, sourcePointer]), snapshot);
   }
   return {
@@ -148,6 +151,7 @@ export function migrationPolicy(options, budget) {
       diagnostic("MIGRATION_DROPPED_FIELD", pointer);
     },
     allow(kind, pointer) {
+      // json-identity-contract: ordered-tuple; owner: Legacy migration resolution policy; reason: Resolution kind or diagnostic code and source-pointer strings form ordered lookup tuples.
       eligible.add(JSON.stringify([kind, pointer]));
     },
     validate() {
@@ -160,6 +164,7 @@ export function migrationPolicy(options, budget) {
     },
     resolve(kind, pointer, accepts = () => true) {
       budget.check();
+      // json-identity-contract: ordered-tuple; owner: Legacy migration resolution policy; reason: Resolution kind or diagnostic code and source-pointer strings form ordered lookup tuples.
       const key = JSON.stringify([kind, pointer]);
       const entry = entries.get(key);
       if (!entry) {

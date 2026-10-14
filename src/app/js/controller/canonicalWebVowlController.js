@@ -1,3 +1,4 @@
+import isEqual from "lodash/isEqual.js";
 import { createCanonicalVowlDocumentSession } from "./canonicalVowlDocumentSession.js";
 import { exportCanonicalDrawing } from "./canonicalVowlDrawingExport.js";
 import { createCanonicalVowlWorkerClient } from "./canonicalVowlWorkerClient.js";
@@ -142,9 +143,7 @@ export function createCanonicalWebVowlController({
       retainedState = state;
     }
     const fields = Object.freeze(
-      Object.keys(changes).filter(
-        (key) => JSON.stringify(previous[key]) !== JSON.stringify(state[key]),
-      ),
+      Object.keys(changes).filter((key) => !isEqual(previous[key], state[key])),
     );
     for (const subscriber of [...subscribers]) {
       subscriber(state, fields);
@@ -771,8 +770,12 @@ export function createCanonicalWebVowlController({
     getOntologyElementRevealPlan(ontologyElementReferences) {
       current();
       const retained = readUpstreamHidden();
-      const signature = JSON.stringify([session.identity(), filters, retained]);
-      if (revealCache?.signature !== signature) {
+      const signature = structuredClone([
+        session.identity(),
+        filters,
+        retained,
+      ]);
+      if (!isEqual(revealCache?.signature, signature)) {
         const inspection = session.inspectRecords();
         const references = createCanonicalSemanticReferences(
           inspection,

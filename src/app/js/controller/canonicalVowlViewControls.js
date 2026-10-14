@@ -1,3 +1,4 @@
+import isEqual from "lodash/isEqual.js";
 import { closeVowlVisibility } from "./canonicalVowlScene.js";
 import {
   rankCanonicalNodeOccurrences,
@@ -113,9 +114,12 @@ export function createCanonicalNodeSelector(inspection, identity) {
   ) => {
     const startedAt = performance.now();
     const intent = createNodesShownIntent(nodesShown);
-    const nextSignature = JSON.stringify([filters, [...retainedHidden].sort()]);
-    const rankingCacheReused = signature === nextSignature;
-    if (signature !== nextSignature) {
+    const nextSignature = structuredClone([
+      filters,
+      [...retainedHidden].sort(),
+    ]);
+    const rankingCacheReused = isEqual(signature, nextSignature);
+    if (!rankingCacheReused) {
       upstreamHidden = prepareCanonicalVisibility(
         inspection,
         filters,

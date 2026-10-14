@@ -221,6 +221,7 @@ export function validateFields(value, descriptor, budget, pointer = "") {
                 : "string",
         }
       : schemaFor(resolved, { source: true });
+  // json-identity-contract: bytes; owner: VOWL scalar-validator cache; reason: Byte-identical generated scalar schemas reuse compilation; different bytes only recompile and never change validation acceptance.
   const leafKey = JSON.stringify(expected);
   let validate = scalarValidators.get(leafKey);
   if (!validate) {

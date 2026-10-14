@@ -8,7 +8,7 @@ Load an ontology, inspect its structure, and export a figure for a paper, lectur
 
 ![WebVOWL displaying the MUTO tagging ontology, with connected classes and properties, ontology details, and exploration controls.](docs/images/webvowl-muto.png)
 
-*The bundled MUTO example in the hosted application.*
+_The bundled MUTO example in the hosted application._
 
 ## Try it
 
@@ -59,7 +59,7 @@ Set that field to `npm:PACKAGE_NAME@EXACT_VERSION` for a published package, or `
 The root `overrides.owlapi` references `$owlapi`; the private VOWL workspace uses `*`, so neither repeats the chosen package name, version or commit.
 Regenerate the root lock with `npm install --package-lock-only --ignore-scripts`, then run `npm ci --ignore-scripts` and the consumer checks; generated lock records are not independent settings.
 See [OwlAPI dependency selection](docs/owlapi-git-adoption.md) for payload verification and the lessons from Universal Ontology's transition.
-Run `npm run setup:development` to install locked npm dependencies with lifecycle scripts disabled and prepare `.venv` from the [hashed Python lock](requirements.lock.txt).
+Run `npm run setup:development` to install locked npm dependencies, the isolated Markdown and JSON tool graphs with lifecycle scripts disabled, and prepare `.venv` from the [hashed Python lock](requirements.lock.txt).
 Python installation requires hashes and wheels except for PyYAML, whose latest release requires a source build on Python 3.15, then runs `pip check`.
 The [development requirements](requirements-dev.txt) declare minimum versions without upper bounds; routine setup and CI install the exact locked versions.
 
@@ -87,17 +87,17 @@ For a deliberate upgrade, add `--upgrade-package NAME`, review the lock diff, re
 | `npm run build`           | Check formatting/lint and build static files into `deploy/`.              |
 | `npm run preview`         | Preview the production build locally.                                     |
 
-### Python and Markdown checks
+### Python, Markdown and JSON checks
 
 For opt-in dependency views and conservative affected Jest feedback, see [Dependency graphs and affected Jest tests](docs/dependency-graph-and-tests.md).
 
-The standard `npm run format`, `npm run format:check`, and `npm run lint` commands cover application files, maintained JavaScript in `util/` and `tooling/`, Python, and authored Markdown.
+The standard `npm run format`, `npm run format:check`, and `npm run lint` commands cover application files, maintained JavaScript in `util/` and `tooling/`, Python, authored Markdown and owned JSON.
 `npm run fix:all` applies application and tooling JavaScript lint fixes, safe Python lint fixes, and all formatting.
 Node.js helpers use Node globals and do not receive browser-compatibility checks.
 Markdown formatting and prose diagnostics are checked by both `lint` and `format:check`.
 Run `npm run check:python` for Ruff linting, Python formatting checks, setup tests, and prose-tooling tests.
 Run `npm run check:docs` for Prettier Markdown formatting and Snapper's semantic line checks.
-Run `npm run check` for both sets of checks, the Jest suite, and the application build (including its existing formatting and lint checks).
+Run `npm run check` for these checks, the Jest suite, the application build, and JSON qualification of fresh generated outputs.
 The full check requires the [test corpus](#test-corpus).
 
 | Command                       | Purpose                                                                  |
@@ -126,7 +126,20 @@ Ruff excludes the same preserved documentation directories for Python files.
 Prose tests require the locked Node dependencies as well as the Python environment.
 Installed skills, environments, generated data, and fixtures are outside the formatting scope.
 
-CI runs Python checks on Windows and Linux and Markdown checks on Linux.
+CI runs Python checks on Windows and Linux and Markdown checks on Linux. Fresh JSON jobs run on Ubuntu 24.04 and Windows 2025 for every workflow route, including documentation-only changes and runs reusing application evidence. The required gate rejects missing, skipped or failed JSON checks.
+
+### JSON quality and producer ownership
+
+Run `npm run install:json` explicitly after pulling JSON tool changes. The engine is installed only from the immutable archive and lock in `tooling/json`; it is a development tool, with no application runtime dependency.
+`npm run check:json:inventory` reports scope and resolved contracts without validating document contents. `npm run check:json` checks bytes, strict syntax, duplicate and meaningful keys, numeric and Unicode interoperability, all-string NFC and presentation. `-- --json` requests machine results; capacity flags such as `-- --max-files 100000` and `-- --no-limits` override resource limits without weakening semantic checks.
+
+All owned physical JSON is checked by default, including untracked and ignored generated files. The adapter independently verifies corpus storage and adds every inventory-declared bundled JSON member; JSONL is checked per record. `npm run check:json -- --require-generated` additionally requires current Vite JSON outputs. The [policy](.json-quality.json) lists only explicit exceptions, each with an owner and reason. External installations and named local state are scope boundaries; `.mcp.json` remains checked. Tracked JSON always overrides an external boundary.
+
+Conformance vectors remain fully checked. Canonical JSON retains its producer's compact presentation and pinned byte identity; corpus, archives, evidence, deployment outputs and npm locks are protected against generic rewrites. Exact expected-negative contracts retain visible diagnostics and independently pinned bytes; they never excuse an extra violation. Narrow NFC preservation covers six exact decoded strings in two fixtures, with a unique JSONL record selector. Changed or missing values fail, and every key and other string remains checked. Three separately byte-pinned W3C fixtures retain their original literal spelling.
+
+`npm run format:json` repairs eligible authored presentation only. `npm run normalize:json -- -- path/to/source.json` requires explicit writable source paths and performs collision preflight. Protected output repairs belong to their owning source or producer. `.prettierignore` guards direct JSON writes; it does not define JSON checking scope. Existing VOWL/schema/domain validators retain their separate obligations.
+
+The shared ESLint guard rejects raw `JSON.stringify` used as semantic identity. Intentional ordered scalar tuples, byte contracts and digest preimages require one immediately attached `json-identity-contract` declaration with an owner and reason; stale declarations and unused ESLint suppressions fail. Structured comparisons use existing library/native equality, preserving ordered arrays.
 Python CI uses pinned uv tooling to read `.python-version` and activate an isolated runner environment before creating the repository's `.venv` and installing its hash-locked requirements.
 Both feed the existing required `WebVOWL application` job.
 The application build continues to require only its existing Node.js tooling.

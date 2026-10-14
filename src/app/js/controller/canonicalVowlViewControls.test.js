@@ -86,6 +86,24 @@ test("obsolete degree options are rejected even beside valid filters", () => {
   ).toThrow("nodesShown");
 });
 
+test("ranking cache compares filter data independently of member order", () => {
+  const select = createCanonicalNodeSelector(inspection, rankingIdentity);
+  const filters = { ...CANONICAL_VISIBLE_FILTERS };
+  select(filters, { mode: "all" });
+  const reversed = Object.fromEntries(Object.entries(filters).reverse());
+  select(reversed, { mode: "all" });
+  expect(
+    performance.getEntriesByName("webvowl.node-selection").at(-1).detail
+      .rankingCacheReused,
+  ).toBe(true);
+  reversed.objectProperties = "hide";
+  select(reversed, { mode: "all" });
+  expect(
+    performance.getEntriesByName("webvowl.node-selection").at(-1).detail
+      .rankingCacheReused,
+  ).toBe(false);
+});
+
 test("count deltas preserve full incidence closure with labels, disjoint edges and upstream filtering", () => {
   const label = inspection.occurrences.find(({ kind }) => kind === "label");
   for (const filters of [

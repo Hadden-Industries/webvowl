@@ -142,6 +142,7 @@ test("non-writing Vite lifecycles preserve existing generated JavaScript", async
 
   const ownedPath = join(javascriptDirectory, "owned.js");
   const manifestPath = join(metadataDirectory, "webvowl-generated-js.json");
+  // json-identity-contract: bytes; owner: Vite generated-manifest regression; reason: Retain the exact serialized manifest preimage to detect forbidden source-file writes.
   const manifestText = `${JSON.stringify({
     schemaVersion: 1,
     files: ["js/owned.js"],

@@ -342,13 +342,9 @@ test("details use the sidebar description and preserve every character over boun
     continuation = result.toolResult.continuation;
   } while (offset !== null);
   expect(JSON.parse(reconstructedJson)).toEqual(description);
-  expect(
-    calls.every(
-      (request) =>
-        JSON.stringify(request) ===
-        JSON.stringify({ ontologyElementReferences: [reference] }),
-    ),
-  ).toBe(true);
+  for (const request of calls) {
+    expect(request).toEqual({ ontologyElementReferences: [reference] });
+  }
   const invalid = await dispatch.callWebMcpTool(
     "get_ontology_element_details",
     { reference, edit: true },

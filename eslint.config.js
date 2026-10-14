@@ -2,8 +2,15 @@ import js from "@eslint/js";
 import { defineConfig } from "eslint/config";
 import compat from "eslint-plugin-compat";
 import globals from "globals";
+import { jsonQualityEslint } from "./tooling/json/public-api.mjs";
 
 export default defineConfig([
+  { linterOptions: { reportUnusedDisableDirectives: "error" } },
+  {
+    files: ["**/*.{js,mjs,cjs}"],
+    plugins: { "json-quality": jsonQualityEslint },
+    rules: { "json-quality/no-json-stringify-identity": "error" },
+  },
   // Base ESLint recommended rules
   js.configs.recommended,
 
@@ -22,8 +29,8 @@ export default defineConfig([
         "popover",
         // "Promise",
         // "ResizeObserver"
-      ]
-    }
+      ],
+    },
   },
 
   // Main source configuration - modern strict standards
@@ -40,8 +47,8 @@ export default defineConfig([
         webvowl: "writable",
         Map: "readonly",
         Set: "readonly",
-        fetch: "readonly"
-      }
+        fetch: "readonly",
+      },
     },
     rules: {
       // Modern JS standards
@@ -56,8 +63,8 @@ export default defineConfig([
           vars: "all",
           args: "none",
           caughtErrors: "all",
-          caughtErrorsIgnorePattern: "^_"
-        }
+          caughtErrorsIgnorePattern: "^_",
+        },
       ],
       "no-console": ["warn", { allow: ["warn", "error"] }],
       semi: ["error", "always"],
@@ -73,20 +80,22 @@ export default defineConfig([
       "guard-for-in": "error",
       "no-caller": "error",
       "no-new": "error",
-      "no-use-before-define": ["error", { functions: false }]
-    }
+      "no-use-before-define": ["error", { functions: false }],
+    },
   },
 
   {
     files: ["util/**/*.{js,mjs,cjs}", "tooling/**/*.{js,mjs,cjs}"],
     languageOptions: {
       globals: {
-        ...Object.fromEntries(Object.keys(globals.browser).map(name => [name, "off"])),
+        ...Object.fromEntries(
+          Object.keys(globals.browser).map((name) => [name, "off"]),
+        ),
         ...globals.node,
-        ...globals.jest
-      }
+        ...globals.jest,
+      },
     },
-    rules: { "compat/compat": "off" }
+    rules: { "compat/compat": "off" },
   },
 
   // Keep presentation in stylesheets. Runtime data may cross the boundary only
@@ -95,63 +104,81 @@ export default defineConfig([
   // opened outside this page carries no stylesheet with it.
   {
     files: ["src/**/*.js"],
-    ignores: ["**/*.test.js", "src/app/js/controller/tikzSerializer.js", "src/webvowl/js/runtime/renderedSvgExportClone.js"],
+    ignores: [
+      "**/*.test.js",
+      "src/app/js/controller/tikzSerializer.js",
+      "src/webvowl/js/runtime/renderedSvgExportClone.js",
+    ],
     rules: {
       "no-restricted-syntax": [
         "error",
         {
           selector: "MemberExpression[object.name='d3'][property.name='event']",
-          message: "D3 v7 passes the event to the listener; do not use the removed d3.event global."
+          message:
+            "D3 v7 passes the event to the listener; do not use the removed d3.event global.",
         },
         {
           selector: "MemberExpression[property.name='keyCode']",
-          message: "Use semantic KeyboardEvent.key values instead of deprecated numeric keyCode values."
+          message:
+            "Use semantic KeyboardEvent.key values instead of deprecated numeric keyCode values.",
         },
         {
           selector: "CallExpression[callee.property.name='style']",
-          message: "Use a class, native state attribute, or CSS custom property instead of D3 .style()."
+          message:
+            "Use a class, native state attribute, or CSS custom property instead of D3 .style().",
         },
         {
-          selector: "CallExpression[callee.property.name='attr'][arguments.0.value='style']",
-          message: "Do not generate inline style attributes."
+          selector:
+            "CallExpression[callee.property.name='attr'][arguments.0.value='style']",
+          message: "Do not generate inline style attributes.",
         },
         {
           selector: "AssignmentExpression[left.object.property.name='style']",
-          message: "Do not assign presentation properties through element.style."
+          message:
+            "Do not assign presentation properties through element.style.",
         },
         {
-          selector: "CallExpression[callee.property.name=/^(setProperty|removeProperty)$/][arguments.0.type!='Literal']",
-          message: "CSS custom-property names must be literal so the style boundary remains auditable."
+          selector:
+            "CallExpression[callee.property.name=/^(setProperty|removeProperty)$/][arguments.0.type!='Literal']",
+          message:
+            "CSS custom-property names must be literal so the style boundary remains auditable.",
         },
         {
-          selector: "CallExpression[callee.property.name=/^(setProperty|removeProperty)$/][arguments.0.value=/^(?!--)/]",
-          message: "Only CSS custom properties may be changed through element.style."
+          selector:
+            "CallExpression[callee.property.name=/^(setProperty|removeProperty)$/][arguments.0.value=/^(?!--)/]",
+          message:
+            "Only CSS custom properties may be changed through element.style.",
         },
         {
           selector: "Literal[value=/style\\s*=/i]",
-          message: "Do not generate markup containing inline style attributes."
-        }
-      ]
-    }
+          message: "Do not generate markup containing inline style attributes.",
+        },
+      ],
+    },
   },
   {
-    files: ["src/app/js/controller/tikzSerializer.js", "src/webvowl/js/runtime/renderedSvgExportClone.js"],
+    files: [
+      "src/app/js/controller/tikzSerializer.js",
+      "src/webvowl/js/runtime/renderedSvgExportClone.js",
+    ],
     rules: {
       "no-restricted-syntax": [
         "error",
         {
           selector: "CallExpression[callee.property.name='style']",
-          message: "Do not mutate live presentation through D3 .style()."
+          message: "Do not mutate live presentation through D3 .style().",
         },
         {
-          selector: "CallExpression[callee.property.name='attr'][arguments.0.value='style']",
-          message: "Do not generate style attributes through D3."
+          selector:
+            "CallExpression[callee.property.name='attr'][arguments.0.value='style']",
+          message: "Do not generate style attributes through D3.",
         },
         {
           selector: "AssignmentExpression[left.object.property.name='style']",
-          message: "Do not assign presentation properties through element.style."
-        }
-      ]
-    }
-  }
+          message:
+            "Do not assign presentation properties through element.style.",
+        },
+      ],
+    },
+  },
 ]);

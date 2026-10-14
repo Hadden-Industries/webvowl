@@ -35,6 +35,7 @@ export function requestCanonicalSceneReconciliation(
   );
   const references = new Map(
     previous.references.map(({ occurrence, reference }) => [
+      // json-identity-contract: ordered-tuple; owner: Canonical scene merge presentation; reason: Load-generation and occurrence-ID scalars form an ordered reference identity.
       JSON.stringify([reference.loadGeneration, reference.occurrenceId]),
       occurrence,
     ]),
@@ -46,6 +47,7 @@ export function requestCanonicalSceneReconciliation(
     describeChoice: (reference) =>
       previousNames.get(
         references.get(
+          // json-identity-contract: ordered-tuple; owner: Canonical scene merge presentation; reason: Load-generation and occurrence-ID scalars form an ordered reference identity.
           JSON.stringify([reference.loadGeneration, reference.occurrenceId]),
         ),
       ),

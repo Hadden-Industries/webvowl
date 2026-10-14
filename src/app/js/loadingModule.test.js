@@ -826,6 +826,7 @@ describe("loading module canonical controller sources", () => {
       expect(requestedLoads).toEqual([]);
       expect(messages).toEqual([]);
       expect(controls.get("#loadingErrorMessage").textContent).toBe(
+        // json-identity-contract: bytes; owner: Local source recovery message regression; reason: Assert exact rendered message text including the JSON-quoted filename.
         `Select ${JSON.stringify(fileName)} again in the Ontology menu, or drop it onto the page. Local files are not retained after a page reload.`,
       );
       expect(controls.get("#loadingErrorMessage").hidden).toBe(false);

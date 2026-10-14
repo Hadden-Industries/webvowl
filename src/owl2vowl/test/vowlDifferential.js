@@ -1,5 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { isDeepStrictEqual } from "node:util";
 
 import {
   ONTOLOGY_BASE_URL,
@@ -414,9 +415,7 @@ export function referencesMatch(
    * to compare, rather than the converter-specific node identifiers.
    */
   return Boolean(
-    leftUnion &&
-    rightUnion &&
-    JSON.stringify(leftUnion) === JSON.stringify(rightUnion),
+    leftUnion && rightUnion && isDeepStrictEqual(leftUnion, rightUnion),
   );
 }
 

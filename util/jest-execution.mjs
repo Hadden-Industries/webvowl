@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import { spawn } from "node:child_process";
+import { isDeepStrictEqual } from "node:util";
 import { existsSync, readFileSync, writeFileSync, statSync } from "node:fs";
 import { join, resolve, relative } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -224,10 +225,7 @@ export function compareOutcomes(selected, full) {
   )
     return { equal: false, reason: "failed-or-incomplete-run" };
   const differences = Object.entries(selected.outcomes)
-    .filter(
-      ([path, suite]) =>
-        JSON.stringify(suite) !== JSON.stringify(full.outcomes[path]),
-    )
+    .filter(([path, suite]) => !isDeepStrictEqual(suite, full.outcomes[path]))
     .map(([path]) => path);
   return { equal: differences.length === 0, differences };
 }

@@ -67,7 +67,7 @@ function drawing() {
 describe("TikZ drawing serialization", () => {
   test("preserves the established class, datatype, link and property output", () => {
     const snapshot = drawing();
-    const before = JSON.stringify(snapshot);
+    const before = structuredClone(snapshot);
     const text = serializeRenderedDrawingAsTikz(snapshot);
     expect(text).toContain("\\clip (0pt , -200pt ) rectangle (300pt , 0pt);");
     expect(text).toContain(
@@ -82,7 +82,7 @@ describe("TikZ drawing serialization", () => {
     expect(text).toContain(
       "\\node[owlDatatypeProperty ,minimum width=80pt , fill=property0_COLOR  ] at (50pt, -50pt)   (property0) {name};",
     );
-    expect(JSON.stringify(snapshot)).toBe(before);
+    expect(snapshot).toEqual(before);
   });
 
   test("detaches and freezes renderer measurements", () => {

@@ -23,3 +23,12 @@ docs/owlapi-js/
 docs/sdlc/
 docs/reviews/
 docs/evaluations/
+
+# JSON checks discover files independently. Writes belong to the shared JSON gate.
+**/*.json
+**/*.jsonld
+**/*.sarif
+**/*.jsonl
+**/*.ndjson
+**/*.jsonc
+**/*.json5

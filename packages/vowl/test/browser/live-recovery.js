@@ -1,4 +1,5 @@
 import { canonicalize, decode, encode, profiles } from "vowl";
+import isEqual from "lodash/isEqual.js";
 import { createCanonicalVowlWorkerClient } from "../../../../src/app/js/controller/canonicalVowlWorkerClient.js";
 import { createCanonicalVowlDocumentSession } from "../../../../src/app/js/controller/canonicalVowlDocumentSession.js";
 import {
@@ -513,8 +514,7 @@ export async function qualifyLiveRecovery() {
         owlSession.synchronizeDrawing(state);
         const capturedDrawing = await decode(await owlSession.capture());
         check(
-          JSON.stringify(capturedDrawing.visualization.camera) ===
-            JSON.stringify(state.camera) &&
+          isEqual(capturedDrawing.visualization.camera, state.camera) &&
             state.placements.every(({ position, pinned }) =>
               capturedDrawing.visualization.placements.some(
                 (saved) =>
@@ -557,10 +557,8 @@ export async function qualifyLiveRecovery() {
         }
         check(
           rejectedDrawing &&
-            JSON.stringify(owlSession.snapshot()) ===
-              JSON.stringify(priorDocument) &&
-            JSON.stringify(runtime.readCanonicalDrawingState()) ===
-              JSON.stringify(priorDrawing),
+            isEqual(owlSession.snapshot(), priorDocument) &&
+            isEqual(runtime.readCanonicalDrawingState(), priorDrawing),
           "native-revision-failure-restores-document-and-drawing",
         );
         const selectedProperty = owlSession
@@ -669,7 +667,7 @@ export async function qualifyLiveRecovery() {
           { name: "qualified", iri: "urn:" },
           { renderedGraphRuntime: runtime },
         );
-        const beforePrefixFailure = JSON.stringify(owlSession.snapshot());
+        const beforePrefixFailure = structuredClone(owlSession.snapshot());
         let invalidPrefix = false;
         try {
           owlSession.setPrefix(
@@ -681,7 +679,7 @@ export async function qualifyLiveRecovery() {
         }
         check(
           invalidPrefix &&
-            JSON.stringify(owlSession.snapshot()) === beforePrefixFailure &&
+            isEqual(owlSession.snapshot(), beforePrefixFailure) &&
             owlSession.resolveEditorIri("qualified:renamedProperty") ===
               "urn:renamedProperty",
           "native-prefix-edit-keeps-semantic-identity-and-rejects-invalid-iri",
@@ -767,8 +765,7 @@ export async function qualifyLiveRecovery() {
         }
         check(
           rejectedLoad &&
-            JSON.stringify(owlSession.snapshot()) ===
-              JSON.stringify(beforeReload) &&
+            isEqual(owlSession.snapshot(), beforeReload) &&
             runtime.readCanonicalDrawingState().loadGeneration ===
               beforeReload.loadGeneration &&
             graph.paused(),
@@ -1183,8 +1180,7 @@ export async function qualifyLiveRecovery() {
             } else {
               check(
                 mergeFailure?.code === "DOCUMENT_EDIT_CANCELLED" &&
-                  JSON.stringify(owlSession.snapshot()) ===
-                    JSON.stringify(retainedMergeBase),
+                  isEqual(owlSession.snapshot(), retainedMergeBase),
                 "merge-cancel-preserves-document-and-scene",
               );
             }

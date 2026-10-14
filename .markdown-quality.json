@@ -1,7 +1,11 @@
 {
   "schemaVersion": 2,
   "preset": "authored-gfm@1",
-  "include": ["*.md", "docs/**/*.md", "packages/vowl/**/*.md"],
+  "include": [
+    "*.md",
+    "docs/**/*.md",
+    "packages/vowl/**/*.md"
+  ],
   "exclude": [
     "docs/owlapi-js/**",
     "docs/sdlc/**",
@@ -9,6 +13,12 @@
     "docs/evaluations/**"
   ],
   "lint": {},
-  "links": { "localFiles": true, "rootRelative": "reject" },
-  "layout": { "endOfLine": "lf", "tabWidth": 2 }
+  "links": {
+    "localFiles": true,
+    "rootRelative": "reject"
+  },
+  "layout": {
+    "endOfLine": "lf",
+    "tabWidth": 2
+  }
 }

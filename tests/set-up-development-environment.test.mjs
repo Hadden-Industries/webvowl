@@ -26,20 +26,28 @@ const nodeVersionDescriptor = Object.getOwnPropertyDescriptor(
 
 test("development setup does not activate repository workflow configuration", () => {
   setUpDevelopmentEnvironment({ repositoryRoot });
-  expect(spawnSyncMock.mock.calls.some(([, args]) =>
-    args.some((argument) => /set_up_sdlc\.py|sdlc_stop_gate\.py/.test(argument)),
-  )).toBe(false);
+  expect(
+    spawnSyncMock.mock.calls.some(([, args]) =>
+      args.some((argument) =>
+        /set_up_sdlc\.py|sdlc_stop_gate\.py/.test(argument),
+      ),
+    ),
+  ).toBe(false);
 });
 
 test("WebVOWL setup needs only development requirements and never checks AWS", () => {
   rmSync(join(repositoryRoot, "requirements.txt"));
   setUpDevelopmentEnvironment({ repositoryRoot });
-  expect(spawnSyncMock.mock.calls.some(([executable]) => executable === "aws")).toBe(false);
+  expect(
+    spawnSyncMock.mock.calls.some(([executable]) => executable === "aws"),
+  ).toBe(false);
   const installedRequirements = spawnSyncMock.mock.calls
     .map(([, args]) => args)
     .filter((args) => args.includes("-r"))
     .map((args) => args.at(-1));
-  expect(installedRequirements).toEqual([join(repositoryRoot, "requirements.lock.txt")]);
+  expect(installedRequirements).toEqual([
+    join(repositoryRoot, "requirements.lock.txt"),
+  ]);
 });
 
 function createCommandResult(stdout = "", status = 0) {
@@ -74,9 +82,7 @@ function createPythonVirtualEnvironmentFixture() {
 }
 
 beforeEach(() => {
-  temporaryDirectoryPath = mkdtempSync(
-    join(tmpdir(), "webvowl-development-"),
-  );
+  temporaryDirectoryPath = mkdtempSync(join(tmpdir(), "webvowl-development-"));
   repositoryRoot = join(temporaryDirectoryPath, "checkout with spaces");
   mkdirSync(repositoryRoot);
   writeFileSync(
@@ -90,7 +96,10 @@ beforeEach(() => {
     join(repositoryRoot, "requirements-dev.txt"),
     "PyYAML>=6.0.3\n",
   );
-  writeFileSync(join(repositoryRoot, "requirements.lock.txt"), "fixture lock\n");
+  writeFileSync(
+    join(repositoryRoot, "requirements.lock.txt"),
+    "fixture lock\n",
+  );
   Object.defineProperty(process.versions, "node", { value: "24.20.0" });
   writeFileSync(
     join(repositoryRoot, "requirements.txt"),
@@ -176,6 +185,8 @@ test.each([
         process.execPath,
         [npmCliPath, "ci", "--include=dev", "--ignore-scripts"],
       ],
+      [process.execPath, [npmCliPath, "run", "install:markdown"]],
+      [process.execPath, [npmCliPath, "run", "install:json"]],
       [
         systemPythonExecutableName,
         ["-m", "venv", join(repositoryRoot, ".venv")],
@@ -272,8 +283,9 @@ test("rejects a Node version below the documented prerequisite", () => {
 
 test("preserves the exact npm reference after native admission", () => {
   setUpDevelopmentEnvironment({ repositoryRoot });
-  expect(JSON.parse(readFileSync(join(repositoryRoot, "package.json"), "utf8")))
-    .toEqual({ packageManager: "npm@12.0.2" });
+  expect(
+    JSON.parse(readFileSync(join(repositoryRoot, "package.json"), "utf8")),
+  ).toEqual({ packageManager: "npm@12.0.2" });
   expect(spawnSyncMock.mock.calls.some(([, args]) => args.includes("ci"))).toBe(
     true,
   );
@@ -313,7 +325,9 @@ test.each(["3.15.1", "3.16.0", "4.0.0"])(
         : successfulCommand(executable, args, options),
     );
     setUpDevelopmentEnvironment({ repositoryRoot });
-    expect(spawnSyncMock.mock.calls.some(([, args]) => args.includes("ci"))).toBe(true);
+    expect(
+      spawnSyncMock.mock.calls.some(([, args]) => args.includes("ci")),
+    ).toBe(true);
   },
 );
 
@@ -346,6 +360,9 @@ test("stops when npm installation is terminated by a signal", () => {
   );
   expect(spawnSyncMock).toHaveBeenCalledTimes(2);
   expect(spawnSyncMock.mock.lastCall[1]).toEqual([
-    npmCliPath, "ci", "--include=dev", "--ignore-scripts",
+    npmCliPath,
+    "ci",
+    "--include=dev",
+    "--ignore-scripts",
   ]);
 });

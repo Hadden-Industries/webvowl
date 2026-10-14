@@ -1,3 +1,5 @@
+import isEqual from "lodash/isEqual.js";
+import uniqWith from "lodash/uniqWith.js";
 import {
   assertCurrentOntologyElementReference,
   ontologyElementReferenceKey,
@@ -357,10 +359,7 @@ function semanticSearchRecords(records) {
           field === "labelRecords"
             ? [...values, ...(previous[field] ?? [])]
             : [...(previous[field] ?? []), ...values];
-        const entries = new Map(
-          combined.map((value) => [JSON.stringify(value), value]),
-        );
-        previous[field] = [...entries.values()];
+        previous[field] = uniqWith(combined, isEqual);
       }
     }
   }

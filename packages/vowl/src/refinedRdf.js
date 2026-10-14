@@ -224,6 +224,7 @@ export async function refineDataset(dataset, budget) {
           return `[${termKey(quad.subject, id)},${termKey(quad.predicate, id)},${termKey(quad.object, id)}]`;
         })
         .sort();
+      // json-identity-contract: ordered-tuple; owner: RDF color-refinement digest producer; reason: The current color string and sorted term-signature strings are the deterministic ordered digest preimage.
       const signature = JSON.stringify([colors.get(id), entries]);
       scratchBytes += requiredScratchBytes;
       if (!pendingColors.has(signature)) {

@@ -8,6 +8,7 @@ import { createVisualizationArtifactService } from "../../../../src/app/js/contr
 import { createGraphLayoutSettler } from "../../../../src/app/js/controller/graphLayoutSettler.js";
 import { createSvgSerializer } from "../../../../src/app/js/controller/svgSerializer.js";
 import { createWebMcpToolDispatch } from "../../../../src/app/js/webmcp/webMcpToolContracts.js";
+import isEqual from "lodash/isEqual.js";
 
 const result = { status: "running", cycles: [], retired: [] };
 globalThis.performanceSearchQualification = result;
@@ -147,7 +148,7 @@ async function cycle(index) {
       });
     }
     check(
-      JSON.stringify(await session.capture()) === JSON.stringify(ordinaryBytes),
+      isEqual(await session.capture(), ordinaryBytes),
       "ordinary-export-during-reveal",
     );
     const svg = await controller.exportVisualization({
@@ -157,7 +158,7 @@ async function cycle(index) {
     check(svg.byteLength > 0, "temporary-svg-export");
     await dispatch.callWebMcpTool("clear_ontology_neighborhood", {});
     check(
-      JSON.stringify(session.scene().snapshot()) === JSON.stringify(ordinary),
+      isEqual(session.scene().snapshot(), ordinary),
       "exact-ordinary-restoration",
     );
     await controller.revealOntologyNeighborhood({

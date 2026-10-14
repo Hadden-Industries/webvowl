@@ -37,6 +37,27 @@ import {
   runJest,
 } from "./jest-execution.mjs";
 
+test("affected/full result comparison ignores member order while retaining ordered result arrays", () => {
+  const selected = {
+    success: true,
+    outcomes: {
+      "suite.test.js": { status: "passed", assertions: ["first", "second"] },
+    },
+  };
+  const full = {
+    success: true,
+    outcomes: {
+      "suite.test.js": { assertions: ["first", "second"], status: "passed" },
+    },
+  };
+  expect(compareOutcomes(selected, full)).toEqual({
+    equal: true,
+    differences: [],
+  });
+  full.outcomes["suite.test.js"].assertions.reverse();
+  expect(compareOutcomes(selected, full).equal).toBe(false);
+});
+
 const ownedDirectories = [];
 const fixture = () => {
   const root = mkdtempSync(join(tmpdir(), "webvowl-impact-fixture-"));

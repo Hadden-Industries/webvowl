@@ -12,6 +12,7 @@ const checkNames = (full) => ({
     ? ["Python tooling (ubuntu-24.04)", "Python tooling (windows-latest)"]
     : ["Python tooling (${{ matrix.os }})"],
   documentation: ["Markdown checks"],
+  json: ["JSON quality (ubuntu-24.04)", "JSON quality (windows-2025)"],
   required: ["WebVOWL application"],
 });
 const sha = (value) =>
@@ -51,6 +52,7 @@ function expectedResults(full) {
     application: full ? "success" : "skipped",
     tooling: full ? "success" : "skipped",
     documentation: "success",
+    json: "success",
     required: "success",
   };
 }
@@ -66,6 +68,12 @@ export function requireChecks(needs) {
     "Missing evidence decision",
   );
   const reused = outputs.reuse === "true";
+  // JSON always executes on the landed candidate; prior application proof cannot
+  // replace current physical/logical/record/generated JSON qualification.
+  requireFact(
+    needs.json?.result === "success",
+    "Fresh JSON checks did not succeed",
+  );
   if (reused) {
     requireFact(
       /^[1-9][0-9]*$/u.test(outputs.source_run_id ?? "") &&

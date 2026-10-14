@@ -114,6 +114,7 @@ function runGate(overrides = {}, command = gate.run) {
           documentation: {
             result: overrides.DOCUMENTATION_RESULT ?? "success",
           },
+          json: { result: overrides.JSON_RESULT ?? "success" },
         }),
       },
       encoding: "utf8",
@@ -144,6 +145,28 @@ test("the required workflow gate admits successful docs-only and full checks", (
     }),
   ).toBe(0);
 });
+
+test("JSON checking executes on both platforms even for documentation-only or reused runs", () => {
+  const json = workflow.jobs.json;
+  expect(json).toBeDefined();
+  expect(json.if).toBeUndefined();
+  expect(json.strategy.matrix.os).toEqual(["ubuntu-24.04", "windows-2025"]);
+  expect(workflow.jobs.required.needs).toContain("json");
+  const commands = json.steps
+    .map((step) => step.run)
+    .filter(Boolean)
+    .join("\n");
+  expect(commands).toContain("npm run install:json");
+  expect(commands).toContain("npm run build:bundle");
+  expect(commands).toContain("npm run check:json -- --require-generated");
+});
+
+test.each(["failure", "cancelled", "skipped", ""])(
+  "the required gate rejects a %s JSON job",
+  (result) => {
+    expect(runGate({ JSON_RESULT: result })).not.toBe(0);
+  },
+);
 test.each([
   { SCOPE_RESULT: "failure" },
   { FULL_CHECKS: "" },

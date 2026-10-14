@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Native API composition informed by markdown-quality at 0fac1db72856c7579625562c4a145f0801b2fb80.
 import { createHash } from "node:crypto";
+import { isDeepStrictEqual } from "node:util";
 import { spawnSync } from "node:child_process";
 import {
   existsSync,
@@ -271,7 +272,7 @@ export function snapshot(root) {
   };
 }
 export function assertUnchanged(root, before) {
-  if (JSON.stringify(before) !== JSON.stringify(snapshot(root)))
+  if (!isDeepStrictEqual(before, snapshot(root)))
     throw new Error("Candidate input drift");
 }
 

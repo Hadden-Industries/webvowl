@@ -354,9 +354,12 @@ export function attachArtifact(source, input, joined, budget, policy) {
         position: { x, y },
         pinned: row.fields.pinned,
       };
+      const previous = placements.get(target);
       if (
-        placements.has(target) &&
-        JSON.stringify(placements.get(target)) !== JSON.stringify(placement)
+        previous &&
+        (previous.position.x !== x ||
+          previous.position.y !== y ||
+          previous.pinned !== placement.pinned)
       ) {
         fail("MIGRATION_AMBIGUOUS", row.locations.get("pos"));
       }
