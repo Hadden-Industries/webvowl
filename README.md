@@ -183,8 +183,12 @@ An absent corpus is a missing test prerequisite.
 
 ### Agent tooling
 
-The independent `util/set_up_mcp_servers.py` and `util/set_up_agent_skills.py` utilities remain available.
-External skill refresh requires reviewed immutable source revisions and a pinned project-local Skills CLI; the existing lock is not permission to install or refresh tools.
+The independent `util/set_up_mcp_servers.py` utility remains available.
+External skills use the independently deployed `tools/repository-skills.pyz`, remote declarations and acquisition metadata in `skills-lock.json`, and agent targets and invocation policies in `repository-skills.json`.
+Run `npm run plan:skill-reconciliation`, review its exact diff, then use `npm run apply:skill-reconciliation-plan -- PLAN_ID` to publish that saved candidate without reacquisition.
+The CLI resolves `skills@latest` once per plan and supports optional per-skill branch, tag or commit refs; floating refs do not become mandatory pins.
+Unrelated installed skills and native lock entries survive; removing a declaration never prunes an installation.
+Use `node util/runRepositoryPython.mjs tools/repository-skills.pyz recover PLAN_ID` to recover an interrupted publication.
 Generated local configuration and retained historical evidence remain ignored by Git.
 
 ## Help and contributing
