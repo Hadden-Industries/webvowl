@@ -11,6 +11,8 @@ import {
   checkJsonLines,
   jsonContract,
   verifyJsonQualityInstallation,
+  formatJsonDocument,
+  validateJsonQualityResult,
 } from "../tooling/json/public-api.mjs";
 
 test("the repository adapter exposes every independently inventoried JSON member", () => {
@@ -41,6 +43,49 @@ test("the native source selector, lock, generated bootstrap and installed payloa
     ),
   });
   assert.ok(result.files > 0);
+});
+
+test("supplied-document verification uses the current export and canonical check modifier", async () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const packageBytes = readFileSync(
+    new URL("../package.json", import.meta.url),
+  );
+  const request = {
+    schemaVersion: 1,
+    requestId: "consumer-interface",
+    path: "package.json",
+    contentBase64: Buffer.from('{"value":1.00e+2}').toString("base64"),
+  };
+  const response = await formatJsonDocument(request, {
+    root,
+    check: true,
+    capacityLimits: false,
+  });
+  assert.equal(response.result.schemaVersion, 4);
+  assert.equal(response.result.operation, "format");
+  assert.equal(response.result.check, true);
+  assert.equal(response.result.status, "failed");
+  assert.equal(response.contentBase64, request.contentBase64);
+  validateJsonQualityResult(response.result);
+  assert.deepEqual(response.result.writes.changed, []);
+  assert.deepEqual(
+    readFileSync(new URL("../package.json", import.meta.url)),
+    packageBytes,
+  );
+});
+
+test("repository JSON scripts use the canonical format and protected-scope modifiers", () => {
+  const { scripts } = JSON.parse(
+    readFileSync(new URL("../package.json", import.meta.url)),
+  );
+  assert.equal(
+    scripts["format:json:check"],
+    "node util/runRepositoryJsonQuality.mjs format --check",
+  );
+  assert.equal(
+    scripts["check:json:producers"],
+    "node util/runRepositoryJsonQuality.mjs check --scope protected",
+  );
 });
 
 test("all physical vectors remain checked and only canonical presentation has an alternate producer contract", () => {

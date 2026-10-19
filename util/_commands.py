@@ -16,6 +16,7 @@ modules that are not part of a public interface.
 
 from __future__ import annotations
 
+import re
 import shutil
 import subprocess
 import sys
@@ -25,6 +26,24 @@ from pathlib import Path
 
 class SetupError(RuntimeError):
     """Raised for a safe, user-actionable setup failure."""
+
+
+def require_python_version() -> None:
+    # Read this checkout's current stable minimum rather than embedding a copy.
+    version_path = Path(__file__).resolve().parent.parent / ".python-version"
+    selected = version_path.read_text(encoding="utf-8").strip()
+    if re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", selected) is None:
+        raise SetupError(f"Invalid Python version in {version_path}: {selected}")
+    minimum = tuple(int(part) for part in selected.split("."))
+    if (
+        sys.version_info[:3] < minimum
+        or getattr(sys.version_info, "releaselevel", "final") != "final"
+    ):
+        raise SetupError(
+            f"Stable Python {selected} or newer is required; "
+            "see the minimum in .python-version. "
+            f"Running: {sys.version.split()[0]}"
+        )
 
 
 def write_console_diagnostic(text: str, *, stream=None) -> str:
