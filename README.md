@@ -142,7 +142,17 @@ Update the bootstrap through `jsonQualityAcquisitionBootstrap()` rather than edi
 The consumer test also rejects bootstrap drift.
 `npm run check:json:inventory` reports scope and resolved contracts without validating document contents.
 `npm run check:json` checks bytes, strict syntax, duplicate and meaningful keys, numeric and Unicode interoperability, all-string NFC and presentation.
-`-- --json` requests machine results; capacity flags such as `-- --max-files 100000` and `-- --no-limits` override resource limits without weakening semantic checks.
+`-- --json` requests schema-version-4 machine results; capacity flags such as `-- --max-files 100000` and `-- --no-capacity-limits` override shared capacity controls without weakening semantic checks.
+Policy and object API overrides use `capacityLimits`; explicit `false` disables every shared capacity check, and individual numeric overrides cannot be combined with that bypass.
+The generated acquisition bootstrap accepts `JSON_QUALITY_CAPACITY_LIMITS` and separate `JSON_QUALITY_CLEANUP` retry options.
+
+`npm run format:json:check` delegates to `format --check`; the existing `check:json:producers` npm script delegates to `check --scope protected`.
+The object API uses `runJsonQuality("format", { check: true })` and `runJsonQuality("check", { scope: "protected" })` respectively.
+Literal file selection follows `--`; JSON-encoded selection is `--files '["path.json"]'`, corresponding to API `files` for every operation.
+Normalization requires a nonempty file selection.
+Supplied-document formatting uses `format --request - --json` or `formatJsonDocument(request, options)`; `--check` / `check: true` verifies without changing the supplied bytes.
+Retired JSON API operations `check-format` / `check-protected`, `sourcePaths`, JSON CLI `--files-json` / `--stdin-request` / `--no-limits`, and export `processJsonDocument` have no compatibility aliases.
+Markdown-tool CLI names remain governed by its own installed package.
 
 All owned physical JSON is checked by default, including untracked and ignored generated files.
 The adapter independently verifies corpus storage and adds every inventory-declared bundled JSON member; JSONL is checked per record.
