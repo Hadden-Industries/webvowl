@@ -2,14 +2,14 @@
 
 Run: `20261019T2257Z-169de90b`, written 2026-10-20 (local) / 2026-10-19 22:57Z – 2026-10-20 ≈04:35Z, paused ≈23:25–04:30Z (see §0.3).
 Mode: planning and review only. Nothing in this document is authorised for implementation.
-Status: review record. Its recommendations are proposals awaiting the owner decisions in section 11; none has been accepted or implemented.
+Status: review record. Its recommendations are proposals awaiting the owner decisions in section 11 and decision D-19 in section 17; none has been accepted or implemented.
 Citations: source citations are relative links, and line numbers refer to HEAD `62961414`; later commits may move them.
 When the citations were converted to links, eight ranges were tightened to the exact start and end of the cited construct.
 Location: written outside the repository as the task required, in `C:\Users\maksy\Documents\Claude-planning-reviews\2026-10-20\task-07\20261019T2257Z-169de90b\`, as a report and a separate wireframes-and-storyboard file.
 On 2026-10-20 the owner moved them into the repository, then had them consolidated into this single file: the wireframes, storyboard and state diagrams are section 16, and references between the two files now point within this document.
 The findings themselves are unchanged.
 Parallel reviews from the same date: [architecture](20261020-architecture-assessment.md) and [performance](20261020-performance-review.md).
-This review was written without reading them and is not reconciled with them.
+This review was written without reading them; section 17, added afterwards, reconciles it with them and fixes the implementation order.
 
 ## 0. Scope, state and evidence
 
@@ -1087,3 +1087,111 @@ Below the current docking threshold (viewport ≤ 1024 px), so no side-by-side i
    Any event during an *Opening/Closing animation: cancel or reverse from the
    current position to the latest target state; nothing is queued.
 ```
+
+## 17. Cross-review reconciliation and implementation order
+
+### 17.1 Implementation order across the three reviews
+
+The text of this subsection is identical in all three reviews; only its number differs.
+It was added on 2026-10-20, after the [architecture assessment](20261020-architecture-assessment.md), the [performance review](20261020-performance-review.md) and the [UI design review](20261020-ui-design-review.md) were committed together in `838dd6e9`.
+It orders, assigns and cross-references their recommendations, and it changes none of their findings.
+The sessions that produced the three reviews were consulted, and they record no ordering intent beyond what the documents state.
+
+One implementation plan is written from each review, and the plans are applied in this order:
+
+| Order | Plan written from            | Slices, in order                                                      | Starts when                                                                      |
+| ----: | ---------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+|     1 | Architecture assessment, §11 | PR-A → PR-B → PR-C → PR-D → PR-E                                      | Now: its owner decisions were settled on 2026-10-20 (architecture §15 and §18.6) |
+|     2 | Performance review, §7       | S0 → S1 → S2 → SF (conditional) → S3 → S4 → S5 → S6 → S7 → S8         | Plan 1 is complete                                                               |
+|     3 | UI design review, §9         | A1 → A2 → A3 → A4 (optional) → B1 → B2 → B3 → B4 → B5 → B6 (optional) | Plan 2 is complete                                                               |
+
+A plan is complete when every slice has either merged or been closed by its own gate: not selected, stopped by its falsifier, or deferred by an owner decision.
+Optional and gated slices therefore never hold up the next plan.
+Reviving a closed slice later needs a new plan after plan 3.
+
+**Why the order is stable.**
+Every dependency points to an earlier plan:
+
+- **Plan 1 needs nothing from plans 2 and 3.**
+  PR-A and PR-B are the oracles the later plans test against: the declared runtime contract R and the honest runtime double.
+  PR-C gives supersession and cancellation one owner, which the worker experiments (S7) and the UI's selection clearing rely on.
+  PR-D publishes `temporaryPresentation` and removes the search menu's private copy of it before S1 and the UI's slices A2 and A3 change the same modules.
+  PR-E leaves one renderer input mode for S6, S8, B5 and B6.
+- **Plan 2 needs only plan 1.**
+  No performance slice changes UI behaviour or configuration (performance §10, interface assumptions), and its questions to the UI do not block it.
+  Running it before plan 3 means a selection no longer deep-copies the whole inspection (S2) by the time the UI makes every selection open a preview, and S0's harness already exists when the UI needs to measure its anchoring and motion.
+- **Plan 3 needs both.**
+  It extends contract R with the anchor fact and the decoration (UI AH-1 and AH-3), reads the published `temporaryPresentation`, and builds the preview on the copy-free describe path.
+
+**One transfer removes the only backward dependency.**
+Architecture PR-F, the semantic read model (contract S), moves into plan 2 as the conditional slice SF, directly after S2.
+The architecture assessment gates PR-F on the performance work (its §11 ordering rationale and §14.5), so leaving it in plan 1 would make plan 1 wait for plan 2.
+
+**Rules for every plan.**
+
+- **Re-anchor first.**
+  All three reviews cite HEAD `62961414`, and no source changed between it and `838dd6e9`.
+  Each plan's first step re-verifies its review's citations and counts against the HEAD the previous plan left, and records any drift.
+  Contract changes made by an earlier plan in this order are the expected starting point, not a replanning trigger.
+  This narrows the performance review's trigger "canonical contracts or identities change" (performance §7) to changes not listed in this subsection.
+- **Do not reopen an earlier plan's accepted decision.**
+  Raise a new owner decision instead.
+- **Keep each review's own rules.**
+  Slices are test-first; any configuration change needs exact approval under [`AGENTS.md`](../../AGENTS.md); performance acceptance uses the quiescent environment of [ADR 0003](../adr/0003-quiescent-benchmark-environment.md).
+
+### 17.2 Position and prerequisites
+
+This review's plan runs last, once the performance plan is complete.
+What it inherits:
+
+- **From plan 1:**
+  - contract R, which slices B5 and B6 extend with the anchor fact and the decoration;
+  - PR-D's published `temporaryPresentation`, which drives the preview's "not shown in the current view" mode;
+  - PR-D's rewrite of the search menu's neighbourhood state, which slices A2 and A3 build on;
+  - PR-C's `LOAD_PENDING` code (architecture Q2), which the chooser and the preview show while a load is pending.
+- **From plan 2:**
+  - S2, and SF if adopted, for a describe without whole-inspection copies on every selection;
+  - S0's harness for PH-1 to PH-4.
+
+Slices A1–A4, the ontology chooser, depend functionally on neither earlier plan; they share only the search menu with PR-D.
+They stay in this plan so that the order stays stable, and moving them earlier would need re-planning.
+
+### 17.3 Answers to this review's handoff questions
+
+The architecture and performance reviews answer the questions in section 12 as follows:
+
+| Question                                           | Answer from the other reviews                                                                                                                                                                                                                                  | Decided in                         |
+| -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| AH-1: anchor geometry                              | Governed by architecture contract R. Under R4 as settled on 2026-10-20 (architecture §18.4), the anchor is a renderer-observation event, like `viewport-changed` (ADR 0010 decision 7); it is declared with that class and checked by PR-A's conformance tests | Plan 3, slice B5                   |
+| AH-2: publish the selected occurrence              | Architecture section 10 reserves occurrence references for arrangement, so the anchor is framed as an arrangement read of the selected occurrence's position, never as an entity or editing identity                                                           | Plan 3, slice B5                   |
+| AH-3: renderer-local decoration                    | Allowed as a renderer-local fact like the selected halo (ADR 0010 decision 5), declared under contract R; its exclusion from export is tested in plan 3                                                                                                        | Plan 3, slice B6                   |
+| AH-4: order of `selection`                         | Not covered by either review                                                                                                                                                                                                                                   | Plan 3, before B3                  |
+| AH-5: first record per key in describe             | SF's differential oracle covers describe if SF is adopted; otherwise verify before B3                                                                                                                                                                          | Plan 2 (SF) or plan 3              |
+| AH-6: entity-scoped retained facts                 | Not covered; a new controller read needs an ADR 0012 parity decision                                                                                                                                                                                           | Plan 3, slice B4                   |
+| AH-7: shared submission function                   | Comes after PR-D's search-menu rewrite                                                                                                                                                                                                                         | Plan 3, slice A2                   |
+| AH-8: automatic node count on `iri=` loads         | Not covered                                                                                                                                                                                                                                                    | Plan 3, slice A2                   |
+| AH-9: keyboard selection of drawn occurrences      | Not covered                                                                                                                                                                                                                                                    | Plan 3                             |
+| AH-10: agent listing of curated sources            | Not covered; D-16 stands                                                                                                                                                                                                                                       | No slice                           |
+| AH-11: viewport metrics owned by the search menu   | Comes after PR-D's search-menu rewrite                                                                                                                                                                                                                         | Plan 3, slice A3                   |
+| PH-1 and PH-2: anchor and overlay cost             | Neither review measured them; use S0's harness under ADR 0003                                                                                                                                                                                                  | Plan 3, slice B5                   |
+| PH-3: describe under rapid selection               | S2 removes the whole-inspection copy behind every describe (performance P2); SF may also remove the per-call index rebuild                                                                                                                                     | Plan 2, then re-measured in plan 3 |
+| PH-4: Hadden Industries load and settle            | W5 (`20260912-full`) is the nearest admitted workload; add H1–H4 to the harness if needed                                                                                                                                                                      | Plan 3                             |
+| PH-5: suspend anchor updates when hidden or paused | Not covered                                                                                                                                                                                                                                                    | Plan 3, slice B5                   |
+
+### 17.4 Additions from the reconciliation
+
+- **D-19, a new decision: one shared description-to-presentation model.**
+  The architecture assessment leaves this choice to the UI review (architecture §13).
+  The preview, the full details and the docked inspector all present the same descriptions, so adopt one pure model and test it against independent expected outputs rather than against the model itself.
+  Recommendation: adopt it in slice B3.
+- **An added ownership invariant for §7.3.**
+  The preview presenter checks the load generation before describing and never throws into `publish()`.
+  It remains as defence in depth now that the owner has accepted architecture Q3, which isolates subscriber failures (contract P4).
+- **The performance review's question about deferring selection details** (performance §10, "For the UI thread", question 3) is answered by this design.
+  The preview renders in the next animation frame after a selection, coalesced so that the latest selection wins (§7.4), and full details render only on demand.
+
+### 17.5 Owner decisions before this plan
+
+- D-01 to D-18 (section 11), including D-07, which reverses an asserted test.
+- D-19 (§17.4).
+- The questions in §17.3 that are still open at the start of the plan.

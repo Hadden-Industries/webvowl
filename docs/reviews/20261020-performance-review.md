@@ -12,6 +12,8 @@ Run `perf-20261020-62961414-f89186` · prepared 2026-10-20 (local) · planning a
 > - A few citation ranges were corrected during the conversion.
 >
 > The findings themselves are unchanged.
+>
+> Section 12, added after all three reviews were committed, reconciles this review with the [architecture assessment](20261020-architecture-assessment.md) and the [UI design review](20261020-ui-design-review.md) and fixes the implementation order.
 
 | Item              | Value                                                                                                                                                                         |
 | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -51,6 +53,7 @@ Contents:
 9. Skeptical second pass
 10. Handoff notes
 11. Evidence index
+12. Cross-review reconciliation and implementation order
 
 ---
 
@@ -967,3 +970,110 @@ These paths are on the owner's machine, outside the repository.
 - The worker bundle size comes from a stale local artefact.
 - The 2,000-class fixture identities were not re-read.
 - The "legacy-inherited" status of the text-measurement code was not compared against the upstream source.
+
+---
+
+## 12. Cross-review reconciliation and implementation order
+
+### 12.1 Implementation order across the three reviews
+
+The text of this subsection is identical in all three reviews; only its number differs.
+It was added on 2026-10-20, after the [architecture assessment](20261020-architecture-assessment.md), the [performance review](20261020-performance-review.md) and the [UI design review](20261020-ui-design-review.md) were committed together in `838dd6e9`.
+It orders, assigns and cross-references their recommendations, and it changes none of their findings.
+The sessions that produced the three reviews were consulted, and they record no ordering intent beyond what the documents state.
+
+One implementation plan is written from each review, and the plans are applied in this order:
+
+| Order | Plan written from            | Slices, in order                                                      | Starts when                                                                      |
+| ----: | ---------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+|     1 | Architecture assessment, §11 | PR-A → PR-B → PR-C → PR-D → PR-E                                      | Now: its owner decisions were settled on 2026-10-20 (architecture §15 and §18.6) |
+|     2 | Performance review, §7       | S0 → S1 → S2 → SF (conditional) → S3 → S4 → S5 → S6 → S7 → S8         | Plan 1 is complete                                                               |
+|     3 | UI design review, §9         | A1 → A2 → A3 → A4 (optional) → B1 → B2 → B3 → B4 → B5 → B6 (optional) | Plan 2 is complete                                                               |
+
+A plan is complete when every slice has either merged or been closed by its own gate: not selected, stopped by its falsifier, or deferred by an owner decision.
+Optional and gated slices therefore never hold up the next plan.
+Reviving a closed slice later needs a new plan after plan 3.
+
+**Why the order is stable.**
+Every dependency points to an earlier plan:
+
+- **Plan 1 needs nothing from plans 2 and 3.**
+  PR-A and PR-B are the oracles the later plans test against: the declared runtime contract R and the honest runtime double.
+  PR-C gives supersession and cancellation one owner, which the worker experiments (S7) and the UI's selection clearing rely on.
+  PR-D publishes `temporaryPresentation` and removes the search menu's private copy of it before S1 and the UI's slices A2 and A3 change the same modules.
+  PR-E leaves one renderer input mode for S6, S8, B5 and B6.
+- **Plan 2 needs only plan 1.**
+  No performance slice changes UI behaviour or configuration (performance §10, interface assumptions), and its questions to the UI do not block it.
+  Running it before plan 3 means a selection no longer deep-copies the whole inspection (S2) by the time the UI makes every selection open a preview, and S0's harness already exists when the UI needs to measure its anchoring and motion.
+- **Plan 3 needs both.**
+  It extends contract R with the anchor fact and the decoration (UI AH-1 and AH-3), reads the published `temporaryPresentation`, and builds the preview on the copy-free describe path.
+
+**One transfer removes the only backward dependency.**
+Architecture PR-F, the semantic read model (contract S), moves into plan 2 as the conditional slice SF, directly after S2.
+The architecture assessment gates PR-F on the performance work (its §11 ordering rationale and §14.5), so leaving it in plan 1 would make plan 1 wait for plan 2.
+
+**Rules for every plan.**
+
+- **Re-anchor first.**
+  All three reviews cite HEAD `62961414`, and no source changed between it and `838dd6e9`.
+  Each plan's first step re-verifies its review's citations and counts against the HEAD the previous plan left, and records any drift.
+  Contract changes made by an earlier plan in this order are the expected starting point, not a replanning trigger.
+  This narrows the performance review's trigger "canonical contracts or identities change" (performance §7) to changes not listed in this subsection.
+- **Do not reopen an earlier plan's accepted decision.**
+  Raise a new owner decision instead.
+- **Keep each review's own rules.**
+  Slices are test-first; any configuration change needs exact approval under [`AGENTS.md`](../../AGENTS.md); performance acceptance uses the quiescent environment of [ADR 0003](../adr/0003-quiescent-benchmark-environment.md).
+
+### 12.2 Position and prerequisites
+
+This review's plan runs second, once the architecture plan is complete.
+What it inherits from that plan:
+
+- S1 changes [`webVowlControllerContracts.js`](../../src/app/js/controller/webVowlControllerContracts.js) after PR-D adds the `temporaryPresentation` field there, and its cue no longer has to work around the search menu's private copy of the neighbourhood state, which PR-D removes.
+- S2 changes `snapshots()` inside the controller that PR-C restructures, so [`canonicalWebVowlController.js:167-173`](../../src/app/js/controller/canonicalWebVowlController.js#L167-L173) must be re-anchored before S2 starts.
+- S4 changes the drawing-request validation in [`renderedGraphRuntimeContracts.js`](../../src/app/js/controller/renderedGraphRuntimeContracts.js) after PR-E removes that file's legacy validators.
+- S6 and S8 work on the canonical-only renderer that PR-E leaves.
+- S7 keeps termination-based cancellation under PR-C's lifecycle owner.
+
+S0 does not need to run before the architecture plan.
+That plan confirms PR-C and PR-D are performance-neutral with the existing scripts (architecture §13).
+S0 then records the post-plan-1 baseline; §6.2 already records HEAD and tree for every run.
+
+### 12.3 Slice SF, transferred from the architecture assessment
+
+SF is architecture PR-F, the revision-scoped semantic read model (architecture contract S, sections 10 and 11), placed directly after S2.
+
+- **Decide after S0 and S2.**
+  Adopt SF if the owner accepts the architecture assessment's ownership argument, one invalidation owner instead of seven (architecture §14.5).
+  Also adopt it if S0 and S2 show that the per-call record-index rebuild in `describeOntologyElements` ([`ontologyInspector.js:696-709`](../../src/app/js/controller/ontologyInspector.js#L696-L709)) still matters on the click-to-details path (B4).
+  Otherwise close it as not selected.
+- **Tests:** contract S's differential oracle (invariant S3) on the shipped corpus, plus retirement on edit, on load, and on a language or prefix change.
+- **Ownership:** invariant S2's "owned copies" may be met by deep-frozen results passed by reference, if decision 1.5-2c accepts that model for S2.
+- **Why it sits here:** the UI plan describes the selection on every selection change (UI PH-3), and SF is the single place to prepare that work once per revision.
+
+### 12.4 What the UI plan relies on
+
+- S0's harness, workloads and boundaries stay usable after this plan.
+  The UI plan uses them to measure its anchoring and motion (UI PH-1 and PH-2) and to re-measure B4 (click → details) once a selection opens a preview.
+  W5 (`20260912-full`) is the nearest admitted workload to the UI's Hadden Industries suggestions (UI PH-4).
+- S2, and SF if adopted, leave describe, summary and focus free of whole-inspection copies, so the UI's frame-coalesced describe (UI PH-3) has a bounded cost.
+- No slice changes UI behaviour (section 10), so the UI plan starts from today's presentation code apart from PR-D's search-menu change.
+
+### 12.5 Answers to this review's questions for the UI
+
+The UI design review answers the questions in section 10, "For the UI thread", as follows:
+
+| #   | Question                                      | Answer                                                                                                                                                                    | Owner                                      |
+| --- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| 1   | Search cue: lazy, or `canReveal` only?        | Not adopted: the UI review covers the ontology chooser and the details experience, not search. S1 makes the eager cue cheap                                               | Unassigned UI option                       |
+| 2   | Node-count slider: live, or apply on release? | Outside the UI review's scope                                                                                                                                             | Unassigned owner decision                  |
+| 3   | Selection details: defer until after paint?   | Adopted. The preview renders in the next animation frame after a selection, coalesced so that the latest selection wins (UI §7.4), and full details render only on demand | UI plan, slice B3                          |
+| 4   | Initialisation waits for `window.load`        | This is opportunity P6, which has no slice. S0's navigation boundary (B1) decides whether it is planned                                                                   | A new plan after plan 3, if B1 shows a gap |
+
+### 12.6 Owner decisions before and during this plan
+
+- Decision 1.5-1 before S0.
+- Decision 1.5-2c (the third contract question in §1.5) before S2 and SF.
+- The SF adoption decision after S2 (§12.3).
+- Decision 1.5-2b before S3, and decision 1.5-2a before S4.
+- Decisions 3 and 4 before S7.

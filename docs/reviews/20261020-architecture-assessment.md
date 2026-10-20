@@ -3,13 +3,13 @@
 Run: `run-20261020T015803-dadc8b24`, started 2026-10-20 01:58 (+03:00).
 Mode: planning and review only.
 Author: Claude (Opus 5.5) in one serial session, with no subagents, per the owner's standing rule.
-Status: review record. Its recommendations are proposals awaiting the owner decisions in section 15; none has been accepted or implemented.
+Status: review record. Its recommendations are proposals, and none has been implemented; the owner decided Q1–Q5 (section 15) and the wording of invariant R4 (§18.4) on 2026-10-20.
 Citations: source citations are relative links, and line numbers refer to HEAD `62961414`; later commits may move them.
 When the citations were converted to links, some ranges were tightened to the exact start and end of the cited construct, and one start line that pointed at a blank line was corrected.
 Location: written outside the repository as the task required, as a report, an evidence log and three Mermaid files.
 On 2026-10-20 the owner moved them into the repository, then had the diagrams embedded and the evidence log appended (section 17), giving this single file.
 Parallel reviews from the same date: [performance](20261020-performance-review.md) and [UI design](20261020-ui-design-review.md).
-This assessment was written without reading them, as the task instructed, and is not reconciled with them.
+This assessment was written without reading them, as the task instructed; section 18, added afterwards, reconciles it with them and fixes the implementation order.
 
 ## 0. Reading guide, scope, and evidence classes
 
@@ -50,6 +50,7 @@ Where a change might have a performance side effect, it is named as a question f
 
 Sections 1 to 16 are the assessment.
 Section 17 is the evidence log: the commands run and the key outputs they returned.
+Section 18, added after all three reviews were committed, reconciles this assessment with the performance and UI reviews and fixes the implementation order.
 
 The diagrams are embedded as non-executable Mermaid blocks:
 
@@ -116,6 +117,8 @@ They come first so that every later PR has an independent oracle.
   The September action-parity design says no; the canonical controller does roll back.
 - Which error code should view and read operations report while a load is pending?
   Today it is `EDIT_REJECTED`, which WebMCP turns into a non-retryable `TOOL_FAILED` \[S, I].
+
+The owner decided both on 2026-10-20, with the other three in section 15: cancellation keeps the applied choices, and operations rejected while a load is pending report a new retryable code, `LOAD_PENDING`.
 
 ---
 
@@ -794,8 +797,14 @@ Invariants:
 - **R2.** Every mutating member that affects a mounted document is checked against `{loadGeneration[, documentRevision]}` and rejects a stale request; every event carries `loadGeneration`.
   Both already hold; the contract makes them explicit.
 - **R3.** No member returns a live renderer object; reads return owned snapshots (ADR 0010 decision 1).
-- **R4.** Events carry identity only.
-  Entity references, document-record targets and occurrence references stay distinct types; no event carries label or description text as a semantic fact.
+- **R4.** Every declared event kind belongs to exactly one payload class, recorded with the kind in the declared contract:
+  - **identity:** entity references, document-record targets and occurrence references, kept as distinct types;
+  - **renderer observation:** a fact the renderer owns about its own drawing, such as progress, warnings, statistics, editor mode, the applied view, the viewport and layout state;
+  - **editing request:** a reader's gesture asking the controller for a change (human only).
+    It may carry what the reader typed or placed; the controller validates it before anything becomes a fact.
+
+  No event of any class carries ontology content read from the drawing (labels, comments, descriptions or annotations) as a fact; that text comes only from the controller's inspection.
+  The owner settled this wording on 2026-10-20 (§18.4); the assessment first said "Events carry identity only", which twelve of the fourteen declared event kinds already contradicted.
 
 ### Contract L: controller operation lifecycle (PR-C)
 
@@ -825,10 +834,11 @@ Invariants:
   Per-site predicates are removed.
 - **L2.** View ownership transfers only when the new scene is accepted.
   This encodes `54081f7c` once rather than by statement order.
-- **L3.** Rollback on failure happens only for a current ticket, and caller cancellation follows the owner's decision in section 15, Q1.
+- **L3.** Rollback on failure happens only for a current ticket.
+  Caller cancellation keeps the applied standing choices and publishes the view as applied; only a renderer failure rolls back (Q1, decided 2026-10-20).
 - **L4.** Rejection while a load is pending maps to a code by class.
   `edit` keeps `EDIT_REJECTED`.
-  Agent-reachable classes (`view`, `transient-view`, `read`, `capture`) use a code in WebMCP's accepted set, with `isRetryable: true`; the exact code is the owner's choice, see Q2.
+  Agent-reachable classes (`view`, `transient-view`, `read`, `capture`) report the new code `LOAD_PENDING` with `isRetryable: true`, and `LOAD_PENDING` joins WebMCP's accepted set (Q2, decided 2026-10-20).
 - **L5.** `view` is composed by exactly one function in every publication (fixes the `2cb8e23f` class of defect).
 - **L6.** The policy table is the documentation.
   An operation that needs an exception to its class's row is a signal to add a class, not a flag.
@@ -850,7 +860,7 @@ Invariants:
 ### Contract P: state publication (PR-D side note)
 
 - **P4.** A subscriber failure is isolated from the producing operation: the remaining subscribers are still notified and the failure is surfaced, through `error` or a warning, not swallowed.
-  This needs the owner's agreement, because it changes error propagation; see Q3.
+  It changes error propagation, and the owner agreed to it on 2026-10-20 (Q3).
 
 ### Contract S: semantic read model (PR-F, optional)
 
@@ -883,7 +893,7 @@ File lists are predictions.
 ### PR-A: declare the canonical rendered-graph runtime contract and enforce three-way conformance (tests and declaration; no behaviour change)
 
 - **Predicted files:**
-  - a new pure `src/app/js/controller/canonicalRenderedGraphRuntimeContract.js`, holding the declared method and event lists and an assertion;
+  - a new pure `src/app/js/controller/canonicalRenderedGraphRuntimeContract.js`, holding the declared method and event lists, each event kind with its payload class (R4), and an assertion;
   - [`renderedGraphRuntimeContracts.js`](../../src/app/js/controller/renderedGraphRuntimeContracts.js), which re-exports or keeps the legacy list until PR-E;
   - a new `src/canonicalRuntimeSeam.architecture.test.js`, or an extension of [`renderedGraphSeamConformance.test.js`](../../src/webvowl/js/runtime/renderedGraphSeamConformance.test.js);
   - optionally, [`app.js:76-81`](../../src/app/js/app.js#L76-L81) asserts the composed runtime in production, a one-line call.
@@ -891,6 +901,7 @@ File lists are predictions.
 - **Tests to design first:**
   - members called on `runtime` or `renderedGraphRuntime` receivers (AST) ⊆ declared;
   - declared ⊆ adapter-returned keys (AST);
+  - every declared event kind names exactly one payload class (R4), and an identity-class payload holds only reference types;
   - a negative fixture in which a source calling an undeclared member fails;
   - a negative fixture in which a declared member missing from the adapter fails.
 - **Reversal:** revert freely, since it is test-only.
@@ -903,7 +914,7 @@ File lists are predictions.
   - a new `src/app/js/controller/canonicalWebVowlControllerLifecycle.test.js`, table-driven.
 - **Matrix:** {`setVisualizationView`, `setVisualizationModes`, `setForceLayoutDistances`, `resetVisualization`, `revealOntologyNeighborhood`, `clearOntologyNeighborhood`, `setVisualizationArrangement`, `editOntologyRecord`, `exportVisualization` (svg, vowl-json)} × {newer view, load replacement, pending edit, dispose, caller abort, renderer failure} → {published fields, rollback or not, error code and retryability, export aborted or not, temporary presentation retired or not}.
 - **Compatibility:** the tests record **current** behaviour.
-  Cases needing owner decisions (Q1 and Q2) are marked as recorded behaviour pending decision, not silently asserted as correct.
+  Rows that the owner's Q1 and Q2 decisions change are marked as changing in PR-C, not asserted as correct.
 - **Reversal:** test-only.
 
 ### PR-C: one lifecycle owner for controller operations (behaviour-preserving apart from approved decisions)
@@ -911,9 +922,9 @@ File lists are predictions.
 - **Predicted files:**
   - a new `src/app/js/controller/controllerOperationLifecycle.js` and its unit test;
   - [`canonicalWebVowlController.js`](../../src/app/js/controller/canonicalWebVowlController.js) (inline guards replaced, `view` composed by one function);
-  - [`webMcpToolContracts.test.js`](../../src/app/js/webmcp/webMcpToolContracts.test.js) and [`webMcpAdapter.test.js`](../../src/app/js/webmcp/webMcpAdapter.test.js) expectations, for the load-pending code only if Q2 approves a change.
+  - [`webMcpToolContracts.test.js`](../../src/app/js/webmcp/webMcpToolContracts.test.js) and [`webMcpAdapter.test.js`](../../src/app/js/webmcp/webMcpAdapter.test.js) expectations, plus [`webMcpToolContracts.js`](../../src/app/js/webmcp/webMcpToolContracts.js), where `LOAD_PENDING` joins the accepted error codes, and [`docs/webmcp.md`](../../docs/webmcp.md), which documents it (Q2).
 - **Compatibility:** every PR-B case passes unchanged except the owner-approved rows.
-  WebMCP schemas and tool names are unchanged; human menus are unchanged.
+  WebMCP schemas and tool names are unchanged, and the accepted error codes gain only `LOAD_PENDING`; human menus are unchanged.
   The browser harnesses (`performance-search`, `live-recovery`) pass.
 - **Tests to design:**
   - lifecycle-owner unit tests for each class row;
@@ -928,10 +939,10 @@ File lists are predictions.
 
 - **Predicted files:**
   - [`webVowlControllerContracts.js`](../../src/app/js/controller/webVowlControllerContracts.js) (closed field and generation reset);
-  - [`canonicalWebVowlController.js`](../../src/app/js/controller/canonicalWebVowlController.js) (publish the field, single retirement path);
+  - [`canonicalWebVowlController.js`](../../src/app/js/controller/canonicalWebVowlController.js) (publish the field, single retirement path, and isolate subscriber failures under P4);
   - [`searchMenu.js`](../../src/app/js/menu/searchMenu.js) (delete `hasTemporaryNeighborhood` and `neighborhoodSequence`; render status from state);
   - [`controllerStatePresenter.js`](../../src/app/js/ui/controllerStatePresenter.js) or the [`app.js`](../../src/app/js/app.js) subscriber (field routing; optionally fold the inline subscriber in);
-  - [`webMcpToolContracts.js`](../../src/app/js/webmcp/webMcpToolContracts.js): whether `get_visualization_state` projects the field; parity suggests it should, within the 1,500-character budget.
+  - [`webMcpToolContracts.js`](../../src/app/js/webmcp/webMcpToolContracts.js): `get_visualization_state` projects the field within the 1,500-character budget (Q5, decided 2026-10-20).
 - **Compatibility:**
   - The reveal and clear semantics stay as qualified: reveal limits of 25 references, 500 nodes, 1,000 edges, 2,000 labels and 10,000 adjacency entries \[M].
   - Canonical export during a reveal still captures the ordinary scene.
@@ -939,19 +950,21 @@ File lists are predictions.
 - **Tests to design:**
   - each retirement trigger publishes `null` (clear, filters, `nodesShown`, language, layout, modes, distances, reset, edit acceptance, load, dispose);
   - an agent-initiated reveal produces the human status text;
+  - `get_visualization_state` includes the field within the 1,500-character ceiling (Q5);
+  - a throwing subscriber neither stops later subscribers nor fails the publishing operation, and its failure is surfaced as a warning (P4);
   - a menu reveal superseded by a newer reveal never shows stale status, now owned by the controller.
 - **Reversal:** revert if the browser harness or export byte identity changes.
   Forward-correct a missed trigger by adding its row to the PR-C policy table.
 
 ### PR-E: retire the legacy VOWL-model renderer input mode
 
-- **Precondition:** PR-A is merged, and the owner confirms that no renderer-library surface is intended ([`entry.js`](../../src/webvowl/js/entry.js); Q4).
+- **Precondition:** PR-A is merged. The owner confirmed on 2026-10-20 that no renderer-library surface is intended ([`entry.js`](../../src/webvowl/js/entry.js); Q4).
 - **Predicted files:**
   - delete from the adapter: `replaceVowlModel`, `applyVowlModelRevision` and the legacy indexer ([`d3RenderedGraphAdapter.js:363-382`](../../src/webvowl/js/runtime/d3RenderedGraphAdapter.js#L363-L382), [`:1098-1233`](../../src/webvowl/js/runtime/d3RenderedGraphAdapter.js#L1098-L1233));
   - delete from [`renderedGraphInternals.js`](../../src/webvowl/js/runtime/renderedGraphInternals.js): the parser, the legacy branches and dead dictionary code;
   - delete [`parser.js`](../../src/webvowl/js/parser.js), [`parsing/equivalentPropertyMerger.js`](../../src/webvowl/js/parsing/equivalentPropertyMerger.js) and their tests;
   - delete `indexOntologyElementReferencesByVowlElementId` (if no other user) and the legacy validators in [`renderedGraphRuntimeContracts.js`](../../src/app/js/controller/renderedGraphRuntimeContracts.js);
-  - delete [`src/webvowl/js/entry.js`](../../src/webvowl/js/entry.js) if Q4 says so;
+  - delete [`src/webvowl/js/entry.js`](../../src/webvowl/js/entry.js) (Q4);
   - replace `RENDERED_GRAPH_RUNTIME_METHOD_NAMES` with contract R;
   - retire or port [`inMemoryRenderedGraphAdapter.js`](../../src/app/test/inMemoryRenderedGraphAdapter.js) and [`renderedGraphRuntimeContract.js`](../../src/app/test/renderedGraphRuntimeContract.js) (PR-B's double may replace them);
   - update [`renderedGraphDecoupling.architecture.test.js:326-336`](../../src/renderedGraphDecoupling.architecture.test.js#L326-L336) to identify the implementation by contract R's names instead of `replaceVowlModel`;
@@ -1123,21 +1136,31 @@ The renderer's size is not treated as a defect.
 
 ## 15. Owner decisions surfaced
 
+The owner decided all five on 2026-10-20, after their evidence was re-checked against source.
+Each entry keeps its question, evidence and lean as first written, followed by the decision.
+
 - **Q1. Should cancelling a standing view request undo already-applied visibility and label changes?**
   The action-parity design says cancellation "does not undo already applied standing choices"; canonical `setVisualizationView` rolls back on a current caller abort ([`canonicalWebVowlController.js:1243-1264`](../../src/app/js/controller/canonicalWebVowlController.js#L1243-L1264)).
   Because the adapter has already applied the native view ([`d3RenderedGraphAdapter.js:1288`](../../src/webvowl/js/runtime/d3RenderedGraphAdapter.js#L1288)) before it awaits paint ([`:1301`](../../src/webvowl/js/runtime/d3RenderedGraphAdapter.js#L1301)), the result today is mixed: visibility and labels are reverted, while focus, layout and viewport are kept.
   Lean: follow the design, so caller abort keeps the applied choices and only renderer failure rolls back.
   Cancellation then means "stop waiting", the same for humans and agents.
+  **Decided 2026-10-20:** follow the design.
+  Caller cancellation keeps the applied choices and publishes the view as applied; only a renderer failure rolls back (invariant L3).
 - **Q2. Which code should view, read and capture operations report while a load is pending?**
   Today it is `EDIT_REJECTED`, which WebMCP projects as a non-retryable `TOOL_FAILED`.
   Lean: `VIEW_REJECTED` with `isRetryable: true` for agent-reachable classes.
   It is already in the accepted WebMCP set, so no public vocabulary is added.
+  **Decided 2026-10-20, not as the lean:** a new code, `LOAD_PENDING`, with `isRetryable: true`, for the view, transient-view, read and capture classes; `edit` keeps `EDIT_REJECTED`.
+  This adds public vocabulary: in PR-C, `LOAD_PENDING` joins WebMCP's accepted error codes and is documented in [`docs/webmcp.md`](../../docs/webmcp.md) (invariant L4).
 - **Q3. Should `publish()` isolate subscriber failures (contract P4)?**
   Lean: yes, isolate and surface the failure as a warning; a presentation failure should not abort a committed load or edit.
+  **Decided 2026-10-20:** as the lean; PR-D implements it.
 - **Q4. Is any renderer-library surface ([`src/webvowl/js/entry.js`](../../src/webvowl/js/entry.js)) still intended?**
   Lean: no; delete it in PR-E.
+  **Decided 2026-10-20:** as the lean; PR-E deletes it.
 - **Q5. Should the temporary presentation be visible to agents through `get_visualization_state`?**
   Lean: yes, for ADR 0012 parity, within the existing budget.
+  **Decided 2026-10-20:** as the lean; PR-D projects the field.
 
 ---
 
@@ -1253,3 +1276,151 @@ Focused commits (20 files or fewer) touching the controller:
 - The adapter's `applyVisualizationView` applies the native view at [`d3RenderedGraphAdapter.js:1288`](../../src/webvowl/js/runtime/d3RenderedGraphAdapter.js#L1288), then awaits paint at [`:1301`](../../src/webvowl/js/runtime/d3RenderedGraphAdapter.js#L1301).
 - The controller's rollback on a current caller abort is at [`canonicalWebVowlController.js:1243-1264`](../../src/app/js/controller/canonicalWebVowlController.js#L1243-L1264).
 - Status: static inference only; it is to be confirmed by a PR-B test.
+
+---
+
+## 18. Cross-review reconciliation and implementation order
+
+### 18.1 Implementation order across the three reviews
+
+The text of this subsection is identical in all three reviews; only its number differs.
+It was added on 2026-10-20, after the [architecture assessment](20261020-architecture-assessment.md), the [performance review](20261020-performance-review.md) and the [UI design review](20261020-ui-design-review.md) were committed together in `838dd6e9`.
+It orders, assigns and cross-references their recommendations, and it changes none of their findings.
+The sessions that produced the three reviews were consulted, and they record no ordering intent beyond what the documents state.
+
+One implementation plan is written from each review, and the plans are applied in this order:
+
+| Order | Plan written from            | Slices, in order                                                      | Starts when                                                                      |
+| ----: | ---------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+|     1 | Architecture assessment, §11 | PR-A → PR-B → PR-C → PR-D → PR-E                                      | Now: its owner decisions were settled on 2026-10-20 (architecture §15 and §18.6) |
+|     2 | Performance review, §7       | S0 → S1 → S2 → SF (conditional) → S3 → S4 → S5 → S6 → S7 → S8         | Plan 1 is complete                                                               |
+|     3 | UI design review, §9         | A1 → A2 → A3 → A4 (optional) → B1 → B2 → B3 → B4 → B5 → B6 (optional) | Plan 2 is complete                                                               |
+
+A plan is complete when every slice has either merged or been closed by its own gate: not selected, stopped by its falsifier, or deferred by an owner decision.
+Optional and gated slices therefore never hold up the next plan.
+Reviving a closed slice later needs a new plan after plan 3.
+
+**Why the order is stable.**
+Every dependency points to an earlier plan:
+
+- **Plan 1 needs nothing from plans 2 and 3.**
+  PR-A and PR-B are the oracles the later plans test against: the declared runtime contract R and the honest runtime double.
+  PR-C gives supersession and cancellation one owner, which the worker experiments (S7) and the UI's selection clearing rely on.
+  PR-D publishes `temporaryPresentation` and removes the search menu's private copy of it before S1 and the UI's slices A2 and A3 change the same modules.
+  PR-E leaves one renderer input mode for S6, S8, B5 and B6.
+- **Plan 2 needs only plan 1.**
+  No performance slice changes UI behaviour or configuration (performance §10, interface assumptions), and its questions to the UI do not block it.
+  Running it before plan 3 means a selection no longer deep-copies the whole inspection (S2) by the time the UI makes every selection open a preview, and S0's harness already exists when the UI needs to measure its anchoring and motion.
+- **Plan 3 needs both.**
+  It extends contract R with the anchor fact and the decoration (UI AH-1 and AH-3), reads the published `temporaryPresentation`, and builds the preview on the copy-free describe path.
+
+**One transfer removes the only backward dependency.**
+Architecture PR-F, the semantic read model (contract S), moves into plan 2 as the conditional slice SF, directly after S2.
+The architecture assessment gates PR-F on the performance work (its §11 ordering rationale and §14.5), so leaving it in plan 1 would make plan 1 wait for plan 2.
+
+**Rules for every plan.**
+
+- **Re-anchor first.**
+  All three reviews cite HEAD `62961414`, and no source changed between it and `838dd6e9`.
+  Each plan's first step re-verifies its review's citations and counts against the HEAD the previous plan left, and records any drift.
+  Contract changes made by an earlier plan in this order are the expected starting point, not a replanning trigger.
+  This narrows the performance review's trigger "canonical contracts or identities change" (performance §7) to changes not listed in this subsection.
+- **Do not reopen an earlier plan's accepted decision.**
+  Raise a new owner decision instead.
+- **Keep each review's own rules.**
+  Slices are test-first; any configuration change needs exact approval under [`AGENTS.md`](../../AGENTS.md); performance acceptance uses the quiescent environment of [ADR 0003](../adr/0003-quiescent-benchmark-environment.md).
+
+### 18.2 Position and prerequisites
+
+This assessment's plan runs first.
+It depends on nothing in the performance or UI reviews.
+Its owner decisions were all made on 2026-10-20 (§18.6), so nothing blocks it:
+
+- Q1 and Q2 shape PR-C, and PR-B marks the rows they change;
+- Q3 and Q5 shape PR-D;
+- Q4 lets PR-E delete `entry.js`;
+- the wording of invariant R4 (§18.4) shapes PR-A.
+
+### 18.3 What the later plans rely on
+
+| Delivered by                         | Relied on by                                                                                                                                                                                    | Obligation it carries                                                                                                                                            |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PR-A, contract R                     | Plan 2: any slice that changes a runtime member, including S4's drawing-request change. Plan 3: B5's anchor fact and B6's decoration                                                            | New members join the declared list and pass R1–R4 conformance                                                                                                    |
+| PR-B, honest runtime double          | Plan 2's counter tests (S2) and plan 3's preview tests                                                                                                                                          | Model deferred paint, revisions and layout state, and state what is not modelled (ADR 0011)                                                                      |
+| PR-C, lifecycle owner                | S7, which keeps termination-based cancellation; plan 3, whose selection clearing is a `transient-view` operation and whose chooser and preview show `LOAD_PENDING` while a load is pending (Q2) | The policy table stays the single place where supersession and rejection are decided                                                                             |
+| PR-D, `temporaryPresentation` and P4 | S1, whose cue no longer needs the search menu's private copy; plan 3, whose preview shows "not shown in the current view" when the neighbourhood retires                                        | The field resets on a generation change and is visible to agents (Q5); with Q3 accepted, a failing presentation subscriber cannot abort a committed load or edit |
+| PR-E, canonical-only renderer        | S6, S8, B5 and B6                                                                                                                                                                               | No legacy input path for those slices to keep working                                                                                                            |
+
+### 18.4 Wording of invariant R4 (settled 2026-10-20)
+
+Invariant R4 first said that events "carry identity only".
+The declared event kinds already contradicted it: of the fourteen kinds ([`renderedGraphRuntimeContracts.js:59-74`](../../src/app/js/controller/renderedGraphRuntimeContracts.js#L59-L74), payloads validated in [`:1528-1889`](../../src/app/js/controller/renderedGraphRuntimeContracts.js#L1528-L1889)), only the two selection events carry identity alone.
+Seven report renderer-owned facts; for example, `viewport-changed` carries zoom scale and translation ([`:1856-1866`](../../src/app/js/controller/renderedGraphRuntimeContracts.js#L1856-L1866)), and [ADR 0010](../adr/0010-rendered-graph-is-a-projection-not-the-store.md) decision 7 requires it to be published.
+Five are editing requests, and two of those carry text: `record-label-edit-requested` carries the label the reader typed, and `record-creation-requested` carries draft records with `label` and `iri` fields.
+Read literally, PR-A's conformance tests would have rejected events that exist today and blocked the UI's anchor fact (UI AH-1).
+
+**Decision.**
+On 2026-10-20 the owner chose classified payloads, and R4 in section 10 now carries that wording.
+Every declared event kind names exactly one payload class:
+
+| Payload class        | Declared event kinds                                                                                                                                                                      |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Identity             | `rendered-element-selection-changed`, `document-record-selection-changed`                                                                                                                 |
+| Renderer observation | `render-progress-changed`, `render-warning-raised`, `rendering-statistics-changed`, `editor-mode-changed`, `visualization-view-changed`, `viewport-changed`, `graph-layout-state-changed` |
+| Editing request      | `record-deletion-requested`, `semantic-creation-requested`, `record-creation-requested`, `record-endpoint-edit-requested`, `record-label-edit-requested`                                  |
+
+**Consequences.**
+
+- PR-A records the class with each declared event kind and tests it (section 11).
+- The UI's anchor fact (UI AH-1) is a renderer observation.
+- A new event kind cannot be declared without a class, so the boundary is checked by tests rather than left to review.
+
+**Alternatives not chosen.**
+
+- A one-sentence amendment admitting observations and editing requests: simpler, but PR-A could not check it mechanically.
+- Keeping "identity only": twelve kinds would have to leave the event channel, and ADR 0010 decision 7 would need amending.
+
+### 18.5 Transfers and cross-review answers
+
+**PR-F moves to plan 2 as slice SF.**
+Contract S stays defined in section 10.
+Plan 2 decides SF after S0 and S2 (performance §12.3).
+If SF goes ahead, invariant S2 ("results are owned copies") may be met by deep-frozen results passed by reference, provided the owner accepts the performance review's third contract question (performance §1.5, decision 1.5-2c).
+
+**The performance review's questions to this assessment** (performance §10, "For the architecture thread") are all assigned to plan 2, each behind its own owner decision:
+
+| #   | Question                         | Assigned to                | Constraint from this assessment                                                                                                      |
+| --- | -------------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | Drawing DTO without `inspection` | S4, decision 1.5-2a        | Consistent with ADR 0010 decision 9 (minimal projection into the renderer) and contract R3; PR-E removes the legacy validators first |
+| 2   | Session results                  | S3, decision 1.5-2b        | No architecture slice changes the session's result contract                                                                          |
+| 3   | Ownership model                  | S2 and S5, decision 1.5-2c | Compatible with R3, which governs renderer reads rather than inspection DTOs                                                         |
+| 4   | Worker lifecycle                 | S7, decision 3             | Cancellation stays with PR-C's lifecycle owner                                                                                       |
+| 5   | Package admission                | S7, decision 4             | Outside this assessment's scope                                                                                                      |
+| 6   | Revision strategy                | S8 (design study)          | Must preserve atomic install and recovery                                                                                            |
+
+**The UI review's questions to this assessment** (UI §12.1):
+
+| Question                                                                 | Answer from this assessment                                                                                                                                                                                 | Decided in                          |
+| ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| AH-1 and AH-3: anchor fact and decoration                                | Allowed under contract R as settled in §18.4: the anchor fact is a renderer-observation event and the decoration a renderer-local member; each is declared and checked by PR-A's conformance tests          | Plan 3, slices B5 and B6            |
+| AH-2: publish the selected occurrence                                    | The retained identity contract (section 10) reserves occurrence references for arrangement, so the anchor must be an arrangement read of a drawn occurrence's position, never an entity or editing identity | Plan 3, slice B5                    |
+| AH-7 and AH-11: submission function; viewport metrics in the search menu | PR-D rewrites the search menu's neighbourhood state first                                                                                                                                                   | Plan 3, slices A2 and A3            |
+| AH-4, AH-5, AH-6, AH-8, AH-9 and AH-10                                   | Not covered by this assessment                                                                                                                                                                              | Plan 3; AH-5 partly by SF in plan 2 |
+
+**Section 13's constraints for the UI are met by the UI design.**
+Its preview opens from the existing selection event, so no new trigger event is needed.
+Its text comes from `describeOntologyElements`.
+The UI plan adopts the shared description-to-presentation model as its decision D-19, with independent expected outputs in its tests.
+
+### 18.6 Owner decisions before this plan
+
+All were settled by the owner on 2026-10-20, after the evidence behind Q1–Q5 was re-checked against source:
+
+| Decision                               | Outcome                                                                                                                     | Shapes          |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | --------------- |
+| Q1: cancelling a standing view request | Keep the applied choices and publish the view as applied; only a renderer failure rolls back                                | PR-B, PR-C (L3) |
+| Q2: error while a load is pending      | A new code, `LOAD_PENDING`, retryable, for the view, transient-view, read and capture classes; `edit` keeps `EDIT_REJECTED` | PR-B, PR-C (L4) |
+| Q3: subscriber failures in `publish()` | Isolated, and surfaced as a warning                                                                                         | PR-D (P4)       |
+| Q4: renderer-library surface           | None intended; PR-E deletes `entry.js`                                                                                      | PR-E            |
+| Q5: temporary presentation for agents  | Included in `get_visualization_state`                                                                                       | PR-D            |
+| Wording of invariant R4                | Classified payloads (§18.4)                                                                                                 | PR-A            |
