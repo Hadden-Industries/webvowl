@@ -6,26 +6,26 @@
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/acquire-codebase-knowledge/SKILL.md",
-      "computedHash": "06b7a3d0bb44b70b470247aacc2ffffe37c8ce64cc3f9178be6f392c81cb6d22"
+      "computedHash": "6fe4300eb947d9d8bcde0b36ac375c8b739c30b95bc18ba5cbea2ded19fa2af3"
     },
     "apple-design": {
       "source": "emilkowalski/skills",
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/apple-design/SKILL.md",
-      "computedHash": "8b94db67cb9edaad5f1501010804caa610131f1d2dfda0a27664b2e858deade3"
+      "computedHash": "0190417d092a0df447b000154e39733ea6d97efad6d3bec8a6ce3845aeb88914"
     },
     "brooks-audit": {
       "source": "hyhmrright/brooks-lint",
       "sourceType": "github",
       "skillPath": "skills/brooks-audit/SKILL.md",
-      "computedHash": "1c89a774116ba2c7a6eef90763b184541f81e0d79fc8f942067f7f991fcec3d8"
+      "computedHash": "f6b50f64eb586649c3862d349d371ac76f0f8d9d69b6ed8d72d70818ef789312"
     },
     "brooks-review": {
       "source": "hyhmrright/brooks-lint",
       "sourceType": "github",
       "skillPath": "skills/brooks-review/SKILL.md",
-      "computedHash": "041b8a9f34550748cd0785f406e51478d41863fc082e57091f9fa29d53c3eb70"
+      "computedHash": "1bbcb1e0e9ac64276727439ce200e0d098c759047e7a336858f15221714e706a"
     },
     "browser-testing-with-devtools": {
       "source": "addyosmani/agent-skills",
@@ -39,56 +39,49 @@
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/engineering/codebase-design/SKILL.md",
-      "computedHash": "5a17552cc1482f1a40124bf4e6c9dbd90ac0dbb47e71c07d47369f9e5f2ae3b5"
+      "computedHash": "b2888e4f4e8c0af3bfd557575a64b905c44e6248c3101d72077816882b3a92b9"
     },
     "defining-concepts": {
       "source": "Hadden-Industries/agent-skills",
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/defining-concepts/SKILL.md",
-      "computedHash": "0d6c0a2a9edda8adbf105d13bd771debf51c6c98c72a50b97b9db82171bf9b55"
+      "computedHash": "51d2cf74dfe0b1cd1624706b54709f888d55032d36c17facaa0e783666c63070"
     },
     "diagnosing-bugs": {
       "source": "mattpocock/skills",
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/engineering/diagnosing-bugs/SKILL.md",
-      "computedHash": "37b5e9c624513551da790b52864dc8c84bff996a6d03a380cc6facdcc0a88354"
+      "computedHash": "ede7254edbd22fcab97a0941511f7d440d8f9a249348fea97c50987ad5501674"
     },
     "find-animation-opportunities": {
       "source": "emilkowalski/skills",
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/find-animation-opportunities/SKILL.md",
-      "computedHash": "8fb8492eb8fbed1313cb430b5831d925d9b8964ca24f3c41a6244cbd1fd98732"
+      "computedHash": "465d087c41768e4f14ed640dd049036009f613feb55baaa5831b68b33178f9d2"
     },
     "grilling": {
       "source": "mattpocock/skills",
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/productivity/grilling/SKILL.md",
-      "computedHash": "4dd886b0196bf43729d954ae326016f2bd9f5f79d892500b407c33a753362f14"
-    },
-    "handoff": {
-      "source": "mattpocock/skills",
-      "ref": "main",
-      "sourceType": "github",
-      "skillPath": "skills/productivity/handoff/SKILL.md",
-      "computedHash": "20e5f4afdef502637510bc5c64d27645d3c85c88df9cb006824bbb0980166319"
+      "computedHash": "ef1641a2047b71b60f1942cd35efb47d3afc9d584dff5a0b01f8c7db923aaa08"
     },
     "improve-animations": {
       "source": "emilkowalski/skills",
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/improve-animations/SKILL.md",
-      "computedHash": "eeb219a407e325b687af88db25771cc3018e3148245604112f5ac6990b6fd79c"
+      "computedHash": "524ea241e41d58bbdd8e288700fe24f5725e2a2f3ae7186ad7cebf9055058356"
     },
     "improve-codebase-architecture": {
       "source": "mattpocock/skills",
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/engineering/improve-codebase-architecture/SKILL.md",
-      "computedHash": "2449db6ab1ded9581f69fcc56c1f64818112d05e271fd4c5da23c6523f9d3d9d"
+      "computedHash": "ac2c94885f34ff8492dc12aa4543182f661f32ea1722b8d6b6c2c7045af33ae3"
     },
     "logic-diff": {
       "source": "hyhmrright/logic-lens",
@@ -119,14 +112,14 @@
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/modern-web-guidance/SKILL.md",
-      "computedHash": "c75f98ef13e63bcf0c074f6e7651ecb567ffcd78f2527d085a7cddd530073c4f"
+      "computedHash": "48405ce3611ebdfd7958978117501d0b3d36ac91048cb3a43b36233e8e839d52"
     },
     "review-animations": {
       "source": "emilkowalski/skills",
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/review-animations/SKILL.md",
-      "computedHash": "b9f669af5ae280c19a592a94611520335a81de25c88f225bf60ae4b2d66c8c7c"
+      "computedHash": "b4e5f0f4fe3e2743c85bf7354108f48a0b9d502cb20ef5c4a9c195da91f93736"
     },
     "ui-craft": {
       "source": "educlopez/ui-craft",
