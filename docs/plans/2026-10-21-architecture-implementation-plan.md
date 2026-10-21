@@ -1,6 +1,7 @@
 # WebVOWL architecture implementation plan
 
-> **Status:** Approved plan; revision 3 records implementation and delivery authorization on 21 October 2026; documentation checkpoint precedes source implementation.
+> **Status:** Approved plan; revision 4 records the implemented architecture candidate, accepted DEC-010 and focused/browser evidence.
+> Final configured verification, independent review and branch delivery are tracked in the retained HISEW handoff.
 > **Sequence:** Plan 1 of 3: architecture → performance → UI.
 > **Basis:** [Architecture assessment](../reviews/20261020-architecture-assessment.md), especially sections 10, 11 and 18.
 > **Method:** HISEW implementation planning, with the accepted change dossier, R2 risk classification, quality scenarios and decisions kept in this document.
@@ -148,17 +149,18 @@ IDs are local to this document; cross-plan references use `ARCH:` as a qualifier
 | REQ-007 Use only canonical renderer input        | AC-007 Production reaches no retired parser/method/entry path; canonical behavior tests and real-browser exports still pass                                 | PR-E, Q4          |
 | REQ-008 Preserve future integration seams        | AC-008 Handoff identifies contract R, lifecycle policy, honest double and temporary state, with exact delivered revisions and any gaps                      | Review section 18 |
 
-| Decision     | Status and exact consequence                                                                                                                                                                                                           |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| DEC-001 / Q1 | Accepted 20 October: caller cancellation keeps already-applied standing choices and publishes the applied view; only a current renderer failure rolls back                                                                             |
-| DEC-002 / Q2 | Accepted 20 October: pending-load `view`, `transient-view`, `read` and `capture` reject as retryable `LOAD_PENDING`; `edit` retains `EDIT_REJECTED`                                                                                    |
-| DEC-003 / Q3 | Accepted 20 October: isolate subscriber failures and surface a warning                                                                                                                                                                 |
-| DEC-004 / Q4 | Accepted 20 October: no intended renderer-library surface; retire `src/webvowl/js/entry.js` in PR-E                                                                                                                                    |
-| DEC-005 / Q5 | Accepted 20 October: include temporary presentation in `get_visualization_state`, preserving its 1,500-character budget                                                                                                                |
-| DEC-006 / R4 | Accepted 20 October: classify every event as identity, renderer observation or editing request                                                                                                                                         |
-| DEC-007      | Reconciliation constraint: move PR-F to performance SF; no semantic read-model implementation here                                                                                                                                     |
-| DEC-008      | Accepted 21 October: use a separate canonical declaration while the existing legacy declaration still serves existing consumers; update consumers directly and remove obsolete declarations in PR-E, without new compatibility aliases |
-| DEC-009      | Accepted 21 October: warning reporting must avoid recursively republishing the same failing subscriber; use the existing diagnostic path and prove bounded reporting                                                                   |
+| Decision     | Status and exact consequence                                                                                                                                                                                                                               |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| DEC-001 / Q1 | Accepted 20 October: caller cancellation keeps already-applied standing choices and publishes the applied view; only a current renderer failure rolls back                                                                                                 |
+| DEC-002 / Q2 | Accepted 20 October: pending-load `view`, `transient-view`, `read` and `capture` reject as retryable `LOAD_PENDING`; `edit` retains `EDIT_REJECTED`                                                                                                        |
+| DEC-003 / Q3 | Accepted 20 October: isolate subscriber failures and surface a warning                                                                                                                                                                                     |
+| DEC-004 / Q4 | Accepted 20 October: no intended renderer-library surface; retire `src/webvowl/js/entry.js` in PR-E                                                                                                                                                        |
+| DEC-005 / Q5 | Accepted 20 October: include temporary presentation in `get_visualization_state`, preserving its 1,500-character budget                                                                                                                                    |
+| DEC-006 / R4 | Accepted 20 October: classify every event as identity, renderer observation or editing request                                                                                                                                                             |
+| DEC-007      | Reconciliation constraint: move PR-F to performance SF; no semantic read-model implementation here                                                                                                                                                         |
+| DEC-008      | Accepted 21 October: use a separate canonical declaration while the existing legacy declaration still serves existing consumers; update consumers directly and remove obsolete declarations in PR-E, without new compatibility aliases                     |
+| DEC-009      | Accepted 21 October: warning reporting must avoid recursively republishing the same failing subscriber; use the existing diagnostic path and prove bounded reporting                                                                                       |
+| DEC-010      | Accepted 21 October: [Option 1, scoped class table](2026-10-21-controller-lifecycle-decision.md). Classify 29 document operations under six classes; keep the eight named application observations/controls separate, including loading-state observation. |
 
 ### 3.1 Quality scenarios
 
@@ -276,6 +278,8 @@ The double itself passes PR-A conformance and deliberate stale/failure cases.
 **Predicted files:** new `src/app/js/controller/controllerOperationLifecycle.js` and focused tests; [controller](../../src/app/js/controller/canonicalWebVowlController.js); [WebMCP contracts](../../src/app/js/webmcp/webMcpToolContracts.js) and related tests; [WebMCP documentation](../webmcp.md).
 
 Define classes `load`, `edit`, `view`, `transient-view`, `capture`, `read`.
+Per DEC-010, these classes cover document operations; application status, subscriptions, preferences, focus observation, viewport sizing, diagnostics and disposal have a separate exhaustive inventory.
+Q2 applies to document-content reads, while `getState()` and `get_visualization_state` remain available during loading.
 The policy table states superseded work, rejection conditions/code, temporary-view retirement, active-capture effects and ownership transfer point.
 A ticket owns combined signal, currentness assertion and idempotent release.
 Publication, rollback and final publication use its same currency decision.
@@ -289,6 +293,7 @@ Do not normalize unrelated error codes or add tool/schema aliases.
 **Accept:** PR-B changes only the approved Q1/Q2 rows; every public operation maps to one class; stale capture cannot restore a newer layout; human and agent errors agree.
 Run recovery/search browser paths and existing performance comparisons.
 **Falsifier:** more than two operations require class exceptions.
+Count genuine document-policy exceptions, not the application members explicitly separated by DEC-010.
 Stop and propose the review's narrower shared-currentness helper with linear operations; do not grow flags silently.
 **Recovery:** before dependent adoption, reverse the cohesive slice; after adoption, qualify a coordinated correction against the unchanged matrix.
 
@@ -343,14 +348,27 @@ Keep permanent `vowl/migrate` ingress and the documented canonical editor-gestur
 
 ## 6. Traceability and slice dispositions
 
-| Slice            | Requirements / acceptance / quality / decisions             | Proof                                                              | Release and cleanup implication                                  | Initial status |
-| ---------------- | ----------------------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------- | -------------- |
-| SLICE-000        | REQ-008 / AC-008 / QA-008                                   | Re-anchored scope and ownership record                             | No source or lifecycle claim from planning                       | Not started    |
-| SLICE-001 / PR-A | REQ-001/002 / AC-001/002 / QA-001 / DEC-006/008             | Independent AST negatives and payload conformance                  | Canonical declaration available; legacy consumers remain tracked | Not started    |
-| SLICE-002 / PR-B | REQ-003 / AC-003 / QA-001/002/003 / DEC-001/002             | Frozen matrix and honest-double conformance                        | Durable oracle for all later plans                               | Not started    |
-| SLICE-003 / PR-C | REQ-004 / AC-004 / QA-001/002/003/007 / DEC-001/002         | Matrix, error parity, browser recovery                             | Public error vocabulary documented; retire duplicated guards     | Not started    |
-| SLICE-004 / PR-D | REQ-005/006 / AC-005/006 / QA-004/005/008 / DEC-003/005/009 | Publication failure tests, reveal/capture equivalence              | Remove UI mirror; publish actual temporary state                 | Not started    |
-| SLICE-005 / PR-E | REQ-007/008 / AC-007/008 / QA-006/007 / DEC-004/007         | Canonical renderer tests, production reachability, browser exports | Remove dead renderer path; hand off to performance               | Not started    |
+| Slice            | Requirements / acceptance / quality / decisions             | Proof                                                              | Release and cleanup implication                                  | Implementation status                             |
+| ---------------- | ----------------------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------- | ------------------------------------------------- |
+| SLICE-000        | REQ-008 / AC-008 / QA-008                                   | Re-anchored scope and ownership record                             | No source or lifecycle claim from planning                       | Established at protected documentation checkpoint |
+| SLICE-001 / PR-A | REQ-001/002 / AC-001/002 / QA-001 / DEC-006/008             | Independent AST negatives and payload conformance                  | Canonical declaration available; legacy consumers remain tracked | Implemented; final assurance pending              |
+| SLICE-002 / PR-B | REQ-003 / AC-003 / QA-001/002/003 / DEC-001/002             | Frozen matrix and honest-double conformance                        | Durable oracle for all later plans                               | Implemented; final assurance pending              |
+| SLICE-003 / PR-C | REQ-004 / AC-004 / QA-001/002/003/007 / DEC-001/002         | Matrix, error parity, browser recovery                             | Public error vocabulary documented; retire duplicated guards     | Implemented; final assurance pending              |
+| SLICE-004 / PR-D | REQ-005/006 / AC-005/006 / QA-004/005/008 / DEC-003/005/009 | Publication failure tests, reveal/capture equivalence              | Remove UI mirror; publish actual temporary state                 | Implemented; final assurance pending              |
+| SLICE-005 / PR-E | REQ-007/008 / AC-007/008 / QA-006/007 / DEC-004/007         | Canonical renderer tests, production reachability, browser exports | Remove dead renderer path; hand off to performance               | Implemented; final assurance pending              |
+
+The protected documentation commit is `e30d5014f82c5da13ca494af5550b6b96f4c0b73` on `feat/architecture-performance-ui`.
+The authorized delivery consolidates the PR-A through PR-E logical slices into one reviewed implementation candidate.
+Their named contracts, independent oracles and focused findings are recorded in the [lifecycle evidence matrix](2026-10-21-controller-lifecycle-matrix.md).
+PR-A declares the 25-method canonical surface and 14 event kinds.
+PR-B supplies the independently authored matrix and canonical drawing double.
+PR-C implements the accepted scoped class table, Q1/Q2 behavior and centralized currentness checks.
+PR-D publishes temporary presentation, removes the menu's ownership mirror and isolates subscriber failures.
+PR-E retires the legacy renderer parser, entry, adapter methods, reference indexer and legacy-only test double while preserving `vowl/migrate`.
+
+Final candidate identity, configured full verification, independent reviewer report, finding dispositions, signed commit and publication readback belong in the native execution and retained handoff for execution `359a5e50-647f-4910-93d1-b2e4a4f1c081`.
+The supplemental evidence directory is `operator/01a15c31-343a-72d2-ab3e-33461706b9e6/implementation` under the configured HISEW evidence root.
+The implementation handoff is distinct from hosted CI, merge, deployment and production acceptance; those effects are not implied by source-branch publication.
 
 Each terminal row must add the accepted source/merge identity or gate decision, proof location, reviewer and remaining limitation.
 Do not replace an unfinished required slice with an unexplained “deferred”.

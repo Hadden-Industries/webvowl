@@ -24,6 +24,13 @@ beforeAll(async () => {
     { identifier: moduleUrl.href },
   );
   await sourceModule.link((specifier) => {
+    if (specifier === "./canonicalNeighborhoodLimits.js") {
+      const limitsUrl = new URL(specifier, moduleUrl);
+      return new SourceTextModule(
+        readFileSync(fileURLToPath(limitsUrl), "utf8"),
+        { identifier: limitsUrl.href },
+      );
+    }
     throw new Error(`Unexpected Task 2 contract dependency: ${specifier}`);
   });
   await sourceModule.evaluate();
@@ -58,6 +65,7 @@ const APPROVED_WEB_VOWL_OPERATION_ERROR_CODES = Object.freeze([
   "NO_ONTOLOGY",
   "SOURCE_REJECTED",
   "LOAD_ABORTED",
+  "LOAD_PENDING",
   "LOAD_FAILED",
   "FETCH_FAILED",
   "PARSE_FAILED",
@@ -593,6 +601,7 @@ const WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES = Object.freeze([
   "nodeCountStatus",
   "editorMode",
   "renderingStatistics",
+  "temporaryPresentation",
   "error",
 ]);
 
@@ -613,10 +622,53 @@ const IDLE_CONTROLLER_STATE_FIELDS = Object.freeze({
   nodeCountStatus: null,
   editorMode: null,
   renderingStatistics: null,
+  temporaryPresentation: null,
   error: null,
 });
 
 describe("controller-state snapshots", () => {
+  test("temporary presentation is closed, bounded, revision-bound and owned", () => {
+    const temporaryPresentation = {
+      kind: "neighborhood",
+      loadGeneration: 1,
+      documentRevision: 0,
+      counts: { nodes: 500, edges: 1000, labels: 2000 },
+    };
+    const makeState = (temporary) =>
+      createWebVowlControllerState({
+        ...IDLE_CONTROLLER_STATE_FIELDS,
+        loadGeneration: 1,
+        temporaryPresentation: temporary,
+      });
+    const state = makeState(temporaryPresentation);
+    expect(state.temporaryPresentation).toEqual(temporaryPresentation);
+    expect(state.temporaryPresentation).not.toBe(temporaryPresentation);
+    expect(Object.isFrozen(state.temporaryPresentation.counts)).toBe(true);
+    for (const invalid of [
+      { ...temporaryPresentation, kind: "unknown" },
+      { ...temporaryPresentation, loadGeneration: 2 },
+      { ...temporaryPresentation, documentRevision: 1 },
+      { ...temporaryPresentation, viewport: {} },
+      {
+        ...temporaryPresentation,
+        counts: { ...temporaryPresentation.counts, nodes: 501 },
+      },
+      {
+        ...temporaryPresentation,
+        counts: { ...temporaryPresentation.counts, edges: -1 },
+      },
+      {
+        ...temporaryPresentation,
+        counts: { ...temporaryPresentation.counts, labels: 1.5 },
+      },
+      {
+        ...temporaryPresentation,
+        counts: { ...temporaryPresentation.counts, adjacencyEntries: 0 },
+      },
+    ]) {
+      expect(() => makeState(invalid)).toThrow("Temporary presentation");
+    }
+  });
   test("deeply copies and freezes controller-owned plain state", () => {
     const mutableControllerState = {
       status: "ready",

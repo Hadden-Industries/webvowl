@@ -1,7 +1,10 @@
+import { CANONICAL_NEIGHBORHOOD_LIMITS } from "./canonicalNeighborhoodLimits.js";
+
 const WEB_VOWL_OPERATION_ERROR_CODES = Object.freeze([
   "NO_ONTOLOGY",
   "SOURCE_REJECTED",
   "LOAD_ABORTED",
+  "LOAD_PENDING",
   "LOAD_FAILED",
   "FETCH_FAILED",
   "PARSE_FAILED",
@@ -31,6 +34,7 @@ export const WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES = Object.freeze([
   "nodeCountStatus",
   "editorMode",
   "renderingStatistics",
+  "temporaryPresentation",
   "error",
 ]);
 
@@ -580,6 +584,33 @@ export function createWebVowlControllerState(controllerState) {
     )
   ) {
     throw new TypeError("The controller state has an invalid field set.");
+  }
+  const temporary = controllerState.temporaryPresentation;
+  if (temporary !== null) {
+    if (
+      !isPlainRecord(temporary) ||
+      Object.keys(temporary).sort().join(",") !==
+        "counts,documentRevision,kind,loadGeneration" ||
+      temporary.kind !== "neighborhood" ||
+      !Number.isSafeInteger(temporary.loadGeneration) ||
+      temporary.loadGeneration < 1 ||
+      !Number.isSafeInteger(temporary.documentRevision) ||
+      temporary.documentRevision < 0 ||
+      temporary.loadGeneration !== controllerState.loadGeneration ||
+      temporary.documentRevision !== controllerState.documentRevision ||
+      !isPlainRecord(temporary.counts) ||
+      Object.keys(temporary.counts).sort().join(",") !== "edges,labels,nodes" ||
+      Object.entries(temporary.counts).some(
+        ([name, count]) =>
+          !Number.isSafeInteger(count) ||
+          count < 0 ||
+          count > CANONICAL_NEIGHBORHOOD_LIMITS[name],
+      )
+    ) {
+      throw new TypeError(
+        "Temporary presentation must describe a bounded neighborhood of the current document revision.",
+      );
+    }
   }
   return freezeWebVowlControllerState(controllerState);
 }

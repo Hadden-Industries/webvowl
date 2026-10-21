@@ -131,33 +131,53 @@ export async function qualifyLiveRecovery() {
       "artifact-and-hidden-scene-roundtrip",
     );
     const role = opened.inspection.records.roles[0];
+    const removal = [
+      { kind: "remove", id: role.id },
+      { kind: "remove", id: role.subject },
+    ];
+    // Live model editing itself needs no RDF canonicalization, but the worker
+    // also computes a ranking identity. Its existing RDF budget still applies.
+    let boundedRanking = false;
+    try {
+      await client.run(
+        {
+          operation: "edit-model",
+          checkpoint: opened.checkpoint,
+          changes: removal,
+          limits: { rdfQuads: 1, rdfDeepIterations: 0 },
+        },
+        context,
+      );
+    } catch (error) {
+      boundedRanking =
+        error.code === "RDF_RESOURCE_LIMIT" &&
+        error.details?.stage === "node-ranking";
+    }
+    check(boundedRanking, "worker-ranking-enforces-rdf-budget");
     const edited = await client.run(
       {
         operation: "edit-model",
         checkpoint: opened.checkpoint,
-        changes: [
-          { kind: "remove", id: role.id },
-          { kind: "remove", id: role.subject },
-        ],
-        limits: { rdfQuads: 1, rdfDeepIterations: 0 },
+        changes: removal,
       },
       context,
     );
     check(
       edited.inspection.revision === 1 &&
-        edited.inspection.occurrences.length === 0,
-      "separate-worker-edit-without-rdfc",
+        edited.inspection.occurrences.length === 0 &&
+        edited.rankingIdentity.revision === 1,
+      "separate-worker-edit-with-current-ranking",
     );
     const recovered = await client.run(
       {
         operation: "recover-model",
         checkpoint: edited.checkpoint,
-        limits: { rdfQuads: 1, rdfDeepIterations: 0 },
       },
       { ...context, baseRevision: 1 },
     );
     check(
-      recovered.inspection.revision === 1,
+      recovered.inspection.revision === 1 &&
+        recovered.rankingIdentity.revision === 1,
       "native-checkpoint-clone-and-recovery",
     );
     let stale = false;
@@ -255,7 +275,7 @@ export async function qualifyLiveRecovery() {
             },
           },
         ],
-        { signal: abort.signal, limits: { rdfQuads: 1, rdfDeepIterations: 0 } },
+        { signal: abort.signal },
       );
       check(
         changed.documentRevision === 1 &&
@@ -349,7 +369,7 @@ export async function qualifyLiveRecovery() {
             record: { id: "owl:new:r", subject: "owl:new:s", kind: "class" },
           },
         ],
-        { signal: abort.signal, limits: { rdfQuads: 1, rdfDeepIterations: 0 } },
+        { signal: abort.signal },
       );
       const current = owlSession.snapshot();
       const recovered = await owlClient.run(
@@ -827,6 +847,9 @@ export async function qualifyLiveRecovery() {
                   documentIri: "https://example.test/chosen.owl",
                   fileName: "chosen.owl",
                   contentType: "application/octet-stream",
+                  // Automatic admission detects these bytes. An unsupported
+                  // explicit format exercises the human-choice continuation.
+                  format: "fixture-unrecognized-format",
                 };
               },
             },
@@ -942,9 +965,16 @@ export async function qualifyLiveRecovery() {
             file: new File([controllerSource], "original.ofn"),
             signal: abort.signal,
           });
-          const inputDialog = document.querySelector(
-            ".canonical-input-dialog[open]",
-          );
+          let inputDialog;
+          // Local acquisition reads File bytes before presenting the dialog.
+          while (
+            !(inputDialog = document.querySelector(
+              ".canonical-input-dialog[open]",
+            ))
+          ) {
+            abort.signal.throwIfAborted();
+            await new Promise((resolve) => requestAnimationFrame(resolve));
+          }
           const syntax = inputDialog.querySelector("select");
           check(
             document.activeElement === syntax &&
@@ -1075,7 +1105,7 @@ export async function qualifyLiveRecovery() {
             syntaxDialog.querySelector("input").readOnly &&
               syntaxDialog.querySelector("input").value ===
                 "https://example.test/chosen.owl",
-            "ambiguous-import-selector-preserves-acquisition-identity",
+            "explicit-import-selector-preserves-acquisition-identity",
           );
           syntaxDialog.querySelector("form").requestSubmit();
           await choosingImport;
@@ -1090,7 +1120,7 @@ export async function qualifyLiveRecovery() {
                 .inspection.records.subjects.some(
                   ({ iri }) => iri === "urn:ChosenImportClass",
                 ),
-            "ambiguous-import-choice-restarts-admission-without-refetch",
+            "explicit-import-choice-restarts-admission-without-refetch",
           );
           await controller.loadOntology(
             {

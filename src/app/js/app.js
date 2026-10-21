@@ -459,6 +459,8 @@ export function createWebVowlApplication({
       renderOntologySummary: (ontologySummary) =>
         sidebar.renderOntologySummary(ontologySummary),
       renderViewport: (zoomScale) => zoomSlider.renderViewport(zoomScale),
+      renderTemporaryPresentation: (temporaryPresentation) =>
+        searchMenu.renderTemporaryPresentation(temporaryPresentation),
       renderEditorMode: (isEditorMode) => {
         sidebar.renderEditorMode(isEditorMode);
         ontologyMenu.renderEditorMode(isEditorMode);

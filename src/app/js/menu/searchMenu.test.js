@@ -26,6 +26,7 @@ class MockElement {
     this.ownerDocument = global.document;
     this.nodeType = 1;
     this.attributes = {};
+    this.dataset = {};
     this.children = [];
     this.scrollLeft = 0;
     this.value = "";
@@ -890,7 +891,22 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
       sharedSearchController.getOntologyNeighborhoodRevealPlan = () => ({
         canReveal: true,
       });
-      sharedSearchController.revealOntologyNeighborhood = () => pending;
+      let temporaryPresentation = null;
+      sharedSearchController.revealOntologyNeighborhood = () => {
+        temporaryPresentation = {
+          kind: "neighborhood",
+          loadGeneration: 1,
+          documentRevision: 0,
+          counts: { nodes: 3, edges: 2, labels: 2 },
+        };
+        return pending;
+      };
+      sharedSearchController.getState = () => ({ temporaryPresentation });
+      const setView = sharedSearchController.setVisualizationView;
+      sharedSearchController.setVisualizationView = (request) => {
+        temporaryPresentation = null;
+        return setView(request);
+      };
       const menu = searchMenuFactory({
         documentObject: mockDoc,
         windowObject: global.window,

@@ -19,6 +19,7 @@ const CONTROLLER_STATE_PRESENTER_DEPENDENCY_FIELD_NAMES = Object.freeze([
   "renderOntologySummary",
   "renderViewport",
   "renderEditorMode",
+  "renderTemporaryPresentation",
   "describeOntologyElements",
   "readOntologySummary",
 ]);
@@ -45,6 +46,7 @@ export const PRESENTED_CONTROLLER_STATE_FIELD_NAMES = Object.freeze([
   "selection",
   "zoomScale",
   "editorMode",
+  "temporaryPresentation",
 ]);
 
 // The view controls present standing choices through their own subscriber.
@@ -86,6 +88,7 @@ export function createControllerStatePresenter(dependencies) {
     renderOntologySummary,
     renderViewport,
     renderEditorMode,
+    renderTemporaryPresentation,
     describeOntologyElements,
     readOntologySummary,
   } = dependencies;
@@ -105,6 +108,9 @@ export function createControllerStatePresenter(dependencies) {
         hasPresentedAnyState ? changedFieldNames : Object.keys(controllerState),
       );
       hasPresentedAnyState = true;
+      if (changedFields.has("temporaryPresentation")) {
+        renderTemporaryPresentation(controllerState.temporaryPresentation);
+      }
       const languageChanged =
         changedFields.has("view") &&
         controllerState.view?.language !== presentedLanguage;

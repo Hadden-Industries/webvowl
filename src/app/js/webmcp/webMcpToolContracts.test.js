@@ -1844,6 +1844,12 @@ describe("WebMCP tool dispatch", () => {
     const state = {
       status: "ready",
       loadGeneration: 4,
+      temporaryPresentation: {
+        kind: "neighborhood",
+        loadGeneration: 4,
+        documentRevision: 0,
+        counts: { nodes: 500, edges: 1000, labels: 2000 },
+      },
       layout: { status: "paused" },
       source: {
         kind: "ontology-document-iri",
@@ -1889,6 +1895,7 @@ describe("WebMCP tool dispatch", () => {
       view: { modes, forceDistances },
       focusCount: 25,
       selectionCount: 25,
+      temporaryPresentation: state.temporaryPresentation,
     });
     expect(
       result.toolResult.view.focus.every((reference) =>

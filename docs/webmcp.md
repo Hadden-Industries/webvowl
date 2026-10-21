@@ -42,6 +42,20 @@ There is no legacy callback route, no compatibility adapter, and no second trans
 For an application-level embedding, `app.getWebVowlController()` returns the controller.
 The concrete renderer and options entry points were removed deliberately and have no aliases.
 
+During a replacement load, document-content reads, view changes, temporary-view actions and captures return `LOAD_PENDING` with `isRetryable: true`.
+Retry after the load finishes.
+`get_visualization_state` remains available and reports the loading status; application resizing, diagnostics and editor preferences also remain available.
+Human editing retains its separate `EDIT_REJECTED` response while a load is pending.
+
+Cancelling a view request stops the caller's wait while retaining standing choices that have already been applied.
+The published state reports those applied choices.
+A superseded operation cannot publish a result, restore an old scene or resume a newer document's layout.
+
+`get_visualization_state` includes `temporaryPresentation`: `null` for the ordinary view, or a `neighborhood` descriptor with `loadGeneration`, `documentRevision` and node/edge/label counts.
+Human search and agent reveals publish the same status.
+Clearing or replacing the temporary view retires that descriptor; canonical exports and share links retain the ordinary presentation.
+The response still obeys the 1,500-character ceiling.
+
 The modules added or materially changed by this work are native ESM with named exports and explicit relative `.js` specifiers.
 The root package declares `"type": "module"`; the application and build/test infrastructure use native ESM.
 The production CommonJS renderer allowlist is now empty.

@@ -1,3 +1,4 @@
+import { createOntologyInspectionSnapshot } from "./ontologyInspectionContracts.js";
 import { describe, expect, test } from "@jest/globals";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -5,10 +6,7 @@ import {
   createOntologyInspector,
   prepareOntologySearch,
 } from "./ontologyInspector.js";
-import {
-  createOntologyInspectionSnapshot,
-  createVisibleRenderedGraphSnapshot,
-} from "./renderedGraphRuntimeContracts.js";
+import { createVisibleRenderedGraphSnapshot } from "./renderedGraphRuntimeContracts.js";
 import { WEB_VOWL_OPERATION_LIMITS } from "./webVowlControllerContracts.js";
 
 const INSPECTOR_MODULE_URL = new URL("./ontologyInspector.js", import.meta.url);

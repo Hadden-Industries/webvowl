@@ -1,15 +1,18 @@
+import { createOntologyInspectionSnapshot } from "./ontologyInspectionContracts.js";
+import {
+  CANONICAL_RENDERED_GRAPH_RUNTIME_METHOD_NAMES,
+  assertCanonicalRenderedGraphRuntime,
+} from "./canonicalRenderedGraphRuntimeContract.js";
+import { canonicalRuntimeRequestFixture } from "../../test/canonicalRuntimeRequestFixture.js";
 import { describe, expect, test } from "@jest/globals";
 import {
   RENDERED_GRAPH_EVENT_KINDS,
-  RENDERED_GRAPH_RUNTIME_METHOD_NAMES,
-  assertRenderedGraphRuntime,
   createAppliedVisualizationView,
   createContinuousZoomRequest,
   createForceLayoutDistancesRequest,
   createGraphLayoutPauseRequest,
   createGraphLayoutPauseResult,
   createGraphLayoutSnapshot,
-  createOntologyInspectionSnapshot,
   createRenderedGraphEvent,
   createRenderedSvgSnapshot,
   createRenderedSvgSnapshotRequest,
@@ -17,8 +20,7 @@ import {
   createVisualizationModesRequest,
   createVisualizationViewApplicationRequest,
   createVisualizationViewApplicationResult,
-  createVowlModelReplacementRequest,
-  createVowlModelReplacementResult,
+  createCanonicalDrawingRequest,
 } from "./renderedGraphRuntimeContracts.js";
 
 test("reports the selected document record independently of semantic IRI selection", () => {
@@ -235,10 +237,14 @@ function createDetachedSvgRootFixture(marker = "detached-root") {
 
 describe("rendered graph runtime interface", () => {
   test("declares the exact application-facing runtime method vocabulary", () => {
-    expect(RENDERED_GRAPH_RUNTIME_METHOD_NAMES).toEqual([
-      "replaceVowlModel",
-      "applyVowlModelRevision",
+    expect(CANONICAL_RENDERED_GRAPH_RUNTIME_METHOD_NAMES).toEqual([
+      "replaceCanonicalDrawing",
+      "applyCanonicalDrawingRevision",
+      "readCanonicalDrawingState",
       "clearRenderedGraph",
+      "readVisualizationView",
+      "readVisualizationViewport",
+      "setVisualizationFocus",
       "applyVisualizationView",
       "readVisibleRenderedGraphSnapshot",
       "readGraphLayoutSnapshot",
@@ -262,27 +268,27 @@ describe("rendered graph runtime interface", () => {
 
   test("accepts a runtime implementing every required method", () => {
     const renderedGraphRuntime = Object.fromEntries(
-      RENDERED_GRAPH_RUNTIME_METHOD_NAMES.map((methodName) => [
+      CANONICAL_RENDERED_GRAPH_RUNTIME_METHOD_NAMES.map((methodName) => [
         methodName,
         () => undefined,
       ]),
     );
 
-    expect(assertRenderedGraphRuntime(renderedGraphRuntime)).toBe(
+    expect(assertCanonicalRenderedGraphRuntime(renderedGraphRuntime)).toBe(
       renderedGraphRuntime,
     );
   });
 
   test("rejects a runtime missing an application-facing method", () => {
     const renderedGraphRuntime = Object.fromEntries(
-      RENDERED_GRAPH_RUNTIME_METHOD_NAMES.filter(
+      CANONICAL_RENDERED_GRAPH_RUNTIME_METHOD_NAMES.filter(
         (methodName) => methodName !== "createRenderedSvgSnapshot",
       ).map((methodName) => [methodName, () => undefined]),
     );
 
-    expect(() => assertRenderedGraphRuntime(renderedGraphRuntime)).toThrow(
-      "createRenderedSvgSnapshot",
-    );
+    expect(() =>
+      assertCanonicalRenderedGraphRuntime(renderedGraphRuntime),
+    ).toThrow("createRenderedSvgSnapshot");
   });
 
   test("rejects a runtime that still exposes a retired reader", () => {
@@ -291,21 +297,21 @@ describe("rendered graph runtime interface", () => {
     // contract rather than surviving as a second, renderer-owned source.
     const renderedGraphRuntime = Object.fromEntries(
       [
-        ...RENDERED_GRAPH_RUNTIME_METHOD_NAMES,
+        ...CANONICAL_RENDERED_GRAPH_RUNTIME_METHOD_NAMES,
         "readOntologyInspectionSnapshot",
       ].map((methodName) => [methodName, () => undefined]),
     );
 
-    expect(() => assertRenderedGraphRuntime(renderedGraphRuntime)).toThrow(
-      "readOntologyInspectionSnapshot",
-    );
+    expect(() =>
+      assertCanonicalRenderedGraphRuntime(renderedGraphRuntime),
+    ).toThrow("readOntologyInspectionSnapshot");
   });
 
   test("no longer declares an ontology-inspection reader", () => {
-    expect(RENDERED_GRAPH_RUNTIME_METHOD_NAMES).not.toContain(
+    expect(CANONICAL_RENDERED_GRAPH_RUNTIME_METHOD_NAMES).not.toContain(
       "readOntologyInspectionSnapshot",
     );
-    expect(RENDERED_GRAPH_RUNTIME_METHOD_NAMES).toContain(
+    expect(CANONICAL_RENDERED_GRAPH_RUNTIME_METHOD_NAMES).toContain(
       "readVisibleRenderedGraphSnapshot",
     );
   });
@@ -862,9 +868,8 @@ describe("rendered graph requests and results", () => {
       modes: { dynamicLabelWidth: false },
       forceDistances: { classDistancePx: 300 },
     };
-    const request = createVowlModelReplacementRequest({
-      loadGeneration: 3,
-      vowlModel: { header: {} },
+    const request = createCanonicalDrawingRequest({
+      ...canonicalRuntimeRequestFixture(3),
       initialVisualization,
     });
     initialVisualization.view.translation.xPx = 900;
@@ -874,40 +879,20 @@ describe("rendered graph requests and results", () => {
     });
     expectPlainDataDeeplyFrozen(request);
     expect(() =>
-      createVowlModelReplacementRequest({
-        loadGeneration: 4,
-        vowlModel: {},
+      createCanonicalDrawingRequest({
+        ...canonicalRuntimeRequestFixture(4),
         initialVisualization: { view: { zoomScale: 8 } },
       }),
     ).toThrow(/zoomScale/);
   });
 
-  test("copies and freezes an opaque VOWL model replacement request", () => {
-    const vowlModel = {
-      class: [{ id: "1", type: "owl:Class" }],
-      header: { iri: "https://example.test/ontology" },
-    };
-
-    const request = createVowlModelReplacementRequest({
-      loadGeneration: 3,
-      vowlModel,
-    });
-
-    vowlModel.class[0].id = "mutated";
-    expect(request).toEqual({
-      loadGeneration: 3,
-      vowlModel: {
-        class: [{ id: "1", type: "owl:Class" }],
-        header: { iri: "https://example.test/ontology" },
-      },
-    });
+  test("copies and freezes an owned canonical drawing request", () => {
+    const source = canonicalRuntimeRequestFixture(3);
+    const expected = structuredClone(source);
+    const request = createCanonicalDrawingRequest(source);
+    source.drawing.nodes[0].position.x = 99999;
+    expect(request).toEqual(expected);
     expectPlainDataDeeplyFrozen(request);
-  });
-
-  test("creates a replacement result only for its completed generation", () => {
-    expect(createVowlModelReplacementResult({ loadGeneration: 3 })).toEqual({
-      loadGeneration: 3,
-    });
   });
 
   test("accepts advancing the viewport to the next focused element", () => {

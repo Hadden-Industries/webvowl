@@ -39,7 +39,6 @@ const REQUIRED_NATIVE_ESM_MODULE_PATHS = Object.freeze([
   "src/app/js/ui/controllerStatePresenter.test.js",
   "src/app/js/ui/visualizationArtifactDownloadAdapter.js",
   "src/app/js/ui/visualizationArtifactDownloadAdapter.test.js",
-  "src/webvowl/js/entry.js",
   "src/webvowl/js/runtime/d3RenderedGraphAdapter.js",
   "src/webvowl/js/runtime/d3RenderedGraphAdapter.test.js",
   "src/webvowl/js/runtime/renderedGraphConfiguration.js",
@@ -67,8 +66,8 @@ const REQUIRED_NATIVE_ESM_MODULE_PATHS = Object.freeze([
   "src/app/js/ontologyLifecycle.test.js",
   "src/app/js/sidebar.js",
   "src/app/js/sidebar.test.js",
-  "src/app/test/inMemoryRenderedGraphAdapter.js",
-  "src/app/test/inMemoryRenderedGraphAdapter.test.js",
+  "src/app/test/canonicalRenderedGraphRuntimeDouble.js",
+  "src/app/test/canonicalRenderedGraphRuntimeDouble.test.js",
   "src/app/test/renderedGraphRuntimeContract.js",
   "src/app/js/warningModule.js",
   "src/app/js/warningModule.test.js",
@@ -235,6 +234,10 @@ const APPROVED_TEST_INFRASTRUCTURE_COMMONJS_PATHS = Object.freeze([]);
 const RETIRED_AT_RENDERED_GRAPH_CUTOVER_PATHS = Object.freeze([
   "src/shared/js/options.js",
   "src/webvowl/js/graph.js",
+  "src/webvowl/js/entry.js",
+  "src/webvowl/js/parser.js",
+  "src/webvowl/js/parsing/equivalentPropertyMerger.js",
+  "src/app/js/controller/rendererElementReferences.js",
 ]);
 
 const CURRENT_PUBLIC_OR_APPLICATION_COMMONJS_PATHS = Object.freeze([
@@ -6115,15 +6118,15 @@ describe("native-ESM module dependency graph policy", () => {
   test("rejects a production dependency on application test support", () => {
     const productionModulePath = "src/app/js/controller/controller.js";
     const testSupportModulePath =
-      "src/app/test/inMemoryRenderedGraphAdapter.js";
+      "src/app/test/canonicalRenderedGraphRuntimeDouble.js";
     const authoredModuleSourceByPath = new Map([
       [
         productionModulePath,
-        'import { createInMemoryRenderedGraphAdapter } from "../../test/inMemoryRenderedGraphAdapter.js"; export function createController() { return createInMemoryRenderedGraphAdapter(); }',
+        'import { createCanonicalRenderedGraphRuntimeDouble } from "../../test/canonicalRenderedGraphRuntimeDouble.js"; export function createController() { return createCanonicalRenderedGraphRuntimeDouble(); }',
       ],
       [
         testSupportModulePath,
-        "export function createInMemoryRenderedGraphAdapter() { return {}; }",
+        "export function createCanonicalRenderedGraphRuntimeDouble() { return {}; }",
       ],
     ]);
 
@@ -6133,7 +6136,8 @@ describe("native-ESM module dependency graph policy", () => {
         [
           {
             importerPath: productionModulePath,
-            moduleSpecifier: "../../test/inMemoryRenderedGraphAdapter.js",
+            moduleSpecifier:
+              "../../test/canonicalRenderedGraphRuntimeDouble.js",
             resolvedModulePath: testSupportModulePath,
           },
         ],

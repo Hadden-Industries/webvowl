@@ -1,4 +1,4 @@
-import { createOntologyInspectionSnapshot } from "./renderedGraphRuntimeContracts.js";
+import { createOntologyInspectionSnapshot } from "./ontologyInspectionContracts.js";
 import { createOntologyElementReference } from "./webVowlControllerContracts.js";
 import { indexVowlLabelCandidates } from "./vowlDisplayProjector.js";
 import { namespaces, dataRangeKinds } from "vowl";

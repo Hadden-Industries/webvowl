@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { SourceTextModule, SyntheticModule } from "node:vm";
 import { color } from "d3";
 import { namespaces } from "vowl";
+import { canonicalRuntimeRequestFixture } from "../../../app/test/canonicalRuntimeRequestFixture.js";
 
 let assertRenderedGraphRuntimeContract;
 let createD3RenderedGraphAdapter;
@@ -326,9 +327,6 @@ function createAdapterHarness() {
     },
     callOrder: [],
     loadCallCount: 0,
-    applyVowlModelRevision: jest.fn(function (vowlModel) {
-      this.suppliedVowlModels.push(vowlModel);
-    }),
     applyCanonicalDrawingRevision: jest.fn(function (drawing) {
       this.canonicalDrawing = structuredClone(drawing);
     }),
@@ -349,7 +347,6 @@ function createAdapterHarness() {
       });
     },
     pauseStates: [],
-    suppliedVowlModels: [],
     options: () => ({
       datatypeFilter: () =>
         renderedGraphInternalsFixture.filterModules.datatypes,
@@ -400,10 +397,6 @@ function createAdapterHarness() {
         }
         renderedGraphInternalsFixture.maxLabelWidths.push(nextMaxLabelWidthPx);
       },
-      data(vowlModel) {
-        renderedGraphInternalsFixture.callOrder.push("data");
-        renderedGraphInternalsFixture.suppliedVowlModels.push(vowlModel);
-      },
     }),
     initializeSvgRoot() {
       renderedGraphInternalsFixture.callOrder.push("initializeSvgRoot");
@@ -424,19 +417,21 @@ function createAdapterHarness() {
       renderedGraphInternalsFixture.callOrder.push("load");
       renderedGraphInternalsFixture.loadCallCount += 1;
       const simulation = rendererSimulationFixture.forceSimulation();
-      const model =
-        renderedGraphInternalsFixture.suppliedVowlModels.at(-1) ?? {};
       simulation.nodes([
-        ...(model.class ?? []).map(({ id }, index) => ({
-          stableLayoutElementKey: `node:${id}`,
-          x: 30 + index * 7,
-          y: 41 - index * 5,
-        })),
-        ...(model.property ?? []).map(({ id }, index) => ({
-          stableLayoutElementKey: `label:${id}`,
-          x: 44 + index * 6,
-          y: 29,
-        })),
+        ...(initialChoices.canonicalDrawing?.nodes ?? []).map(
+          ({ occurrence, position }) => ({
+            stableLayoutElementKey: `node:${occurrence}`,
+            x: position?.x ?? 0,
+            y: position?.y ?? 0,
+          }),
+        ),
+        ...(initialChoices.canonicalDrawing?.labels ?? []).map(
+          ({ occurrence, position }) => ({
+            stableLayoutElementKey: `label:${occurrence}`,
+            x: position?.x ?? 0,
+            y: position?.y ?? 0,
+          }),
+        ),
       ]);
       const publish = () =>
         renderedGraphInternalsFixture.installedEventPort.publishGraphLayoutState(
@@ -493,11 +488,17 @@ function createAdapterHarness() {
       };
     },
     readVisibleElementIds() {
-      const model = renderedGraphInternalsFixture.suppliedVowlModels.at(-1);
-      return {
-        nodeIds: (model.class ?? []).map(({ id }) => id),
-        propertyIds: (model.property ?? []).map(({ id }) => id),
-      };
+      if (this.canonicalDrawing) {
+        return {
+          nodeIds: this.canonicalDrawing.nodes
+            .filter((row) => !row.hidden)
+            .map((row) => row.occurrence),
+          propertyIds: this.canonicalDrawing.labels
+            .filter((row) => !row.hidden)
+            .map((row) => row.occurrence),
+        };
+      }
+      throw new Error("No canonical drawing is mounted.");
     },
     pinnedRendererKeys: new Set(),
     readArrangement() {
@@ -716,9 +717,13 @@ describe("D3 rendered graph adapter", () => {
     const harness = createAdapterHarness();
     const { renderedGraphRuntime, renderedGraphInternalsFixture: renderer } =
       harness;
-    const loading = renderedGraphRuntime.replaceVowlModel(
+    const initialDrawing = canonicalRuntimeRequestFixture(1);
+    initialDrawing.layout = "pause";
+    initialDrawing.drawing.labelSelection = { mode: "language", range: "de" };
+    initialDrawing.drawing.display.nodeScaling = "uniform";
+    const loading = renderedGraphRuntime.replaceCanonicalDrawing(
       {
-        ...replacementRequest(1),
+        ...initialDrawing,
         initialVisualization: {
           view: {
             language: "de",
@@ -748,7 +753,7 @@ describe("D3 rendered graph adapter", () => {
       datatypeDistancePx: 180,
     });
     expect(renderer.loadChoices).toEqual({
-      language: "de",
+      canonicalDrawing: initialDrawing.drawing,
       isPaused: true,
       centerViewport: false,
     });
@@ -758,7 +763,7 @@ describe("D3 rendered graph adapter", () => {
     expect(renderer.updateCallCount).toBe(0);
     expect(renderer.modeExecutions).toEqual([]);
     expect(harness.renderedGraphTestHarness.completeInitialPaint(1)).toBe(true);
-    expect(await outcome).toEqual({ loadGeneration: 1 });
+    expect(await outcome).toEqual({ loadGeneration: 1, documentRevision: 0 });
     expect(renderedGraphRuntime.readGraphLayoutSnapshot().isPaused).toBe(true);
   });
 
@@ -769,40 +774,11 @@ describe("D3 rendered graph adapter", () => {
     });
   });
 
-  function replacementRequest(loadGeneration) {
-    return {
-      loadGeneration,
-      // Real VOWL JSON keeps identity and labels in the *Attribute
-      // collections, keyed by the id of the bare element entry.
-      vowlModel: {
-        class: [
-          { id: "Person", type: "owl:Class" },
-          { id: "AnonymousClass1", type: "owl:Class" },
-        ],
-        classAttribute: [
-          {
-            id: "Person",
-            iri: "https://example.test/Person",
-            label: { undefined: "Person" },
-          },
-          { id: "AnonymousClass1" },
-        ],
-        property: [{ id: "knows", type: "owl:ObjectProperty" }],
-        propertyAttribute: [
-          {
-            id: "knows",
-            iri: "https://example.test/knows",
-            label: { undefined: "knows" },
-          },
-        ],
-        header: { iri: "https://example.test/ontology" },
-      },
-    };
-  }
+  const replacementRequest = canonicalRuntimeRequestFixture;
 
   async function loadGeneration(adapterHarness, generation) {
     const replacementPromise =
-      adapterHarness.renderedGraphRuntime.replaceVowlModel(
+      adapterHarness.renderedGraphRuntime.replaceCanonicalDrawing(
         replacementRequest(generation),
         {},
       );
@@ -816,18 +792,24 @@ describe("D3 rendered graph adapter", () => {
     const runtime = harness.renderedGraphRuntime;
     const renderer = harness.renderedGraphInternalsFixture;
     const before = runtime.readRenderedArrangement();
-    const model = replacementRequest(1).vowlModel;
-    model.classAttribute[0].iri = "https://example.test/Renamed";
-    const result = runtime.applyVowlModelRevision({
+    const drawing = replacementRequest(1).drawing;
+    drawing.nodes[0].principal.iri = "https://example.test/Renamed";
+    drawing.applicationBindings[0].semanticReferences[0].iri =
+      "https://example.test/Renamed";
+    const result = runtime.applyCanonicalDrawingRevision({
       loadGeneration: 1,
-      vowlModel: model,
+      baseRevision: 0,
+      documentRevision: 1,
+      drawing,
     });
     expect(renderer.loadCallCount).toBe(1);
-    expect(renderer.applyVowlModelRevision).toHaveBeenCalledTimes(1);
-    expect(renderer.applyVowlModelRevision.mock.calls[0][0]).not.toBe(model);
+    expect(renderer.applyCanonicalDrawingRevision).toHaveBeenCalledTimes(1);
+    expect(renderer.applyCanonicalDrawingRevision.mock.calls[0][0]).not.toBe(
+      drawing,
+    );
     expect(result.loadGeneration).toBe(1);
     expect(
-      result.visibleRenderedGraphSnapshot.visibleElementReferences,
+      runtime.readVisibleRenderedGraphSnapshot().visibleElementReferences,
     ).toContainEqual({ kind: "class", iri: "https://example.test/Renamed" });
     expect(runtime.readRenderedArrangement().occurrences[0].reference).toEqual(
       before.occurrences[0].reference,
@@ -837,9 +819,14 @@ describe("D3 rendered graph adapter", () => {
         .ontologyElementReferences,
     ).toContainEqual({ kind: "class", iri: "https://example.test/Renamed" });
     expect(() =>
-      runtime.applyVowlModelRevision({ loadGeneration: 2, vowlModel: model }),
-    ).toThrow(/superseded/);
-    expect(renderer.applyVowlModelRevision).toHaveBeenCalledTimes(1);
+      runtime.applyCanonicalDrawingRevision({
+        loadGeneration: 2,
+        baseRevision: 1,
+        documentRevision: 2,
+        drawing,
+      }),
+    ).toThrow();
+    expect(renderer.applyCanonicalDrawingRevision).toHaveBeenCalledTimes(1);
     runtime.dispose();
   });
 
@@ -849,7 +836,7 @@ describe("D3 rendered graph adapter", () => {
     const runtime = harness.renderedGraphRuntime;
     const before = runtime.readRenderedArrangement();
     const person = before.occurrences.find(
-      (entry) => entry.recordTargets[0]?.recordId === "Person",
+      (entry) => entry.recordTargets[0]?.recordToken === 1,
     );
     const moving = runtime.setRenderedArrangement({
       changes: [
@@ -870,13 +857,13 @@ describe("D3 rendered graph adapter", () => {
     });
     expect(
       before.occurrences.find(
-        (entry) => entry.recordTargets[0]?.recordId === "Person",
+        (entry) => entry.recordTargets[0]?.recordToken === 1,
       ),
     ).toMatchObject({ xPx: 30, yPx: 41, isPinned: false });
     expect(Object.isFrozen(before.occurrences[0].reference)).toBe(true);
     expect(
       after.occurrences.find(
-        (entry) => entry.recordTargets[0]?.recordId === "AnonymousClass1",
+        (entry) => entry.recordTargets[0]?.recordToken === 2,
       ),
     ).toMatchObject({ xPx: 37, yPx: 36 });
     const unpinning = runtime.setRenderedArrangement({
@@ -922,15 +909,13 @@ describe("D3 rendered graph adapter", () => {
     runtime.subscribeToRenderedGraphEvents((event) => events.push(event));
     const person = runtime
       .readRenderedArrangement()
-      .occurrences.find(
-        (entry) => entry.recordTargets[0]?.recordId === "Person",
-      );
+      .occurrences.find((entry) => entry.recordTargets[0]?.recordToken === 1);
     await runtime.selectRenderedOccurrence({ reference: person.reference });
     expect(
       events.findLast(
         (event) => event.kind === "document-record-selection-changed",
       )?.payload.recordTarget,
-    ).toEqual({ collection: "class", recordId: "Person" });
+    ).toEqual({ loadGeneration: 1, recordToken: 1 });
     expect(
       events.findLast(
         (event) => event.kind === "rendered-element-selection-changed",
@@ -956,7 +941,7 @@ describe("D3 rendered graph adapter", () => {
       adapterHarness.rendererSimulationFixture.createdSimulations[0];
 
     const replacementPromise =
-      adapterHarness.renderedGraphRuntime.replaceVowlModel(
+      adapterHarness.renderedGraphRuntime.replaceCanonicalDrawing(
         replacementRequest(2),
         {},
       );
@@ -972,10 +957,11 @@ describe("D3 rendered graph adapter", () => {
     let isReadyForPaint = false;
     adapterHarness.renderedGraphInternalsFixture.isReadyForPaint = () =>
       isReadyForPaint;
-    const replacement = adapterHarness.renderedGraphRuntime.replaceVowlModel(
-      replacementRequest(1),
-      {},
-    );
+    const replacement =
+      adapterHarness.renderedGraphRuntime.replaceCanonicalDrawing(
+        replacementRequest(1),
+        {},
+      );
     let hasCompleted = false;
     void replacement.then(() => {
       hasCompleted = true;
@@ -1024,7 +1010,7 @@ describe("D3 rendered graph adapter", () => {
     harness.renderedGraphRuntime.subscribeToRenderedGraphEvents((event) =>
       events.push(event),
     );
-    const replacement = harness.renderedGraphRuntime.replaceVowlModel(
+    const replacement = harness.renderedGraphRuntime.replaceCanonicalDrawing(
       replacementRequest(1),
       { signal: caller.signal },
     );
@@ -1070,7 +1056,9 @@ describe("D3 rendered graph adapter", () => {
       throw new Error("The native renderer failed while drawing.");
     };
     await expect(
-      harness.renderedGraphRuntime.replaceVowlModel(replacementRequest(1)),
+      harness.renderedGraphRuntime.replaceCanonicalDrawing(
+        replacementRequest(1),
+      ),
     ).rejects.toThrow("The native renderer failed while drawing.");
     const simulation =
       harness.rendererSimulationFixture.createdSimulations.at(-1);
@@ -1552,8 +1540,10 @@ describe("D3 rendered graph adapter", () => {
     await loadGeneration(harness, 1);
     harness.renderedGraphInternalsFixture.filterModules.datatypes.enabled(true);
     harness.renderedGraphInternalsFixture.language("en");
-    const replacement = harness.renderedGraphRuntime.replaceVowlModel({
-      ...replacementRequest(2),
+    const request = replacementRequest(2);
+    request.drawing.labelSelection = { mode: "language", range: "en" };
+    const replacement = harness.renderedGraphRuntime.replaceCanonicalDrawing({
+      ...request,
       initialVisualization: { view: { filters: { datatypes: "hide" } } },
     });
     harness.renderedGraphTestHarness.completeInitialPaint(2);
@@ -1754,7 +1744,6 @@ describe("D3 rendered graph adapter", () => {
     await loadGeneration(adapterHarness, 1);
 
     expect(adapterHarness.renderedGraphInternalsFixture.callOrder).toEqual([
-      "data",
       "initializeSvgRoot",
       "load",
     ]);
@@ -1762,10 +1751,8 @@ describe("D3 rendered graph adapter", () => {
     await loadGeneration(adapterHarness, 2);
 
     expect(adapterHarness.renderedGraphInternalsFixture.callOrder).toEqual([
-      "data",
       "initializeSvgRoot",
       "load",
-      "data",
       "load",
     ]);
   });
@@ -1865,26 +1852,20 @@ describe("D3 rendered graph adapter", () => {
 
   test("lays out every drawn node when several share one ontology IRI", async () => {
     const adapterHarness = createAdapterHarness();
-    // owl:Thing appears once per usage in real VOWL models, so an IRI does not
-    // identify a drawn node on its own.
+    const request = replacementRequest(1);
+    request.drawing.edges = [];
+    request.drawing.labels = [];
+    request.drawing.applicationBindings =
+      request.drawing.applicationBindings.slice(0, 2);
+    for (const [index, node] of request.drawing.nodes.entries()) {
+      node.principal.iri = "http://www.w3.org/2002/07/owl#Thing";
+      request.drawing.applicationBindings[index].semanticReferences = [
+        { kind: "class", iri: node.principal.iri },
+      ];
+    }
+    // One entity can own several drawn occurrences.
     const replacementPromise =
-      adapterHarness.renderedGraphRuntime.replaceVowlModel(
-        {
-          loadGeneration: 1,
-          vowlModel: {
-            class: [
-              { id: "1", type: "owl:Thing" },
-              { id: "2", type: "owl:Thing" },
-            ],
-            classAttribute: [
-              { id: "1", iri: "http://www.w3.org/2002/07/owl#Thing" },
-              { id: "2", iri: "http://www.w3.org/2002/07/owl#Thing" },
-            ],
-            header: {},
-          },
-        },
-        {},
-      );
+      adapterHarness.renderedGraphRuntime.replaceCanonicalDrawing(request, {});
     adapterHarness.renderedGraphTestHarness.completeInitialPaint(1);
     await replacementPromise;
 
@@ -2098,21 +2079,23 @@ describe("D3 rendered graph adapter", () => {
   test("focus distinguishes a class and property sharing an IRI", async () => {
     const harness = createAdapterHarness();
     const iri = "urn:punned";
-    const replacing = harness.renderedGraphRuntime.replaceVowlModel({
-      loadGeneration: 1,
-      vowlModel: {
-        header: {},
-        class: [{ id: "class", type: "owl:Class" }],
-        classAttribute: [{ id: "class", iri }],
-        property: [{ id: "property", type: "owl:ObjectProperty" }],
-        propertyAttribute: [
-          { id: "property", iri, domain: "class", range: "class" },
-        ],
-      },
-    });
+    const request = replacementRequest(1);
+    request.drawing.nodes[0].principal.iri = iri;
+    request.drawing.labels[0].principal.iri = iri;
+    request.drawing.applicationBindings[0].semanticReferences = [
+      { kind: "class", iri },
+    ];
+    request.drawing.applicationBindings[2].semanticReferences = [
+      { kind: "property", iri },
+    ];
+    const replacing =
+      harness.renderedGraphRuntime.replaceCanonicalDrawing(request);
     harness.renderedGraphTestHarness.completeInitialPaint(1);
     await replacing;
-    for (const kind of ["class", "property"]) {
+    for (const [kind, rendererId] of [
+      ["class", "Person"],
+      ["property", "knows"],
+    ]) {
       const applying = harness.renderedGraphRuntime.applyVisualizationView({
         loadGeneration: 1,
         focus: [{ kind, iri }],
@@ -2121,7 +2104,7 @@ describe("D3 rendered graph adapter", () => {
       await applying;
       expect([
         ...harness.renderedGraphInternalsFixture.currentHighlightIds,
-      ]).toEqual([kind]);
+      ]).toEqual([rendererId]);
     }
   });
 

@@ -8,7 +8,6 @@ import { createPropertyMap as createPropertyPrototypeMapModule } from "../elemen
 import { createOntologyEditingState } from "../../../shared/js/ontologyEditingState.js";
 import { createRenderedGraphSettings } from "./renderedGraphSettings.js";
 import { RENDERED_GRAPH_CONFIGURATION_DEFAULTS } from "./renderedGraphConfiguration.js";
-import { createParser as createVowlParser } from "../parser.js";
 import { createCanonicalRenderElements } from "../parsing/canonicalRenderElements.js";
 import { createClassDragger } from "../classDragger.js";
 import { createRangeDragger } from "../rangeDragger.js";
@@ -27,7 +26,6 @@ import { createObjectPropertyFilter } from "../../../shared/js/modules/objectPro
 import { createSetOperatorFilter } from "../../../shared/js/modules/setOperatorFilter.js";
 import { createStatistics } from "../../../shared/js/modules/statistics.js";
 import { createSubclassFilter } from "../../../shared/js/modules/subclassFilter.js";
-import _ from "lodash/core";
 import { createMath as createMathModule } from "../../../shared/js/util/math.js";
 const math = createMathModule();
 const linkCreator = createLinkCreatorModule();
@@ -247,7 +245,6 @@ function createGraph(
     focuser.handle(focusEvent.detail.element),
   );
   const ontologyEditingState = createOntologyEditingState();
-  const parser = createVowlParser(graph);
   let language = "default";
   let paused = false;
   // Container for visual elements
@@ -330,9 +327,7 @@ function createGraph(
     // Nothing is renderable until a model has been placed. This replaces the
     // former question to the loading presentation about whether a load
     // succeeded, which the renderer must not ask.
-    isOntologyRenderable: () =>
-      canonicalElements !== undefined ||
-      renderedGraphSettings.data() !== undefined,
+    isOntologyRenderable: () => canonicalElements !== undefined,
     hasMissingImports: () => false,
     publishRenderProgress: () => undefined,
     publishRenderWarning: () => undefined,
@@ -793,7 +788,6 @@ function createGraph(
 
   graph.clearRenderedGraph = function () {
     canonicalElements = undefined;
-    renderedGraphSettings.data(undefined);
     unfilteredData = { nodes: [], properties: [] };
     classNodes = [];
     labelNodes = [];
@@ -2270,32 +2264,13 @@ function createGraph(
 
   graph.load = function (
     loadGeneration,
-    {
-      language: initialLanguage,
-      isPaused,
-      centerViewport = true,
-      canonicalDrawing,
-    } = {},
+    { isPaused = true, canonicalDrawing } = {},
   ) {
-    // Prepare before retiring any mounted data. Canonical drawing rows bypass
-    // the legacy parser and its topology-generating normalization entirely.
-    const candidate =
-      canonicalDrawing === undefined
-        ? undefined
-        : prepareCanonicalDrawing(canonicalDrawing);
-    const prepared = candidate?.elements;
-    canonicalElements = prepared;
-    if (prepared) {
-      isPaused ??= true;
-      centerViewport = false;
-      applyCanonicalDisplay(canonicalDrawing.display);
-    }
-    if (initialLanguage !== undefined) {
-      language = initialLanguage;
-    }
-    if (isPaused !== undefined) {
-      paused = isPaused;
-    }
+    // Validate and materialize the canonical drawing before retiring mounted data.
+    const candidate = prepareCanonicalDrawing(canonicalDrawing);
+    canonicalElements = candidate.elements;
+    applyCanonicalDisplay(canonicalDrawing.display);
+    paused = isPaused;
     // Native drag/zoom closures retain active gesture bookkeeping. Each mount
     // owns fresh behaviours after the previous mount released its listeners.
     hasActiveRenderInteractions = true;
@@ -2310,7 +2285,7 @@ function createGraph(
       .on("tick.runtimeLayout", publishLayoutState)
       .on("end.runtimeLayout", publishLayoutState);
     force.stop();
-    loadGraphData(false, centerViewport, prepared);
+    loadGraphData(candidate.elements);
     refreshGraphData();
     for (let i = 0; i < labelNodes.length; i++) {
       const label = labelNodes[i];
@@ -2323,11 +2298,10 @@ function createGraph(
       }
     }
     graph.update();
-    if (paused || prepared) {
+    {
       // Canonical drawings already have complete placements. Present them
       // immediately even when layout is running; throttled simulation ticks
-      // must not hold the document's first paint hostage. Paused legacy loads
-      // likewise have no future optimization tick to reveal their drawing.
+      // must not hold the document's first paint hostage.
       updateRenderingDuringSimulation = true;
       initialLoad = false;
       finishedLoadingSequence = true;
@@ -2342,9 +2316,7 @@ function createGraph(
         graph.zoomAndCenterGraph();
       }
     }
-    if (prepared) {
-      graph.setViewportTransform(candidate.scale, candidate.translation);
-    }
+    graph.setViewportTransform(candidate.scale, candidate.translation);
   };
 
   graph.applyCanonicalDrawingRevision = function (drawing) {
@@ -2379,7 +2351,6 @@ function createGraph(
       };
       applyCanonicalDisplay(display);
       refreshOntologyMetadata();
-      generateDictionary(unfilteredData);
       refreshGraphData();
       drawCurrentGraphData();
       graph.setViewportTransform(prepared.scale, prepared.translation);
@@ -2441,52 +2412,6 @@ function createGraph(
         zoom: zoomFactor,
       },
     };
-  };
-
-  graph.applyVowlModelRevision = function (vowlModel) {
-    // Keep the mounted viewport and load generation. Parsing a document
-    // revision must not enter the initial loading/centering sequence.
-    const previousNodeIds = new Set(
-      unfilteredData.nodes.map((node) => node.id()),
-    );
-    const previousPropertyIds = new Set(
-      unfilteredData.properties.map((property) => property.id()),
-    );
-    const visibleNodeIds = new Set(classNodes.map((node) => node.id()));
-    const visiblePropertyIds = new Set(
-      properties.map((property) => property.id()),
-    );
-    parser.parse(vowlModel);
-    // Element inputs and drags belong to retired records. The mounted viewport
-    // and its native pan/zoom gesture remain current until D3 ends the gesture.
-    renderInteractionEpoch++;
-    releaseOwnedMouseGesture(activeMouseDrag);
-    activeMouseDrag = undefined;
-    createInteractionBehaviours(zoom);
-    bindViewportInteractions();
-    clearAllHover();
-    removeEditElements();
-    renderedGraphSettings.data(vowlModel);
-    unfilteredData = { nodes: parser.nodes(), properties: parser.properties() };
-    refreshOntologyMetadata();
-    let initializationData = _.clone(unfilteredData);
-    renderedGraphSettings.filterModules().forEach(function (module) {
-      initializationData = filterFunction(module, initializationData, true);
-    });
-    generateDictionary(unfilteredData);
-    // Existing editing adds new elements directly to the visible drawing.
-    // The application reconciles visibility when accepting a semantic edit.
-    classNodes = unfilteredData.nodes.filter(
-      (node) =>
-        visibleNodeIds.has(node.id()) || !previousNodeIds.has(node.id()),
-    );
-    properties = unfilteredData.properties.filter(
-      (property) =>
-        visiblePropertyIds.has(property.id()) ||
-        !previousPropertyIds.has(property.id()),
-    );
-    refreshLinksAndLabels();
-    drawCurrentGraphData();
   };
 
   function updateNodeMap() {
@@ -2613,63 +2538,12 @@ function createGraph(
     }
   };
 
-  function generateDictionary(data) {
-    let i;
-    const originalDictionary = [];
-    const nodes = data.nodes;
-    for (i = 0; i < nodes.length; i++) {
-      // check if node has a label
-      if (nodes[i].labelForCurrentLanguage() !== undefined) {
-        originalDictionary.push(nodes[i]);
-      }
-    }
-    const props = data.properties;
-    for (i = 0; i < props.length; i++) {
-      if (props[i].labelForCurrentLanguage() !== undefined) {
-        originalDictionary.push(props[i]);
-      }
-    }
-    parser.setDictionary(originalDictionary);
-    if (canonicalElements) {
-      return;
-    }
-
-    const literFilter = renderedGraphSettings.literalFilter();
-    const idsToRemove = literFilter.removedNodes();
-    const originalDict = parser.getDictionary();
-    const newDict = [];
-
-    // go through the dictionary and remove the ids;
-    for (i = 0; i < originalDict.length; i++) {
-      const dictElement = originalDict[i];
-      let dictElementId;
-      if (dictElement.property) {
-        dictElementId = dictElement.property().id();
-      } else {
-        dictElementId = dictElement.id();
-      }
-      // compare against the removed ids;
-      let addToDictionary = true;
-      for (let j = 0; j < idsToRemove.length; j++) {
-        const currentId = idsToRemove[j];
-        if (currentId === dictElementId) {
-          addToDictionary = false;
-        }
-      }
-      if (addToDictionary === true) {
-        newDict.push(dictElement);
-      }
-    }
-    // tell the parser that the dictionary is updated
-    parser.setDictionary(newDict);
-  }
-
   graph.updateProgressBarMode = function () {
     // Progress presentation is controller-owned; the renderer only reports
     // progress through its event port.
   };
 
-  function loadGraphData(init, centerViewport = true, prepared) {
+  function loadGraphData(prepared) {
     // reset the locate button and previously selected locations and other variables
 
     force.stop();
@@ -2682,24 +2556,11 @@ function createGraph(
 
     graph.clearGraphData();
 
-    if (init) {
-      force.stop();
-      return;
-    }
-
     seenEditorHint = false;
-    if (prepared) {
-      unfilteredData = {
-        nodes: prepared.nodes,
-        properties: prepared.properties,
-      };
-    } else {
-      parser.parse(renderedGraphSettings.data());
-      unfilteredData = {
-        nodes: parser.nodes(),
-        properties: parser.properties(),
-      };
-    }
+    unfilteredData = {
+      nodes: prepared.nodes,
+      properties: prepared.properties,
+    };
     // fixing class and property id counter for the editor
     eN = unfilteredData.nodes.length + 1;
     eP = unfilteredData.properties.length + 1;
@@ -2770,109 +2631,19 @@ function createGraph(
       );
     }
     refreshOntologyMetadata();
-    // Initialize filters with data to replicate consecutive filtering.
-    let initializationData = _.clone(unfilteredData);
-    if (!canonicalElements) {
-      renderedGraphSettings.filterModules().forEach(function (module) {
-        initializationData = filterFunction(module, initializationData, true);
-      });
-    }
-    generateDictionary(unfilteredData);
-    centerGraphViewOnLoad = centerViewport;
+    centerGraphViewOnLoad = false;
   }
 
   function refreshOntologyMetadata() {
     ontologyEditingState.clearMetaObject();
     ontologyEditingState.clearGeneralMetaObject();
-    if (canonicalElements) {
-      return;
-    }
-    if (renderedGraphSettings.data() !== undefined) {
-      const header = renderedGraphSettings.data().header;
-      if (header) {
-        if (header.iri) {
-          ontologyEditingState.addOrUpdateGeneralObjectEntry("iri", header.iri);
-        }
-        if (header.title) {
-          ontologyEditingState.addOrUpdateGeneralObjectEntry(
-            "title",
-            header.title,
-          );
-        }
-        if (header.author) {
-          graph
-            .ontologyEditingState()
-            .addOrUpdateGeneralObjectEntry("author", header.author);
-        }
-        if (header.version) {
-          graph
-            .ontologyEditingState()
-            .addOrUpdateGeneralObjectEntry("version", header.version);
-        }
-        if (header.description) {
-          graph
-            .ontologyEditingState()
-            .addOrUpdateGeneralObjectEntry("description", header.description);
-        }
-        if (header.prefixList) {
-          const pL = header.prefixList;
-          for (const pr in pL) {
-            if (Object.prototype.hasOwnProperty.call(pL, pr)) {
-              const val = pL[pr];
-              ontologyEditingState.addPrefix(pr, val);
-            }
-          }
-        }
-        // get other metadata;
-        if (header.other) {
-          const otherObjects = header.other;
-          for (const name in otherObjects) {
-            if (Object.prototype.hasOwnProperty.call(otherObjects, name)) {
-              const otherObj = otherObjects[name];
-              if (
-                Object.prototype.hasOwnProperty.call(otherObj, "identifier") &&
-                Object.prototype.hasOwnProperty.call(otherObj, "value")
-              ) {
-                graph
-                  .ontologyEditingState()
-                  .addOrUpdateMetaObjectEntry(
-                    otherObj.identfier,
-                    otherObj.value,
-                  );
-              }
-            }
-          }
-        }
-      }
-    }
   }
 
-  //Applies the data of the graph options object and parses it. The graph is not redrawn.
+  // Visibility and topology have already been resolved by the canonical scene.
   function refreshGraphData() {
-    if (canonicalElements) {
-      classNodes = unfilteredData.nodes;
-      properties = unfilteredData.properties;
-      renderedGraphSettings
-        .colorExternalsModule()
-        .filter(classNodes, properties);
-      refreshLinksAndLabels();
-      return;
-    }
-    const shouldExecuteEmptyFilter = renderedGraphSettings
-      .literalFilter()
-      .enabled();
-    graph.executeEmptyLiteralFilter();
-    renderedGraphSettings.literalFilter().enabled(shouldExecuteEmptyFilter);
-
-    let preprocessedData = _.clone(unfilteredData);
-
-    // Filter the data
-    renderedGraphSettings.filterModules().forEach(function (module) {
-      preprocessedData = filterFunction(module, preprocessedData);
-    });
-    renderedGraphSettings.focuserModule().handle(null, undefined, true);
-    classNodes = preprocessedData.nodes;
-    properties = preprocessedData.properties;
+    classNodes = unfilteredData.nodes;
+    properties = unfilteredData.properties;
+    renderedGraphSettings.colorExternalsModule().filter(classNodes, properties);
     refreshLinksAndLabels();
   }
 
@@ -2887,22 +2658,6 @@ function createGraph(
     //     if (classNodes[i].setRectangularRepresentation)
     //         classNodes[i].setRectangularRepresentation(renderedGraphSettings.rectangularRepresentation());
     // }
-  }
-
-  function filterFunction(module, data, initializing) {
-    links = linkCreator.createLinks(data.properties);
-    storeLinksOnNodes(data.nodes, links);
-
-    if (initializing) {
-      if (module.initialize) {
-        module.initialize(data.nodes, data.properties);
-      }
-    }
-    module.filter(data.nodes, data.properties);
-    return {
-      nodes: module.filteredNodes(),
-      properties: module.filteredProperties(),
-    };
   }
 
   /** --------------------------------------------------------- **/

@@ -35,6 +35,7 @@ function createControllerState(overrides = {}) {
     selection: [],
     renderProgress: null,
     editorMode: null,
+    temporaryPresentation: null,
     error: null,
     ...overrides,
   });
@@ -48,6 +49,7 @@ function createPresentationSpies() {
     renderOntologySummary: jest.fn(),
     renderViewport: jest.fn(),
     renderEditorMode: jest.fn(),
+    renderTemporaryPresentation: jest.fn(),
     describeOntologyElements: jest.fn(() => ({
       elementDescriptions: [{ kind: "class", displayLabel: "Person" }],
     })),
@@ -68,6 +70,27 @@ function mountPresenter(initialStateOverrides = {}) {
 }
 
 describe("controller state presentation", () => {
+  test("routes temporary state independently of selection and semantic summaries", () => {
+    const { presenter, presentationSpies } = mountPresenter();
+    const temporaryPresentation = {
+      kind: "neighborhood",
+      loadGeneration: 1,
+      documentRevision: 1,
+      counts: { nodes: 2, edges: 1, labels: 0 },
+    };
+    presenter.present(createControllerState({ temporaryPresentation }), [
+      "temporaryPresentation",
+    ]);
+    expect(presentationSpies.renderTemporaryPresentation).toHaveBeenCalledWith(
+      temporaryPresentation,
+    );
+    expect(presentationSpies.readOntologySummary).not.toHaveBeenCalled();
+    expect(presentationSpies.describeOntologyElements).not.toHaveBeenCalled();
+    presenter.present(createControllerState(), ["temporaryPresentation"]);
+    expect(
+      presentationSpies.renderTemporaryPresentation,
+    ).toHaveBeenLastCalledWith(null);
+  });
   test("refreshes document content after an edit without presenting a source load", () => {
     const { presenter, presentationSpies } = mountPresenter({
       selection: [PERSON_REFERENCE],
