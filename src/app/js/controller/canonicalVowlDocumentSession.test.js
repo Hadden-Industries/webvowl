@@ -8,6 +8,7 @@ import { applyCanonicalEditorCommand } from "./canonicalVowlEditorCommands.js";
 import { createVisualizationArtifactService } from "./visualizationArtifactService.js";
 import { webcrypto } from "node:crypto";
 import { canonicalExampleSource } from "../canonicalExamples.js";
+import { createCanonicalVowlRenderProjection } from "./canonicalVowlRenderProjection.js";
 
 const bytes = new Uint8Array(
   readFileSync(
@@ -188,6 +189,7 @@ test("identity and source availability queries never clone a checkpoint", async 
   const { session } = setup();
   await session.load(request());
   const expected = session.snapshot();
+  const expectedDocuments = expected.inspection.documents.map(({ id }) => id);
   const clone = jest.spyOn(globalThis, "structuredClone");
   try {
     expect(session.identity()).toEqual({
@@ -196,7 +198,7 @@ test("identity and source availability queries never clone a checkpoint", async 
     });
     const sources = session.originalSources();
     expect(sources.map(({ documentId }) => documentId)).toEqual(
-      expected.inspection.documents.map(({ id }) => id),
+      expectedDocuments,
     );
     expect(Object.isFrozen(sources)).toBe(true);
     expect(clone).not.toHaveBeenCalled();
@@ -1010,6 +1012,226 @@ function rename(inspection, iri = "urn:renamed") {
   );
   return [{ kind: "replace", id: subject.id, record: { id: subject.id, iri } }];
 }
+
+test("discarded session snapshots do not copy inspection or checkpoint", async () => {
+  const { session } = setup();
+  await session.load(request());
+  const clone = jest.spyOn(globalThis, "structuredClone");
+  try {
+    const isDocument = ([value]) =>
+      value?.records !== undefined || value?.structural !== undefined;
+    session.inspectRecords();
+    expect(clone.mock.calls.filter(isDocument)).toHaveLength(1);
+    clone.mockClear();
+    const snapshot = session.snapshot();
+    expect(snapshot.documentRevision).toBe(0);
+    expect(snapshot.visualization.placements).toHaveLength(2);
+    expect(clone.mock.calls.filter(isDocument)).toHaveLength(0);
+  } finally {
+    clone.mockRestore();
+    session.dispose();
+  }
+});
+
+test("session acceptance owns one frozen inspection and isolates a retaining worker result", async () => {
+  const { session, control } = setup();
+  const clone = jest.spyOn(globalThis, "structuredClone");
+  let raw;
+  let prepared;
+  control.after = (result) => {
+    raw = {
+      ...result,
+      inspection: Object.freeze(plain(result.inspection)),
+      // A real receiving worker message has mutable deserialized checkpoint data.
+      checkpoint: structuredClone(result.checkpoint),
+    };
+    clone.mockClear();
+    return raw;
+  };
+  try {
+    await session.load(request(), {
+      prepareProjection(inspection, visualization) {
+        prepared = inspection;
+        return createCanonicalVowlRenderProjection(inspection, visualization);
+      },
+    });
+    const copies = clone.mock.calls.filter(
+      ([value]) => value?.records && value?.occurrences,
+    );
+    expect(copies).toHaveLength(1);
+    const borrowed = session.readOntologyInspection();
+    expect(borrowed.retainedFacts).toBe(prepared);
+    expect(Object.isFrozen(prepared.records.subjects[0])).toBe(true);
+    raw.inspection.records.subjects[0].iri = "urn:worker-corruption";
+    raw.checkpoint.revision = 999;
+    expect(
+      session.inspectRecords().records.subjects.map(({ iri }) => iri),
+    ).toEqual(["https://example.org/o#A", "https://example.org/o#B"]);
+    expect(session.snapshot().checkpoint.revision).toBe(0);
+    session.updateView({ labelSelection: { mode: "language", range: "en" } });
+    expect(session.readOntologyInspection().retainedFacts).toBe(prepared);
+  } finally {
+    clone.mockRestore();
+    session.dispose();
+  }
+});
+
+test.each(["prepareProjection", "prepareVisibility", "suppliedPositions"])(
+  "%s borrows immutable inspection data without letting retained input corrupt the session",
+  async (callback) => {
+    const { session } = setup();
+    await session.load(request());
+    let retained;
+    let mutationRejected = false;
+    const result = await session.edit(rename(session.inspectRecords()), {
+      [callback](inspection, visualization) {
+        retained = inspection;
+        try {
+          inspection.records.subjects[0].iri = "urn:callback-corruption";
+        } catch (error) {
+          mutationRejected = error.name === "TypeError";
+        }
+        return callback === "prepareProjection"
+          ? createCanonicalVowlRenderProjection(inspection, visualization)
+          : callback === "prepareVisibility"
+            ? []
+            : new Map();
+      },
+    });
+    try {
+      expect(mutationRejected).toBe(true);
+      expect(retained).toBe(session.readOntologyInspection().retainedFacts);
+      expect(result.inspection.records.subjects).toContainEqual(
+        expect.objectContaining({ iri: "urn:renamed" }),
+      );
+      expect(() => {
+        retained.records.subjects.length = 0;
+      }).toThrow(expect.objectContaining({ name: "TypeError" }));
+    } finally {
+      session.dispose();
+    }
+  },
+);
+
+test.each(["load", "edit", "view", "snapshot"])(
+  "%s result copies each document field only on its first read",
+  async (operation) => {
+    const { session } = setup();
+    const loaded = await session.load(request());
+    const result =
+      operation === "load"
+        ? loaded
+        : operation === "edit"
+          ? await session.edit(rename(loaded.inspection))
+          : operation === "view"
+            ? session.updateView({ display: { compactNotation: true } })
+            : session.snapshot();
+    const clone = jest.spyOn(globalThis, "structuredClone");
+    try {
+      const inspection = result.inspection;
+      expect(inspection.occurrences).toHaveLength(2);
+      expect(clone).toHaveBeenCalledTimes(1);
+      expect(result.inspection).toBe(inspection);
+      expect(clone).toHaveBeenCalledTimes(1);
+      const checkpoint = result.checkpoint;
+      expect(checkpoint.revision).toBe(operation === "edit" ? 1 : 0);
+      expect(clone).toHaveBeenCalledTimes(2);
+      expect(result.checkpoint).toBe(checkpoint);
+      expect(clone).toHaveBeenCalledTimes(2);
+      expect(Object.keys(result)).toEqual(
+        expect.arrayContaining(["inspection", "checkpoint", "visualization"]),
+      );
+      inspection.records.subjects.length = 0;
+      checkpoint.revision = 999;
+      expect(session.inspectRecords().records.subjects.length).toBeGreaterThan(
+        0,
+      );
+      expect(session.snapshot().checkpoint.revision).toBe(
+        operation === "edit" ? 1 : 0,
+      );
+    } finally {
+      clone.mockRestore();
+      session.dispose();
+    }
+  },
+);
+
+test("unread results retain their originating revision and scene after edit, load and disposal", async () => {
+  const { session } = setup();
+  const loaded = await session.load(request());
+  const initialScene = session.scene().snapshot();
+  const changed = await session.edit(rename(session.inspectRecords()));
+  const view = session.updateView({
+    display: { compactNotation: !initialScene.display.compactNotation },
+  });
+  await session.load(request());
+  session.dispose();
+  expect(loaded.documentRevision).toBe(0);
+  expect(
+    loaded.inspection.records.subjects.some(({ iri }) => iri === "urn:renamed"),
+  ).toBe(false);
+  expect(loaded.checkpoint.revision).toBe(0);
+  expect(loaded.visualization).toEqual(initialScene);
+  expect(changed.documentRevision).toBe(1);
+  expect(changed.inspection.records.subjects).toContainEqual(
+    expect.objectContaining({ iri: "urn:renamed" }),
+  );
+  expect(changed.checkpoint.revision).toBe(1);
+  expect(changed.visualization.display.compactNotation).toBe(
+    initialScene.display.compactNotation,
+  );
+  expect(view.visualization.display.compactNotation).toBe(
+    !initialScene.display.compactNotation,
+  );
+  expect(view.inspection).toEqual(changed.inspection);
+  expect(view.inspection).not.toBe(changed.inspection);
+});
+
+test("unread result fields can be assigned and deleted without materializing copies", async () => {
+  const { session } = setup();
+  await session.load(request());
+  const result = session.snapshot();
+  const clone = jest.spyOn(globalThis, "structuredClone");
+  try {
+    result.inspection = { owned: true };
+    delete result.checkpoint;
+    expect(result.inspection).toEqual({ owned: true });
+    expect(Object.hasOwn(result, "checkpoint")).toBe(false);
+    expect(clone).not.toHaveBeenCalled();
+    expect(session.inspectRecords().records.subjects.length).toBeGreaterThan(0);
+  } finally {
+    clone.mockRestore();
+    session.dispose();
+  }
+});
+
+test("editor insertion forwards lazy document fields alongside its selected target", async () => {
+  const { session } = setup();
+  await session.load(request());
+  const result = await applyCanonicalEditorCommand(session, {
+    kind: "insert",
+    documentRevision: 0,
+    roleKind: "class",
+    iri: "urn:Created",
+    text: "Created",
+  });
+  const clone = jest.spyOn(globalThis, "structuredClone");
+  try {
+    const selected = session.resolveTarget(result.selectedTarget);
+    expect(result.inspection.records.subjects).toContainEqual(
+      expect.objectContaining({ iri: "urn:Created" }),
+    );
+    expect(
+      result.inspection.records.roles.some(({ id }) => id === selected),
+    ).toBe(true);
+    expect(clone).toHaveBeenCalledTimes(1);
+    expect(result.checkpoint.revision).toBe(1);
+    expect(clone).toHaveBeenCalledTimes(2);
+  } finally {
+    clone.mockRestore();
+    session.dispose();
+  }
+});
 function deferred() {
   let resolve;
   const promise = new Promise((done) => {

@@ -1345,7 +1345,9 @@ export async function applyCanonicalEditorCommand(
         }
       : {}),
   });
-  return selectedId === undefined
-    ? result
-    : { ...result, selectedTarget: session.target(selectedId) };
+  if (selectedId !== undefined) {
+    // Preserve deferred owned document fields; spreading would materialize them.
+    result.selectedTarget = session.target(selectedId);
+  }
+  return result;
 }

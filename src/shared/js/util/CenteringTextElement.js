@@ -1,5 +1,9 @@
 import { AbstractTextElement } from "./AbstractTextElement.js";
 import { createTextTools as textToolsFactory } from "./textTools.js";
+import {
+  centerTextBlock,
+  positionCenteredTextLine,
+} from "./textLayoutBatch.js";
 const textTools = textToolsFactory();
 
 export { CenteringTextElement };
@@ -86,15 +90,9 @@ CenteringTextElement.prototype.addTextline = function (
 };
 
 CenteringTextElement.prototype._repositionTextLine = function (tspan) {
-  const fontSizeProperty = window
-    .getComputedStyle(tspan.node())
-    .getPropertyValue("font-size");
-  const fontSize = parseFloat(fontSizeProperty);
-
   const siblingCount = this._lineCount() - 1;
   const lineDistance = siblingCount > 0 ? this.LINE_DISTANCE : 0;
-
-  tspan.attr("dy", fontSize + lineDistance + "px");
+  positionCenteredTextLine(tspan.node(), lineDistance);
 };
 
 CenteringTextElement.prototype.getTextBox = function () {
@@ -109,8 +107,7 @@ CenteringTextElement.prototype._repositionTextBlock = function () {
     return;
   }
 
-  const textBlockHeight = this._textBlock().node().getBBox().height;
-  this._textBlock().attr("y", -textBlockHeight * 0.5 + "px");
+  centerTextBlock(this._textBlock().node());
 };
 
 CenteringTextElement.prototype._lineCount = function () {

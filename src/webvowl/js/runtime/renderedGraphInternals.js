@@ -27,9 +27,12 @@ import { createSetOperatorFilter } from "../../../shared/js/modules/setOperatorF
 import { createStatistics } from "../../../shared/js/modules/statistics.js";
 import { createSubclassFilter } from "../../../shared/js/modules/subclassFilter.js";
 import { createMath as createMathModule } from "../../../shared/js/util/math.js";
+import { withTextLayoutBatch } from "../../../shared/js/util/textLayoutBatch.js";
+import { createTextTools } from "../../../shared/js/util/textTools.js";
 const math = createMathModule();
 const linkCreator = createLinkCreatorModule();
 const elementTools = createElementToolsModule();
+const textTools = createTextTools();
 // add some maps for nodes and properties -- used for object generation
 const nodePrototypeMap = createNodePrototypeMapModule();
 const propertyPrototypeMap = createPropertyPrototypeMapModule();
@@ -649,25 +652,16 @@ function createGraph(
       })),
       ...(labelNodes ?? []).map((label) => {
         const property = label.property();
-        const hasParallelLinks =
-          property
-            .domain()
-            .links()
-            .filter((link) => property.range().links().includes(link)).length >
-          1;
+        // Mounted labels always belong to the accepted canonical drawing.
+        const positionable =
+          canonicalElements.bindings.get(property.id())?.positionable === true;
         return {
           rendererKey: `label:${property.id()}`,
           element: property,
           position: label,
           kind: "property-label",
-          canMove: canonicalElements
-            ? canonicalElements.bindings.get(property.id())?.positionable ===
-              true
-            : !isSolitaryLabel(label),
-          canPin: canonicalElements
-            ? canonicalElements.bindings.get(property.id())?.positionable ===
-              true
-            : hasParallelLinks,
+          canMove: positionable,
+          canPin: positionable,
           rendererElementIds: [
             String(property.id()),
             ...(property.inverse() ? [String(property.inverse().id())] : []),
@@ -1988,14 +1982,52 @@ function createGraph(
   };
 
   function redrawContent() {
-    let markerContainer;
-
     if (!graphContainer) {
       return;
     }
+    return withTextLayoutBatch(
+      graphContainer.node().ownerDocument,
+      drawContent,
+    );
+  }
 
+  function drawContent() {
     // Empty the graph container
     graphContainer.selectAll("*").remove();
+    const labels = new Set([
+      ...(classNodes ?? []),
+      ...(labelNodes ?? []).flatMap((label) => [
+        label.property(),
+        label.property().inverse(),
+      ]),
+    ]);
+    // These are width hints, not a second label-rendering rule. Native probes
+    // handle any omitted/specialized text during drawing. Body probe styles and
+    // fonts remain unchanged throughout this synchronous SVG-only operation.
+    const requests = [];
+    for (const element of labels) {
+      if (!element) {
+        continue;
+      }
+      requests.push(
+        { text: element.labelForCurrentLanguage(), textStyle: "text" },
+        { text: element.equivalentsString?.(), textStyle: "text" },
+        { text: element.indicationString(), textStyle: "subtext" },
+      );
+      const count = element.individuals?.().length;
+      if (count) {
+        requests.push({ text: String(count), textStyle: "instance-count" });
+      }
+    }
+    return textTools.withMeasurementBatch(
+      requests,
+      drawMeasuredContent,
+      graphContainer.node().ownerDocument,
+    );
+  }
+
+  function drawMeasuredContent() {
+    let markerContainer;
 
     // Last container -> elements of this container overlap others
     linkContainer = graphContainer.append("g").classed("linkContainer", true);

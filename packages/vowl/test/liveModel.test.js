@@ -333,6 +333,64 @@ test("options, cancellation and resource bounds apply to live recovery", async (
   ).rejects.toMatchObject({ code: "MODEL_RESOURCE_LIMIT" });
 });
 
+test.each([
+  ["primaryRecords", 6],
+  ["embeddedValues", 44],
+  ["totalStringBytes", 1243],
+])(
+  "checkpoint recovery preserves the %s boundary of %i",
+  async (limit, boundary) => {
+    // Characterized before the admission refactor: both owned snapshots are
+    // charged. The three-record public vector also pins the captured bytes.
+    const document = await canonicalize(
+      fixture("named-class-structural"),
+      options,
+    );
+    const { model } = await openCanonical(document);
+    const checkpoint = transport(await checkpointModel(model));
+    expect(checkpoint.supports).toHaveLength(3);
+    await expect(
+      readmitModel(checkpoint, { limits: { [limit]: boundary - 1 } }),
+    ).rejects.toMatchObject({
+      code: "MODEL_RESOURCE_LIMIT",
+      details: { limit, maximum: boundary - 1 },
+    });
+    const recovered = await readmitModel(checkpoint, {
+      limits: { [limit]: boundary },
+    });
+    expect(inspectModel(recovered.model)).toEqual(inspectModel(model));
+    expect(
+      encode((await captureModel(recovered.model, options)).document),
+    ).toEqual(
+      new Uint8Array(
+        readFileSync(
+          new URL(
+            "../conformance/vectors/named-class-structural/canonical.json",
+            import.meta.url,
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+test("checkpoint publication retains validated language normalization without mutating its caller", async () => {
+  const document = await canonicalize(fixture("annotated-class"), options);
+  const { model } = await openCanonical(document);
+  const checkpoint = transport(await checkpointModel(model));
+  const annotation = checkpoint.structural.constructs.find(
+    (record) => record.value?.kind === "language",
+  );
+  expect(annotation.value.language).toBe("en-gb");
+  annotation.value.language = "EN-GB";
+  const recovered = await readmitModel(checkpoint);
+  expect(annotation.value.language).toBe("EN-GB");
+  expect(inspectModel(recovered.model)).toEqual(inspectModel(model));
+  expect(
+    encode((await captureModel(recovered.model, options)).document),
+  ).toEqual(encode(document));
+});
+
 test("live deletion reports retired records and removes their support", async () => {
   const { model } = await openCanonical(
     await canonicalize(fixture("named-class-structural"), options),

@@ -1,6 +1,9 @@
 # WebVOWL performance implementation plan
 
-> **Status:** Approved plan; revision 3 records implementation and delivery authorization on 21 October 2026; execution follows architecture and evidence-dependent selections remain open.
+> **Status:** Approved plan; revision 11 records implemented S2–S7 and SF, their focused evidence, and the owner's intermediate implementation checkpoint on 23 October 2026.
+> Final programme gates remain pending.
+> The owner's CPU-admission exception and foreground timing deferral remain in force.
+> S7 is selected only for the maintainability refactor in PERF-DEC-011; SF is reopened within the accepted scope of PERF-DEC-010.
 > **Sequence:** Plan 2 of 3, after architecture and before UI.
 > **Basis:** [Performance review](../reviews/20261020-performance-review.md), especially sections 6, 7 and 12, plus architecture contract S.
 > **Method:** HISEW implementation planning with an accepted change dossier, R2 risk classification, conditional decisions, quality scenarios and traceability.
@@ -10,24 +13,52 @@
 
 On 21 October 2026, the owner accepted all recommendations in the decision walkthrough and approved the performance plan.
 Revision 2 records acceptance of draft revision 1, its R2 risk classification, DEC-001–004 and DEC-008, including the proof conditions attached to the contract changes.
-The recommended defaults and evidence-driven decision policies for DEC-005–007 and DEC-009 are also accepted; the semantic read-model adoption and exact worker/package selections remain pending their measurements and owner decisions.
+The recommended defaults and evidence-driven decision policies for DEC-005–007 and DEC-009 are also accepted; exact worker/package selections remain pending their measurements and owner decisions.
+On 22 October, the owner accepted closing SF as not selected after S0 and S2.
+On 23 October, after architectural reassessment, the owner approved bounded SF for ownership and maintainability, independently of a speedup.
+This supersedes the no-selection disposition while preserving its evidence and completed S3–S7 work.
+On 23 October, the owner approved PERF-DEC-011 revision 2: private checkpoint-admission refactoring within `packages/vowl/src/liveModel.js`, affected public admission/resource/conformance tests and documentation, for maintainability independently of a material speedup.
+All snapshots, accounting, native trust-boundary validation and worker lifecycle remain unchanged.
 The subsequent owner instruction authorizes implementation after architecture, commit-message selection, commits, branch pushes and configuration changes required by the approved plan.
-Follow the [authorized delivery checkpoints](2026-10-21-architecture-implementation-plan.md#authorized-delivery-checkpoints): documentation commit first, consolidated reviews, full tests and fixes before final Claude Opus 5.5/Max review with only a 60-minute limit.
+Follow the [authorized delivery checkpoints](2026-10-21-architecture-implementation-plan.md#authorized-delivery-checkpoints): documentation commit first, consolidated reviews, full tests and fixes before external review of the final candidate.
+The owner's subsequent reviewer instruction selects AGY, Flash 3.8 at High, with a 60-minute timeout; it supersedes the original Claude selection.
 Approval is not a measured speedup, benchmark result, completed implementation or publication.
 
-| Baseline item               | Recorded identity                                                                                                       |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Planning checkout           | `C:/Users/maksy/GitHub/webvowl`, `main`                                                                                 |
-| Planning HEAD               | `37fd52759f231d3c1b4794f15b5c599f717b0ddc`                                                                              |
-| Review's source HEAD        | `62961414530e141f8f79ec369afee2d68b9036a6`                                                                              |
-| Performance review SHA-256  | `c483c595bedeae7a75e817267e941501e9f1c3ea1c1ae368855898e62296b937e`                                                     |
-| Planning lockfile SHA-256   | `6c137dc6f69bfb4f70cc5db0ef4d7997fd76a1fc3544d33605612a733c49c458`                                                      |
-| Drift checked               | No changes under `src/`, `packages/`, `util/` or `docs/adr/` since the review source; package and lockfile have changed |
-| Actual performance baseline | Not yet available: it must be the accepted result of plan 1                                                             |
+On 23 October, the owner requested a logical commit checkpoint for the accumulated implementation.
+The consolidated S2–S7 and SF changes are to be committed and published on the existing feature branch after exact-scope formatting and lint, using their retained focused, corpus and production evidence.
+This is an intermediate source checkpoint: S8's design disposition, consolidated full verification, final external review and deferred foreground acceptance remain outstanding.
+External review remains reserved for the final candidate after the full tests and any resulting fixes.
+The owner also authorized using sufficient task evidence instead of repeating checks solely to satisfy HISEW evidence bookkeeping.
+Retain failed or rejected native records unchanged and state their limitations; this authority neither converts them to passing receipts nor waives a source defect or an unmeasured numerical acceptance criterion.
+
+S2's internal `readOntologyInspection()` borrows the session's existing deeply frozen projection, including nested retained facts; `inspectOntology()` retains its external owned-copy contract.
+Controller summary, description, focus and filtered arrangement use the internal reader.
+Eight new ownership tests, 208 affected tests and 223 downstream UI/WebMCP tests pass, as do the production build and separate W5 all counter/trace cohorts.
+The measured production click has zero whole-inspection clones; total approximate cloned bytes fall from 12,518,764 to 142,858.
+Foreground B4 and numerical phase-reduction acceptance remain deferred; full consolidated verification and final review remain ahead.
+The [SF decision record](2026-10-22-semantic-read-model-decision.md) records the original no-selection disposition and the owner's subsequent approval of bounded SF.
+Contract S is implemented as one session-owned revision/presentation read model, with existing semantic rule helpers and unchanged public bounds.
+Its focused verification passed 229 tests in nine suites and 9,084 public-result comparisons against the retained pre-SF implementation on three shipped corpora.
+Ten production lifetime cycles retired every previous projection, inspection and populated read model; a retained-owner positive control was detected and all 66 tracked owners were collectible after disposal.
+These support the implementation checkpoint; consolidated final qualification still precedes the UI handoff.
+
+| Baseline item               | Recorded identity                                                                                                                                                                                                                  |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Planning checkout           | `C:/Users/maksy/GitHub/webvowl`, `main`                                                                                                                                                                                            |
+| Planning HEAD               | `37fd52759f231d3c1b4794f15b5c599f717b0ddc`                                                                                                                                                                                         |
+| Review's source HEAD        | `62961414530e141f8f79ec369afee2d68b9036a6`                                                                                                                                                                                         |
+| Performance review SHA-256  | `c483c595bedeae7a75e817267e941501e9f1c3ea1c1ae368855898e62296b937e`                                                                                                                                                                |
+| Planning lockfile SHA-256   | `6c137dc6f69bfb4f70cc5db0ef4d7997fd76a1fc3544d33605612a733c49c458`                                                                                                                                                                 |
+| Drift checked               | No changes under `src/`, `packages/`, `util/` or `docs/adr/` since the review source; package and lockfile have changed                                                                                                            |
+| Actual performance baseline | Accepted architecture source `16e67c902e3438543f3ab520a40b45b2d9e2910a`, tree `a283a59a8cd8a30c55942bc32b261a88ed2b3ffa`; [S0 diagnostic evidence](2026-10-22-performance-s0-evidence.md) complete; foreground acceptance deferred |
 
 The [architecture plan](2026-10-21-architecture-implementation-plan.md) must complete before S0.
 Do not run S0 first to reprioritize architecture.
 Architecture uses existing evidence paths to check its own neutrality; S0 then measures the delivered architecture.
+
+The owner accepted the architecture source handoff and its `completed-elsewhere` workflow closure.
+The exact architecture source has its separately retained full verification; that closure makes no additional verification claim.
+Performance execution `53badedd-cb77-4c5d-9f81-79b73fff1a0c` owns the subsequent S0–S8 work on `feat/architecture-performance-ui`.
 
 Expected inherited capabilities:
 
@@ -37,7 +68,8 @@ Expected inherited capabilities:
 - Published `temporaryPresentation`, unified retirement and subscriber isolation from PR-D.
 - Canonical-only renderer input from PR-E.
 
-Implement strictly S0 → S1 → S2 → SF → S3 → S4 → S5 → S6 → S7 → S8.
+The original sequence was S0 → S1 → S2 → SF → S3 → S4 → S5 → S6 → S7 → S8.
+The owner's 23 October SF approval amends the remaining order: preserve implemented S3–S7, integrate bounded SF, then S8 and consolidated final qualification.
 Measured ranking determines selection and effort within that order; it does not silently reorder the programme.
 SF is architecture PR-F, transferred here to avoid a backward dependency.
 
@@ -107,7 +139,8 @@ Focused red/green and differential checks per slice; ADR 0003 measurement; confi
 ### Required human approvals:
 
 Plan/R2 acceptance, production measurement, the section 4.4 numerical gates and the DEC-002–004 contract directions were approved on 21 October 2026; do not request unchanged approvals again.
-The SF adoption decision and exact S7 idle-worker, package-scope and experiment choices remain pending the evidence specified in DEC-005–007 and DEC-009.
+SF's earlier no-selection disposition is superseded by the owner's bounded maintainability adoption in PERF-DEC-010.
+PERF-DEC-011 selects S7's exact package scope and maintainability purpose under §4.4; worker warming, parser splitting and ranking changes remain unselected.
 Implementation, commit messages, commits, branch pushes and configuration changes required by this approved plan are pre-authorized.
 New shims, releases and changes beyond the approved plan retain separate authority.
 
@@ -145,7 +178,7 @@ IDs are local to this document; cross-plan references use `PERF:`.
 | DEC-004 / review 1.5-2a | Accepted 21 October for S4, conditional on independent consumer audit and contract R proof                                       | Remove unused `inspection` from the drawing DTO without changing geometry or semantic ownership                                                          |
 | DEC-005 / review 3      | Default and decision policy accepted 21 October; an idle-worker exception still requires S7 measurements and owner approval      | Keep no-idle-worker behavior unless measured startup cost justifies an explicitly accepted, bounded single-use exception                                 |
 | DEC-006 / review 4      | Selection gate accepted 21 October; exact package-admission/ranking scope remains pending S7 evidence and owner decision         | Consider only if attributed package work meets the stronger gate and full validation/conformance remains available                                       |
-| DEC-007 / SF            | Selection policy accepted 21 October; adoption or closure remains pending after S0 and S2                                        | Decide from material residual describe-index work or a specifically accepted single-owner benefit; do not preselect SF                                   |
+| DEC-007 / SF            | Owner reopened bounded SF on 23 October for ownership and maintainability under PERF-DEC-010                                     | One session-owned revision/presentation read model; preserve semantics, public bounds and S2–S7; prove transitions and retirement                        |
 | DEC-008                 | Accepted 21 October: numerical gates in section 4.4 apply before comparisons                                                     | Laboratory acceptance criteria, not measured results or field guarantees                                                                                 |
 | DEC-009                 | One-experiment policy accepted 21 October; exact initial S7 experiment remains an owner decision after attribution               | Select the cheapest experiment addressing the dominant phase; persistent model worker excluded                                                           |
 
@@ -212,6 +245,19 @@ A controller-only timing does not establish click-to-painted-preview latency.
 Follow [ADR 0003](../adr/0003-quiescent-benchmark-environment.md): foreground measurement, no concurrent build/test/scan/bulk-read work, 10% busy over 500 ms preflight.
 Reuse existing settle/idle-wait controls without raising thresholds.
 Bound and record retries; persistent guard rejection leaves measurement incomplete.
+
+**Owner-authorized measurement exception, 22 October 2026:** the owner requested running these benchmarks even when the CPU guard fails.
+For this execution, an explicit per-run override may make the 10%/500 ms check observational: retain each reading and overridden rejection, label affected results as measurements on a contended host, and bind the owner's decision in the run manifest. Shared guard defaults stay unchanged. Foreground, power, manifest, workload, completion and correctness requirements still apply. Use A/A calibration and paired comparisons; results indistinguishable from noise remain inconclusive, and an overridden run does not satisfy the original quiescent-protocol claim.
+This exception does not pre-accept numerical outcomes or evidence-dependent SF/S7 decisions.
+
+**Owner-directed diagnostic priority, 22 October 2026:** after two W4-connected warmups lost foreground, the owner selected "Prioritize diagnostics; defer foreground timings."
+Collect explicitly labeled headless counter and trace passes against the same production assets and workloads, with separate decision linkage and all completion/correctness assertions. They supply attribution and work-count evidence; they do not establish foreground paint latency, numerical latency-budget acceptance or a user-facing speedup. Retain the completed W1–W3 and navigation A/A results, every failed attempt and any admitted complete-cohort checkpoints.
+Remaining W4/W5 foreground samples and subsequent foreground comparisons are deferred, not waived or passed.
+S0 and later decisions must identify any gate that still depends on those measurements.
+
+The owner's subsequent sequencing clarification prioritizes static analysis and targeted headless attribution, then fixes and correctness/ownership checks, then foreground comparisons of the consolidated candidate.
+Retain only the baseline collection required for a concrete comparison or selection decision; do not expand foreground calibration before implementing the selected fixes.
+Existing completed baseline evidence remains usable within its recorded limitations.
 
 Use the real production page and CSS in headed Chrome, fixed viewport/DPR, dedicated profile with extensions disabled, AC/fixed power plan and no active competing tabs.
 Wait for fonts before B3–B8.
@@ -478,20 +524,25 @@ Any later implementation follows a new plan after UI; S8 does not reopen this pr
 
 ## 7. Traceability and disposition record
 
-| Slice          | Requirement / acceptance / quality / decision               | Proof                                               | Release/cleanup implication                             | Initial status                            |
-| -------------- | ----------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------- | ----------------------------------------- |
-| S0 / SLICE-000 | REQ-001/002 / AC-001/002 / QA-001 / DEC-001/008             | Production manifest, A/A, counters, phase shares    | Preserve reusable harness and private evidence          | Not started                               |
-| S1 / SLICE-001 | REQ-002/003 / AC-002/003 / QA-002                           | Search differential and work counts                 | Retire revision indexes correctly                       | Evidence gate pending                     |
-| S2 / SLICE-002 | REQ-004/005 / AC-004/005 / QA-003/004 / DEC-002             | Read equality, frozen ownership, zero-copy counters | Publish exact read contract to UI                       | Approved direction; evidence gate pending |
-| SF / SLICE-003 | REQ-003/006 / AC-003/006 / QA-003/007 / DEC-007             | Contract S differential and retirement              | Remove scattered caches only after equivalence          | Selection pending                         |
-| S3 / SLICE-004 | REQ-005 / AC-005 / QA-004 / DEC-003                         | Materialization/lifetime and public-result tests    | Coordinated result contract                             | Approved direction; evidence gate pending |
-| S4 / SLICE-005 | REQ-003/005 / AC-003/005 / QA-005 / DEC-004                 | R conformance, geometry/export, clone counts        | Remove unused DTO field                                 | Approved contract; evidence gate pending  |
-| S5 / SLICE-006 | REQ-005/006/007 / AC-005/006/007 / QA-004/006/007           | Ownership/admission and equal-live-size heap        | Eliminate duplicate ownership work                      | Evidence gate pending                     |
-| S6 / SLICE-007 | REQ-002/003/006 / AC-002/003/006 / QA-005/008               | Font/style differential and layout attribution      | Cache disposal; preserve uncached oracle until accepted | Conditional                               |
-| S7 / SLICE-008 | REQ-002/007 / AC-002/007 / QA-006/007/008 / DEC-005/006/009 | Worker experiment and corpus/cancellation           | Retire only the selected obsolete worker path           | Selection pending                         |
-| S8 / SLICE-009 | REQ-002/008 / AC-002/008 / QA-005                           | Design and disposition                              | No renderer implementation in this slice                | Conditional                               |
+| Slice          | Requirement / acceptance / quality / decision               | Proof                                               | Release/cleanup implication                             | Initial status                                                                                                                  |
+| -------------- | ----------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| S0 / SLICE-000 | REQ-001/002 / AC-001/002 / QA-001 / DEC-001/008             | Production manifest, A/A, counters, phase shares    | Preserve reusable harness and private evidence          | Diagnostic work complete; W1–W3 A/A and all seven counter/trace variants retained; foreground acceptance deferred by owner      |
+| S1 / SLICE-001 | REQ-002/003 / AC-002/003 / QA-002                           | Search differential and work counts                 | Retire revision indexes correctly                       | Not selected: isolated cue work typically below 5 ms; first-query uncertainty and threshold crossings retained in S0 evidence   |
+| S2 / SLICE-002 | REQ-004/005 / AC-004/005 / QA-003/004 / DEC-002             | Read equality, frozen ownership, zero-copy counters | Publish exact read contract to UI                       | Implemented with ownership tests and production zero-copy proof; foreground acceptance deferred                                 |
+| SF / SLICE-003 | REQ-003/006 / AC-003/006 / QA-003/007 / DEC-007             | Contract S differential and retirement              | Remove scattered caches only after equivalence          | Implemented: 229 focused tests, 9,084 corpus comparisons and ten-cycle retirement pass; final qualification pending             |
+| S3 / SLICE-004 | REQ-005 / AC-005 / QA-004 / DEC-003                         | Materialization/lifetime and public-result tests    | Coordinated result contract                             | Implemented; lazy-result isolation and ten-cycle retirement passed after fixing the retained load sequencing result             |
+| S4 / SLICE-005 | REQ-003/005 / AC-003/005 / QA-005 / DEC-004                 | R conformance, geometry/export, clone counts        | Remove unused DTO field                                 | Implemented; drawing semantics preserved and production inspection copies removed                                               |
+| S5 / SLICE-006 | REQ-005/006/007 / AC-005/006/007 / QA-004/006/007           | Ownership/admission and equal-live-size heap        | Eliminate duplicate ownership work                      | Implemented; producer/transport isolation, lower copy counts and ten-cycle equal-size lifetime proof passed                     |
+| S6 / SLICE-007 | REQ-002/003/006 / AC-002/003/006 / QA-005/008               | Font/style differential and layout attribution      | Cache disposal; preserve uncached oracle until accepted | Implemented; layout gate and native geometry controls passed; raw float differences explained and retained; final gates pending |
+| S7 / SLICE-008 | REQ-002/007 / AC-002/007 / QA-006/007/008 / DEC-005/006/009 | Worker experiment and corpus/cancellation           | Retire only the selected obsolete worker path           | Implemented narrow admission refactor; 4,209 affected tests and ten-cycle lifetime passed; final gates pending                  |
+| S8 / SLICE-009 | REQ-002/008 / AC-002/008 / QA-005                           | Design and disposition                              | No renderer implementation in this slice                | Conditional                                                                                                                     |
 
 Record the exact source/merge identity or no-select/falsifier/owner decision, raw evidence location, reviewer and remaining limitation for every row.
+[S3–S5 development evidence](2026-10-22-performance-ownership-evidence.md) records the source-bound counters, retained failure, corrected lifetime run and proof limitations.
+[S6 development evidence](2026-10-23-performance-layout-evidence.md) records the two-stage layout experiment, exact geometry comparisons, native precision control and P2f scan removal.
+[The approved S7 decision](2026-10-23-worker-experiment-decision.md) records the implemented private checkpoint-admission refactor for maintainability, preservation checks, unchanged accounting and ten-cycle retirement evidence.
+Final qualification remains pending.
+Final full verification, consolidated review and foreground acceptance remain distinct, outstanding gates.
 P2f's legacy `hasParallelLinks` scan is not a hidden extra slice: check whether PR-E removed its obsolete meaning; if still present, disposition it explicitly within S4/S6 only if semantically in scope, otherwise later work.
 P6 initialization, P7 import overlap and P9 deferred frame options remain observations for a new plan after UI.
 

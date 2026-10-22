@@ -9,15 +9,17 @@ import {
 } from "./canonicalVowlFailure.js";
 import { createCanonicalVowlSourceAcquisition } from "./canonicalVowlSourceAcquisition.js";
 import { applyCanonicalEditorCommand } from "./canonicalVowlEditorCommands.js";
-import { createOntologyInspector } from "./ontologyInspector.js";
+import {
+  createOntologyInspector,
+  boundOntologySearchResult,
+  boundOntologyFocusResult,
+} from "./ontologyInspector.js";
 import { createCanonicalSemanticReferences } from "./canonicalVowlInspectionProjector.js";
 import { createVisualizationShareLink } from "./visualizationShareLink.js";
 import {
   CANONICAL_VISIBLE_FILTERS,
   canonicalLabelSelection,
-  prepareCanonicalVisibility,
 } from "./canonicalVowlViewControls.js";
-import { createCanonicalVowlRenderProjection } from "./canonicalVowlRenderProjection.js";
 import {
   createVisualizationViewApplicationRequest,
   createVisualizationModesRequest,
@@ -93,7 +95,6 @@ export function createCanonicalWebVowlController({
   let retainedHidden = [];
   let nodesShown = { mode: "auto" };
   let viewInteraction = 0;
-  let revealCache;
   let ordinaryPresentation;
   const lifecycle = createControllerOperationLifecycle({
     readIdentity: () => session.identity(),
@@ -206,10 +207,20 @@ export function createCanonicalWebVowlController({
   function current(operation) {
     return lifecycle.check(operation);
   }
+  function resolveFocusable(ontologyElementReferences) {
+    current("getOntologySummary");
+    return boundOntologyFocusResult(
+      session.readModel().resolveFocusable({
+        visibleRenderedGraphSnapshot:
+          runtime.readVisibleRenderedGraphSnapshot(),
+        ontologyElementReferences,
+      }),
+    );
+  }
   function snapshots(operation = "getOntologySummary") {
     current(operation);
     return {
-      ontologyInspectionSnapshot: session.inspectOntology(),
+      ontologyInspectionSnapshot: session.readOntologyInspection(),
       visibleRenderedGraphSnapshot: runtime.readVisibleRenderedGraphSnapshot(),
     };
   }
@@ -235,7 +246,6 @@ export function createCanonicalWebVowlController({
   }
   function acceptRevision(result, selectionTargets) {
     clearNeighborhood();
-    revealCache = undefined;
     lifecycle.retireViews();
     let selectedDocumentRecord =
       result.selectedTarget ?? state.selectedDocumentRecord;
@@ -549,7 +559,6 @@ export function createCanonicalWebVowlController({
       const retained = structuredClone(source);
       const ticket = lifecycle.prepare("loadOntology", { signal });
       ticket.prepareScene();
-      revealCache = undefined;
       ticket.accept();
       const combined = ticket.signal;
       const previous = retainedState;
@@ -793,98 +802,30 @@ export function createCanonicalWebVowlController({
     },
     getOntologyElementRevealPlan(ontologyElementReferences) {
       current("getOntologyElementRevealPlan");
-      const retained = readUpstreamHidden();
-      const signature = structuredClone([
-        session.identity(),
-        filters,
-        retained,
-      ]);
-      if (!isEqual(revealCache?.signature, signature)) {
-        const inspection = session.inspectRecords();
-        const references = createCanonicalSemanticReferences(
-          inspection,
-          state.loadGeneration,
-          session.target,
-        );
-        const visibility = session.selectNodes(filters, nodesShown, retained, {
-          measure: false,
-        });
-        const ranks = new Map(
-          visibility.rankedNodeOccurrenceIds.map((id, index) => [
-            id,
-            index + 1,
-          ]),
-        );
-        const upstream = new Set(
-          prepareCanonicalVisibility(inspection, filters, retained).hidden,
-        );
-        const projection = createCanonicalVowlRenderProjection(
-          inspection,
-          session.scene().snapshot(),
-        );
-        const requiredByOccurrence = new Map(
-          projection.nodes.map((row) => [
-            row.occurrence,
-            ranks.get(row.occurrence),
-          ]),
-        );
-        for (const edge of projection.edges) {
-          const ends = [ranks.get(edge.from), ranks.get(edge.to)];
-          if (ends.every((rank) => rank !== undefined)) {
-            requiredByOccurrence.set(edge.occurrence, Math.max(...ends));
-          }
-        }
-        for (const label of projection.labels) {
-          requiredByOccurrence.set(
-            label.occurrence,
-            requiredByOccurrence.get(label.edge),
-          );
-        }
-        const byElement = new Map();
-        for (const row of [
-          ...projection.nodes,
-          ...projection.edges,
-          ...projection.labels,
-        ]) {
-          const rank = requiredByOccurrence.get(row.occurrence);
-          if (rank === undefined || upstream.has(row.occurrence)) {
-            continue;
-          }
-          for (const id of row.targets ?? row.records ?? []) {
-            const reference = references.get(id);
-            if (reference) {
-              const key = ontologyElementReferenceKey(reference);
-              byElement.set(
-                key,
-                Math.min(byElement.get(key) ?? Infinity, rank),
-              );
-            }
-          }
-        }
-        revealCache = { signature, byElement };
-      }
+      const ranks = session.readModel().revealRanks(
+        {
+          filters,
+          nodesShown,
+          upstreamHidden: readUpstreamHidden(),
+        },
+        ontologyElementReferences,
+      );
       const requested = new Set(
         ontologyElementReferences.map(ontologyElementReferenceKey),
       );
-      let requestedCount = state.nodeCountStatus.shownNodeCount;
-      const matched = new Set();
-      for (const key of requested) {
-        const rank = revealCache.byElement.get(key);
-        if (rank !== undefined) {
-          matched.add(key);
-          requestedCount = Math.max(requestedCount, rank);
-        }
-      }
       return Object.freeze({
-        canReveal: matched.size === requested.size && requested.size > 0,
-        requestedCount,
+        canReveal: ranks.length === requested.size && requested.size > 0,
+        requestedCount: ranks.reduce(
+          (count, row) => Math.max(count, row.requiredNodeCount),
+          state.nodeCountStatus.shownNodeCount,
+        ),
       });
     },
     getOntologyNeighborhoodRevealPlan(ontologyElementReferences) {
       current("getOntologyNeighborhoodRevealPlan");
-      const { canReveal, reason, counts } = session.planNeighborhood(
-        ontologyElementReferences,
-      );
+      const { canReveal, reason, counts } = session
+        .readModel()
+        .planNeighborhood(ontologyElementReferences);
       return Object.freeze({
         canReveal,
         ...(reason ? { reason } : {}),
@@ -899,7 +840,9 @@ export function createCanonicalWebVowlController({
         signal,
       });
       const accepted = ticket.identity;
-      const plan = session.planNeighborhood(ontologyElementReferences);
+      const plan = session
+        .readModel()
+        .planNeighborhood(ontologyElementReferences);
       if (!plan.canReveal) {
         return Object.freeze({
           ...accepted,
@@ -987,19 +930,21 @@ export function createCanonicalWebVowlController({
     },
     findOntologyElements(request) {
       current("findOntologyElements");
-      return session.findOntologyElements(
-        {
+      return boundOntologySearchResult(
+        session.readModel().find({
           visibleRenderedGraphSnapshot:
             runtime.readVisibleRenderedGraphSnapshot(),
           ...request,
           language: state.view?.language,
-        },
-        inspector,
+        }),
+        request,
       );
     },
     describeOntologyElements(request) {
-      return inspector.describeOntologyElements({
-        ...snapshots("describeOntologyElements"),
+      current("describeOntologyElements");
+      return session.readModel().describe({
+        visibleRenderedGraphSnapshot:
+          runtime.readVisibleRenderedGraphSnapshot(),
         ...request,
         language: state.view?.language,
       });
@@ -1016,10 +961,7 @@ export function createCanonicalWebVowlController({
           ? []
           : (state.view?.focus ?? []);
       const resolved = focus.length
-        ? inspector.resolveFocusableOntologyElementReferences({
-            ...snapshots(),
-            ontologyElementReferences: focus,
-          })
+        ? resolveFocusable(focus)
         : { focusableReferences: [] };
       return Object.freeze({
         focus: Object.freeze([...focus]),
@@ -1069,7 +1011,7 @@ export function createCanonicalWebVowlController({
             "The ontology reference belongs to a retired document.",
           );
         }
-        const inspection = session.inspectOntology();
+        const inspection = session.readOntologyInspection();
         const references = [
           "classRecords",
           "datatypeRecords",
@@ -1166,10 +1108,7 @@ export function createCanonicalWebVowlController({
       const nextNodesShown = requestedNodesShown ?? nodesShown;
       // Validate references before changing the scene; determine visibility afterwards.
       if (nativeView.focus !== undefined) {
-        inspector.resolveFocusableOntologyElementReferences({
-          ...snapshots(),
-          ontologyElementReferences: nativeView.focus,
-        });
+        resolveFocusable(nativeView.focus);
       }
       const viewChanges = {};
       const previous = {
@@ -1211,11 +1150,7 @@ export function createCanonicalWebVowlController({
           });
         }
         if (nativeView.focus !== undefined) {
-          const resolution =
-            inspector.resolveFocusableOntologyElementReferences({
-              ...snapshots(),
-              ontologyElementReferences: nativeView.focus,
-            });
+          const resolution = resolveFocusable(nativeView.focus);
           nativeView.focus = [...resolution.focusableReferences];
         }
         if (nativeView.layout !== undefined) {
@@ -1480,7 +1415,6 @@ export function createCanonicalWebVowlController({
       }
       disposed = true;
       clearNeighborhood();
-      revealCache = undefined;
       lifecycle.dispose();
       unsubscribe();
       subscribers.clear();

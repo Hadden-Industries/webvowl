@@ -86,7 +86,7 @@ function limitRecord(value) {
   return value;
 }
 
-/** Bound plain checkpoint/request data before structuredClone allocates its copy. */
+/** Bound plain checkpoint/request data before transport allocates its copy. */
 function measureCheckpointInput(value, maximum, maxDepth) {
   let size = 0;
   const ancestors = new Set();
@@ -221,6 +221,8 @@ function measureCheckpointInput(value, maximum, maxDepth) {
  * Owns worker lifetime, source-byte transfer and caller-controlled acquisition.
  * Requests carry their exact document generation/revision; the controller must
  * still compare those to its current state before committing a returned result.
+ * Injected workers must implement native postMessage's synchronous serialization
+ * and independent receiver ownership; retaining the caller's request is invalid.
  */
 export function createCanonicalVowlWorkerClient({
   createWorker = () =>
@@ -266,8 +268,8 @@ export function createCanonicalVowlWorkerClient({
         DEFAULT_INPUT_BYTES,
         MAXIMUM_INPUT_BYTES,
       );
-      // Snapshot before yielding. Transferring our copy must not detach the
-      // caller's last accepted document or its source acquisition buffers.
+      // Serialize before yielding. Only owned source-byte copies are transferred;
+      // checkpoint buffers stay owned by the caller and are cloned by transport.
       const checkpointOperation = [
         "recover-model",
         "edit-model",
@@ -319,9 +321,8 @@ export function createCanonicalVowlWorkerClient({
       if (acquiredBytes > inputLimit) {
         throw failure("RESOURCE_LIMIT_EXCEEDED");
       }
-      const payload = structuredClone(
-        checkpointPayload ?? { ...request, bytes },
-      );
+      const payload =
+        checkpointPayload ?? structuredClone({ ...request, bytes });
       if (modelOperations.has(request.operation)) {
         payload.limits = { ...payload.limits, deadlineMs };
       }

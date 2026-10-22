@@ -91,6 +91,15 @@ function relabel(structural, budget) {
 function admit(state, budget, archive) {
   state = snapshotSource(state, budget);
   validateStructure(state.structural, budget);
+  return publishValidatedState(state, budget, archive);
+}
+
+/**
+ * Publish privately owned state only after its structure has been validated.
+ * This local control-flow invariant cannot be supplied by a checkpoint/caller.
+ */
+function publishValidatedState(state, budget, archive) {
+  budget.check();
   if (state.qualifications) {
     validateQualifications(state, budget);
   }
@@ -488,7 +497,11 @@ function fields(value, names) {
   }
 }
 
-/** Checkpoint bytes convey structure, never local admission or provenance authority. */
+/**
+ * Checkpoint bytes convey structure, never local admission or provenance authority.
+ * Validate an owned snapshot before asynchronous archive recovery; publish only
+ * that validated representation, retaining the final snapshot's resource charges.
+ */
 export async function readmitLiveModel(input, budget) {
   let source;
   let hasSource = false;
@@ -602,7 +615,7 @@ export async function readmitLiveModel(input, budget) {
   ) {
     fail("CHECKPOINT_INVALID");
   }
-  const model = admit(
+  const state = snapshotSource(
     {
       revision: checkpoint.revision,
       origin,
@@ -613,8 +626,8 @@ export async function readmitLiveModel(input, budget) {
         : {}),
     },
     budget,
-    archive,
   );
+  const model = publishValidatedState(state, budget, archive);
   return deepFreeze({
     model,
     correspondence: identity(checkpoint.structural, budget),

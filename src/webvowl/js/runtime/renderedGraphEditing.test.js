@@ -486,23 +486,33 @@ test.each([
           camera: { ...drawing.camera, zoom: 10 },
         },
       });
-      const labelArrangement = graph
-        .readArrangement()
-        .find(({ kind }) => kind === "property-label");
-      expect(labelArrangement).toMatchObject({
-        xPx: 0,
-        yPx: -30,
-        canMove: true,
-        canPin: true,
-      });
-      graph.applyArrangement([
-        {
-          rendererKey: labelArrangement.rendererKey,
-          xPx: 75,
-          yPx: -90,
-          isPinned: true,
-        },
-      ]);
+      // Canonical placement authority does not depend on scanning endpoint links.
+      const linkReads = graph.getUnfilteredData().nodes.map((node) =>
+        jest.spyOn(node, "links").mockImplementation(() => {
+          throw new Error("Arrangement must use canonical placement bindings.");
+        }),
+      );
+      try {
+        const labelArrangement = graph
+          .readArrangement()
+          .find(({ kind }) => kind === "property-label");
+        expect(labelArrangement).toMatchObject({
+          xPx: 0,
+          yPx: -30,
+          canMove: true,
+          canPin: true,
+        });
+        graph.applyArrangement([
+          {
+            rendererKey: labelArrangement.rendererKey,
+            xPx: 75,
+            yPx: -90,
+            isPinned: true,
+          },
+        ]);
+      } finally {
+        linkReads.forEach((read) => read.mockRestore());
+      }
       graph.update();
       expect(graph.readCanonicalDrawingState().camera).toEqual({
         ...drawing.camera,

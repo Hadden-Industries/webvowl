@@ -1,5 +1,7 @@
+import { jest } from "@jest/globals";
 import { createCanonicalVowlRenderProjection } from "./canonicalVowlRenderProjection.js";
 import { createCanonicalVowlScene } from "./canonicalVowlScene.js";
+import { createCanonicalDrawingRequest } from "./renderedGraphRuntimeContracts.js";
 
 function fixture() {
   const subjects = [
@@ -190,9 +192,44 @@ test("operator projections expose omitted operands without creating an operand g
       .additionalOperands,
   ).toEqual(["a", "some"]);
   expect(drawing.labels).toHaveLength(2);
-  expect(drawing.inspection.records.expressions).toEqual(
-    inspection.records.expressions,
-  );
+  // DEC-004: semantic facts belong to the session, not the drawing DTO.
+  expect(Object.hasOwn(drawing, "inspection")).toBe(false);
+});
+
+test("drawing construction and request ownership do not copy or freeze a semantic inspection", () => {
+  const { inspection, visualization } = fixture();
+  const clone = jest.spyOn(globalThis, "structuredClone");
+  const freeze = jest.spyOn(Object, "freeze");
+  try {
+    const drawing = createCanonicalVowlRenderProjection(
+      inspection,
+      visualization,
+    );
+    const request = createCanonicalDrawingRequest({
+      loadGeneration: 1,
+      documentRevision: 0,
+      layout: "pause",
+      drawing,
+    });
+    expect(request.drawing.nodes).toHaveLength(2);
+    expect(request.drawing.labels).toHaveLength(2);
+    expect(request.drawing.camera).toEqual(visualization.camera);
+    expect(request.drawing).not.toBe(drawing);
+    expect(Object.isFrozen(request.drawing.nodes[0])).toBe(true);
+    expect(
+      clone.mock.calls.some(
+        ([value]) =>
+          value?.inspection !== undefined ||
+          (value?.records && value?.occurrences),
+      ),
+    ).toBe(false);
+    expect(
+      freeze.mock.calls.some(([value]) => value?.records && value?.occurrences),
+    ).toBe(false);
+  } finally {
+    clone.mockRestore();
+    freeze.mockRestore();
+  }
 });
 
 test("scoped cardinalities stay decimal strings and do not borrow global characteristics", () => {

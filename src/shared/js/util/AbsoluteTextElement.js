@@ -1,5 +1,6 @@
 import { AbstractTextElement } from "./AbstractTextElement.js";
 import { createTextTools as textToolsFactory } from "./textTools.js";
+import { positionAbsoluteTextLine } from "./textLayoutBatch.js";
 const textTools = textToolsFactory();
 
 export { AbsoluteTextElement };
@@ -69,13 +70,6 @@ AbsoluteTextElement.prototype.addTextline = function (
 };
 
 AbsoluteTextElement.prototype._repositionTextLine = function (tspan, yShift) {
-  const fontSizeProperty = window
-    .getComputedStyle(tspan.node())
-    .getPropertyValue("font-size");
-  const fontSize = parseFloat(fontSizeProperty);
-
   /* BBox height is not supported in Firefox for tspans and dominant-baseline doesn't work in some SVG editors */
-  const approximatedShiftForVerticalCentering = (1 / 3) * fontSize;
-
-  tspan.attr("y", approximatedShiftForVerticalCentering + (yShift || 0) + "px");
+  positionAbsoluteTextLine(tspan.node(), yShift || 0);
 };

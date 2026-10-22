@@ -8,6 +8,9 @@ import {
 import { createCanonicalVowlWorkerClient } from "./canonicalVowlWorkerClient.js";
 
 const context = { loadGeneration: 7, baseRevision: 3 };
+// Native postMessage serializes synchronously; keep received data distinct from
+// the arguments recorded by the mock and from application clone instrumentation.
+const transportClone = structuredClone;
 const text = new TextEncoder();
 const owlRequest = {
   operation: "owl",
@@ -184,7 +187,7 @@ test.each(["recover-model", "read-model-source", "export-model-rdf"])(
       { operation, checkpoint: opened.checkpoint },
       context,
     );
-    const sent = workers[0].postMessage.mock.calls[0][0];
+    const sent = workers[0].messages[0];
     opened.checkpoint.source.sources[0].bytes.fill(0);
     expect(sent.request.checkpoint.source.sources[0].bytes).toEqual(
       owlRequest.bytes,
@@ -352,7 +355,13 @@ function harness() {
   const workers = [];
   const client = createCanonicalVowlWorkerClient({
     createWorker: () => {
-      const worker = { postMessage: jest.fn(), terminate: jest.fn() };
+      const worker = {
+        messages: [],
+        postMessage: jest.fn((message, transfer) => {
+          worker.messages.push(transportClone(message, { transfer }));
+        }),
+        terminate: jest.fn(),
+      };
       workers.push(worker);
       return worker;
     },
@@ -360,7 +369,7 @@ function harness() {
   return { workers, client };
 }
 
-test("checkpoint requests are copied and cancellation leaves the accepted recovery state intact", async () => {
+test("checkpoint transport serializes once and cancellation leaves the accepted recovery state intact", async () => {
   const { client, workers } = harness();
   const checkpoint = {
     revision: 3,
@@ -372,7 +381,7 @@ test("checkpoint requests are copied and cancellation leaves the accepted recove
     { ...context, signal: abort.signal },
   );
   const worker = workers[0];
-  const sent = worker.postMessage.mock.calls[0][0];
+  const sent = worker.messages[0];
   expect(worker.postMessage.mock.calls[0][1]).toEqual([]);
   checkpoint.structural.subjects[0].id = "changed-after-request";
   expect(sent.request.checkpoint.structural.subjects[0].id).toBe("original");
@@ -381,6 +390,37 @@ test("checkpoint requests are copied and cancellation leaves the accepted recove
   expect(worker.terminate).toHaveBeenCalledTimes(1);
   expect(checkpoint.revision).toBe(3);
   client.dispose();
+});
+
+test("checkpoint transport relies on native serialization without a redundant pre-send clone", async () => {
+  const { client, workers } = harness();
+  const checkpoint = {
+    revision: 3,
+    structural: { subjects: [{ id: "original" }] },
+  };
+  const limits = { inputBytes: 2048 };
+  const clone = jest.spyOn(globalThis, "structuredClone");
+  const abort = new AbortController();
+  const pending = client.run(
+    { operation: "recover-model", checkpoint, limits },
+    { ...context, signal: abort.signal },
+  );
+  try {
+    expect(workers).toHaveLength(1);
+    const received = workers[0].messages[0].request;
+    expect(received.checkpoint).toEqual(checkpoint);
+    expect(received.checkpoint).not.toBe(checkpoint);
+    expect(received.limits.deadlineMs).toBe(60000);
+    expect(limits).toEqual({ inputBytes: 2048 });
+    received.checkpoint.structural.subjects[0].id = "receiver mutation";
+    expect(checkpoint.structural.subjects[0].id).toBe("original");
+    expect(clone).not.toHaveBeenCalled();
+  } finally {
+    clone.mockRestore();
+    abort.abort();
+    await expect(pending).rejects.toMatchObject({ code: "LOAD_ABORTED" });
+    client.dispose();
+  }
 });
 
 test("client rejects oversized and accessor checkpoints before creating a worker", async () => {
@@ -452,7 +492,7 @@ test.each(["plain ASCII", 'quotes"and\\slashes', "é😀\n\u0000", "\ud800"])(
     }
     const { client, workers } = harness();
     const pending = client.run(request, context);
-    const sent = workers[0].postMessage.mock.calls[0][0];
+    const sent = workers[0].messages[0];
     workers[0].onmessage({
       data: { ...sent, type: "result", result: { accepted: true } },
     });
@@ -473,7 +513,7 @@ test("cancellation wins while a received result waits for consumer processing", 
     { operation: "decode", bytes: text.encode("{}") },
     { ...context, signal: abort.signal },
   );
-  const sent = workers[0].postMessage.mock.calls[0][0];
+  const sent = workers[0].messages[0];
   workers[0].onmessage({
     data: { ...sent, type: "result", result: { accepted: true } },
   });
@@ -491,7 +531,7 @@ test("a received result closes peer messages while cancellation remains availabl
     { ...context, resolveImport },
   );
   const worker = workers[0];
-  const sent = worker.postMessage.mock.calls[0][0];
+  const sent = worker.messages[0];
   worker.onmessage({
     data: { ...sent, type: "result", result: { accepted: true } },
   });
@@ -531,7 +571,7 @@ test("worker requests snapshot input, ignore stale revisions and terminate after
   const bytes = Uint8Array.of(1, 2);
   const promise = client.run({ operation: "decode", bytes }, context);
   const worker = workers[0];
-  const sent = worker.postMessage.mock.calls[0][0];
+  const sent = worker.messages[0];
   bytes[0] = 9;
   expect(sent.request.bytes).toEqual(Uint8Array.of(1, 2));
   await worker.onmessage({
@@ -564,7 +604,7 @@ test("cancellation terminates work and aborts an in-flight import acquisition", 
     },
   });
   const worker = workers[0];
-  const sent = worker.postMessage.mock.calls[0][0];
+  const sent = worker.messages[0];
   const importWait = worker.onmessage({
     data: {
       ...sent,
@@ -609,7 +649,7 @@ test("aggregate acquisition counts root plus every imported document", async () 
   const worker = workers[0];
   await worker.onmessage({
     data: {
-      ...worker.postMessage.mock.calls[0][0],
+      ...worker.messages[0],
       type: "import",
       importId: 1,
       importIri: "urn:i",
@@ -630,9 +670,7 @@ test("OWL opening and artifact operations retain distinct whole-job deadlines", 
     const assertion = expect(opening).rejects.toMatchObject({
       code: "DEADLINE_EXCEEDED",
     });
-    expect(
-      workers[0].postMessage.mock.calls[0][0].request.limits.deadlineMs,
-    ).toBe(60000);
+    expect(workers[0].messages[0].request.limits.deadlineMs).toBe(60000);
     jest.advanceTimersByTime(10000);
     expect(workers[0].terminate).not.toHaveBeenCalled();
     jest.advanceTimersByTime(50000);
@@ -677,9 +715,7 @@ test.each([
     const rejection = expect(pending).rejects.toMatchObject({
       code: "DEADLINE_EXCEEDED",
     });
-    expect(
-      workers[0].postMessage.mock.calls[0][0].request.limits.deadlineMs,
-    ).toBe(60000);
+    expect(workers[0].messages[0].request.limits.deadlineMs).toBe(60000);
     jest.advanceTimersByTime(10000);
     expect(workers[0].terminate).not.toHaveBeenCalled();
     jest.advanceTimersByTime(50000);
@@ -768,7 +804,7 @@ test("producer ranking budget facts survive the worker client and drive its mess
   const pending = client.run(owlRequest, context);
   await workers[0].onmessage({
     data: {
-      ...workers[0].postMessage.mock.calls[0][0],
+      ...workers[0].messages[0],
       type: "failure",
       failure: safe,
     },
@@ -801,7 +837,7 @@ test("resource failures retain only safe stage and resource facts across the wor
   const worker = workers[0];
   await worker.onmessage({
     data: {
-      ...worker.postMessage.mock.calls[0][0],
+      ...worker.messages[0],
       type: "failure",
       failure: safe,
     },

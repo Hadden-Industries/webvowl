@@ -287,19 +287,12 @@ function indexLabelTextsByReferenceKey(ontologyInspectionSnapshot) {
   return labelTextsByReferenceKey;
 }
 
-function createNeighborhoodFacts(
-  elementRecord,
-  kind,
-  truncationTracker,
-  snapshot,
-) {
+function createNeighborhoodFacts(elementRecord, kind, snapshot) {
   const neighborhoodFacts = {};
   for (const neighborhoodFieldName of NEIGHBORHOOD_FIELD_NAMES_BY_KIND[kind]) {
-    neighborhoodFacts[neighborhoodFieldName] = boundResultCollection(
-      relationReferences(elementRecord, neighborhoodFieldName, snapshot),
-      WEB_VOWL_OPERATION_LIMITS.maxFocusReferences,
-      truncationTracker,
-    );
+    neighborhoodFacts[neighborhoodFieldName] = Object.freeze([
+      ...relationReferences(elementRecord, neighborhoodFieldName, snapshot),
+    ]);
   }
   return Object.freeze(neighborhoodFacts);
 }
@@ -390,60 +383,458 @@ function semanticSearchRecords(records) {
   return [...merged.values()];
 }
 
-/** Takes a session-owned immutable snapshot; query results own their values. */
-export function prepareOntologySearch(snapshot, inspector) {
-  const ontologyInspectionSnapshot = {
-    loadGeneration: snapshot.loadGeneration,
-    relationGroups: snapshot.relationGroups ?? [],
-  };
-  const recordsByKind = new Map();
-  for (const [kind, field] of Object.entries(
+function indexDescriptionRecords(ontologyInspectionSnapshot) {
+  const recordsByReferenceKey = new Map();
+  for (const [kind, collectionFieldName] of Object.entries(
     RECORD_COLLECTION_FIELD_NAMES_BY_KIND,
   )) {
-    ontologyInspectionSnapshot[field] = snapshot[field];
-    recordsByKind.set(
-      kind,
-      semanticSearchRecords(ontologyInspectionSnapshot[field]),
-    );
-  }
-  const preparation = {
-    recordsByKind,
-    labelTextsByReferenceKey: indexLabelTextsByReferenceKey(
-      ontologyInspectionSnapshot,
-    ),
-  };
-  return Object.freeze({
-    findOntologyElements(request) {
-      return inspector.findOntologyElements(
-        { ...request, ontologyInspectionSnapshot },
-        preparation,
+    for (const elementRecord of ontologyInspectionSnapshot[
+      collectionFieldName
+    ]) {
+      const key = ontologyElementReferenceKey(
+        elementRecord.ontologyElementReference,
       );
-    },
-    updatePresentation(snapshot) {
-      for (const [kind, field] of Object.entries(
-        RECORD_COLLECTION_FIELD_NAMES_BY_KIND,
-      )) {
-        const displays = new Map();
-        for (const record of snapshot[field]) {
-          const key = ontologyElementReferenceKey(
-            record.ontologyElementReference,
-          );
-          if (!displays.has(key)) {
-            displays.set(key, record.canonicalDisplay);
-          }
-        }
-        for (const record of recordsByKind.get(kind)) {
-          record.canonicalDisplay = structuredClone(
-            displays.get(
-              ontologyElementReferenceKey(record.ontologyElementReference),
+      if (!recordsByReferenceKey.has(key)) {
+        recordsByReferenceKey.set(key, { elementRecord, kind });
+      }
+    }
+  }
+
+  return recordsByReferenceKey;
+}
+
+function collectSemanticReferences(ontologyInspectionSnapshot) {
+  return Object.values(RECORD_COLLECTION_FIELD_NAMES_BY_KIND).flatMap(
+    (collection) =>
+      ontologyInspectionSnapshot[collection].map(
+        (record) => record.ontologyElementReference,
+      ),
+  );
+}
+
+function findOntologyElements(
+  {
+    ontologyInspectionSnapshot,
+    visibleRenderedGraphSnapshot,
+    query,
+    kinds,
+    includeNeighborhood = false,
+    language,
+  },
+  preparation,
+) {
+  const loadGeneration = assertAgreeingLoadGeneration(
+    ontologyInspectionSnapshot,
+    visibleRenderedGraphSnapshot,
+  );
+  assertNonEmptyQuery(query);
+  const requestedKinds = resolveRequestedKinds(kinds);
+  const selectedLanguage = language ?? null;
+  const visibleReferenceKeys = createVisibleReferenceKeySet(
+    visibleRenderedGraphSnapshot,
+  );
+  const normalizedQuery = query.trim().toLowerCase();
+
+  const labelTextsByReferenceKey =
+    preparation?.labelTextsByReferenceKey ??
+    indexLabelTextsByReferenceKey(ontologyInspectionSnapshot);
+  const matchingGroups = new Set();
+  for (const [index, group] of (
+    ontologyInspectionSnapshot.relationGroups ?? []
+  ).entries()) {
+    if (
+      group.some(
+        (reference) =>
+          labelMatchRank(
+            labelTextsByReferenceKey.get(
+              ontologyElementReferenceKey(reference),
+            ) ?? [],
+            normalizedQuery,
+          ) !== NO_MATCH_RANK,
+      )
+    ) {
+      matchingGroups.add(index);
+    }
+  }
+  const rankedMatches = [];
+  for (const kind of new Set(requestedKinds)) {
+    const elementRecords =
+      ontologyInspectionSnapshot[RECORD_COLLECTION_FIELD_NAMES_BY_KIND[kind]];
+    for (const elementRecord of preparation?.recordsByKind.get(kind) ??
+      semanticSearchRecords(elementRecords)) {
+      const matchRank = matchRankForRecord(
+        elementRecord,
+        normalizedQuery,
+        labelTextsByReferenceKey,
+        matchingGroups,
+      );
+      if (matchRank === NO_MATCH_RANK) {
+        continue;
+      }
+      rankedMatches.push({
+        elementRecord,
+        kind,
+        kindRank: SEARCHABLE_ONTOLOGY_ELEMENT_KINDS.indexOf(kind),
+        matchRank,
+      });
+    }
+  }
+
+  rankedMatches.sort((leftMatch, rightMatch) => {
+    if (leftMatch.matchRank !== rightMatch.matchRank) {
+      return leftMatch.matchRank - rightMatch.matchRank;
+    }
+    if (leftMatch.kindRank !== rightMatch.kindRank) {
+      return leftMatch.kindRank - rightMatch.kindRank;
+    }
+    return elementIdentitySortKey(
+      leftMatch.elementRecord.ontologyElementReference,
+    ).localeCompare(
+      elementIdentitySortKey(rightMatch.elementRecord.ontologyElementReference),
+    );
+  });
+
+  const matches = rankedMatches.map(({ elementRecord, kind }) => {
+    const ontologyElementReference = structuredClone(
+      elementRecord.ontologyElementReference,
+    );
+    const match = {
+      ontologyElementReference,
+      kind,
+      displayLabel: displayLabelForRecord(elementRecord, selectedLanguage),
+      iri: elementIri(ontologyElementReference),
+      isFocusable: visibleReferenceKeys.has(
+        ontologyElementReferenceKey(ontologyElementReference),
+      ),
+    };
+    if (includeNeighborhood) {
+      // A public page may retain only a few matches. Keep the full answer lazy
+      // so omitted matches do not expand every equivalence group first.
+      let facts;
+      Object.defineProperty(match, "neighborhoodFacts", {
+        enumerable: true,
+        get() {
+          facts ??= Object.freeze(
+            structuredClone(
+              createNeighborhoodFacts(
+                elementRecord,
+                kind,
+                ontologyInspectionSnapshot,
+              ),
             ),
           );
-        }
+          return facts;
+        },
+      });
+    }
+    return Object.freeze(match);
+  });
+
+  return Object.freeze({
+    loadGeneration,
+    matches: Object.freeze(matches),
+    totalMatchCount: rankedMatches.length,
+    optionalFactsTruncated: false,
+    isTruncated: false,
+  });
+}
+
+// The selection details panel renders what state says is selected, so it
+// needs the record behind a reference rather than the drawn element. The
+// relation arrays are unbounded here because a reader is looking at one
+// element rather than at a protocol-bounded result.
+function describeOntologyElements(
+  {
+    ontologyInspectionSnapshot,
+    visibleRenderedGraphSnapshot,
+    ontologyElementReferences,
+    language,
+  },
+  preparation,
+) {
+  const loadGeneration = assertAgreeingLoadGeneration(
+    ontologyInspectionSnapshot,
+    visibleRenderedGraphSnapshot,
+  );
+  if (!Array.isArray(ontologyElementReferences)) {
+    throw new TypeError(
+      "Ontology-element references must be supplied as an array.",
+    );
+  }
+  const selectedLanguage = language ?? null;
+  const recordsByReferenceKey =
+    preparation?.recordsByReferenceKey ??
+    indexDescriptionRecords(ontologyInspectionSnapshot);
+  const semanticReferences =
+    preparation?.references ??
+    [...recordsByReferenceKey.values()].map(
+      ({ elementRecord }) => elementRecord.ontologyElementReference,
+    );
+
+  const elementDescriptions = ontologyElementReferences.flatMap(
+    (ontologyElementReference) => {
+      const currentReference = assertCurrentOntologyElementReference(
+        ontologyElementReference,
+        loadGeneration,
+      );
+      const matched = recordsByReferenceKey.get(
+        ontologyElementReferenceKey(
+          resolveOntologyElementReference(
+            currentReference,
+            semanticReferences,
+          ) ?? currentReference,
+        ),
+      );
+      if (matched === undefined) {
+        return [];
       }
+      const { elementRecord, kind } = matched;
+      const description = {
+        ontologyElementReference: elementRecord.ontologyElementReference,
+        kind,
+        elementTypeName: elementRecord.elementTypeName,
+        displayLabel: displayLabelForRecord(elementRecord, selectedLanguage),
+        iri: elementIri(elementRecord.ontologyElementReference),
+        commentText: selectLocalizedText(
+          elementRecord.commentRecords,
+          selectedLanguage,
+        ),
+        descriptionText: selectLocalizedText(
+          elementRecord.descriptionRecords,
+          selectedLanguage,
+        ),
+        annotationRecords: elementRecord.annotationRecords,
+        characteristicNames: elementRecord.characteristicNames,
+        unclassifiedAttributeNames: elementRecord.unclassifiedAttributeNames,
+      };
+      if (kind === "property") {
+        description.cardinalityRecord = elementRecord.cardinalityRecord;
+      }
+      if (kind === "class") {
+        const classKey = ontologyElementReferenceKey(
+          elementRecord.ontologyElementReference,
+        );
+        description.individualElements = Object.freeze(
+          ontologyInspectionSnapshot.individualRecords
+            .filter((individualRecord) =>
+              individualRecord.classReferences.some(
+                (classReference) =>
+                  ontologyElementReferenceKey(classReference) === classKey,
+              ),
+            )
+            .map((individualRecord) =>
+              describeRelatedElement(
+                individualRecord.ontologyElementReference,
+                recordsByReferenceKey,
+                selectedLanguage,
+              ),
+            ),
+        );
+      }
+      for (const [
+        recordFieldName,
+        describedFieldName,
+      ] of DESCRIBED_RELATION_FIELD_NAMES_BY_KIND[kind]) {
+        description[describedFieldName] = Object.freeze(
+          [
+            ...relationReferences(
+              elementRecord,
+              recordFieldName,
+              ontologyInspectionSnapshot,
+            ),
+          ].map((relatedReference) =>
+            describeRelatedElement(
+              relatedReference,
+              recordsByReferenceKey,
+              selectedLanguage,
+            ),
+          ),
+        );
+      }
+      return [Object.freeze(description)];
+    },
+  );
+
+  return Object.freeze({
+    loadGeneration,
+    elementDescriptions: Object.freeze(elementDescriptions),
+  });
+}
+
+function resolveFocusableOntologyElementReferences(
+  {
+    ontologyInspectionSnapshot,
+    visibleRenderedGraphSnapshot,
+    ontologyElementReferences,
+  },
+  semanticReferences,
+) {
+  const loadGeneration = assertAgreeingLoadGeneration(
+    ontologyInspectionSnapshot,
+    visibleRenderedGraphSnapshot,
+  );
+  if (!Array.isArray(ontologyElementReferences)) {
+    throw new TypeError(
+      "Ontology-element references must be supplied as an array.",
+    );
+  }
+
+  const visibleReferenceKeys = createVisibleReferenceKeySet(
+    visibleRenderedGraphSnapshot,
+  );
+  const focusableReferences = [];
+  const unresolvedReferences = [];
+  semanticReferences ??= collectSemanticReferences(ontologyInspectionSnapshot);
+  for (const ontologyElementReference of ontologyElementReferences) {
+    const currentReference = assertCurrentOntologyElementReference(
+      ontologyElementReference,
+      loadGeneration,
+    );
+    const exactReference = resolveOntologyElementReference(
+      currentReference,
+      semanticReferences,
+    );
+    if (
+      exactReference &&
+      visibleReferenceKeys.has(ontologyElementReferenceKey(exactReference))
+    ) {
+      focusableReferences.push(exactReference);
+    } else {
+      unresolvedReferences.push(currentReference);
+    }
+  }
+
+  return Object.freeze({
+    loadGeneration,
+    focusableReferences: Object.freeze(focusableReferences),
+    unresolvedReferences: Object.freeze(unresolvedReferences),
+    isTruncated: false,
+  });
+}
+
+/**
+ * Prepare immutable inspection queries lazily. The owning read model binds this
+ * object to one accepted presentation; callers supply current visibility on
+ * every query. No result limits or mutable preparation escape this boundary.
+ */
+export function prepareOntologyQueries(ontologyInspectionSnapshot) {
+  let search;
+  let description;
+  let references;
+  return Object.freeze({
+    find(request) {
+      search ??= {
+        recordsByKind: new Map(
+          Object.entries(RECORD_COLLECTION_FIELD_NAMES_BY_KIND).map(
+            ([kind, field]) => [
+              kind,
+              semanticSearchRecords(ontologyInspectionSnapshot[field]),
+            ],
+          ),
+        ),
+        labelTextsByReferenceKey: indexLabelTextsByReferenceKey(
+          ontologyInspectionSnapshot,
+        ),
+      };
+      return findOntologyElements(
+        { ...request, ontologyInspectionSnapshot },
+        search,
+      );
+    },
+    describe(request) {
+      if (!description) {
+        const recordsByReferenceKey = indexDescriptionRecords(
+          ontologyInspectionSnapshot,
+        );
+        description = {
+          recordsByReferenceKey,
+          references: [...recordsByReferenceKey.values()].map(
+            ({ elementRecord }) => elementRecord.ontologyElementReference,
+          ),
+        };
+      }
+      return describeOntologyElements(
+        { ...request, ontologyInspectionSnapshot },
+        description,
+      );
+    },
+    resolveFocusable(request) {
+      references ??= collectSemanticReferences(ontologyInspectionSnapshot);
+      return resolveFocusableOntologyElementReferences(
+        { ...request, ontologyInspectionSnapshot },
+        references,
+      );
     },
   });
 }
 
+/** Apply existing public search pagination, text and neighborhood limits. */
+export function boundOntologySearchResult(result, { limit, offset = 0 } = {}) {
+  const matchLimit = resolveMatchLimit(limit);
+  if (!Number.isSafeInteger(offset) || offset < 0) {
+    throw new RangeError(
+      "A search offset must be a non-negative safe integer.",
+    );
+  }
+  const truncation = createTruncationTracker();
+  const optional = createTruncationTracker();
+  const matches = boundResultCollection(
+    result.matches.slice(offset),
+    matchLimit,
+    truncation,
+  ).map((match) =>
+    Object.freeze({
+      ...match,
+      displayLabel: boundOntologyDerivedText(match.displayLabel, optional),
+      ...(match.neighborhoodFacts
+        ? {
+            neighborhoodFacts: Object.freeze(
+              Object.fromEntries(
+                Object.entries(match.neighborhoodFacts).map(
+                  ([field, values]) => [
+                    field,
+                    boundResultCollection(
+                      values,
+                      WEB_VOWL_OPERATION_LIMITS.maxFocusReferences,
+                      optional,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          }
+        : {}),
+    }),
+  );
+  return Object.freeze({
+    loadGeneration: result.loadGeneration,
+    matches: Object.freeze(matches),
+    totalMatchCount: result.totalMatchCount,
+    optionalFactsTruncated: optional.isTruncated,
+    isTruncated: truncation.isTruncated || optional.isTruncated,
+  });
+}
+
+/** Apply the existing public focus limit after complete semantic resolution. */
+export function boundOntologyFocusResult(result) {
+  const truncation = createTruncationTracker();
+  return Object.freeze({
+    loadGeneration: result.loadGeneration,
+    focusableReferences: boundResultCollection(
+      result.focusableReferences,
+      WEB_VOWL_OPERATION_LIMITS.maxFocusReferences,
+      truncation,
+    ),
+    unresolvedReferences: boundResultCollection(
+      result.unresolvedReferences,
+      WEB_VOWL_OPERATION_LIMITS.maxFocusReferences,
+      truncation,
+    ),
+    isTruncated: truncation.isTruncated,
+  });
+}
+
+/** Public inspection interface. Shared input must be deeply frozen or owned. */
 export function createOntologyInspector() {
   return Object.freeze({
     getOntologySummary({
@@ -530,342 +921,14 @@ export function createOntologyInspector() {
       });
     },
 
-    findOntologyElements(
-      {
-        ontologyInspectionSnapshot,
-        visibleRenderedGraphSnapshot,
-        query,
-        kinds,
-        limit,
-        offset = 0,
-        includeNeighborhood = false,
-        language,
-      },
-      preparation,
-    ) {
-      const loadGeneration = assertAgreeingLoadGeneration(
-        ontologyInspectionSnapshot,
-        visibleRenderedGraphSnapshot,
-      );
-      assertNonEmptyQuery(query);
-      const requestedKinds = resolveRequestedKinds(kinds);
-      const matchLimit = resolveMatchLimit(limit);
-      if (!Number.isSafeInteger(offset) || offset < 0) {
-        throw new RangeError(
-          "A search offset must be a non-negative safe integer.",
-        );
-      }
-      const selectedLanguage = language ?? null;
-      const visibleReferenceKeys = createVisibleReferenceKeySet(
-        visibleRenderedGraphSnapshot,
-      );
-      const normalizedQuery = query.trim().toLowerCase();
-      const truncationTracker = createTruncationTracker();
-
-      const labelTextsByReferenceKey =
-        preparation?.labelTextsByReferenceKey ??
-        indexLabelTextsByReferenceKey(ontologyInspectionSnapshot);
-      const matchingGroups = new Set();
-      for (const [index, group] of (
-        ontologyInspectionSnapshot.relationGroups ?? []
-      ).entries()) {
-        if (
-          group.some(
-            (reference) =>
-              labelMatchRank(
-                labelTextsByReferenceKey.get(
-                  ontologyElementReferenceKey(reference),
-                ) ?? [],
-                normalizedQuery,
-              ) !== NO_MATCH_RANK,
-          )
-        ) {
-          matchingGroups.add(index);
-        }
-      }
-      const rankedMatches = [];
-      for (const kind of new Set(requestedKinds)) {
-        const elementRecords =
-          ontologyInspectionSnapshot[
-            RECORD_COLLECTION_FIELD_NAMES_BY_KIND[kind]
-          ];
-        for (const elementRecord of preparation?.recordsByKind.get(kind) ??
-          semanticSearchRecords(elementRecords)) {
-          const matchRank = matchRankForRecord(
-            elementRecord,
-            normalizedQuery,
-            labelTextsByReferenceKey,
-            matchingGroups,
-          );
-          if (matchRank === NO_MATCH_RANK) {
-            continue;
-          }
-          rankedMatches.push({
-            elementRecord,
-            kind,
-            kindRank: SEARCHABLE_ONTOLOGY_ELEMENT_KINDS.indexOf(kind),
-            matchRank,
-          });
-        }
-      }
-
-      rankedMatches.sort((leftMatch, rightMatch) => {
-        if (leftMatch.matchRank !== rightMatch.matchRank) {
-          return leftMatch.matchRank - rightMatch.matchRank;
-        }
-        if (leftMatch.kindRank !== rightMatch.kindRank) {
-          return leftMatch.kindRank - rightMatch.kindRank;
-        }
-        return elementIdentitySortKey(
-          leftMatch.elementRecord.ontologyElementReference,
-        ).localeCompare(
-          elementIdentitySortKey(
-            rightMatch.elementRecord.ontologyElementReference,
-          ),
-        );
-      });
-
-      const retainedMatches = boundResultCollection(
-        rankedMatches.slice(offset),
-        matchLimit,
-        truncationTracker,
-      );
-
-      const optionalFactsTracker = createTruncationTracker();
-      const matches = retainedMatches.map(({ elementRecord, kind }) => {
-        const ontologyElementReference = structuredClone(
-          elementRecord.ontologyElementReference,
-        );
-        const match = {
-          ontologyElementReference,
-          kind,
-          displayLabel: boundOntologyDerivedText(
-            displayLabelForRecord(elementRecord, selectedLanguage),
-            optionalFactsTracker,
-          ),
-          iri: elementIri(ontologyElementReference),
-          isFocusable: visibleReferenceKeys.has(
-            ontologyElementReferenceKey(ontologyElementReference),
-          ),
-        };
-        if (includeNeighborhood) {
-          match.neighborhoodFacts = Object.freeze(
-            structuredClone(
-              createNeighborhoodFacts(
-                elementRecord,
-                kind,
-                optionalFactsTracker,
-                ontologyInspectionSnapshot,
-              ),
-            ),
-          );
-        }
-        return Object.freeze(match);
-      });
-
-      return Object.freeze({
-        loadGeneration,
-        matches: Object.freeze(matches),
-        totalMatchCount: rankedMatches.length,
-        optionalFactsTruncated: optionalFactsTracker.isTruncated,
-        isTruncated:
-          truncationTracker.isTruncated || optionalFactsTracker.isTruncated,
-      });
+    findOntologyElements(request) {
+      return boundOntologySearchResult(findOntologyElements(request), request);
     },
-
-    // The selection details panel renders what state says is selected, so it
-    // needs the record behind a reference rather than the drawn element. The
-    // relation arrays are unbounded here because a reader is looking at one
-    // element rather than at a protocol-bounded result.
-    describeOntologyElements({
-      ontologyInspectionSnapshot,
-      visibleRenderedGraphSnapshot,
-      ontologyElementReferences,
-      language,
-    }) {
-      const loadGeneration = assertAgreeingLoadGeneration(
-        ontologyInspectionSnapshot,
-        visibleRenderedGraphSnapshot,
+    describeOntologyElements,
+    resolveFocusableOntologyElementReferences(request) {
+      return boundOntologyFocusResult(
+        resolveFocusableOntologyElementReferences(request),
       );
-      if (!Array.isArray(ontologyElementReferences)) {
-        throw new TypeError(
-          "Ontology-element references must be supplied as an array.",
-        );
-      }
-      const selectedLanguage = language ?? null;
-      const recordsByReferenceKey = new Map();
-      for (const [kind, collectionFieldName] of Object.entries(
-        RECORD_COLLECTION_FIELD_NAMES_BY_KIND,
-      )) {
-        for (const elementRecord of ontologyInspectionSnapshot[
-          collectionFieldName
-        ]) {
-          const key = ontologyElementReferenceKey(
-            elementRecord.ontologyElementReference,
-          );
-          if (!recordsByReferenceKey.has(key)) {
-            recordsByReferenceKey.set(key, { elementRecord, kind });
-          }
-        }
-      }
-
-      const elementDescriptions = ontologyElementReferences.flatMap(
-        (ontologyElementReference) => {
-          const currentReference = assertCurrentOntologyElementReference(
-            ontologyElementReference,
-            loadGeneration,
-          );
-          const matched = recordsByReferenceKey.get(
-            ontologyElementReferenceKey(
-              resolveOntologyElementReference(
-                currentReference,
-                [...recordsByReferenceKey.values()].map(
-                  ({ elementRecord }) => elementRecord.ontologyElementReference,
-                ),
-              ) ?? currentReference,
-            ),
-          );
-          if (matched === undefined) {
-            return [];
-          }
-          const { elementRecord, kind } = matched;
-          const description = {
-            ontologyElementReference: elementRecord.ontologyElementReference,
-            kind,
-            elementTypeName: elementRecord.elementTypeName,
-            displayLabel: displayLabelForRecord(
-              elementRecord,
-              selectedLanguage,
-            ),
-            iri: elementIri(elementRecord.ontologyElementReference),
-            commentText: selectLocalizedText(
-              elementRecord.commentRecords,
-              selectedLanguage,
-            ),
-            descriptionText: selectLocalizedText(
-              elementRecord.descriptionRecords,
-              selectedLanguage,
-            ),
-            annotationRecords: elementRecord.annotationRecords,
-            characteristicNames: elementRecord.characteristicNames,
-            unclassifiedAttributeNames:
-              elementRecord.unclassifiedAttributeNames,
-          };
-          if (kind === "property") {
-            description.cardinalityRecord = elementRecord.cardinalityRecord;
-          }
-          if (kind === "class") {
-            const classKey = ontologyElementReferenceKey(
-              elementRecord.ontologyElementReference,
-            );
-            description.individualElements = Object.freeze(
-              ontologyInspectionSnapshot.individualRecords
-                .filter((individualRecord) =>
-                  individualRecord.classReferences.some(
-                    (classReference) =>
-                      ontologyElementReferenceKey(classReference) === classKey,
-                  ),
-                )
-                .map((individualRecord) =>
-                  describeRelatedElement(
-                    individualRecord.ontologyElementReference,
-                    recordsByReferenceKey,
-                    selectedLanguage,
-                  ),
-                ),
-            );
-          }
-          for (const [
-            recordFieldName,
-            describedFieldName,
-          ] of DESCRIBED_RELATION_FIELD_NAMES_BY_KIND[kind]) {
-            description[describedFieldName] = Object.freeze(
-              [
-                ...relationReferences(
-                  elementRecord,
-                  recordFieldName,
-                  ontologyInspectionSnapshot,
-                ),
-              ].map((relatedReference) =>
-                describeRelatedElement(
-                  relatedReference,
-                  recordsByReferenceKey,
-                  selectedLanguage,
-                ),
-              ),
-            );
-          }
-          return [Object.freeze(description)];
-        },
-      );
-
-      return Object.freeze({
-        loadGeneration,
-        elementDescriptions: Object.freeze(elementDescriptions),
-      });
-    },
-
-    resolveFocusableOntologyElementReferences({
-      ontologyInspectionSnapshot,
-      visibleRenderedGraphSnapshot,
-      ontologyElementReferences,
-    }) {
-      const loadGeneration = assertAgreeingLoadGeneration(
-        ontologyInspectionSnapshot,
-        visibleRenderedGraphSnapshot,
-      );
-      if (!Array.isArray(ontologyElementReferences)) {
-        throw new TypeError(
-          "Ontology-element references must be supplied as an array.",
-        );
-      }
-
-      const truncationTracker = createTruncationTracker();
-      const visibleReferenceKeys = createVisibleReferenceKeySet(
-        visibleRenderedGraphSnapshot,
-      );
-      const focusableReferences = [];
-      const unresolvedReferences = [];
-      const semanticReferences = Object.values(
-        RECORD_COLLECTION_FIELD_NAMES_BY_KIND,
-      ).flatMap((collection) =>
-        ontologyInspectionSnapshot[collection].map(
-          (record) => record.ontologyElementReference,
-        ),
-      );
-      for (const ontologyElementReference of ontologyElementReferences) {
-        const currentReference = assertCurrentOntologyElementReference(
-          ontologyElementReference,
-          loadGeneration,
-        );
-        const exactReference = resolveOntologyElementReference(
-          currentReference,
-          semanticReferences,
-        );
-        if (
-          exactReference &&
-          visibleReferenceKeys.has(ontologyElementReferenceKey(exactReference))
-        ) {
-          focusableReferences.push(exactReference);
-        } else {
-          unresolvedReferences.push(currentReference);
-        }
-      }
-
-      return Object.freeze({
-        loadGeneration,
-        focusableReferences: boundResultCollection(
-          focusableReferences,
-          WEB_VOWL_OPERATION_LIMITS.maxFocusReferences,
-          truncationTracker,
-        ),
-        unresolvedReferences: boundResultCollection(
-          unresolvedReferences,
-          WEB_VOWL_OPERATION_LIMITS.maxFocusReferences,
-          truncationTracker,
-        ),
-        isTruncated: truncationTracker.isTruncated,
-      });
     },
   });
 }
