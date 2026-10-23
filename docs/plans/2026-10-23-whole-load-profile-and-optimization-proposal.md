@@ -365,7 +365,11 @@ The full suite was not repeated for this narrowly verified repair or for later e
 The full-suite result and post-repair proof are separate evidence claims.
 
 Foreground W6 automatic qualification was attempted on manifest 6 after the full check, but Chrome could not pass foreground admission before the deadline; **no timing samples were accepted** (`whole-load-W6-auto-final-foreground-1`).
-The five-second whole-load p95 and remaining W4/W5 active-layout/count budgets therefore remain pending, not waived.
-The successful headless timings and the earlier display-key phase cohort do not substitute for those gates.
+That attempt did not qualify the five-second whole-load p95 or the remaining W4/W5 active-layout/count budgets.
+The later [foreground performance report](2026-10-23-foreground-performance-results.md) records complete W6 Auto/All ordinary-load cohorts and W4/W5/W6 fresh running-layout count cohorts on manifest 7, bound to signed source commit `d9edffb9d0c476d91af94191c5df2402c9ae52cb`.
+W6 ordinary-load p95 is at most 4.282 seconds; all three count-response cohorts meet one second.
+Those observations retain the owner's CPU exception and do not establish a quiet-host or before/after speedup claim.
+W6 replacement of a running graph remains at 5.487 seconds p95, and W4's strict 200-ms LoAF criterion and W5's matched half-baseline requirement remain open.
+The report preserves failed foreground attempts and the exact resumed sample selection rather than rewriting them as passes.
 Final AGY review is waived, required raw evidence is retained, and no additional HISEW verification run is performed solely for receipt admission.
 Source publication updates the existing draft PR; merge, deployment and the single actual-platform manual batch remain unapproved/uncompleted.

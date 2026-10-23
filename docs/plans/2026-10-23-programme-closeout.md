@@ -126,6 +126,10 @@ The final full check is reserved for this consolidated commit, as requested; nei
 That full check passed 10,119 tests across 190 suites and the complete repository check pipeline.
 A subsequent heap-backed retention finding was repaired with a narrow allocation change, then passed 98 affected tests and ten native W6 load/edit/capture cycles plus disposal with zero retained old owners or workers.
 The full suite was not repeated solely to relabel that focused repair as a fresh broad receipt.
-The optimized foreground attempt failed admission before collecting samples; foreground p95 and the existing W4/W5 performance requirements remain pending.
+The first optimized foreground attempt failed admission before collecting samples; its receipt remains unchanged.
+The later [foreground performance report](2026-10-23-foreground-performance-results.md) records complete W6 Auto/All load cohorts and W4/W5/W6 fresh running-layout count cohorts against signed source commit `d9edffb9d0c476d91af94191c5df2402c9ae52cb`.
+W6 ordinary-load p95 is at most 4.282 seconds, and all three count-response cohorts meet one second under the owner's CPU exception.
+W6 replacement of a running graph remains slower at 5.487 seconds p95; W4's 200-ms LoAF criterion and W5's matched half-baseline criterion remain open.
+These distinct outcomes update the evidence without completing programme acceptance.
 The manual packet now also includes announcement/focus behavior while count preparation transitions from disabled to available.
 This follow-up is source delivery to the existing draft PR, with no merge, deployment or complete programme acceptance claim.
