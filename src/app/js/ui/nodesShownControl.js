@@ -26,6 +26,14 @@ export function createNodesShownControl({
         ? Math.min(requestedIntent.requestedCount, status.eligibleNodeCount)
         : status.shownNodeCount;
   }
+  function renderTotal(count) {
+    controls["total-value"].textContent = String(count);
+    controls["total-value"].setAttribute(
+      "aria-label",
+      `Show all ${count} available nodes`,
+    );
+    controls["total-description"].textContent = `Available nodes: ${count}.`;
+  }
   function submit(intent, coalesce = false) {
     if (["preparing", "failed"].includes(status.orderingStatus)) {
       return;
@@ -94,6 +102,7 @@ export function createNodesShownControl({
           "fifty",
           "markers",
           "total-value",
+          "total-description",
           "status",
         ].map((name) => [
           name,
@@ -180,6 +189,15 @@ export function createNodesShownControl({
           submit({ mode: "exact", requestedCount: 50 });
         }
       });
+      listen("total-value", "click", () => {
+        if (
+          status.eligibleNodeCount > 0 &&
+          requestedCount() !== status.eligibleNodeCount
+        ) {
+          restore();
+          submit({ mode: "all" });
+        }
+      });
     },
     renderNodeCountStatus(next, intent, adjustment = null) {
       if (!controls || lifecycle.signal.aborted) {
@@ -189,7 +207,14 @@ export function createNodesShownControl({
         draft = false;
         requestRevision += 1;
         requestedIntent = undefined;
-        for (const name of ["range", "exact", "minus", "plus", "fifty"]) {
+        for (const name of [
+          "range",
+          "exact",
+          "minus",
+          "plus",
+          "fifty",
+          "total-value",
+        ]) {
           controls[name].disabled = true;
         }
         status = { eligibleNodeCount: 0, shownNodeCount: 0 };
@@ -197,7 +222,7 @@ export function createNodesShownControl({
         controls.range.value = "0";
         controls.range.removeAttribute("aria-valuetext");
         controls.exact.max = "0";
-        controls["total-value"].textContent = "0";
+        renderTotal(0);
         controls.fifty.hidden = true;
         controls.status.hidden = true;
         restore();
@@ -214,7 +239,10 @@ export function createNodesShownControl({
       requestedIntent = adjustment?.requestedNodesShown;
       controls.range.max = String(status.eligibleNodeCount);
       controls.exact.max = controls.range.max;
-      controls["total-value"].textContent = controls.range.max;
+      renderTotal(status.eligibleNodeCount);
+      controls["total-value"].disabled =
+        status.eligibleNodeCount === 0 ||
+        requestedCount() === status.eligibleNodeCount;
       controls.range.value = String(requestedCount());
       if (!draft) {
         controls.exact.value = controls.range.value;
@@ -227,7 +255,14 @@ export function createNodesShownControl({
       controls.fifty.disabled =
         controls.fifty.hidden || requestedCount() === 50;
       if (orderingUnavailable) {
-        for (const name of ["range", "exact", "minus", "plus", "fifty"]) {
+        for (const name of [
+          "range",
+          "exact",
+          "minus",
+          "plus",
+          "fifty",
+          "total-value",
+        ]) {
           controls[name].disabled = true;
         }
       }

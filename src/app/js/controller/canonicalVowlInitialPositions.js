@@ -7,12 +7,12 @@ export function createCanonicalVowlInitialPositions(
   forceDistances = DEFAULT_FORCE_LAYOUT_DISTANCES,
   layoutInitialTree,
 ) {
-  const spacing = Math.max(
+  const classDistance =
     forceDistances.classDistancePx ??
-      DEFAULT_FORCE_LAYOUT_DISTANCES.classDistancePx,
+    DEFAULT_FORCE_LAYOUT_DISTANCES.classDistancePx;
+  const datatypeDistance =
     forceDistances.datatypeDistancePx ??
-      DEFAULT_FORCE_LAYOUT_DISTANCES.datatypeDistancePx,
-  );
+    DEFAULT_FORCE_LAYOUT_DISTANCES.datatypeDistancePx;
   const nodes = occurrences.filter(({ kind }) =>
     ["class-node", "datatype-node"].includes(kind),
   );
@@ -20,6 +20,8 @@ export function createCanonicalVowlInitialPositions(
     return new Map();
   }
   const index = new Map(nodes.map(({ id }, i) => [id, i]));
+  const nodeSpacing = (i) =>
+    nodes[i].kind === "datatype-node" ? datatypeDistance : classDistance;
   const neighbors = nodes.map(() => new Set());
   for (const edge of occurrences) {
     if (!edge.kind.endsWith("-edge")) {
@@ -53,7 +55,16 @@ export function createCanonicalVowlInitialPositions(
         ? current
         : best,
     );
-    const root = { index: rootIndex, depth: 0, children: [] };
+    const spacing = members.reduce(
+      (largest, member) => Math.max(largest, nodeSpacing(member)),
+      0,
+    );
+    const root = {
+      index: rootIndex,
+      depth: 0,
+      spacing: nodeSpacing(rootIndex),
+      children: [],
+    };
     const pending = [root];
     const visited = new Set([rootIndex]);
     for (let cursor = 0; cursor < pending.length; cursor++) {
@@ -63,7 +74,19 @@ export function createCanonicalVowlInitialPositions(
           continue;
         }
         visited.add(next);
-        const child = { index: next, depth: parent.depth + 1, children: [] };
+        const child = {
+          index: next,
+          depth: parent.depth + 1,
+          spacing: nodeSpacing(next),
+          // Match the runtime's distance policy for an edge with a datatype
+          // endpoint, even when that requested distance exceeds class distance.
+          distance:
+            nodes[next].kind === "datatype-node" ||
+            nodes[parent.index].kind === "datatype-node"
+              ? datatypeDistance
+              : classDistance,
+          children: [],
+        };
         parent.children.push(child);
         pending.push(child);
       }

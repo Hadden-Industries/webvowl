@@ -325,10 +325,12 @@ export function createEntityDetailsPresenter({
             : entry.key === ontologyElementReferenceKey(relatedReference),
         );
       }
-      const focused = details.contains(doc.activeElement)
-        ? doc.activeElement.textContent
-        : null;
-      const scroll = details.parentElement?.scrollTop;
+      const detailsOpen = surface.isOpen();
+      const focused =
+        detailsOpen && details.contains(doc.activeElement)
+          ? doc.activeElement.textContent
+          : null;
+      const scroll = detailsOpen ? details.parentElement?.scrollTop : undefined;
       renderPreview();
       if (surface.isOpen()) {
         renderDetails();

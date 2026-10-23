@@ -10,6 +10,7 @@ import {
 export async function canonicalControllerHarness({
   resolver,
   nodeCountAdjustmentClock,
+  wrapRuntime = (runtime) => runtime,
 } = {}) {
   const double = createCanonicalRenderedGraphRuntimeDouble({
     svgSnapshot: {
@@ -61,7 +62,7 @@ export async function canonicalControllerHarness({
   let fontGate;
   const controller = createCanonicalWebVowlController({
     nodeCountAdjustmentClock,
-    renderedGraphRuntime: double.runtime,
+    renderedGraphRuntime: wrapRuntime(double.runtime),
     documentSession: session,
     sourceAcquisition: createCanonicalVowlSourceAcquisition({ resolver }),
     applicationUrl: "https://example.test/webvowl/",

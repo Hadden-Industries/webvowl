@@ -5,7 +5,12 @@ import { resolve } from "node:path";
 
 // Browser-wide tracing retains short-lived worker activity that a page-only
 // CPU profile misses. None of these controls run during a latency pass.
-export function createProductionTrace({ call, events, output }) {
+export function createProductionTrace({
+  call,
+  events,
+  output,
+  graphicsOnly = false,
+}) {
   let active = false;
   const traceBufferSizeInKb = 512 * 1024;
   let bufferObservation;
@@ -42,15 +47,24 @@ export function createProductionTrace({ call, events, output }) {
               // Long SVG revisions can exhaust Chrome's default 200 MB buffer.
               // This diagnostic-only allocation remains finite; data loss still fails.
               traceBufferSizeInKb,
-              enableSampling: true,
-              includedCategories: [
-                "devtools.timeline",
-                "v8.execute",
-                "blink.user_timing",
-                "disabled-by-default-devtools.timeline",
-                "disabled-by-default-devtools.timeline.stack",
-                "disabled-by-default-v8.cpu_profiler",
-              ],
+              enableSampling: !graphicsOnly,
+              includedCategories: graphicsOnly
+                ? [
+                    "devtools.timeline",
+                    "blink.user_timing",
+                    "cc",
+                    "gpu",
+                    "viz",
+                    "disabled-by-default-gpu.service",
+                  ]
+                : [
+                    "devtools.timeline",
+                    "v8.execute",
+                    "blink.user_timing",
+                    "disabled-by-default-devtools.timeline",
+                    "disabled-by-default-devtools.timeline.stack",
+                    "disabled-by-default-v8.cpu_profiler",
+                  ],
             },
           },
           null,
@@ -106,6 +120,7 @@ export function createProductionTrace({ call, events, output }) {
           sha256: hash.digest("hex"),
           dataLossOccurred: result.dataLossOccurred,
           traceBufferSizeInKb,
+          graphicsOnly,
           bufferObservation,
         };
       } finally {

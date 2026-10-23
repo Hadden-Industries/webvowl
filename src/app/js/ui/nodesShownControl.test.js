@@ -26,6 +26,7 @@ function setup() {
       "fifty",
       "markers",
       "total-value",
+      "total-description",
       "status",
     ].map((name) => [name, new Element()]),
   );
@@ -142,7 +143,14 @@ test.each(["preparing", "failed"])(
         { shownNodeCount: 50, eligibleNodeCount: 109, orderingStatus },
         { mode: "auto" },
       );
-      for (const name of ["range", "exact", "minus", "plus", "fifty"]) {
+      for (const name of [
+        "range",
+        "exact",
+        "minus",
+        "plus",
+        "fifty",
+        "total-value",
+      ]) {
         expect(controls[name].disabled).toBe(true);
       }
       expect(controls.status.hidden).toBe(false);
@@ -150,6 +158,7 @@ test.each(["preparing", "failed"])(
         orderingStatus === "preparing" ? /Preparing/ : /Reload/,
       );
       controls.plus.dispatchEvent(new Event("click"));
+      controls["total-value"].dispatchEvent(new Event("click"));
       await flush();
       expect(onChange).not.toHaveBeenCalled();
       control.renderNodeCountStatus(
@@ -358,6 +367,44 @@ test("typing the current maximum retains an exact target instead of All", async 
     requestedCount: 109,
   });
   control.dispose();
+});
+
+test("the total shortcut selects All immediately and replaces a pending count", async () => {
+  const h = setup();
+  try {
+    expect(h.controls["total-value"].disabled).toBe(false);
+    expect(h.controls["total-value"].attributes.get("aria-label")).toBe(
+      "Show all 109 available nodes",
+    );
+    expect(h.controls["total-description"].textContent).toBe(
+      "Available nodes: 109.",
+    );
+    h.controls.range.value = "73";
+    h.controls.range.dispatchEvent(new Event("input"));
+    await flush();
+    h.controls["total-value"].dispatchEvent(new Event("click"));
+    await flush();
+    expect(h.onChange.mock.calls).toEqual([[{ mode: "all" }]]);
+    expect(h.controls.exact.value).toBe("109");
+    expect(h.controls["total-value"].disabled).toBe(true);
+    h.controls["total-value"].dispatchEvent(new Event("click"));
+    await h.advance(2000);
+    expect(h.onChange).toHaveBeenCalledTimes(1);
+    h.render(50, 953);
+    expect(h.controls["total-value"].disabled).toBe(false);
+    expect(h.controls["total-value"].attributes.get("aria-label")).toBe(
+      "Show all 953 available nodes",
+    );
+    h.render(0, 0);
+    expect(h.controls["total-value"].disabled).toBe(true);
+    h.controls["total-value"].dispatchEvent(new Event("click"));
+    h.control.renderNodeCountStatus(null);
+    expect(h.controls["total-value"].disabled).toBe(true);
+    await flush();
+    expect(h.onChange).toHaveBeenCalledTimes(1);
+  } finally {
+    h.control.dispose();
+  }
 });
 
 test("the selectable 50 marker follows eligibility and restores an unfinished draft", async () => {

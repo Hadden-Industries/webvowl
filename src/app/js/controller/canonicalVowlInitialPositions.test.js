@@ -120,3 +120,68 @@ test("rendererless placement uses the bounded spacing fallback", () => {
   const b = positions.get("b");
   expect(Math.hypot(a.x - b.x, a.y - b.y)).toBeGreaterThan(100);
 });
+
+test("a broad connected cluster leaves room for ordinary class glyphs", () => {
+  const occurrences = [node("hub")];
+  for (let i = 0; i < 64; i++) {
+    occurrences.push(node(`leaf${i}`), edge("hub", `leaf${i}`));
+  }
+  const points = [
+    ...createCanonicalVowlInitialPositions(occurrences, center).values(),
+  ];
+  let minimumDistance = Infinity;
+  for (let i = 0; i < points.length; i++) {
+    for (let j = i + 1; j < points.length; j++) {
+      minimumDistance = Math.min(
+        minimumDistance,
+        Math.hypot(points[i].x - points[j].x, points[i].y - points[j].y),
+      );
+    }
+  }
+  // Native class glyphs have a 50-unit radius. A breadth-only tree must not
+  // squeeze arbitrarily many of them onto a fixed 200-unit ring.
+  expect(minimumDistance).toBeGreaterThanOrEqual(100);
+});
+
+test("scaling both distance settings scales a crowded mixed cluster consistently", () => {
+  const occurrences = [node("hub")];
+  for (let i = 0; i < 64; i++) {
+    occurrences.push(
+      { id: `leaf${i}`, kind: i % 2 ? "datatype-node" : "class-node" },
+      edge("hub", `leaf${i}`),
+    );
+  }
+  const ordinary = createCanonicalVowlInitialPositions(occurrences, center);
+  const expanded = createCanonicalVowlInitialPositions(occurrences, center, {
+    classDistancePx: 400,
+    datatypeDistancePx: 240,
+  });
+  for (const [id, point] of ordinary) {
+    expect(expanded.get(id).x - center.x).toBeCloseTo(2 * (point.x - center.x));
+    expect(expanded.get(id).y - center.y).toBeCloseTo(2 * (point.y - center.y));
+  }
+});
+
+test.each([
+  ["class-node", "class-node", {}, 200],
+  ["datatype-node", "datatype-node", {}, 120],
+  ["class-node", "datatype-node", {}, 120],
+  ["datatype-node", "class-node", {}, 120],
+  ["class-node", "class-node", { datatypeDistancePx: 300 }, 200],
+  ["class-node", "datatype-node", { datatypeDistancePx: 300 }, 300],
+  ["datatype-node", "datatype-node", { classDistancePx: 400 }, 120],
+])(
+  "%s to %s uses the matching force distance (%j)",
+  (a, b, distances, expected) => {
+    const points = [
+      ...createCanonicalVowlInitialPositions(
+        [{ id: "a", kind: a }, { id: "b", kind: b }, edge("a", "b")],
+        center,
+        distances,
+      ).values(),
+    ];
+    expect(
+      Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y),
+    ).toBeCloseTo(expected);
+  },
+);

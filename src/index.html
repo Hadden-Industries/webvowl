@@ -676,7 +676,7 @@
                               max="0"
                               value="0"
                               step="1"
-                              aria-describedby="nodesShown-total"
+                              aria-describedby="nodesShown-total-description"
                             />
                           </div>
                           <button
@@ -702,7 +702,7 @@
                         max="0"
                         step="1"
                         value="0"
-                        aria-describedby="nodesShown-total"
+                        aria-describedby="nodesShown-total-description"
                       />
                     </div>
                     <div id="nodesShown-markers" class="nodes-shown-markers">
@@ -716,8 +716,20 @@
                         50
                       </button>
                       <span id="nodesShown-total" class="nodes-shown-total">
-                        <span class="visually-hidden">Available nodes: </span>
-                        <span id="nodesShown-total-value">0</span>
+                        <span
+                          id="nodesShown-total-description"
+                          class="visually-hidden"
+                          >Available nodes: 0.</span
+                        >
+                        <button
+                          id="nodesShown-total-value"
+                          class="graph-slider-button"
+                          type="button"
+                          aria-label="Show all available nodes"
+                          disabled
+                        >
+                          0
+                        </button>
                       </span>
                     </div>
                   </fieldset>

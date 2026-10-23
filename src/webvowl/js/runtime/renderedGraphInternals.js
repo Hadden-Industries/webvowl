@@ -2259,12 +2259,13 @@ function createGraph(
       .call(dragBehaviour);
     nodeElements.each(function (node) {
       if (reuse && !canonicalElements.dirty.has(node)) {
+        // New drawings bind during draw(); retained DOM needs the new epoch.
+        node.addMouseListeners();
         return;
       }
       d3.select(this).selectAll("*").remove();
       node.draw(d3.select(this));
     });
-    nodeElements.each((node) => node.addMouseListeners());
 
     if (labelNodes === undefined) {
       labelNodes = [];
@@ -2285,6 +2286,8 @@ function createGraph(
         this.childNodes.length &&
         !canonicalElements.dirty.has(label.property())
       ) {
+        label.property().addMouseListeners();
+        label.inverse()?.addMouseListeners();
         return;
       }
       d3.select(this).selectAll("*").remove();
@@ -2295,7 +2298,6 @@ function createGraph(
         d3.select(this).remove();
       }
     });
-    labelGroupElements.each((label) => label.property().addMouseListeners());
     // Place subclass label groups on the bottom of all labels
     labelGroupElements.each(function (label) {
       // the label might be hidden e.g. in compact notation

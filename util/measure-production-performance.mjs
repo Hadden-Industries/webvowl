@@ -56,7 +56,7 @@ const [chromePath, buildPath, manifestPath, outputPath, ...options] =
   process.argv.slice(2);
 assert(
   chromePath && buildPath && manifestPath && outputPath,
-  "Usage: node util/measure-production-performance.mjs <chrome> <production-directory> <manifest> <new-evidence-directory> [--mode=latency|counters|trace|cues|lifetime|layout|reuse|functional|navigation|initial-layout] [--fixture=W1|W2|W3|W4-connected|W4-disconnected|W5-auto|W5-all|W6-auto|W6-all] [--diagnostic] [--private-fixture=path] [--allow-busy-host --admission-reference=path] [--headless-diagnostics --diagnostic-admission-reference=path] [--cohort-start=1 --cohort-end=40] [--renderer-reuse-reference] [--initial-layout-only | --ui-selection-only [--ui-preview-diagnostics] | --ui-sources-only | --count-adjustment-only [--count-initial-layout=settled|fresh-paused|fresh-running] [--count-backdrop-control]]",
+  "Usage: node util/measure-production-performance.mjs <chrome> <production-directory> <manifest> <new-evidence-directory> [--mode=latency|counters|trace|frames|cues|lifetime|layout|reuse|functional|navigation|initial-layout] [--fixture=W1|W2|W3|W4-connected|W4-disconnected|W5-auto|W5-all|W6-auto|W6-all] [--diagnostic] [--graphics-trace] [--private-fixture=path] [--allow-busy-host --admission-reference=path] [--headless-diagnostics --diagnostic-admission-reference=path] [--cohort-start=1 --cohort-end=40] [--renderer-reuse-reference] [--initial-layout-only | --ui-selection-only [--ui-preview-diagnostics] | --ui-sources-only | --count-adjustment-only [--count-initial-layout=settled|fresh-paused|fresh-running] [--count-backdrop-control | --count-all-blur-control]]",
 );
 const option = (name, fallback) =>
   options
@@ -85,7 +85,9 @@ assert(
   !countAdjustmentOnly ||
     (!uiSelectionOnly &&
       !uiSourcesOnly &&
-      ["latency", "trace", "functional", "initial-layout"].includes(mode)),
+      ["latency", "trace", "frames", "functional", "initial-layout"].includes(
+        mode,
+      )),
   "Count adjustment requires its own latency, trace or functional pass",
 );
 assert(
@@ -113,6 +115,7 @@ assert(
     "latency",
     "counters",
     "trace",
+    "frames",
     "cues",
     "lifetime",
     "layout",
@@ -149,11 +152,18 @@ assert(
   "Cue, lifetime, reuse and initial-layout diagnostic modes require headless observation",
 );
 const requireForeground = !functional && !headlessDiagnostics;
-const countBackdropControl = options.includes("--count-backdrop-control");
+const countBackdropControl = options.includes("--count-all-blur-control")
+  ? "all"
+  : options.includes("--count-backdrop-control");
+const graphicsTrace = options.includes("--graphics-trace");
+assert(
+  !graphicsTrace || mode === "trace",
+  "--graphics-trace requires --mode=trace",
+);
 assert(
   !countBackdropControl ||
-    (countAdjustmentOnly && headlessDiagnostics && mode === "trace"),
-  "The backdrop control is a headless count trace, never production latency",
+    (countAdjustmentOnly && ["trace", "frames"].includes(mode)),
+  "The backdrop control requires a diagnostic count pass, never production latency",
 );
 const allowBusyHost = options.includes("--allow-busy-host");
 const admissionReference = option("admission-reference", undefined);
@@ -161,7 +171,11 @@ assert(
   !allowBusyHost || (admissionReference && existsSync(admissionReference)),
   "Busy-host measurement requires its explicit owner decision reference",
 );
-const diagnostic = headlessDiagnostics || options.includes("--diagnostic");
+const diagnostic =
+  headlessDiagnostics ||
+  mode === "frames" ||
+  countBackdropControl ||
+  options.includes("--diagnostic");
 const cohortStart = Number(option("cohort-start", "1"));
 const cohortEnd = Number(option("cohort-end", "40"));
 const requestedCohorts = productionCohortSchedule(cohortStart, cohortEnd);
@@ -241,9 +255,15 @@ const report = {
   diagnostic,
   startedAt: new Date().toISOString(),
   fixture: fixtureName,
-  instrumentation: ["counters", "trace", "cues", "lifetime", "layout"].includes(
-    mode,
-  ),
+  instrumentation: [
+    "counters",
+    "trace",
+    "frames",
+    "cues",
+    "lifetime",
+    "layout",
+  ].includes(mode),
+  ...(graphicsTrace ? { traceScope: "graphics without CPU sampling" } : {}),
   samples: [],
   cohortRange: { start: cohortStart, end: cohortEnd },
   completedCohorts: [],
@@ -486,7 +506,15 @@ $powerAvailable = [WebVowlBenchmarkWindow]::GetSystemPowerStatus([ref]$power)
 
 // This function is serialized into the page; it has no module captures.
 function installMeasurement(
-  { instrumented, traced, requireForeground, fixture, all, documentIri },
+  {
+    instrumented,
+    traced,
+    observeFrames,
+    requireForeground,
+    fixture,
+    all,
+    documentIri,
+  },
   twoFrames,
 ) {
   const {
@@ -688,13 +716,19 @@ function installMeasurement(
     );
   }
   const loaf = [];
+  // CDP's return-by-value does not serialize nested platform objects. Preserve
+  // script attribution explicitly instead of receiving an array of empty objects.
+  const serializeFrame = (entry) => ({
+    ...entry.toJSON(),
+    scripts: entry.scripts.map((script) => script.toJSON()),
+  });
   let observer;
   if (
-    (instrumented || traced) &&
+    (instrumented || traced || observeFrames) &&
     PerformanceObserver.supportedEntryTypes.includes("long-animation-frame")
   ) {
     observer = new PerformanceObserver((list) => {
-      for (const entry of list.getEntries()) loaf.push(entry.toJSON());
+      for (const entry of list.getEntries()) loaf.push(serializeFrame(entry));
     });
     observer.observe({ type: "long-animation-frame", buffered: false });
   }
@@ -752,8 +786,7 @@ function installMeasurement(
           !document.hasFocus())
       )
         throw new Error("Foreground changed during measured operation");
-      if (observer)
-        loaf.push(...observer.takeRecords().map((entry) => entry.toJSON()));
+      if (observer) loaf.push(...observer.takeRecords().map(serializeFrame));
       return {
         start,
         completed,
@@ -797,9 +830,7 @@ function installMeasurement(
             traceMark("paint-opportunity");
             counting = false;
             if (observer)
-              loaf.push(
-                ...observer.takeRecords().map((entry) => entry.toJSON()),
-              );
+              loaf.push(...observer.takeRecords().map(serializeFrame));
             done({
               start,
               completed,
@@ -999,7 +1030,7 @@ function installMeasurement(
           traceMark("paint-opportunity");
           counting = false;
           if (observer)
-            loaf.push(...observer.takeRecords().map((item) => item.toJSON()));
+            loaf.push(...observer.takeRecords().map(serializeFrame));
           done({
             start,
             completed,
@@ -1385,7 +1416,7 @@ try {
       return state?.status === "ready";
     }, "default ontology ready");
     await evaluate(
-      `(${installMeasurement.toString()})(${JSON.stringify({ instrumented: mode === "counters", traced: ["trace", "layout"].includes(mode), requireForeground, fixture: fixtureName, all: allNodes, documentIri: report.workload.documentIri })}, ${observeTwoAnimationFrames.toString()})`,
+      `(${installMeasurement.toString()})(${JSON.stringify({ instrumented: mode === "counters", traced: ["trace", "layout"].includes(mode), observeFrames: mode === "frames", requireForeground, fixture: fixtureName, all: allNodes, documentIri: report.workload.documentIri })}, ${observeTwoAnimationFrames.toString()})`,
     );
     report.page = await evaluate("__webvowlMeasurement.prepare()");
     if (mode !== "counters")
@@ -1397,15 +1428,22 @@ try {
     if (!functional && !nativeTextControl) await delay(30000);
     writeJson("admission.json", report);
     const trace = ["trace", "layout"].includes(mode)
-      ? createProductionTrace({ call, events, output })
+      ? createProductionTrace({
+          call,
+          events,
+          output,
+          graphicsOnly: graphicsTrace,
+        })
       : undefined;
     async function measure(name, expression, cohort, warmup = false) {
       report.activeOperation = { name, cohort, warmup };
       if (!functional) await idle(`${cohort}:${name}`);
       if (trace) {
         await trace.start();
-        await call("Profiler.enable");
-        await call("Profiler.start");
+        if (!graphicsTrace) {
+          await call("Profiler.enable");
+          await call("Profiler.start");
+        }
       }
       const row =
         typeof expression === "function"
@@ -1417,11 +1455,13 @@ try {
           "Foreground changed during measured interaction",
         );
       if (trace) {
-        const { profile: cpuProfile } = await call("Profiler.stop");
-        const profileName = `cpu-${report.samples.length}-${name}.json`;
-        writeJson(profileName, cpuProfile);
-        row.cpuProfile = profileName;
-        await call("Profiler.disable");
+        if (!graphicsTrace) {
+          const { profile: cpuProfile } = await call("Profiler.stop");
+          const profileName = `cpu-${report.samples.length}-${name}.json`;
+          writeJson(profileName, cpuProfile);
+          row.cpuProfile = profileName;
+          await call("Profiler.disable");
+        }
         row.trace = await trace.stop(
           `trace-${report.samples.length}-${name}.json.gz`,
         );

@@ -58,20 +58,108 @@ describe("three-point property curves", () => {
     expect(Math.hypot(tangents.end.x, tangents.end.y)).toBeGreaterThan(1e-6);
   });
 
-  test("avoid numerically degenerate tangents for uneven point spacing", () => {
+  test("uses a straight segment when unequal spacing still traces the chord", () => {
     const path = math.calculateCurvePath([
       { x: 0, y: 0 },
       { x: 10, y: 0 },
       { x: 100, y: 0 },
     ]);
-    const tangents = quadraticEndpointTangents(path);
-
-    expect(Math.hypot(tangents.start.x, tangents.start.y)).toBeGreaterThan(
-      1e-6,
-    );
-    expect(Math.hypot(tangents.end.x, tangents.end.y)).toBeGreaterThan(1e-6);
+    expect(path).toBe("M0,0 L100,0");
     expect(path).not.toMatch(/e[+-]?\d/i);
   });
+
+  test.each([
+    [
+      { x: 0, y: 0 },
+      { x: 50, y: 0 },
+      { x: 100, y: 0 },
+    ],
+    [
+      { x: 0, y: 0 },
+      { x: 0, y: 50 },
+      { x: 0, y: 100 },
+    ],
+    [
+      { x: 100, y: -100 },
+      { x: 0, y: 0 },
+      { x: -100, y: 100 },
+    ],
+    [
+      { x: -789.688354492188, y: 4503.849609375 },
+      {
+        x: (-789.688354492188 - 951.321472167969) / 2,
+        y: (4503.849609375 - 3617.6953125) / 2,
+      },
+      { x: -951.321472167969, y: -3617.6953125 },
+    ],
+  ])(
+    "keeps the endpoints and direction of a straight path",
+    (start, middle, end) => {
+      const path = math.calculateCurvePath([start, middle, end]);
+      expect(path).toMatch(/^M[^L]+ L[^Q]+$/);
+      expect(math.tryCalculateCurvePath([start, middle, end])).toBe(path);
+      const coordinates = path.match(/-?\d+(?:\.\d+)?/g).map(Number);
+      expect(coordinates).toEqual([start.x, start.y, end.x, end.y]);
+    },
+  );
+
+  test.each([
+    [
+      [
+        { x: 0, y: 0 },
+        { x: 50, y: 0.001 },
+        { x: 100, y: 0 },
+      ],
+      0.7,
+    ],
+    [
+      [
+        { x: 0, y: 0 },
+        { x: -50, y: 0 },
+        { x: 100, y: 0 },
+      ],
+      0.7,
+    ],
+    [
+      [
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+        { x: 100, y: 0 },
+      ],
+      0.7,
+    ],
+    [
+      [
+        { x: 0, y: 0 },
+        { x: 99, y: 0 },
+        { x: 100, y: 0 },
+      ],
+      0.7,
+    ],
+    [
+      [
+        { x: 0, y: 0 },
+        { x: 50, y: 0 },
+        { x: 0, y: 0 },
+      ],
+      0.7,
+    ],
+    [
+      [
+        { x: 0, y: 0 },
+        { x: 50, y: 0 },
+        { x: 100, y: 0 },
+      ],
+      -1,
+    ],
+  ])(
+    "preserves bends, reversals, coincident endpoints and loop tension",
+    (points, tension) => {
+      expect(math.calculateCurvePath(points, tension)).toMatch(
+        /^M[^Q]+ Q[^Q]+ Q/,
+      );
+    },
+  );
 
   test("builds finite curves through the non-throwing rendering API", () => {
     expect(

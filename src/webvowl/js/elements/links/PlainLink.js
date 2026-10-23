@@ -90,11 +90,20 @@ PlainLink.prototype.draw = function (linkGroup) {
   }
 
   const pathElement = linkGroup.append("path");
-  pathElement
-    .classed("link-path", true)
-    .classed(this.domain().cssClassOfNode(), true)
-    .classed(this.range().cssClassOfNode(), true)
-    .classed(property.linkType(), true);
+  // Initialize the new path once, preserving distinct endpoint and stroke classes.
+  pathElement.attr(
+    "class",
+    [
+      ...new Set(
+        [
+          "link-path",
+          this.domain().cssClassOfNode(),
+          this.range().cssClassOfNode(),
+          property.linkType(),
+        ].flatMap((value) => String(value).trim().split(/\s+/)),
+      ),
+    ].join(" "),
+  );
   this.pathObj(pathElement);
 };
 

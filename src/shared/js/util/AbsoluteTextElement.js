@@ -57,11 +57,7 @@ AbsoluteTextElement.prototype.addTextline = function (
 ) {
   const maxWidth = this._textBlock().datum().textWidth(yShift);
 
-  const tspan = this._textBlock()
-    .append("tspan")
-    .classed(this.CSS_CLASSES.default, true)
-    .classed(style, true)
-    .attr("x", 0);
+  const tspan = this._appendTextSpan(style);
   truncateTextLine(
     tspan.node(),
     { text, maxWidth, textStyle: style },

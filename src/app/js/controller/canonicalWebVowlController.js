@@ -100,6 +100,7 @@ export function createCanonicalWebVowlController({
   let viewInteraction = 0;
   let ordinaryPresentation;
   let countLayoutHold;
+  let replacementLayoutHold;
   const lifecycle = createControllerOperationLifecycle({
     readIdentity: () => session.identity(),
     retirePresentation: () => clearNeighborhood(),
@@ -133,11 +134,49 @@ export function createCanonicalWebVowlController({
     });
   }
   function layoutState(status) {
+    const hold = countLayoutHold ?? replacementLayoutHold;
     return {
       status,
-      ...(countLayoutHold
-        ? { requestedIsPaused: countLayoutHold.requestedIsPaused }
-        : {}),
+      ...(hold ? { requestedIsPaused: hold.requestedIsPaused } : {}),
+    };
+  }
+  // Keep the accepted drawing available for recovery without spending frames
+  // relaxing it while its replacement is acquired and prepared. Overlapping
+  // loads transfer this hold; only its latest owner may restore the old layout.
+  function holdReplacementLayout() {
+    if (!retainedState.loadGeneration) {
+      return () => {};
+    }
+    const identity = session.identity();
+    const snapshot = runtime.readGraphLayoutSnapshot();
+    if (!replacementLayoutHold && (snapshot.isPaused || snapshot.hasEnded)) {
+      return () => {};
+    }
+    const owner = { requestedIsPaused: false };
+    replacementLayoutHold = owner;
+    layoutIntent += 1;
+    if (!snapshot.isPaused) {
+      runtime.setGraphLayoutPaused({
+        loadGeneration: identity.loadGeneration,
+        isPaused: true,
+      });
+    }
+    return () => {
+      if (replacementLayoutHold !== owner) {
+        return;
+      }
+      replacementLayoutHold = undefined;
+      if (
+        !disposed &&
+        session.identity().loadGeneration === identity.loadGeneration
+      ) {
+        // A failed/cancelled load keeps its old document and running choice.
+        // Successful installation owns its own initial layout request.
+        runtime.setGraphLayoutPaused({
+          loadGeneration: identity.loadGeneration,
+          isPaused: owner.requestedIsPaused,
+        });
+      }
     };
   }
   function holdCountAdjustmentLayout() {
@@ -828,13 +867,18 @@ export function createCanonicalWebVowlController({
       ticket.accept();
       const combined = ticket.signal;
       const previous = retainedState;
-      publish({
-        status: "loading",
-        selection: [],
-        selectedDocumentRecord: null,
-        error: null,
-      });
+      let releaseLayout = () => {};
       try {
+        combined.throwIfAborted();
+        releaseLayout = holdReplacementLayout();
+        ticket.assertCurrent();
+        publish({
+          status: "loading",
+          ...(replacementLayoutHold ? { layout: layoutState("paused") } : {}),
+          selection: [],
+          selectedDocumentRecord: null,
+          error: null,
+        });
         combined.throwIfAborted();
         let request;
         if (retained.kind === "ontology-document-iri") {
@@ -940,6 +984,7 @@ export function createCanonicalWebVowlController({
           }
         }
         ticket.assertCurrent();
+        releaseLayout();
         ticket.release();
         selectedEditorOccurrence = undefined;
         filters = accepted.appliedFilters ?? {
@@ -986,6 +1031,7 @@ export function createCanonicalWebVowlController({
         return state;
       } catch (cause) {
         if (ticket.isCurrent()) {
+          releaseLayout();
           ticket.release();
           const cancelled = combined.aborted || cause?.name === "AbortError";
           publish({
@@ -1015,6 +1061,7 @@ export function createCanonicalWebVowlController({
         }
         throw cause;
       } finally {
+        releaseLayout();
         ticket.release();
       }
     },
@@ -1628,6 +1675,7 @@ export function createCanonicalWebVowlController({
       }
       countAdjustment.dispose();
       disposed = true;
+      replacementLayoutHold = undefined;
       clearNeighborhood();
       lifecycle.dispose();
       unsubscribe();

@@ -1,5 +1,12 @@
+const noOmittedFields = new Set();
+
+function comparedKeys(value, omitted) {
+  const keys = Object.keys(value);
+  return omitted.size ? keys.filter((key) => !omitted.has(key)) : keys;
+}
+
 /** Compare admitted data, never a hash or an IRI used as occurrence identity. */
-function equalData(left, right, omitted = new Set()) {
+function equalData(left, right, omitted = noOmittedFields) {
   if (Object.is(left, right)) {
     return true;
   }
@@ -14,8 +21,8 @@ function equalData(left, right, omitted = new Set()) {
   if (Array.isArray(left) !== Array.isArray(right)) {
     return false;
   }
-  const keys = Object.keys(left).filter((key) => !omitted.has(key));
-  const otherKeys = Object.keys(right).filter((key) => !omitted.has(key));
+  const keys = comparedKeys(left, omitted);
+  const otherKeys = comparedKeys(right, omitted);
   return (
     keys.length === otherKeys.length &&
     keys.every(

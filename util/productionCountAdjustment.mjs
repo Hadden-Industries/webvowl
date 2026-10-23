@@ -105,6 +105,112 @@ async function observeActiveLayout() {
   }
 }
 
+async function verifyCountShortcuts({ call, evaluate, report }) {
+  const controller = "__webvowlMeasuredApplication.getWebVowlController()";
+  const samples = (report.countShortcuts = []);
+  for (const input of ["pointer", "Enter", "Space"]) {
+    await evaluate(
+      `__webvowlMeasurement.view({nodesShown:{mode:'exact',requestedCount:Math.min(49,${controller}.getState().nodeCountStatus.eligibleNodeCount-1)}})`,
+    );
+    await evaluate("__webvowlMeasurement.prepareSlider()");
+    const before = await evaluate(`(() => {
+      const button = document.querySelector('#nodesShown-total-value');
+      const fifty = document.querySelector('#nodesShown-fifty');
+      const rect = button.getBoundingClientRect();
+      (fifty.hidden || fifty.disabled ? document.querySelector('#nodesShown-exact') : fifty).focus();
+      return {
+        tag:button.tagName, disabled:button.disabled,
+        label:button.getAttribute('aria-label'), text:button.textContent,
+        width:rect.width, height:rect.height,
+        x:rect.x+rect.width/2, y:rect.y+rect.height/2,
+        total:${controller}.getState().nodeCountStatus.eligibleNodeCount
+      };
+    })()`);
+    assert.equal(before.tag, "BUTTON");
+    assert.equal(before.disabled, false);
+    assert.equal(before.label, `Show all ${before.total} available nodes`);
+    assert.equal(Number(before.text), before.total);
+    assert(before.width >= 24 && before.height >= 24);
+    for (const type of ["keyDown", "keyUp"])
+      await call("Input.dispatchKeyEvent", {
+        type,
+        key: "Tab",
+        code: "Tab",
+        windowsVirtualKeyCode: 9,
+      });
+    assert.equal(
+      await evaluate("document.activeElement.id"),
+      "nodesShown-total-value",
+    );
+    const { nodes } = await call("Accessibility.getFullAXTree");
+    assert(
+      nodes.some(
+        (node) =>
+          node.role?.value === "button" && node.name?.value === before.label,
+      ),
+    );
+    const sample = {
+      input,
+      before,
+      rangeDescription: nodes.find(
+        (node) =>
+          node.role?.value === "slider" && node.name?.value === "Nodes shown",
+      )?.description?.value,
+    };
+    samples.push(sample);
+    assert.equal(sample.rangeDescription, `Available nodes: ${before.total}.`);
+    if (input === "pointer") {
+      const point = await evaluate(`(() => {
+        const button = document.querySelector('#nodesShown-total-value');
+        const rect = button.getBoundingClientRect();
+        const x = rect.x+rect.width/2, y = rect.y+rect.height/2;
+        return {x,y,target:document.elementFromPoint(x,y)?.id};
+      })()`);
+      assert.equal(point.target, "nodesShown-total-value");
+      for (const type of ["mousePressed", "mouseReleased"])
+        await call("Input.dispatchMouseEvent", {
+          type,
+          x: point.x,
+          y: point.y,
+          button: "left",
+          clickCount: 1,
+        });
+    } else {
+      for (const type of ["keyDown", "keyUp"])
+        await call("Input.dispatchKeyEvent", {
+          type,
+          key: input === "Space" ? " " : input,
+          code: input,
+          windowsVirtualKeyCode: input === "Space" ? 32 : 13,
+          ...(type === "keyDown"
+            ? {
+                text: input === "Space" ? " " : "\r",
+                unmodifiedText: input === "Space" ? " " : "\r",
+              }
+            : {}),
+        });
+    }
+    const after = await evaluate(`(async () => {
+      const start = performance.now();
+      while (${controller}.getState().view.nodesShown.mode !== 'all') {
+        if (performance.now()-start > 10000) throw new Error('Total shortcut did not select All: '+JSON.stringify({input:${JSON.stringify(input)}, state:${controller}.getState()}));
+        await new Promise(resolve => setTimeout(resolve,20));
+      }
+      const state = ${controller}.getState();
+      return {intent:state.view.nodesShown, count:state.nodeCountStatus,
+        pending:state.nodeCountAdjustment,
+        disabled:document.querySelector('#nodesShown-total-value').disabled};
+    })()`);
+    assert.deepEqual(after.intent, { mode: "all" });
+    assert.equal(after.count.shownNodeCount, before.total);
+    assert.equal(after.pending, null);
+    assert.equal(after.disabled, true);
+    sample.after = after;
+    await evaluate("__webvowlMeasurement.closeSlider()");
+  }
+  return samples;
+}
+
 /** A bounded B3/B8 observation, never a complete S0 or baseline comparison. */
 export async function measureProductionCountAdjustment({
   call,
@@ -129,9 +235,14 @@ export async function measureProductionCountAdjustment({
   assert(total > 4);
   report.countAdjustment = { total, samples: [] };
   if (backdropControl) {
+    const selector =
+      backdropControl === "all"
+        ? ".modern-popover, .modern-popover::backdrop"
+        : ".modern-popover::backdrop";
+    const css = `${selector} { backdrop-filter: none !important; }`;
     report.countAdjustment.backdropControl = await evaluate(`(() => {
       const style = document.createElement('style');
-      style.textContent = '.modern-popover::backdrop { backdrop-filter: none !important; }';
+      style.textContent = ${JSON.stringify(css)};
       document.head.append(style);
       return {modifiedProductionPresentation:true, css:style.textContent};
     })()`);
@@ -268,4 +379,7 @@ export async function measureProductionCountAdjustment({
   }
   delete report.activeCohort;
   delete report.activeOperation;
+  if (functional) {
+    await verifyCountShortcuts({ call, evaluate, report });
+  }
 }

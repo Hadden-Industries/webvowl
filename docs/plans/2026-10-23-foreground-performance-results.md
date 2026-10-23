@@ -144,3 +144,6 @@ Its stylelint-order 8.1.2 declaration, locked artifact and PostCSS constraint we
 The markdown-quality workflow and packages are unchanged.
 Application source, dependencies and production output are unchanged by this evidence/CodeQL checkpoint, so existing full-suite and production evidence remains applicable to the application.
 Scoped document/workflow checks and the new remote CodeQL run qualify this checkpoint; no application suite or browser census is repeated solely for bookkeeping.
+
+The [24 October bounded follow-up](2026-10-24-active-graph-performance-follow-up.md) records the uncommitted replacement-layout hold, closed-Details layout fix, clickable total-count shortcut and graphics attribution.
+It preserves this report's original cohorts and the remaining acceptance limits.

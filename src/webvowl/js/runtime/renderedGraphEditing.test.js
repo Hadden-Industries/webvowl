@@ -67,7 +67,7 @@ function mountGraph(canonicalDrawing) {
     element.querySelectorAll = (selector) => descendants(element, selector);
     element.querySelector = (selector) =>
       element.querySelectorAll(selector)[0] ?? null;
-    element.addEventListener = () => {};
+    element.addEventListener = jest.fn();
     element.removeEventListener = () => {};
     element.remove = () => element.parentNode?.removeChild(element);
     element.contains = (candidate) =>
@@ -592,6 +592,28 @@ test("adjacency-derived indications dirty their node and coherent links, while o
   }
 });
 
+test("drawing installs one hover binding per node, then refreshes retained nodes once", () => {
+  const drawing = reuseDrawing();
+  const h = mountCanonicalGraph(drawing);
+  try {
+    const bindings = (node) =>
+      node.addEventListener.mock.calls.filter(([type]) => type === "mouseover")
+        .length;
+    const first = h.document.querySelector("#a");
+    expect(bindings(first)).toBe(1);
+    h.graph.applyCanonicalDrawingRevision(withoutOccurrences(drawing, ["c"]), {
+      sameRevision: true,
+    });
+    expect(h.document.querySelector("#a")).toBe(first);
+    expect(bindings(first)).toBe(2);
+    h.graph.applyCanonicalDrawingRevision(drawing, { sameRevision: true });
+    expect(bindings(first)).toBe(3);
+    expect(bindings(h.document.querySelector("#c"))).toBe(1);
+  } finally {
+    h.dispose();
+  }
+});
+
 test("old hover, click and drag callbacks expire even when their node survives", () => {
   const h = mountCanonicalGraph(reuseDrawing());
   try {
@@ -618,6 +640,45 @@ test("old hover, click and drag callbacks expire even when their node survives",
     expect(node.mouseEntered()).toBe(true);
     d3.select(dom).on("mouseout").call(dom, {});
     expect(node.mouseEntered()).toBe(false);
+  } finally {
+    h.dispose();
+  }
+});
+
+test("retained inverse labels refresh hover callbacks for both directions", () => {
+  const drawing = reuseDrawing();
+  drawing.edges[0].kind = "inverse-edge";
+  drawing.edges[0].records.push("inverse-property");
+  drawing.labels.push({
+    ...drawing.labels[0],
+    occurrence: "reverse:ab",
+    direction: "reverse",
+    records: ["inverse-property"],
+    principal: {
+      ...drawing.labels[0].principal,
+      record: "inverse-property",
+      iri: "urn:inverse-property",
+      name: "inverse",
+    },
+    name: "inverse",
+  });
+  const h = mountCanonicalGraph(drawing);
+  try {
+    const inverse = h.graph
+      .getUnfilteredData()
+      .properties.find((property) => property.id() === "reverse:ab");
+    const label = inverse.labelElement();
+    const oldOver = label.on("mouseover");
+    h.graph.applyCanonicalDrawingRevision(withoutOccurrences(drawing, ["c"]), {
+      sameRevision: true,
+    });
+    expect(inverse.labelElement().node()).toBe(label.node());
+    oldOver.call(label.node(), {});
+    expect(inverse.mouseEntered()).toBe(false);
+    label.on("mouseover").call(label.node(), {});
+    expect(inverse.mouseEntered()).toBe(true);
+    label.on("mouseout").call(label.node(), {});
+    expect(inverse.mouseEntered()).toBe(false);
   } finally {
     h.dispose();
   }

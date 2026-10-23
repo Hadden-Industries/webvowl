@@ -5090,6 +5090,14 @@ a#locateSearchResult {
   background: currentcolor;
 }
 
+.nodes-shown-total .graph-slider-button {
+  width: auto;
+  min-width: var(--graph-control-size);
+  padding-inline: 4px;
+  border: 1px solid var(--graph-control-border);
+  border-radius: 4px;
+}
+
 .nodes-shown-markers:has(.nodes-shown-marker:not([hidden]))::before {
   top: 0;
   left: var(--nodes-shown-fifty-position, 0%);
