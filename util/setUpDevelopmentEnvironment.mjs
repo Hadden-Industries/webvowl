@@ -1,8 +1,9 @@
 import { spawnSync } from "node:child_process";
-import { lstatSync, readFileSync, statSync } from "node:fs";
+import { lstatSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { runtimeTarget } from "./runtimeTargets.mjs";
 
 const REPOSITORY_ROOT_PATH = resolve(
   dirname(fileURLToPath(import.meta.url)),
@@ -37,19 +38,13 @@ export function setUpDevelopmentEnvironment({
     }
   }
 
-  const selectedNodeVersion = readFileSync(
-    join(repositoryRoot, ".node-version"),
-    "utf8",
-  ).trim();
+  const selectedNodeVersion = runtimeTarget("node", repositoryRoot);
   if (process.versions.node !== selectedNodeVersion) {
     throw new Error(
       `Development setup requires Node.js ${selectedNodeVersion}; found ${process.versions.node}.`,
     );
   }
-  const selectedPythonVersion = readFileSync(
-    join(repositoryRoot, ".python-version"),
-    "utf8",
-  ).trim();
+  const selectedPythonVersion = runtimeTarget("python", repositoryRoot);
 
   function runRequiredCommand(
     description,
@@ -83,8 +78,8 @@ export function setUpDevelopmentEnvironment({
     return result.stdout?.trim() ?? "";
   }
 
-  // npm run enforces devEngines; packageManager names the reproducible reference,
-  // so requiring exact equality here would reject eligible newer npm versions.
+  // npm run enforces devEngines. Its minimum is also the reproducible CI
+  // reference; setup continues to accept eligible newer npm versions.
 
   const pythonVirtualEnvironmentPath = join(repositoryRoot, ".venv");
   const virtualEnvironmentPythonExecutablePath = join(
@@ -126,11 +121,6 @@ export function setUpDevelopmentEnvironment({
     .exec(pythonVersionOutput)
     ?.slice(1)
     .map(Number);
-  if (!/^\d+\.\d+\.\d+$/u.test(selectedPythonVersion)) {
-    throw new Error(
-      ".python-version must contain a stable major.minor.patch version.",
-    );
-  }
   const minimumPythonVersion = selectedPythonVersion.split(".").map(Number);
   const firstDifference = pythonVersion?.findIndex(
     (part, index) => part !== minimumPythonVersion[index],

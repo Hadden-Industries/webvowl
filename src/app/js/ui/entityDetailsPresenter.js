@@ -68,8 +68,8 @@ export function createEntityDetailsPresenter({
     if (preview.hidden && preview.contains(doc.activeElement)) {
       doc.getElementById("ontology-overview-open").focus();
     }
-    onPresentationChanged();
     if (preview.hidden) {
+      onPresentationChanged();
       return;
     }
     const role = model.find((entry) => entry.key === selectedRole) ?? model[0];
@@ -121,6 +121,7 @@ export function createEntityDetailsPresenter({
       );
       (replacement ?? detailsButton).focus();
     }
+    onPresentationChanged();
   }
   function navigate(reference) {
     if (!current()) {

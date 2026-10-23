@@ -1600,6 +1600,19 @@ main {
   background: #24323e;
 }
 
+button.accordion-trigger {
+  display: block;
+
+  inline-size: 100%;
+  min-block-size: 44px;
+  border: 0;
+
+  font: inherit;
+  font-weight: 600;
+  color: inherit;
+  text-align: start;
+}
+
 .accordion-trigger.accordion-trigger-active::before {
   content: "\25BC";
   padding-right: 4px;
@@ -3091,6 +3104,11 @@ main {
   min-block-size: 44px;
 }
 
+#m_select :is(.converter-form button, .empty-ontology-btn):not(:disabled) {
+  color: #fff;
+  background: #145da0;
+}
+
 .ontology-source-summary {
   font-size: 13px;
   line-height: 1.5;
@@ -3182,6 +3200,23 @@ main {
 }
 
 @media (forced-colors: active) {
+  .ontology-dialog,
+  .entity-preview {
+    color: CanvasText;
+    background: Canvas;
+  }
+
+  .ontology-dialog *,
+  .entity-preview * {
+    border-color: CanvasText !important;
+    color: CanvasText !important;
+  }
+
+  .ontology-dialog a,
+  .entity-preview a {
+    color: LinkText !important;
+  }
+
   .ontology-suggestion-active {
     border-color: Highlight;
   }
@@ -4481,7 +4516,7 @@ a#locateSearchResult {
   background: rgb(255 255 255 / 3%);
 }
 
-.popover-header h3 {
+.popover-header :is(h2, h3) {
   margin: 0;
   font-size: 15px;
   font-weight: 600;

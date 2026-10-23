@@ -153,6 +153,25 @@ test("hidden tabs cancel frames and resume from one fresh observation", () => {
   h.presenter.dispose();
 });
 
+test("new presentation content is placed in its current frame before paint", () => {
+  const h = setup();
+  h.emit(anchor(200));
+  h.flush();
+  h.measure.mockClear();
+  h.preview.style.setProperty.mockClear();
+  h.emit(anchor(1000));
+  h.preview.offsetHeight = 240;
+  expect(h.frames.size).toBe(1);
+  h.presenter.refresh({ immediate: true });
+  expect(h.frames.size).toBe(0);
+  expect(h.preview.style.setProperty).toHaveBeenCalledWith(
+    "--entity-preview-transform",
+    "translate(640px, 280px)",
+  );
+  expect(h.measure).toHaveBeenCalledTimes(2);
+  h.presenter.dispose();
+});
+
 test("a hidden preview cancels pending work and does not read geometry until shown", () => {
   const h = setup();
   h.emit(anchor(200));

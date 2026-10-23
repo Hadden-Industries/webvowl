@@ -216,9 +216,20 @@ try {
       assert(!(await page.locator("#ontology-overview-facts").isDisabled()));
       await page.locator("#ontology-overview-facts").click();
       assert.equal(await page.locator("dialog[open]").count(), 2);
+      await frame();
       await page.keyboard.press("Escape");
-      assert.equal(await page.locator("dialog[open]").count(), 1);
+      await page.waitForFunction(
+        () =>
+          globalThis.document.querySelectorAll("dialog[open]").length === 1 &&
+          globalThis.document.activeElement.id === "ontology-overview-facts",
+      );
       await page.keyboard.press("Escape");
+      await page.waitForFunction(
+        () =>
+          !globalThis.document.getElementById("ontology-overview-dialog")
+            .open &&
+          globalThis.document.activeElement.id === "ontology-overview-open",
+      );
       assert.equal(
         await page.evaluate(() => globalThis.document.activeElement.id),
         "ontology-overview-open",
@@ -270,6 +281,9 @@ try {
         .locator("#entity-details-dialog")
         .ariaSnapshot();
       await page.keyboard.press("Escape");
+      await page.waitForFunction(
+        () => globalThis.document.activeElement.id === "entity-preview-details",
+      );
       assert.equal(
         await page.evaluate(() => globalThis.document.activeElement.id),
         "entity-preview-details",
@@ -394,6 +408,53 @@ try {
         .evaluate((element) => element.click());
       assert.equal((await state()).editorMode.isEditorMode, false);
       return compact;
+    },
+  );
+
+  await check(
+    "held zoom publishes current selected-occurrence geometry while layout is paused",
+    async () => {
+      await selectPerson();
+      const evidence = await page.evaluate(async () => {
+        const c = globalThis.window.uiQualification.controller;
+        c.setGraphLayoutPaused({ isPaused: true });
+        const before = c.getSelectedVisualizationOccurrence();
+        const zoomBefore = c.getState().zoomScale;
+        const observations = [];
+        const unsubscribe = c.subscribeToSelectedVisualizationOccurrence(
+          (value) => observations.push(value),
+        );
+        try {
+          c.setContinuousZoom({
+            zoomDirection: zoomBefore < 2 ? "in" : "out",
+          });
+          for (let i = 0; i < 20; i++) {
+            await new Promise((done) => globalThis.requestAnimationFrame(done));
+          }
+        } finally {
+          c.setContinuousZoom({ zoomDirection: "none" });
+          unsubscribe();
+        }
+        return {
+          before,
+          after: c.getSelectedVisualizationOccurrence(),
+          zoomBefore,
+          zoomAfter: c.getState().zoomScale,
+          observations,
+        };
+      });
+      assert.notEqual(evidence.zoomAfter, evidence.zoomBefore);
+      assert.notEqual(evidence.after.widthPx, evidence.before.widthPx);
+      assert(
+        evidence.observations.length > 0,
+        "Real held zoom must publish selected-occurrence observations",
+      );
+      assert.deepEqual(evidence.observations.at(-1), evidence.after);
+      assert.equal(
+        evidence.after.reference.occurrenceId,
+        evidence.before.reference.occurrenceId,
+      );
+      return evidence;
     },
   );
 

@@ -400,11 +400,7 @@ function createGraph(
     // Every viewport change passes through here, whether a control asked for
     // it or the reader panned and zoomed on the visualization itself, so this
     // is the one place the fact is reported.
-    renderedGraphEventPort.publishViewportChange(
-      zoomFactor,
-      graphTranslation[0],
-      graphTranslation[1],
-    );
+    reportViewportChanged();
     return true;
   }
 

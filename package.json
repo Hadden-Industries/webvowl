@@ -106,11 +106,10 @@
   "browserslist": [
     "baseline widely available"
   ],
-  "packageManager": "npm@12.2.0",
   "devEngines": {
     "packageManager": {
       "name": "npm",
-      "version": ">=12.2.0",
+      "version": ">=12.2.1",
       "onFail": "error"
     }
   }

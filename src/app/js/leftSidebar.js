@@ -192,6 +192,10 @@ export function createLeftSidebar({
     triggers.forEach(function (trigger) {
       trigger.setAttribute("tabindex", "0");
       trigger.setAttribute("role", "button");
+      trigger.setAttribute(
+        "aria-expanded",
+        String(trigger.classList.contains("accordion-trigger-active")),
+      );
       trigger.addEventListener(
         "keydown",
         function (event) {
@@ -217,10 +221,12 @@ export function createLeftSidebar({
     if (activatedTrigger.classList.contains("accordion-trigger-active")) {
       activatedTrigger.nextElementSibling.classList.add("hidden");
       activatedTrigger.classList.remove("accordion-trigger-active");
+      activatedTrigger.setAttribute("aria-expanded", "false");
       return;
     }
     activatedTrigger.nextElementSibling.classList.remove("hidden");
     activatedTrigger.classList.add("accordion-trigger-active");
+    activatedTrigger.setAttribute("aria-expanded", "true");
   }
 
   function cancelPendingNoTransitionClassRemoval() {

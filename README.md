@@ -51,8 +51,10 @@ See [WebMCP usage and limits](docs/webmcp.md) and the [recorded browser qualific
 
 ## Run locally
 
-Clone this repository, then use its selected **Node.js** ([version](.node-version)), **npm** ([native minimum and exact reference](package.json)), and **stable Python** ([minimum and CI reference](.python-version)).
-Native npm `devEngines` requires npm `>=12.2.0`; `packageManager` and CI select exact npm 12.2.0 as the reproducible reference.
+Clone this repository, then use its selected **Node.js** ([version](.node-version)), **npm** ([native minimum](package.json)), and **stable Python** ([minimum and CI reference](.python-version)).
+Each runtime has one maintained declaration: those files and the **uv** [CI selector](.uv-version).
+Native npm `devEngines` enforces its minimum; CI installs that same minimum as its exact reproducible reference, while local setup accepts eligible newer npm versions.
+The shared [runtime reader](util/runtimeTargets.mjs) validates these declarations for setup and CI; run `node util/runtimeTargets.mjs` to display all four selections.
 Registry development dependencies use floating `>=` minimums; the committed lockfile selects the exact qualified graph for `npm ci`.
 Both application and VOWL consumers retain the `owlapi` import name and share one source selector: `dependencies.owlapi` in the root [package.json](package.json).
 Set that field to `npm:PACKAGE_NAME@EXACT_VERSION` for a published package, or `git+https://github.com/Hadden-Industries/owlapi.git#FULL_40_CHARACTER_COMMIT` for an immutable source commit.
@@ -64,7 +66,7 @@ Python installation requires hashes and wheels except for PyYAML, whose latest r
 The [development requirements](requirements-dev.txt) declare minimum versions without upper bounds; routine setup and CI install the exact locked versions.
 
 Run `npm run install:markdown` explicitly to install the exact shared Markdown graph without lifecycle scripts.
-The development runtime is Node 24.21.0; the application dependency graph is unchanged.
+The Markdown execution profile reads the same Node and Python version files; it has no separate runtime pins.
 Markdown checking always covers the full authored corpus, including when CI skips application jobs for documentation-only changes.
 Use `npm run format:docs -- -- "docs/example.md"` for literal paths or `--files-json` for a JSON array.
 Exceptions and upgrades remain governed by the shared capability and exact trusted-run owner acceptance.

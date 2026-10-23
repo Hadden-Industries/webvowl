@@ -480,7 +480,8 @@ export function createWebVowlApplication({
       controller: webVowlController,
       surface: detailsSurface,
       openFacts: (invoker) => factsPresentation?.open(invoker),
-      onPresentationChanged: () => occurrencePreview?.refresh(),
+      onPresentationChanged: () =>
+        occurrencePreview?.refresh({ immediate: true }),
       scheduleRefresh: () =>
         controllerStatePresenter.refreshSelection(webVowlController.getState()),
     });

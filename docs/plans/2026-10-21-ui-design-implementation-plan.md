@@ -1,7 +1,8 @@
 # WebVOWL UI design implementation plan
 
-> **Status:** Accepted scope, revision 7, 23 October 2026; DEC-001–022 are approved.
-> A1–A4 and B1–B5 are implemented in the working candidate; final qualification remains pending.
+> **Status:** Accepted scope, revision 10, 23 October 2026; DEC-001–022 are approved.
+> A1–A4 and B1–B5 are implemented; automated checks, scoped foreground qualification and final reviews are complete.
+> The consolidated manual batch remains a release requirement.
 > The owner's later instruction, "Continue with the current model", supersedes the model-switch pause.
 > Foreground measurements are authorized only after other diagnostic avenues are exhausted and optimized code is ready.
 > **Sequence:** Plan 3 of 3, after architecture and performance.
@@ -16,6 +17,9 @@ Revisions 2–4 preserved that boundary and did not approve UI implementation.
 After architecture and performance publication, the owner reviewed all 21 UI decisions, their tradeoffs and acceptance criteria, then stated on 23 October: "I accept your recommendations. Update the UI plan accordingly."
 Revision 6 recorded that acceptance.
 Revision 7 records the implementation candidate and subsequent decisions; it does not claim final qualification.
+Revision 8 adds the owner's runtime-alignment and single-declaration instruction during final UI qualification, with the concrete scope in section 9.
+Revision 9 records completed automated checks, browser-engine coverage and scoped foreground observations, including the repaired presentation-order and held-zoom notification defects.
+Revision 10 records the final AGY review, its narrow evidence correction, the completed native security scan and the [source handoff](2026-10-23-ui-final-handoff.md).
 DEC-001–021 are accepted as specified in section 4, including A4 source reflection, property-label treatment, background-click clearing and the shared presentation model.
 B5 anchoring and motion are selected for implementation and qualification; B6's additional decoration is not selected.
 
@@ -566,18 +570,22 @@ Retire it on selection/generation change and disposal.
 
 ## 8. Verification and traceability
 
-| Slice          | Requirement / acceptance / quality / decisions                          | Proof                                                      | Release/cleanup implication                       | Initial status           |
-| -------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------- | ------------------------ |
-| A1 / SLICE-001 | REQ-002 / AC-002 / QA-002 / DEC-004/005/006/021                         | Exact catalogue and independent matching tests             | No loading side effects                           | Gate pending             |
-| A2 / SLICE-002 | REQ-003/004 / AC-003/004 / QA-001/002/007 / DEC-001/002/007/008         | Routes, single submit, unchanged share links               | Retire synthetic submission                       | Gate pending             |
-| A3 / SLICE-003 | REQ-001/008 / AC-001/008 / QA-001/003/009 / DEC-003/017                 | Keyboard/ARIA/touch and metrics ownership                  | Remove preset links/dead handlers                 | Gate pending             |
-| A4 / SLICE-004 | REQ-004/007 / AC-004/007 / QA-007 / DEC-007                             | Dirty/focus/source reflection tests                        | Scoped subscription with disposal                 | Selected; proof pending  |
-| B1 / SLICE-005 | REQ-005/006 / AC-005/006 / QA-003                                       | Overview field inventory and focus                         | Metadata remains reachable                        | Gate pending             |
-| B2 / SLICE-006 | REQ-005/008 / AC-005/008 / QA-003/006 / DEC-009/013                     | Responsive/editor/reduced-motion checks                    | No preference/schema migration                    | Gate pending             |
-| B3 / SLICE-007 | REQ-006/007 / AC-006/007 / QA-004/005/007 / DEC-010/011/012/018/019/020 | Presentation oracle, lifetime and performance              | Remove first-role-only presentation               | Gate pending             |
-| B4 / SLICE-008 | REQ-006/008 / AC-006/008 / QA-005/008 / DEC-020                         | Completeness, navigation and focus                         | Complete details remain available                 | Gate pending             |
-| B5 / SLICE-009 | REQ-007/009 / AC-007/009 / QA-004/006/009 / DEC-014                     | Contract R, optimized browser motion and final S0 evidence | Owner must accept fallback if qualification fails | Selected; proof pending  |
-| B6 / SLICE-010 | REQ-010 / AC-010 / QA-006/009                                           | No new decoration implemented                              | Existing selection styling retained               | Not selected, 23 October |
+The [implementation evidence](2026-10-23-ui-implementation-evidence.md) retains exact runs, candidate bounds, failures and repairs.
+The [final review disposition](2026-10-23-ui-final-handoff.md#final-review-and-evidence-boundaries) applies across the selected slices; required manual platform coverage remains in the [single owner packet](2026-10-23-ui-manual-validation.md).
+Automated completion below does not claim complete assistive-technology qualification or release approval.
+
+| Slice          | Requirement / acceptance / quality / decisions                          | Proof                                                      | Release/cleanup implication                       | Current evidence status                                |
+| -------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------ |
+| A1 / SLICE-001 | REQ-002 / AC-002 / QA-002 / DEC-004/005/006/021                         | Exact catalogue and independent matching tests             | No loading side effects                           | Automated passed                                       |
+| A2 / SLICE-002 | REQ-003/004 / AC-003/004 / QA-001/002/007 / DEC-001/002/007/008         | Routes, single submit, unchanged share links               | Retire synthetic submission                       | Automated and H1-H4 observations passed                |
+| A3 / SLICE-003 | REQ-001/008 / AC-001/008 / QA-001/003/009 / DEC-003/017                 | Keyboard/ARIA/touch and metrics ownership                  | Remove preset links/dead handlers                 | Automated passed; manual AT open                       |
+| A4 / SLICE-004 | REQ-004/007 / AC-004/007 / QA-007 / DEC-007                             | Dirty/focus/source reflection tests                        | Scoped subscription with disposal                 | Automated passed                                       |
+| B1 / SLICE-005 | REQ-005/006 / AC-005/006 / QA-003                                       | Overview field inventory and focus                         | Metadata remains reachable                        | Automated passed; manual AT open                       |
+| B2 / SLICE-006 | REQ-005/008 / AC-005/008 / QA-003/006 / DEC-009/013                     | Responsive/editor/reduced-motion checks                    | No preference/schema migration                    | Automated passed; manual devices open                  |
+| B3 / SLICE-007 | REQ-006/007 / AC-006/007 / QA-004/005/007 / DEC-010/011/012/018/019/020 | Presentation oracle, lifetime and performance              | Remove first-role-only presentation               | Automated passed                                       |
+| B4 / SLICE-008 | REQ-006/008 / AC-006/008 / QA-005/008 / DEC-020                         | Completeness, navigation and focus                         | Complete details remain available                 | Automated and scoped click budget passed               |
+| B5 / SLICE-009 | REQ-007/009 / AC-007/009 / QA-004/006/009 / DEC-014                     | Contract R, optimized browser motion and final S0 evidence | Owner must accept fallback if qualification fails | Automated and anchor budget passed; manual motion open |
+| B6 / SLICE-010 | REQ-010 / AC-010 / QA-006/009                                           | No new decoration implemented                              | Existing selection styling retained               | Not selected, 23 October                               |
 
 ### 8.1 Existing test boundaries
 
@@ -681,7 +689,17 @@ After any manual finding, fix and recheck the affected flows; request only neces
 
 ## 9. Configuration, trust boundaries and release
 
-No configuration change is required by the accepted design as currently specified.
+The original UI design required no shared configuration change.
+During final qualification on 23 October, the owner explicitly requested alignment with the installed Node/npm/Python/uv versions and DRY declarations, following the other local repositories.
+The accepted amendment updates `.node-version` to Node 24.22.1, `.python-version` to Python 3.15.1 and npm's native minimum in `package.json` to 12.2.1, and records uv 0.13.5 in `.uv-version`.
+The local npm and uv versions were confirmed against their official current releases.
+The duplicate `packageManager` exact npm selector is removed: `util/installSelectedNpm.mjs` derives the exact CI reference from the native `devEngines.packageManager` minimum, as in the HISEW repository's runtime projection pattern.
+The shared `util/runtimeTargets.mjs` validates the four maintained declarations and supplies CI outputs; `.github/workflows/webvowl-ci.yml` consumes its uv output, while existing Node/Python consumers retain their version-file references.
+README references replace repeated runtime literals, and setup/Python projections use the shared reader.
+This changes development/CI selection and admission, not the application dependency graph or browser target.
+No global runtime installation, dependency upgrade, lock refresh or policy weakening is part of this amendment.
+The previous full run remains valid for its recorded runtime; verify the new toolchain and preserve both identities.
+
 The following are possibilities, not approved edits:
 
 | Possible exact scope                                                  | Behavioral/pipeline impact                                   | Smallest planned treatment                                                                                                              |
@@ -711,6 +729,7 @@ Unresolved semantic completeness or accessibility failures are not a successful 
 
 UI decisions are accepted, but implementation, measured acceptance, manual coverage and release remain separate states.
 Finish automated and foreground work in the order above, then give the owner the single residual manual-validation packet before claiming complete required browser/AT qualification.
+The selected source implementation and final reviews are now complete; the handoff records retained measurement limits and HISEW bookkeeping limitations without treating either as native completion or deployment approval.
 
 Before an authorized rollout, the release owner qualifies the exact build on existing routes and real H1–H4 loads, completes required browser/AT/performance dispositions and retains the prior qualified artifact.
 Observe loading failures, duplicate submissions, `LOAD_PENDING`, stale previews, console errors, focus loss, frame cost and export differences.

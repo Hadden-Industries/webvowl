@@ -474,9 +474,14 @@ export function createOntologyEditorSidebar({
       .querySelectorAll(".accordion-trigger")) {
       trigger.setAttribute("tabindex", "0");
       trigger.setAttribute("role", "button");
+      trigger.setAttribute(
+        "aria-expanded",
+        String(trigger.classList.contains("accordion-trigger-active")),
+      );
       const toggle = () => {
         const active = trigger.classList.toggle("accordion-trigger-active");
         trigger.nextElementSibling.classList.toggle("hidden", !active);
+        trigger.setAttribute("aria-expanded", String(active));
       };
       trigger.addEventListener("click", toggle, { signal: lifecycle.signal });
       trigger.addEventListener(

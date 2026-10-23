@@ -235,29 +235,32 @@
           <div id="leftSideBar">
             <div id="leftSideBarContent" class="hidden">
               <h2 id="leftHeader">Default Element</h2>
-              <h3
+              <button
+                type="button"
                 class="selectedDefaultElement accordion-trigger noselect accordion-trigger-active"
                 id="defaultClass"
                 title="owl:Class"
               >
                 Class: owl:Class
-              </h3>
+              </button>
               <div id="classContainer" class="accordion-container"></div>
-              <h3
+              <button
+                type="button"
                 class="selectedDefaultElement accordion-trigger noselect accordion-trigger-active"
                 title="owl:objectProperty"
                 id="defaultProperty"
               >
                 Property: owl:objectProperty
-              </h3>
+              </button>
               <div id="propertyContainer" class="accordion-container"></div>
-              <h3
+              <button
+                type="button"
                 class="selectedDefaultElement accordion-trigger noselect accordion-trigger-active"
                 title="rdfs:Literal"
                 id="defaultDatatype"
               >
                 Datatype: rdfs:Literal
-              </h3>
+              </button>
               <div id="datatypeContainer" class="accordion-container"></div>
             </div>
           </div>
@@ -273,7 +276,7 @@
           >
             <div class="sheet-handle" aria-hidden="true"></div>
             <div class="popover-header">
-              <h3>Ontology</h3>
+              <h2>Ontology</h2>
               <button
                 type="button"
                 class="popover-close-btn"
@@ -1386,11 +1389,7 @@
               </li>
 
               <!-- Vertical Toolbar Divider separating Menu Drawers from Graph Action Controls -->
-              <li
-                class="nav-separator"
-                role="separator"
-                aria-orientation="vertical"
-              ></li>
+              <li class="nav-separator" aria-hidden="true"></li>
 
               <!-- Direct Graph Execution Action Buttons -->
               <li id="c_reset">
@@ -1507,9 +1506,12 @@
     <aside id="detailsArea" class="hidden" aria-label="Details inspector" inert>
       <section id="generalDetailsEdit" class="hidden">
         <h2 id="editHeader">Editing Options</h2>
-        <h3 class="accordion-trigger noselect accordion-trigger-active">
+        <button
+          type="button"
+          class="accordion-trigger noselect accordion-trigger-active"
+        >
           Ontology
-        </h3>
+        </button>
         <div>
           <!--begin of ontology metaData -->
           <div class="textLineEditWithLabel">
@@ -1579,7 +1581,9 @@
               <button type="submit" class="hidden">Submit</button>
             </form>
           </div>
-          <h4 class="subAccordion accordion-trigger noselect">Prefix</h4>
+          <button type="button" class="subAccordion accordion-trigger noselect">
+            Prefix
+          </button>
           <div class="subAccordionDescription" id="containerForPrefixURL">
             <div id="prefixURL_Description">
               <span class="boxed">Prefix</span>
@@ -1593,7 +1597,9 @@
         </div>
         <!--end of ontology metaData -->
 
-        <h3 class="accordion-trigger noselect">Description</h3>
+        <button type="button" class="accordion-trigger noselect">
+          Description
+        </button>
         <div>
           <label class="sr-only" for="descriptionEditor">Description</label>
           <textarea
@@ -1604,9 +1610,12 @@
             id="descriptionEditor"
           ></textarea>
         </div>
-        <h3 class="accordion-trigger noselect accordion-trigger-active">
+        <button
+          type="button"
+          class="accordion-trigger noselect accordion-trigger-active"
+        >
           Selected Element
-        </h3>
+        </button>
         <div>
           <div id="selectedElementProperties" class="hidden">
             <div class="textLineEditWithLabel">

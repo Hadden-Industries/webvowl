@@ -42,6 +42,8 @@ import {
   measureProductionSearchCues,
 } from "./productionSearchCues.mjs";
 import { measureProductionRendererReuse } from "./productionRendererReuse.mjs";
+import { measureProductionUiPreview } from "./productionUiPreview.mjs";
+import { measureProductionUiSources } from "./productionUiSources.mjs";
 
 // A companion to qualify-canonical-browser.mjs: actual production HTML/CSS,
 // headed isolated Chrome, and separately labelled latency/diagnostic passes.
@@ -49,13 +51,30 @@ const [chromePath, buildPath, manifestPath, outputPath, ...options] =
   process.argv.slice(2);
 assert(
   chromePath && buildPath && manifestPath && outputPath,
-  "Usage: node util/measure-production-performance.mjs <chrome> <production-directory> <manifest> <new-evidence-directory> [--mode=latency|counters|trace|cues|lifetime|layout|reuse|functional|navigation] [--fixture=W1] [--diagnostic] [--private-fixture=path] [--allow-busy-host --admission-reference=path] [--headless-diagnostics --diagnostic-admission-reference=path] [--cohort-start=1 --cohort-end=40] [--renderer-reuse-reference]",
+  "Usage: node util/measure-production-performance.mjs <chrome> <production-directory> <manifest> <new-evidence-directory> [--mode=latency|counters|trace|cues|lifetime|layout|reuse|functional|navigation] [--fixture=W1] [--diagnostic] [--private-fixture=path] [--allow-busy-host --admission-reference=path] [--headless-diagnostics --diagnostic-admission-reference=path] [--cohort-start=1 --cohort-end=40] [--renderer-reuse-reference] [--ui-selection-only [--ui-preview-diagnostics] | --ui-sources-only]",
 );
 const option = (name, fallback) =>
   options
     .find((value) => value.startsWith(`--${name}=`))
     ?.slice(name.length + 3) ?? fallback;
 const mode = option("mode", "latency");
+const uiSelectionOnly = options.includes("--ui-selection-only");
+const uiSourcesOnly = options.includes("--ui-sources-only");
+assert(
+  !uiSourcesOnly || (mode === "latency" && !uiSelectionOnly),
+  "Public-source observations require an uninstrumented foreground pass",
+);
+const uiPreviewDiagnostics = options.includes("--ui-preview-diagnostics");
+assert(
+  !uiPreviewDiagnostics ||
+    (uiSelectionOnly && ["counters", "trace"].includes(mode)),
+  "Preview diagnostics require a separate instrumented selection pass",
+);
+assert(
+  !uiSelectionOnly ||
+    ["latency", "trace", "counters", "functional"].includes(mode),
+  "UI selection qualification uses the existing interaction boundary modes",
+);
 const nativeTextControl = options.includes("--native-text-control");
 assert(
   !nativeTextControl || mode === "layout",
@@ -746,7 +765,7 @@ function installMeasurement(
               ).length,
               detailsText:
                 document.querySelector(
-                  "#classSelectionInformation:not(.hidden), #propertySelectionInformation:not(.hidden)",
+                  "#entity-preview:not([hidden]) #entity-preview-body, #classSelectionInformation:not(.hidden), #propertySelectionInformation:not(.hidden)",
                 )?.textContent.length ?? 0,
               foregroundLost:
                 foregroundLost ||
@@ -1008,6 +1027,8 @@ try {
     resolve("util/productionNavigation.mjs"),
     resolve("util/productionSearchCues.mjs"),
     resolve("util/productionRendererReuse.mjs"),
+    resolve("util/productionUiPreview.mjs"),
+    resolve("util/productionUiSources.mjs"),
   ].map((path) => ({ path, sha256: sha256(readFileSync(path)) }));
   report.environment = {
     platform: platform(),
@@ -1375,7 +1396,66 @@ try {
       );
       return row;
     }
-    if (nativeTextControl) {
+    if (uiSourcesOnly) {
+      report.operationScope =
+        "Public H1-H4 chooser load/settle observations; not S0 comparison cohorts";
+      await measureProductionUiSources({ evaluate, idle, report });
+    } else if (uiSelectionOnly) {
+      report.operationScope =
+        "UI selection only; not a complete S0 B2-B6 cohort";
+      await evaluate("__webvowlMeasurement.load()");
+      await evaluate("__webvowlMeasurement.center()");
+      const schedule = functional
+        ? [{ label: "functional", index: 0, warmup: false }]
+        : [
+            { label: "warmup", index: 0, warmup: true },
+            ...(diagnostic || mode !== "latency"
+              ? [{ label: "A", index: 1, warmup: false }]
+              : requestedCohorts),
+          ];
+      for (const { label: cohort, index, warmup } of schedule) {
+        report.activeCohort = { index, label: cohort, warmup };
+        await evaluate(`(async () => {
+          await __webvowlMeasuredApplication.getWebVowlController().selectVisualizationElement({reference:null});
+          await (${observeTwoAnimationFrames.toString()})();
+        })()`);
+        const point = await evaluate("__webvowlMeasurement.armClick()");
+        const row = await measure(
+          "B4-click",
+          async () => {
+            for (const type of [
+              "mouseMoved",
+              "mousePressed",
+              "mouseReleased",
+            ]) {
+              await call("Input.dispatchMouseEvent", {
+                type,
+                ...point,
+                ...(type === "mouseMoved"
+                  ? {}
+                  : {
+                      button: "left",
+                      buttons: type === "mousePressed" ? 1 : 0,
+                      clickCount: 1,
+                    }),
+              });
+            }
+            return evaluate("__webvowlMeasurement.interaction()");
+          },
+          cohort,
+          warmup,
+        );
+        assert(
+          row.detailsText > 0 && row.state.selection.length > 0,
+          "UI selection must paint the current entity preview",
+        );
+      }
+      delete report.activeCohort;
+      delete report.activeOperation;
+      if (uiPreviewDiagnostics) {
+        await measureProductionUiPreview({ evaluate, call, events, report });
+      }
+    } else if (nativeTextControl) {
       await qualifyProductionTextLayoutControls({ evaluate, report });
     } else if (mode === "reuse") {
       await measureProductionRendererReuse({
@@ -1582,6 +1662,8 @@ try {
     !report.rejectedPreflights.some((item) => item.ownerOverride);
   if (!report.quiescentProtocolSatisfied) report.acceptanceEligible = false;
   if (cohortStart !== 1 || cohortEnd !== 40) report.acceptanceEligible = false;
+  if (uiSelectionOnly) report.acceptanceEligible = false;
+  if (uiSourcesOnly) report.acceptanceEligible = false;
   report.status = "completed";
 } catch (error) {
   if (session && socket?.readyState === WebSocket.OPEN) {

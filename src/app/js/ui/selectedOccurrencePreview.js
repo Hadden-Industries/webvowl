@@ -154,7 +154,7 @@ export function createSelectedOccurrencePreview({
       shown = true;
     }
   }
-  function refresh() {
+  function refresh({ immediate = false } = {}) {
     shouldMeasure = true;
     if (doc.hidden || preview.hidden) {
       suspend();
@@ -168,7 +168,16 @@ export function createSelectedOccurrencePreview({
       }
       observation = null;
     }
-    schedule();
+    if (immediate) {
+      // Presentation already runs in its coalesced frame. Measure the new
+      // content and place it before that frame paints the previous position.
+      if (frame !== undefined) {
+        windowObject.cancelAnimationFrame(frame);
+      }
+      update();
+    } else {
+      schedule();
+    }
   }
   const unsubscribe = controller.subscribeToSelectedVisualizationOccurrence(
     (value) => {
