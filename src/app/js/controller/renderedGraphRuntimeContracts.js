@@ -21,6 +21,7 @@ import {
   VOWL_EDITOR_PROPERTY_TYPES,
 } from "./ontologyEditorDrawingRecords.js";
 import { createRenderedOccurrenceReference } from "./renderedArrangementContracts.js";
+import { createSelectedOccurrenceObservation } from "./selectedOccurrenceObservation.js";
 import {
   DEFAULT_VISUALIZATION_FILTERS,
   DEFAULT_VISUALIZATION_MODES,
@@ -38,6 +39,7 @@ export const RENDERED_GRAPH_EVENT_KINDS = Object.freeze([
   "render-progress-changed",
   "render-warning-raised",
   "rendered-element-selection-changed",
+  "selected-occurrence-geometry-changed",
   "document-record-selection-changed",
   "record-label-edit-requested",
   "record-creation-requested",
@@ -748,6 +750,11 @@ function createRenderedGraphEventPayload(kind, payload) {
         warningCode: payload.warningCode,
         message: payload.message,
       });
+    case "selected-occurrence-geometry-changed":
+      assertExactFieldNames(payload, ["observation"], `${kind} payload`);
+      return Object.freeze({
+        observation: createSelectedOccurrenceObservation(payload.observation),
+      });
     case "rendered-element-selection-changed":
       assertExactFieldNames(
         payload,
@@ -1082,6 +1089,15 @@ export function createRenderedGraphEvent(event) {
     );
   }
   assertPositiveLoadGeneration(event.loadGeneration);
+  if (
+    event.kind === "selected-occurrence-geometry-changed" &&
+    event.payload.observation !== null &&
+    event.payload.observation.loadGeneration !== event.loadGeneration
+  ) {
+    throw new RangeError(
+      "The selected occurrence belongs to another load generation.",
+    );
+  }
   return Object.freeze({
     kind: event.kind,
     loadGeneration: event.loadGeneration,

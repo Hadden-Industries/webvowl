@@ -7,7 +7,6 @@ export function createSearchMenu({
   documentObject = globalThis.document,
   onOntologyIriEntered,
   webVowlController,
-  windowObject = globalThis.window,
 } = {}) {
   const searchMenu = {};
   let focusableElementCountsBySearchEntry = [];
@@ -21,7 +20,6 @@ export function createSearchMenu({
   let inputText;
   let menuEnabled = true;
   let locateAvailable = false;
-  let visualViewportAnimationFrame;
 
   let results = [];
   let resultID = [];
@@ -113,40 +111,6 @@ export function createSearchMenu({
     documentObject
       .getElementById("scrollRightButton")
       .classList.remove("hidden-by-search");
-  }
-
-  function updateVisualViewportMetrics() {
-    if (
-      !windowObject.visualViewport ||
-      !documentObject.documentElement ||
-      !documentObject.documentElement.style
-    ) {
-      return;
-    }
-
-    const updateMetrics = function () {
-      visualViewportAnimationFrame = undefined;
-      documentObject.documentElement.style.setProperty(
-        "--visual-viewport-height",
-        windowObject.visualViewport.height + "px",
-      );
-      documentObject.documentElement.style.setProperty(
-        "--visual-viewport-offset-top",
-        windowObject.visualViewport.offsetTop + "px",
-      );
-    };
-
-    if (
-      visualViewportAnimationFrame !== undefined &&
-      typeof cancelAnimationFrame === "function"
-    ) {
-      cancelAnimationFrame(visualViewportAnimationFrame);
-    }
-    if (typeof requestAnimationFrame === "function") {
-      visualViewportAnimationFrame = requestAnimationFrame(updateMetrics);
-    } else {
-      updateMetrics();
-    }
   }
 
   function portalSearchResults() {
@@ -264,25 +228,6 @@ export function createSearchMenu({
           }
         }
       });
-    }
-
-    if (windowObject.visualViewport) {
-      const handleVisualViewportChange = function () {
-        updateVisualViewportMetrics();
-        if (listbox && !listbox.classList.contains("hidden")) {
-          searchMenu.showSearchEntries();
-        }
-      };
-
-      updateVisualViewportMetrics();
-      windowObject.visualViewport.addEventListener(
-        "resize",
-        handleVisualViewportChange,
-      );
-      windowObject.visualViewport.addEventListener(
-        "scroll",
-        handleVisualViewportChange,
-      );
     }
   };
 

@@ -153,6 +153,63 @@ test("layout ticks publish controller state only when its status changes", async
   controller.dispose();
 });
 
+test("occurrence geometry is current, isolated from state and semantic exports, and released on disposal", async () => {
+  const { controller, load, emit, runtime, session } = setup();
+  await load("https://example.test/ontology");
+  const accepted = controller.getState();
+  const value = {
+    loadGeneration: accepted.loadGeneration,
+    documentRevision: accepted.documentRevision,
+    reference: {
+      loadGeneration: accepted.loadGeneration,
+      occurrenceId: "occurrence-1",
+    },
+    coordinateSpace: "graph-viewport-css-pixels",
+    xPx: 40,
+    yPx: 50,
+    widthPx: 60,
+    heightPx: 60,
+    shape: "ellipse",
+    occurrenceCount: 2,
+  };
+  runtime.readSelectedOccurrenceObservation = () => value;
+  const observed = [];
+  const failed = jest.fn(() => {
+    throw new Error("consumer failed");
+  });
+  controller.subscribeToSelectedVisualizationOccurrence(failed);
+  const unsubscribe = controller.subscribeToSelectedVisualizationOccurrence(
+    (item) => observed.push(item),
+  );
+  const send = (observation, loadGeneration = accepted.loadGeneration) =>
+    emit({
+      kind: "selected-occurrence-geometry-changed",
+      loadGeneration,
+      payload: { observation },
+    });
+  send(value);
+  send({ ...value, documentRevision: accepted.documentRevision + 1 });
+  send(value, accepted.loadGeneration + 1);
+  send({ ...value, xPx: 41 });
+  expect(observed).toHaveLength(2);
+  expect(failed).toHaveBeenCalledTimes(1);
+  expect(controller.getState()).toBe(accepted);
+  expect(controller.getSelectedVisualizationOccurrence()).toBe(value);
+  expect(session.exportCanonicalArtifact).not.toHaveBeenCalled();
+  runtime.readSelectedOccurrenceObservation = () => ({
+    ...value,
+    documentRevision: 1,
+  });
+  expect(controller.getSelectedVisualizationOccurrence()).toBeNull();
+  unsubscribe();
+  send(null);
+  expect(observed).toHaveLength(2);
+  controller.dispose();
+  send(value);
+  expect(observed).toHaveLength(2);
+  expect(() => controller.getSelectedVisualizationOccurrence()).toThrow();
+});
+
 test("the candidate controller preserves selection through rename and focuses newly revealed elements", async () => {
   const { runtime, artifacts } = setup();
   let emit;

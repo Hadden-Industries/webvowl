@@ -8,11 +8,17 @@ let WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES;
 beforeAll(async () => {
   ({ WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES } =
     await import("../controller/webVowlControllerContracts.js"));
+  const { createControllerStatePresenter: createPresenter, ...fieldNames } =
+    await import("./controllerStatePresenter.js");
+  createControllerStatePresenter = (dependencies) =>
+    createPresenter(dependencies, {
+      requestFrame: (callback) => callback(),
+      cancelFrame: () => {},
+    });
   ({
-    createControllerStatePresenter,
     PRESENTED_CONTROLLER_STATE_FIELD_NAMES,
     SEPARATELY_PRESENTED_CONTROLLER_STATE_FIELD_NAMES,
-  } = await import("./controllerStatePresenter.js"));
+  } = fieldNames);
 });
 
 const PERSON_REFERENCE = Object.freeze({

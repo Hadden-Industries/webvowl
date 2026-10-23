@@ -1,4 +1,5 @@
 import { namespaces } from "vowl";
+import { createBackgroundSelectionGesture } from "./backgroundSelectionGesture.js";
 import * as d3 from "d3";
 import { createLegacyForceSimulation } from "./legacyForceSimulation.js";
 import { createLinkCreator as createLinkCreatorModule } from "../parsing/linkCreator.js";
@@ -283,6 +284,8 @@ function createGraph(
   let acceptedDrawing;
   let drawingPresentation;
   let liveCanonicalPrimitives = new Set();
+  let liveNodesById = new Map();
+  let liveLabelsById = new Map();
   // Graph behaviour
   let force;
 
@@ -347,6 +350,7 @@ function createGraph(
     publishRenderProgress: () => undefined,
     publishRenderWarning: () => undefined,
     publishRenderedElementSelection: () => undefined,
+    publishSelectedOccurrenceGeometry: () => undefined,
     publishViewportChange: () => undefined,
     publishEditorModeChange: () => undefined,
     publishRecordLabelEdit: () => undefined,
@@ -361,6 +365,7 @@ function createGraph(
       graphTranslation[0],
       graphTranslation[1],
     );
+    renderedGraphEventPort.publishSelectedOccurrenceGeometry?.();
   }
 
   function syncZoomState() {
@@ -692,6 +697,33 @@ function createGraph(
     }));
   };
 
+  // Model geometry only: no SVG measurement, traversal or whole-scene DTO.
+  graph.readOccurrenceGeometry = function (rendererId) {
+    const id = String(rendererId);
+    const node = liveNodesById.get(id);
+    const label = liveLabelsById.get(id);
+    const element = node ?? label?.element;
+    const position = node ?? label?.position;
+    if (!element || !position || !liveCanonicalPrimitives.has(element)) {
+      return null;
+    }
+    const rectangular =
+      !node ||
+      element.renderType?.() === "rect" ||
+      element.getRectangularRepresentation?.();
+    const diameter = 2 * (element.actualRadius?.() ?? 0);
+    const width = rectangular ? (element.width?.() ?? diameter) : diameter;
+    const height = rectangular ? (element.height?.() ?? diameter) : diameter;
+    const offsetY = label?.offsetY ?? 0;
+    return {
+      xPx: position.x * zoomFactor + graphTranslation[0],
+      yPx: (position.y + offsetY) * zoomFactor + graphTranslation[1],
+      widthPx: width * zoomFactor,
+      heightPx: height * zoomFactor,
+      shape: rectangular ? "rectangle" : "ellipse",
+    };
+  };
+
   graph.applyArrangement = function (changes) {
     const elements = arrangedElements();
     const resolved = changes.map((change) => {
@@ -799,6 +831,8 @@ function createGraph(
     acceptedDrawing = undefined;
     drawingPresentation = undefined;
     liveCanonicalPrimitives.clear();
+    liveNodesById.clear();
+    liveLabelsById.clear();
     focuser.retainOnly(liveCanonicalPrimitives);
     unfilteredData = { nodes: [], properties: [] };
     classNodes = [];
@@ -1692,6 +1726,9 @@ function createGraph(
 
     reportInvalidGeometry(skippedUpdates);
     updateHaloRadius();
+    if (graphContainer?.node()?.ownerDocument?.visibilityState !== "hidden") {
+      renderedGraphEventPort.publishSelectedOccurrenceGeometry?.();
+    }
   }
 
   function addClickEvents() {
@@ -1920,6 +1957,21 @@ function createGraph(
 
   function bindViewportInteractions() {
     const svgGraph = d3.select(graphContainer.node().parentNode).call(zoom);
+    const backgroundSelection = createBackgroundSelectionGesture({
+      isBackground: (target) =>
+        target === svgGraph.node() || target === graphContainer.node(),
+      clear: () => graph.selectOccurrence(null),
+      mouseThresholdPx: zoom.clickDistance(),
+      touchThresholdPx: zoom.tapDistance(),
+    });
+    svgGraph
+      .on("pointerdown.selection", (event) => backgroundSelection.down(event))
+      .on("pointermove.selection", (event) => backgroundSelection.move(event))
+      .on("pointerup.selection", (event) => backgroundSelection.up(event))
+      .on("pointercancel.selection", (event) =>
+        backgroundSelection.cancel(event),
+      )
+      .on("click.selection", (event) => backgroundSelection.click(event));
     svgGraph.on("mouseleave", clearAllHover);
     svgGraph.on("pointerleave", clearAllHover);
     originalD3_dblClickFunction = svgGraph.on("dblclick.zoom");
@@ -2912,6 +2964,27 @@ function createGraph(
     labelNodes = links.map(function (link) {
       return link.label();
     });
+    liveNodesById = new Map(
+      classNodes.map((node) => [String(node.id()), node]),
+    );
+    liveLabelsById = new Map();
+    for (const position of labelNodes) {
+      const primary = position.property();
+      const inverse = primary.inverse();
+      const offset = inverse ? primary.height() / 2 + 1 : 0;
+      liveLabelsById.set(String(primary.id()), {
+        element: primary,
+        position,
+        offsetY: -offset,
+      });
+      if (inverse) {
+        liveLabelsById.set(String(inverse.id()), {
+          element: inverse,
+          position,
+          offsetY: offset,
+        });
+      }
+    }
     storeLinksOnNodes(classNodes, links);
     setForceLayoutData(classNodes, labelNodes, links);
     // for (var i = 0; i < classNodes.length; i++) {

@@ -1,3 +1,5 @@
+import { createSelectionPresentationScheduler } from "./selectionPresentationScheduler.js";
+
 // Routes each published controller state to the presentation modules whose own
 // slice of it changed.
 //
@@ -80,7 +82,7 @@ function assertExactDependencyFieldNames(dependencies) {
   }
 }
 
-export function createControllerStatePresenter(dependencies) {
+export function createControllerStatePresenter(dependencies, frameClock = {}) {
   assertExactDependencyFieldNames(dependencies);
   const {
     renderLoadState,
@@ -100,9 +102,15 @@ export function createControllerStatePresenter(dependencies) {
   // producer's payload.
   let summarisedLoadGeneration = 0;
   let presentedLanguage;
+  const selectionPresentation = createSelectionPresentationScheduler({
+    describe: describeOntologyElements,
+    render: renderSelectedOntologyElementDetails,
+    ...frameClock,
+  });
 
   return Object.freeze({
     present(controllerState, changedFieldNames = []) {
+      selectionPresentation.observe(controllerState);
       // The first state a presenter sees is entirely new to it, whatever the
       // producer reports as changed.
       const changedFields = new Set(
@@ -135,22 +143,12 @@ export function createControllerStatePresenter(dependencies) {
       if (
         changedFields.has("selection") ||
         languageChanged ||
-        changedFields.has("documentRevision")
+        changedFields.has("documentRevision") ||
+        changedFields.has("temporaryPresentation") ||
+        changedFields.has("nodeCountStatus") ||
+        (changedFields.has("status") && controllerState.status === "loading")
       ) {
-        const selection = Array.isArray(controllerState.selection)
-          ? controllerState.selection
-          : [];
-        // Describing an element reads the loaded ontology, so it is skipped
-        // entirely before one exists.
-        const hasDescribableSelection =
-          selection.length > 0 && controllerState.loadGeneration > 0;
-        renderSelectedOntologyElementDetails(
-          hasDescribableSelection
-            ? describeOntologyElements({
-                ontologyElementReferences: selection,
-              }).elementDescriptions
-            : [],
-        );
+        selectionPresentation.schedule(controllerState);
       }
 
       // Magnification and pan are separate state fields, so a pan does not
@@ -185,6 +183,12 @@ export function createControllerStatePresenter(dependencies) {
         summarisedLoadGeneration = controllerState.loadGeneration;
         renderOntologySummary(readOntologySummary());
       }
+    },
+    dispose() {
+      selectionPresentation.dispose();
+    },
+    refreshSelection(state) {
+      selectionPresentation.schedule(state);
     },
   });
 }

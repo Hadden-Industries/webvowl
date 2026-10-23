@@ -501,6 +501,9 @@ function createAdapterHarness() {
       throw new Error("No canonical drawing is mounted.");
     },
     pinnedRendererKeys: new Set(),
+    readOccurrenceGeometry() {
+      return null;
+    },
     readArrangement() {
       return this.readLayoutState().layoutElementPositions.map(
         ({ stableLayoutElementKey, x, y }) => ({
@@ -2276,6 +2279,77 @@ describe("D3 rendered graph adapter", () => {
     expect(
       selectionEvents[0].payload.selectedOntologyElementReferences,
     ).toEqual([]);
+  });
+
+  test("observes only the selected occurrence, caches repetition counts and never changes the drawing", async () => {
+    const harness = createAdapterHarness();
+    const runtime = harness.renderedGraphRuntime;
+    const native = harness.renderedGraphInternalsFixture;
+    const request = canonicalRuntimeRequestFixture(1);
+    request.drawing.nodes.push({
+      ...request.drawing.nodes[0],
+      occurrence: "Person-again",
+    });
+    request.drawing.applicationBindings.push({
+      ...request.drawing.applicationBindings[0],
+      occurrence: "Person-again",
+      runtimeReference: {
+        loadGeneration: 1,
+        occurrenceId: "occurrence-repeat",
+      },
+    });
+    const mounting = runtime.replaceCanonicalDrawing(request);
+    harness.renderedGraphTestHarness.completeInitialPaint(1);
+    await mounting;
+    const geometry = {
+      xPx: 80,
+      yPx: 90,
+      widthPx: 70,
+      heightPx: 70,
+      shape: "ellipse",
+    };
+    native.readOccurrenceGeometry = jest.fn((id) =>
+      id.startsWith("Person") ? geometry : null,
+    );
+    const before = runtime.readCanonicalDrawingState();
+    const events = [];
+    runtime.subscribeToRenderedGraphEvents((event) => events.push(event));
+    harness.renderedGraphTestHarness.reportRenderedElementSelection(["Person"]);
+    expect(runtime.readSelectedOccurrenceObservation()).toEqual({
+      ...geometry,
+      loadGeneration: 1,
+      documentRevision: 0,
+      reference: { loadGeneration: 1, occurrenceId: "occurrence-1" },
+      coordinateSpace: "graph-viewport-css-pixels",
+      occurrenceCount: 2,
+    });
+    native.readOccurrenceGeometry.mockClear();
+    for (let i = 0; i < 100; i++) {
+      native.installedEventPort.publishSelectedOccurrenceGeometry();
+    }
+    expect(native.readOccurrenceGeometry).toHaveBeenCalledTimes(100);
+    expect(
+      native.readOccurrenceGeometry.mock.calls.every(([id]) => id === "Person"),
+    ).toBe(true);
+    expect(
+      events.filter(
+        (event) => event.kind === "selected-occurrence-geometry-changed",
+      ),
+    ).toHaveLength(1);
+    expect(runtime.readCanonicalDrawingState()).toEqual(before);
+    geometry.xPx++;
+    native.installedEventPort.publishSelectedOccurrenceGeometry();
+    expect(events.at(-1).payload.observation.xPx).toBe(81);
+    harness.renderedGraphTestHarness.reportRenderedElementSelection([
+      "Person-again",
+    ]);
+    expect(
+      runtime.readSelectedOccurrenceObservation().reference.occurrenceId,
+    ).toBe("occurrence-repeat");
+    harness.renderedGraphTestHarness.reportRenderedElementSelection([]);
+    expect(runtime.readSelectedOccurrenceObservation()).toBeNull();
+    expect(events.at(-1).payload.observation).toBeNull();
+    runtime.dispose();
   });
 
   test("does not recompute the graph when only the focus changes", async () => {

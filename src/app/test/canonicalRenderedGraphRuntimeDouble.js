@@ -317,6 +317,7 @@ export function createCanonicalRenderedGraphRuntimeDouble({
       });
     },
     readRenderedArrangement: arrangement,
+    readSelectedOccurrenceObservation: () => null,
     async setRenderedArrangement(request, { signal } = {}) {
       const changes = resolveRenderedArrangementChanges(arrangement(), request);
       beforeMutation();

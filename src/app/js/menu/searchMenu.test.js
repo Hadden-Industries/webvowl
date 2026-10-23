@@ -491,51 +491,6 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
     expect(cSearch.children).not.toContain(listbox);
   });
 
-  test("publishes visual viewport metrics for keyboard-safe result positioning", () => {
-    const listeners = {};
-    global.window.visualViewport = {
-      height: 420,
-      offsetTop: 12,
-      addEventListener: (type, callback) => {
-        listeners[type] = callback;
-      },
-    };
-
-    const searchMenu = searchMenuFactory({
-      documentObject: global.document,
-      windowObject: global.window,
-      locationObject: global.location,
-      webVowlController: sharedSearchController,
-    });
-    searchMenu.setup();
-
-    expect(
-      mockDoc.documentElement.style.getPropertyValue(
-        "--visual-viewport-height",
-      ),
-    ).toBe("420px");
-    expect(
-      mockDoc.documentElement.style.getPropertyValue(
-        "--visual-viewport-offset-top",
-      ),
-    ).toBe("12px");
-
-    global.window.visualViewport.height = 360;
-    global.window.visualViewport.offsetTop = 20;
-    listeners.resize();
-
-    expect(
-      mockDoc.documentElement.style.getPropertyValue(
-        "--visual-viewport-height",
-      ),
-    ).toBe("360px");
-    expect(
-      mockDoc.documentElement.style.getPropertyValue(
-        "--visual-viewport-offset-top",
-      ),
-    ).toBe("20px");
-  });
-
   test("disables search and locate controls when no rendered ontology is available", () => {
     const searchMenu = searchMenuFactory({
       documentObject: global.document,

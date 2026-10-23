@@ -258,6 +258,24 @@ export function createCanonicalWebVowlController({
   }
   let editorOptions = { ...DEFAULT_ONTOLOGY_EDITOR_OPTIONS };
   const subscribers = new Set();
+  const occurrenceObservers = new Set();
+  function publishOccurrenceObservation(observation) {
+    if (
+      observation &&
+      (observation.loadGeneration !== state.loadGeneration ||
+        observation.documentRevision !== state.documentRevision)
+    ) {
+      return;
+    }
+    for (const observer of [...occurrenceObservers]) {
+      try {
+        observer(observation);
+      } catch {
+        // An observation consumer cannot disrupt drawing or other readers.
+        occurrenceObservers.delete(observer);
+      }
+    }
+  }
   function publish(changes) {
     if (disposed) {
       return;
@@ -275,6 +293,9 @@ export function createCanonicalWebVowlController({
       Object.keys(changes).filter((key) => !isEqual(previous[key], state[key])),
     );
     const published = state;
+    if (fields.includes("selection") && state.selection.length === 0) {
+      publishOccurrenceObservation(null);
+    }
     const failed = new Set();
     for (const subscriber of [...subscribers]) {
       try {
@@ -556,6 +577,9 @@ export function createCanonicalWebVowlController({
     }
     const payload = event.payload;
     switch (event.kind) {
+      case "selected-occurrence-geometry-changed":
+        publishOccurrenceObservation(payload.observation);
+        break;
       case "semantic-creation-requested":
         observe(createFromGesture(payload));
         break;
@@ -770,6 +794,22 @@ export function createCanonicalWebVowlController({
       }
       subscribers.add(listener);
       return () => subscribers.delete(listener);
+    },
+    subscribeToSelectedVisualizationOccurrence(listener) {
+      if (typeof listener !== "function") {
+        throw new TypeError("An occurrence observer must be a function.");
+      }
+      occurrenceObservers.add(listener);
+      return () => occurrenceObservers.delete(listener);
+    },
+    getSelectedVisualizationOccurrence() {
+      const accepted = current("getSelectedVisualizationOccurrence");
+      const observation = runtime.readSelectedOccurrenceObservation();
+      return observation &&
+        observation.loadGeneration === accepted.loadGeneration &&
+        observation.documentRevision === accepted.documentRevision
+        ? observation
+        : null;
     },
     async loadOntology(
       { source },
@@ -1571,6 +1611,7 @@ export function createCanonicalWebVowlController({
       lifecycle.dispose();
       unsubscribe();
       subscribers.clear();
+      occurrenceObservers.clear();
       session.dispose();
       runtime.dispose();
       artifacts.dispose();

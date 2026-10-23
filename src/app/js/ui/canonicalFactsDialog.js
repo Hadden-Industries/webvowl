@@ -46,9 +46,10 @@ export function createCanonicalFactsDialog({
   button.hidden = false;
   refresh(controller.getState());
 
-  function open() {
+  function open(invoker) {
     close();
-    restoreFocus = doc.querySelector("#c_select > button") ?? doc.activeElement;
+    restoreFocus =
+      invoker ?? doc.querySelector("#c_select > button") ?? doc.activeElement;
     doc.querySelector("#m_select")?.hidePopover();
     dialog = doc.createElement("dialog");
     dialog.className = "canonical-merge-dialog canonical-input-dialog";
@@ -189,8 +190,9 @@ export function createCanonicalFactsDialog({
     dialog.showModal();
     select.focus();
   }
-  button.addEventListener("click", open, { signal: lifecycle.signal });
+  button.addEventListener("click", () => open(), { signal: lifecycle.signal });
   return {
+    open,
     dispose() {
       lifecycle.abort();
       unsubscribe();

@@ -1,6 +1,7 @@
 # WebVOWL UI design implementation plan
 
-> **Status:** Accepted revision 6, 23 October 2026; DEC-001–021 and the recommended implementation scope are approved; implementation is authorized to resume.
+> **Status:** Accepted scope, revision 7, 23 October 2026; DEC-001–022 are approved.
+> A1–A4 and B1–B5 are implemented in the working candidate; final qualification remains pending.
 > The owner's later instruction, "Continue with the current model", supersedes the model-switch pause.
 > Foreground measurements are authorized only after other diagnostic avenues are exhausted and optimized code is ready.
 > **Sequence:** Plan 3 of 3, after architecture and performance.
@@ -13,9 +14,16 @@
 The owner requested a detailed plan and, on 21 October 2026, approved the architecture and performance plans while deferring UI decisions until those implementations were complete.
 Revisions 2–4 preserved that boundary and did not approve UI implementation.
 After architecture and performance publication, the owner reviewed all 21 UI decisions, their tradeoffs and acceptance criteria, then stated on 23 October: "I accept your recommendations. Update the UI plan accordingly."
-This revision records that acceptance; it does not claim that implementation or qualification has occurred.
+Revision 6 recorded that acceptance.
+Revision 7 records the implementation candidate and subsequent decisions; it does not claim final qualification.
 DEC-001–021 are accepted as specified in section 4, including A4 source reflection, property-label treatment, background-click clearing and the shared presentation model.
 B5 anchoring and motion are selected for implementation and qualification; B6's additional decoration is not selected.
+
+The owner accepted [UI-DEC-022](2026-10-23-ui-semantic-navigation-decision.md), option 1: related entities are inspected inside Details without changing graph selection.
+The original selected preview remains available through Back and on closing Details.
+The owner also approved two exact, local lint exceptions: `prefer-native-element` immediately before `#ontology-suggestions` in `src/index.html`, and `no-restricted-syntax` for the single IME `keyCode === 229` comparison in `src/app/js/ui/ontologyChooser.js`.
+No shared lint settings are changed.
+The [implementation evidence record](2026-10-23-ui-implementation-evidence.md) distinguishes completed focused proof, retained failures and remaining qualification.
 An unsuccessful B5 qualification still requires an explicit owner decision on the measured fallback limitations.
 Architecture's accepted decisions and performance's delivered contracts remain binding.
 The branch remains `feat/architecture-performance-ui`; retain the [authorized delivery checkpoints](2026-10-21-architecture-implementation-plan.md#authorized-delivery-checkpoints) and their applicable publication authority.
@@ -626,6 +634,16 @@ This changes the future measurement order; historical deferred or rejected timin
 
 The inherited W5 `all` click-to-painted-details target remains lab p95 at most 200 ms; it is not field INP conformance.
 Record actual minimum usable canvas width/height and explicit anchor/frame budgets before final acceptance runs.
+
+Before foreground collection, the implementation selects a conservative docking minimum of 640 CSS pixels of remaining canvas width and 480 CSS pixels of height, with docking only above the existing 1024 CSS pixel boundary.
+The calculation reserves the largest existing 360 CSS pixel inspector token; current measured wide layouts may use 280 or 320 pixels.
+A smaller or shorter viewport uses a modal surface, preserving the full canvas when it is closed.
+These are candidate usability thresholds to verify, not a claim about every device.
+For B5, require at most one queued placement per animation frame, no per-tick SVG measurements or whole-arrangement copies, no hidden-tab frame work, and no queued transition after interruption.
+On the optimized foreground cohort, target anchor JavaScript p95 at most 1 ms per active frame and no anchor-attributable task above 50 ms.
+Keep the inherited W5 click-to-painted-details p95 at most 200 ms.
+Measure overall frame intervals and compositor activity separately; a 200 ms animation duration or transform-only implementation does not prove smooth frames or GPU compositing.
+Retain CPU-contention qualifications and do not reinterpret a missed budget as a pass.
 The proposed 180–240 ms motion duration and roughly 40% compact height are calibration starting points, not performance pass criteria.
 Reduced motion removes translation/scaling; interrupted transitions establish the latest target state within one frame without queued animations.
 Do not require successful foreground timing before B3/B5 can be implemented and optimized, and do not mark their final timing acceptance passed until it is measured.

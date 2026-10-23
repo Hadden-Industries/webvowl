@@ -41,8 +41,8 @@ test("every actual public member has exactly one document or application classif
   try {
     const document = Object.keys(CONTROLLER_OPERATION_CLASSES);
     const application = Object.keys(CONTROLLER_APPLICATION_MEMBERS);
-    expect(document).toHaveLength(31);
-    expect(application).toHaveLength(9);
+    expect(document).toHaveLength(32);
+    expect(application).toHaveLength(10);
     expect(document.filter((name) => application.includes(name))).toEqual([]);
     expect([...document, ...application].sort()).toEqual(
       Object.keys(h.controller).sort(),

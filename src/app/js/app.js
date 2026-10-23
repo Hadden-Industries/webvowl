@@ -1,5 +1,10 @@
 import { createControllerStatePresenter } from "./ui/controllerStatePresenter.js";
 import { createBrowserPaintObserver } from "./ui/browserPaintObserver.js";
+import { createVisualViewportMetrics } from "./ui/visualViewportMetrics.js";
+import { createOntologyOverview } from "./ui/ontologyOverview.js";
+import { createAdaptiveDetailsSurface } from "./ui/adaptiveDetailsSurface.js";
+import { createEntityDetailsPresenter } from "./ui/entityDetailsPresenter.js";
+import { createSelectedOccurrencePreview } from "./ui/selectedOccurrencePreview.js";
 import { createD3RenderedGraphAdapter } from "../../webvowl/js/runtime/d3RenderedGraphAdapter.js";
 import { createRenderedGraphConfiguration } from "../../webvowl/js/runtime/renderedGraphConfiguration.js";
 import { createGraphLayoutSettler } from "./controller/graphLayoutSettler.js";
@@ -58,6 +63,11 @@ export function createWebVowlApplication({
   let loadingModule;
   let sidebar;
   let factsPresentation;
+  let ontologyOverview;
+  let detailsSurface;
+  let entityDetails;
+  let occurrencePreview;
+  let controllerStatePresenter;
   let warningModule;
 
   // Agent-neutral controller. Embedding hosts and WebMCP reach WebVOWL through
@@ -164,13 +174,14 @@ export function createWebVowlApplication({
   });
   const searchMenu = createSearchMenu({
     webVowlController,
-    onOntologyIriEntered: (iri) => ontologyMenu.setIriText(iri),
+    onOntologyIriEntered: (iri) => ontologyMenu.submitOntologySource(iri),
   });
   const resetMenu = createResetMenu({
     webVowlController,
     clearSearchPresentation: () => searchMenu.clearText(),
   });
   const viewControlsLifecycleController = new AbortController();
+  const visualViewportMetrics = createVisualViewportMetrics();
   createVisualizationViewControlsAdapter({
     controller: webVowlController,
     documentObject: document,
@@ -202,11 +213,20 @@ export function createWebVowlApplication({
     // registration can outlive what answers it.
     webMcpRegistration.dispose();
     viewControlsLifecycleController.abort();
+    visualViewportMetrics.dispose();
     nodesShownControl.dispose();
+    ontologyMenu.dispose();
     ontologyEditorSidebar?.dispose();
     directInputModule?.dispose();
     loadingModule?.dispose();
     factsPresentation?.dispose();
+    ontologyOverview?.dispose();
+    detailsSurface?.dispose();
+    entityDetails?.dispose();
+    occurrencePreview?.dispose();
+    controllerStatePresenter?.dispose();
+    sidebar.dispose();
+    leftSidebar.dispose();
     debugMenu.dispose();
     graphResizeObserver?.disconnect();
     graphResizeObserver = undefined;
@@ -356,7 +376,7 @@ export function createWebVowlApplication({
     debugFeatures,
   }) {
     if (sidebarVisibility !== undefined) {
-      sidebar.showSidebar(sidebarVisibility, true);
+      detailsSurface.applyShareLinkVisibility(sidebarVisibility);
     }
     if (editorMode !== undefined) {
       webVowlController.setOntologyEditorOptions({ isEditorMode: editorMode });
@@ -413,6 +433,11 @@ export function createWebVowlApplication({
       hideNavigationMenus: () => navigationMenu.hideAllMenus(),
       updateNavigationOverflow: () =>
         navigationMenu.updateScrollButtonVisibility(),
+      onToggleDetailsPanel: () => detailsSurface.toggleDetails(),
+    });
+    detailsSurface = createAdaptiveDetailsSurface({
+      setDockVisible: (value, suppress) => sidebar.showSidebar(value, suppress),
+      hideNavigationMenus: () => navigationMenu.hideAllMenus(),
     });
     warningModule = createWarningModule({ webVowlController });
   }
@@ -445,11 +470,29 @@ export function createWebVowlApplication({
     factsPresentation = createFactsPresentation?.({
       controller: webVowlController,
     });
+    ontologyOverview = createOntologyOverview({
+      controller: webVowlController,
+      openFacts: (invoker) => factsPresentation?.open(invoker),
+      reloadSource: () => ontologyMenu.reloadOntologySource(),
+      hideNavigationMenus: () => navigationMenu.hideAllMenus(),
+    });
+    entityDetails = createEntityDetailsPresenter({
+      controller: webVowlController,
+      surface: detailsSurface,
+      openFacts: (invoker) => factsPresentation?.open(invoker),
+      onPresentationChanged: () => occurrencePreview?.refresh(),
+      scheduleRefresh: () =>
+        controllerStatePresenter.refreshSelection(webVowlController.getState()),
+    });
+    occurrencePreview = createSelectedOccurrencePreview({
+      controller: webVowlController,
+    });
     // Presentation modules render controller state rather than being called
     // from inside the renderer, and each runs only when its own slice changed.
-    const controllerStatePresenter = createControllerStatePresenter({
+    controllerStatePresenter = createControllerStatePresenter({
       renderLoadState: (controllerState) => {
         loadingModule.renderControllerState(controllerState);
+        ontologyMenu.renderControllerState(controllerState);
         ontologyMenu.renderSourceReloadControl(controllerState.source, {
           hasReusedCachedVisualization:
             controllerState.hasReusedCachedVisualization,
@@ -460,9 +503,11 @@ export function createWebVowlApplication({
       // Details are described from the ontology the controller holds, so the
       // sidebar never reads a drawn element for a semantic fact.
       renderSelectedOntologyElementDetails: (elementDescriptions) =>
-        sidebar.renderSelectedOntologyElementDetails(elementDescriptions),
-      renderOntologySummary: (ontologySummary) =>
-        sidebar.renderOntologySummary(ontologySummary),
+        entityDetails.render(elementDescriptions),
+      renderOntologySummary: (ontologySummary) => {
+        sidebar.renderOntologySummary(ontologySummary);
+        ontologyOverview.renderSummary(ontologySummary);
+      },
       renderViewport: (zoomScale) => zoomSlider.renderViewport(zoomScale),
       renderTemporaryPresentation: (temporaryPresentation) =>
         searchMenu.renderTemporaryPresentation(temporaryPresentation),
@@ -472,9 +517,11 @@ export function createWebVowlApplication({
         modeMenu.syncEditorState(isEditorMode);
         leftSidebar.hideCollapseButton(!isEditorMode);
         leftSidebar.showSidebar(isEditorMode ? 1 : 0);
+        detailsSurface.renderEditorMode(isEditorMode);
+        entityDetails.renderEditorMode(isEditorMode);
       },
       describeOntologyElements: (descriptionRequest) =>
-        webVowlController.describeOntologyElements(descriptionRequest),
+        entityDetails.describe(descriptionRequest),
       readOntologySummary: () => webVowlController.getOntologySummary(),
     });
     unsubscribeFromControllerState = webVowlController.subscribeToState(
@@ -600,14 +647,15 @@ export function createWebVowlApplication({
       .getBoundingClientRect();
     const viewport = { width: bounds.width, height: bounds.height };
     const isTouch = Boolean(isTouchDevice());
-    const occludedLeftWidthPx = leftSidebar.isSidebarVisible()
-      ? Math.min(
-          bounds.width,
-          document
-            .querySelector("#containerForLeftSideBar")
-            .getBoundingClientRect().width,
-        )
-      : 0;
+    const occludedLeftWidthPx =
+      leftSidebar.isSidebarVisible() && window.innerWidth > 1024
+        ? Math.min(
+            bounds.width,
+            document
+              .querySelector("#containerForLeftSideBar")
+              .getBoundingClientRect().width,
+          )
+        : 0;
     webVowlController.resizeVisualizationViewport({
       widthPx: bounds.width,
       heightPx: bounds.height,

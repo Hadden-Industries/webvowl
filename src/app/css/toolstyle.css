@@ -1054,13 +1054,7 @@ main {
 }
 
 #logo {
-  /* padding: 10px; */
-  pointer-events: none;
-  position: fixed;
-  padding: calc(10px + var(--safe-area-top)) 10px 10px
-    calc(10px + var(--safe-area-left));
-
-  /* border: solid 1px red; */
+  padding: 8px;
 }
 
 #blockGraphInteractions {
@@ -1278,7 +1272,7 @@ main {
   height: 70vh;
 }
 
-#logo h1 {
+#logo .application-brand {
   margin: 0;
 
   font-size: 24px;
@@ -1287,28 +1281,28 @@ main {
   text-align: center;
 }
 
-#logo h1 span {
+#logo .application-brand span {
   /* font-size: min(2vmin, 24px); */
   font-size: 16px;
   color: #34495e;
 }
 
 @media screen and (height <= 800px) {
-  #logo h1 {
+  #logo .application-brand {
     font-size: calc(8px + 1vmin);
   }
 
-  #logo h1 span {
+  #logo .application-brand span {
     font-size: calc(3px + 1vmin);
   }
 }
 
 @media screen and (width <= 1200px) {
-  #logo h1 {
+  #logo .application-brand {
     font-size: calc(8px + 1vmin);
   }
 
-  #logo h1 span {
+  #logo .application-brand span {
     font-size: calc(3px + 1vmin);
   }
 }
@@ -2808,6 +2802,393 @@ main {
   margin-top: 0;
   padding-top: 0;
   border-top: 0;
+}
+
+#iri-converter-form.ontology-chooser {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ontology-title-bar {
+  position: absolute;
+  z-index: 2;
+  inset-block-start: calc(var(--safe-area-top) + 12px);
+  inset-inline-start: 12px;
+
+  display: flex;
+  gap: 8px;
+  align-items: center;
+
+  max-inline-size: calc(100% - 70px);
+  padding: 4px 8px;
+  border: 1px solid #34495e;
+  border-radius: 8px;
+
+  color: #f8fafc;
+
+  background: #18202a;
+}
+
+.entity-preview {
+  position: absolute;
+  z-index: 3;
+  inset: 0 auto auto 0;
+  transform: var(--entity-preview-transform, translate(12px, 64px));
+
+  overflow: auto;
+
+  box-sizing: border-box;
+  inline-size: min(340px, calc(100% - 24px));
+  max-block-size: min(450px, 40dvh);
+  padding: 16px;
+  border: 2px solid #93c5fd;
+  border-radius: 12px;
+
+  color: #e2e8f0;
+  overflow-wrap: anywhere;
+
+  background: #18202a;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 30%);
+}
+
+.entity-preview[hidden] {
+  display: none;
+}
+
+.entity-preview[data-shape="round"] {
+  border-radius: 24px;
+}
+
+.entity-preview h2 {
+  margin-block: 0 8px;
+  font-size: 16px;
+}
+
+.entity-preview p {
+  margin-block: 6px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.entity-preview-actions,
+.entity-role-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.entity-preview-actions {
+  position: sticky;
+  bottom: 0;
+  padding-block-start: 8px;
+  background: #18202a;
+}
+
+.entity-role-switcher {
+  margin: 8px 0;
+  padding: 0;
+  border: 0;
+}
+
+.entity-role-switcher legend {
+  margin-block-end: 6px;
+  font-size: 12px;
+}
+
+.entity-preview button,
+#entity-full-details button {
+  min-block-size: 44px;
+  padding: 8px 12px;
+  border: 1px solid #64748b;
+  border-radius: 6px;
+
+  font: inherit;
+  color: #f8fafc;
+
+  background: #263d56;
+}
+
+.entity-preview button:focus-visible,
+#entity-full-details :is(button, a):focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+.entity-role-switcher button[aria-pressed="true"] {
+  border-color: #93c5fd;
+  background: #355b82;
+}
+
+#entity-full-details {
+  overflow-wrap: anywhere;
+}
+
+#detailsArea #generalDetails {
+  padding: 12px;
+}
+
+#entity-full-details :is(dt, h3) {
+  margin-block: 16px 8px;
+  font-weight: 600;
+}
+
+#entity-full-details dd {
+  margin-inline-start: 12px;
+  line-height: 1.5;
+}
+
+#entity-full-details :is(a, .entity-relation-iri) {
+  display: block;
+  margin-block: 8px;
+  color: #93c5fd;
+}
+
+@media (width <= 1024px) {
+  .entity-preview {
+    inline-size: calc(100% - 24px);
+    max-block-size: calc(var(--visual-viewport-height, 100dvh) * 0.4);
+  }
+}
+
+#ontology-title-chip {
+  overflow: hidden;
+
+  max-inline-size: 30ch;
+  margin: 0;
+
+  font: inherit;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ontology-dialog {
+  box-sizing: border-box;
+  inline-size: min(680px, calc(100% - 24px));
+  max-inline-size: calc(100% - 24px);
+  max-block-size: calc(var(--visual-viewport-height, 100dvh) - 24px);
+  padding: 20px;
+  border: 1px solid #64748b;
+  border-radius: 12px;
+
+  color: #e2e8f0;
+  overflow-wrap: anywhere;
+
+  background: #18202a;
+}
+
+.ontology-dialog::backdrop {
+  background: rgb(8 15 24 / 65%);
+}
+
+.ontology-dialog-heading,
+.ontology-dialog-actions,
+.entity-inspector-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ontology-dialog h2,
+.ontology-dialog h3 {
+  margin-block: 16px 8px;
+  font-size: 1.125rem;
+}
+
+.ontology-dialog :is(button, select),
+.ontology-title-bar button,
+.entity-inspector-header button {
+  min-block-size: 44px;
+  padding: 8px 12px;
+  border: 1px solid #64748b;
+  border-radius: 6px;
+
+  font: inherit;
+  color: #f8fafc;
+
+  background: #263d56;
+}
+
+.ontology-dialog :is(button, a, select, input, textarea):focus-visible,
+.ontology-title-bar button:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+.ontology-dialog a {
+  color: #93c5fd;
+}
+
+.ontology-dialog :is(dd, p) {
+  margin-block: 8px;
+  line-height: 1.5;
+}
+
+.ontology-dialog dd {
+  margin-inline-start: 16px;
+}
+
+.ontology-dialog .accordion-container {
+  max-block-size: none;
+}
+
+#entity-details-dialog .entity-inspector-header {
+  display: none;
+}
+
+.ontology-editor-dialog {
+  block-size: calc(var(--visual-viewport-height, 100dvh) - 24px);
+}
+
+#ontology-editor-body
+  :is(#containerForLeftSideBar, #leftSideBar, #leftSideBarContent) {
+  position: static;
+  transform: none;
+  inline-size: 100%;
+  max-block-size: none;
+}
+
+@media (width <= 600px) {
+  .ontology-dialog {
+    padding: 12px;
+  }
+
+  #ontology-title-chip {
+    max-inline-size: 16ch;
+    font-size: 13px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #detailsArea,
+  #canvasArea,
+  #containerForLeftSideBar,
+  #leftSideBarContent {
+    transition: none;
+  }
+}
+
+.ontology-source-input {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ontology-source-input #iri-converter-input {
+  flex: 1 1 100%;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 44px;
+
+  font-size: 16px;
+}
+
+.ontology-chooser button {
+  min-inline-size: 44px;
+  min-block-size: 44px;
+}
+
+.ontology-source-summary {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #e2e8f0;
+  overflow-wrap: anywhere;
+}
+
+.ontology-suggestions {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  max-block-size: min(22rem, 35dvh);
+  border-block-start: 1px solid #64748b;
+}
+
+.ontology-suggestion-group {
+  padding: 12px 8px 4px;
+  font-size: 12px;
+  color: #cbd5e1;
+}
+
+.ontology-suggestion {
+  cursor: pointer;
+
+  box-sizing: border-box;
+  min-block-size: 44px;
+  padding: 8px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+
+  overflow-wrap: anywhere;
+}
+
+.ontology-suggestion-title,
+.ontology-suggestion-url,
+.ontology-suggestion-badge {
+  display: block;
+  line-height: 1.5;
+}
+
+.ontology-suggestion-title {
+  font-size: 14px;
+  color: #f8fafc;
+}
+
+.ontology-suggestion-badge {
+  font-size: 12px;
+  color: #cbd5e1;
+}
+
+.ontology-suggestion-url {
+  font-family: monospace;
+  font-size: 12px;
+  color: #cbd5e1;
+}
+
+.ontology-suggestion-selected {
+  display: block;
+  font-size: 12px;
+}
+
+.ontology-suggestion-active {
+  border-color: #93c5fd;
+  background: #263d56;
+}
+
+.ontology-chooser :is(input, button, a):focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+#m_select .ontology-example-notices {
+  min-block-size: 24px;
+  padding: 4px 0;
+
+  font-size: 12px;
+  color: #cbd5e1;
+  text-decoration: underline;
+}
+
+#m_select {
+  bottom: max(
+    8px,
+    calc(
+      100dvh - var(--visual-viewport-height) -
+        var(--visual-viewport-offset-top) + 8px
+    )
+  );
+  max-block-size: calc(var(--visual-viewport-height) - 24px);
+}
+
+@media (forced-colors: active) {
+  .ontology-suggestion-active {
+    border-color: Highlight;
+  }
+
+  .ontology-chooser :is(input, button, a):focus-visible {
+    outline-color: Highlight;
+  }
 }
 
 #emptyContainer {
