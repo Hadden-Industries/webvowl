@@ -8,7 +8,14 @@ import { createPropertyMap as createPropertyPrototypeMapModule } from "../elemen
 import { createOntologyEditingState } from "../../../shared/js/ontologyEditingState.js";
 import { createRenderedGraphSettings } from "./renderedGraphSettings.js";
 import { RENDERED_GRAPH_CONFIGURATION_DEFAULTS } from "./renderedGraphConfiguration.js";
-import { createCanonicalRenderElements } from "../parsing/canonicalRenderElements.js";
+import {
+  createCanonicalRenderElements,
+  installCanonicalRenderPlacements,
+} from "../parsing/canonicalRenderElements.js";
+import {
+  canReuseCanonicalDrawing,
+  readDrawingPresentation,
+} from "./canonicalDrawingReuse.js";
 import { createClassDragger } from "../classDragger.js";
 import { createRangeDragger } from "../rangeDragger.js";
 import { createDomainDragger } from "../domainDragger.js";
@@ -256,6 +263,8 @@ function createGraph(
   let labelContainer;
   let cardinalityContainer;
   let linkContainer;
+  let markerContainer;
+  let draggerPathLayer;
   // Visual elements
   let nodeElements;
   let initialLoad = true;
@@ -271,6 +280,9 @@ function createGraph(
   let properties;
   let unfilteredData;
   let canonicalElements;
+  let acceptedDrawing;
+  let drawingPresentation;
+  let liveCanonicalPrimitives = new Set();
   // Graph behaviour
   let force;
 
@@ -778,23 +790,41 @@ function createGraph(
     graphContainer?.interrupt();
     graphContainer?.selectAll("*").interrupt();
     clearTimeout(delayedHider);
+    clearAllHover();
+    retireEditorOwnership();
   };
 
   graph.clearRenderedGraph = function () {
     canonicalElements = undefined;
+    acceptedDrawing = undefined;
+    drawingPresentation = undefined;
+    liveCanonicalPrimitives.clear();
+    focuser.retainOnly(liveCanonicalPrimitives);
     unfilteredData = { nodes: [], properties: [] };
     classNodes = [];
     labelNodes = [];
     properties = [];
+    links = [];
     force.nodes([]);
     force.links([]);
     graphContainer?.selectAll("*").remove();
     graphContainer?.classed("is-render-pending", false);
+    nodeElements =
+      labelGroupElements =
+      cardinalityElements =
+      linkGroups =
+      linkPathElements =
+        undefined;
+    renderedGraphSettings.colorExternalsModule().filter([], []);
   };
 
   graph.dispose = function () {
     graph.retireRenderGeneration();
+    graph.clearRenderedGraph();
   };
+
+  graph.isRenderedOccurrenceCurrent = (element) =>
+    hasActiveRenderInteractions && liveCanonicalPrimitives.has(element);
 
   // Renderer-owned warning channel. Element modules raise a bounded code and
   // message here instead of reaching into a presentation module; the rendered
@@ -1665,7 +1695,14 @@ function createGraph(
   }
 
   function addClickEvents() {
+    const epoch = renderInteractionEpoch;
     nodeElements.on("click", function (event, clickedNode) {
+      if (
+        epoch !== renderInteractionEpoch ||
+        !graph.isRenderedOccurrenceCurrent(clickedNode)
+      ) {
+        return;
+      }
       executeModules(clickedNode, event);
 
       // manual double clicker // helper for iphone 6 etc...
@@ -1678,6 +1715,12 @@ function createGraph(
     });
 
     nodeElements.on("dblclick", function (event, clickedNode) {
+      if (
+        epoch !== renderInteractionEpoch ||
+        !graph.isRenderedOccurrenceCurrent(clickedNode)
+      ) {
+        return;
+      }
       event.stopPropagation();
       if (editMode === true) {
         clickedNode.raiseDoubleClickEdit(defaultIriValue(clickedNode));
@@ -1687,6 +1730,12 @@ function createGraph(
     labelGroupElements
       .selectAll(".label")
       .on("click", function (event, clickedProperty) {
+        if (
+          epoch !== renderInteractionEpoch ||
+          !graph.isRenderedOccurrenceCurrent(clickedProperty)
+        ) {
+          return;
+        }
         executeModules(clickedProperty, event);
 
         // this is for enviroments that do not define dblClick function;
@@ -1742,6 +1791,12 @@ function createGraph(
     labelGroupElements
       .selectAll(".label")
       .on("dblclick", function (event, clickedProperty) {
+        if (
+          epoch !== renderInteractionEpoch ||
+          !graph.isRenderedOccurrenceCurrent(clickedProperty)
+        ) {
+          return;
+        }
         event.stopPropagation();
         if (editMode === true) {
           clickedProperty.raiseDoubleClickEdit(
@@ -1981,19 +2036,23 @@ function createGraph(
     return unfilteredData;
   };
 
-  function redrawContent() {
+  function redrawContent(reuse = false) {
     if (!graphContainer) {
       return;
     }
-    return withTextLayoutBatch(
-      graphContainer.node().ownerDocument,
-      drawContent,
+    if (!reuse) {
+      drawingPresentation = undefined;
+    }
+    return withTextLayoutBatch(graphContainer.node().ownerDocument, () =>
+      drawContent(reuse),
     );
   }
 
-  function drawContent() {
+  function drawContent(reuse) {
     // Empty the graph container
-    graphContainer.selectAll("*").remove();
+    if (!reuse) {
+      graphContainer.selectAll("*").remove();
+    }
     const labels = new Set([
       ...(classNodes ?? []),
       ...(labelNodes ?? []).flatMap((label) => [
@@ -2009,6 +2068,9 @@ function createGraph(
       if (!element) {
         continue;
       }
+      if (reuse && !canonicalElements.dirty.has(element)) {
+        continue;
+      }
       requests.push(
         { text: element.labelForCurrentLanguage(), textStyle: "text" },
         { text: element.equivalentsString?.(), textStyle: "text" },
@@ -2021,35 +2083,85 @@ function createGraph(
     }
     return textTools.withMeasurementBatch(
       requests,
-      drawMeasuredContent,
+      () => drawMeasuredContent(reuse),
       graphContainer.node().ownerDocument,
     );
   }
 
-  function drawMeasuredContent() {
-    let markerContainer;
-
-    // Last container -> elements of this container overlap others
-    linkContainer = graphContainer.append("g").classed("linkContainer", true);
-    cardinalityContainer = graphContainer
+  const primitiveKey = (element) =>
+    JSON.stringify([element.type(), element.id()]);
+  function bindPrimitiveGroups(container, selector, data, key, className) {
+    const update = container
+      .selectAll(function () {
+        return Array.from(this.childNodes).filter(
+          (node) =>
+            node.nodeType === 1 &&
+            (node.getAttribute("class") ?? "")
+              .split(/\s+/)
+              .includes(selector.slice(1)),
+        );
+      })
+      .data(data, key);
+    update
+      .exit()
+      .each(function (element) {
+        d3.select(this).interrupt().on(".drag", null);
+        d3.select(this).selectAll("*").interrupt();
+        if (className === "link") {
+          element.property().markerElement()?.remove();
+          element.inverse()?.markerElement()?.remove();
+        }
+      })
+      .remove();
+    const result = update
+      .enter()
       .append("g")
-      .classed("cardinalityContainer", true);
-    labelContainer = graphContainer.append("g").classed("labelContainer", true);
-    nodeContainer = graphContainer.append("g").classed("nodeContainer", true);
+      .classed(className, true)
+      .merge(update);
+    // The same keyed join also restores canonical order after hover foregrounding.
+    // Move only out-of-order children, retaining unchanged DOM and native text.
+    orderChildren(container, result.nodes());
+    return result;
+  }
 
-    // adding editing Elements
-    const draggerPathLayer = graphContainer
-      .append("g")
-      .classed("linkContainer", true);
-    draggerLayer = graphContainer.append("g").classed("editContainer", true);
-    editContainer = graphContainer.append("g").classed("editContainer", true);
+  function orderChildren(container, ordered) {
+    for (let index = ordered.length - 1; index >= 0; index--) {
+      const next = ordered[index + 1] ?? null;
+      if (ordered[index].nextSibling !== next) {
+        container.node().insertBefore(ordered[index], next);
+      }
+    }
+  }
 
-    draggerPathLayer.classed("hidden-in-export", true);
-    editContainer.classed("hidden-in-export", true);
-    draggerLayer.classed("hidden-in-export", true);
+  function drawMeasuredContent(reuse) {
+    if (!reuse) {
+      // Last container -> elements of this container overlap others
+      linkContainer = graphContainer.append("g").classed("linkContainer", true);
+      cardinalityContainer = graphContainer
+        .append("g")
+        .classed("cardinalityContainer", true);
+      labelContainer = graphContainer
+        .append("g")
+        .classed("labelContainer", true);
+      nodeContainer = graphContainer.append("g").classed("nodeContainer", true);
 
-    // Add an extra container for all markers
-    markerContainer = linkContainer.append("defs");
+      // adding editing Elements
+      draggerPathLayer = graphContainer
+        .append("g")
+        .classed("linkContainer", true);
+      draggerLayer = graphContainer.append("g").classed("editContainer", true);
+      editContainer = graphContainer.append("g").classed("editContainer", true);
+
+      draggerPathLayer.classed("hidden-in-export", true);
+      editContainer.classed("hidden-in-export", true);
+      draggerLayer.classed("hidden-in-export", true);
+
+      // Add an extra container for all markers
+      markerContainer = linkContainer.append("defs");
+    }
+    draggerPathLayer.selectAll("*").remove();
+    draggerLayer.selectAll("*").remove();
+    editContainer.selectAll("*").remove();
     const drElement = draggerLayer
       .selectAll(".node")
       .data(draggerObjectsArray)
@@ -2075,7 +2187,9 @@ function createGraph(
     generateEditElements();
 
     // Add an extra container for all markers
-    markerContainer = linkContainer.append("defs");
+    if (!reuse) {
+      markerContainer = linkContainer.append("defs");
+    }
 
     // Draw nodes
 
@@ -2083,34 +2197,48 @@ function createGraph(
       classNodes = [];
     }
 
-    nodeElements = nodeContainer
-      .selectAll(".node")
-      .data(classNodes)
-      .enter()
-      .append("g")
-      .classed("node", true)
+    nodeElements = bindPrimitiveGroups(
+      nodeContainer,
+      ".node",
+      classNodes,
+      primitiveKey,
+      "node",
+    )
       .attr("id", function (d) {
         return d.id();
       })
       .call(dragBehaviour);
     nodeElements.each(function (node) {
+      if (reuse && !canonicalElements.dirty.has(node)) {
+        return;
+      }
+      d3.select(this).selectAll("*").remove();
       node.draw(d3.select(this));
     });
+    nodeElements.each((node) => node.addMouseListeners());
 
     if (labelNodes === undefined) {
       labelNodes = [];
     }
 
     // Draw label groups (property + inverse)
-    labelGroupElements = labelContainer
-      .selectAll(".labelGroup")
-      .data(labelNodes)
-      .enter()
-      .append("g")
-      .classed("labelGroup", true)
-      .call(dragBehaviour);
+    labelGroupElements = bindPrimitiveGroups(
+      labelContainer,
+      ".labelGroup",
+      labelNodes.filter((label) => label.property().labelVisible()),
+      (label) => primitiveKey(label.property()),
+      "labelGroup",
+    ).call(dragBehaviour);
 
     labelGroupElements.each(function (label) {
+      if (
+        reuse &&
+        this.childNodes.length &&
+        !canonicalElements.dirty.has(label.property())
+      ) {
+        return;
+      }
+      d3.select(this).selectAll("*").remove();
       const success = label.draw(d3.select(this));
       label.property().labelObject(label);
       // Remove empty groups without a label.
@@ -2118,6 +2246,7 @@ function createGraph(
         d3.select(this).remove();
       }
     });
+    labelGroupElements.each((label) => label.property().addMouseListeners());
     // Place subclass label groups on the bottom of all labels
     labelGroupElements.each(function (label) {
       // the label might be hidden e.g. in compact notation
@@ -2134,14 +2263,23 @@ function createGraph(
       properties = [];
     }
     // Draw cardinality elements
-    cardinalityElements = cardinalityContainer
-      .selectAll(".cardinality")
-      .data(properties)
-      .enter()
-      .append("g")
-      .classed("cardinality", true);
+    cardinalityElements = bindPrimitiveGroups(
+      cardinalityContainer,
+      ".cardinality",
+      properties.filter((property) => property.generateCardinalityText()),
+      primitiveKey,
+      "cardinality",
+    );
 
     cardinalityElements.each(function (property) {
+      if (
+        reuse &&
+        this.childNodes.length &&
+        !canonicalElements.dirty.has(property)
+      ) {
+        return;
+      }
+      d3.select(this).selectAll("*").remove();
       const success = property.drawCardinality(d3.select(this));
 
       // Remove empty groups without a label.
@@ -2153,16 +2291,37 @@ function createGraph(
     if (links === undefined) {
       links = [];
     }
-    linkGroups = linkContainer
-      .selectAll(".link")
-      .data(links)
-      .enter()
-      .append("g")
-      .classed("link", true);
+    if (reuse) {
+      const currentProperties = new Set(properties);
+      markerContainer
+        .selectAll("marker")
+        .filter((property) => !currentProperties.has(property))
+        .remove();
+    }
+    linkGroups = bindPrimitiveGroups(
+      linkContainer,
+      ".link",
+      links,
+      (link) => primitiveKey(link.property()),
+      "link",
+    );
 
     linkGroups.each(function (link) {
+      if (reuse && link.pathObj()?.node()?.parentNode === this) {
+        return;
+      }
+      d3.select(this).selectAll("*").remove();
       link.draw(d3.select(this), markerContainer);
     });
+    orderChildren(
+      markerContainer,
+      links.flatMap((link) =>
+        [link.property(), link.inverse()].flatMap((property) => {
+          const marker = property?.markerElement()?.node();
+          return marker?.parentNode === markerContainer.node() ? [marker] : [];
+        }),
+      ),
+    );
     linkPathElements = linkGroups.selectAll("path");
     // Select the path for direct access to receive a better performance
     addClickEvents();
@@ -2264,7 +2423,7 @@ function createGraph(
     }
   };
 
-  function prepareCanonicalDrawing(drawing) {
+  function prepareCanonicalDrawing(drawing, sameRevision = false) {
     const { center, zoom: scale } = drawing.camera;
     const translation = [
       renderedGraphSettings.width() / 2 - scale * center.x,
@@ -2280,8 +2439,30 @@ function createGraph(
         "Canonical camera cannot be represented in this viewport.",
       );
     }
+    const presentation = readDrawingPresentation(
+      graphContainerElement.ownerDocument,
+    );
+    const reuse =
+      sameRevision &&
+      canonicalElements &&
+      ![...canonicalElements.nodes, ...canonicalElements.properties].some(
+        (element) => element.editingTextElement,
+      ) &&
+      canReuseCanonicalDrawing(
+        acceptedDrawing,
+        drawing,
+        drawingPresentation,
+        presentation,
+      );
     return {
-      elements: createCanonicalRenderElements(graph, drawing),
+      elements: createCanonicalRenderElements(
+        graph,
+        drawing,
+        reuse ? canonicalElements : undefined,
+      ),
+      drawing: structuredClone(drawing),
+      presentation,
+      reuse,
       scale,
       translation,
     };
@@ -2301,6 +2482,7 @@ function createGraph(
     // Validate and materialize the canonical drawing before retiring mounted data.
     const candidate = prepareCanonicalDrawing(canonicalDrawing);
     canonicalElements = candidate.elements;
+    acceptedDrawing = candidate.drawing;
     applyCanonicalDisplay(canonicalDrawing.display);
     paused = isPaused;
     // Native drag/zoom closures retain active gesture bookkeeping. Each mount
@@ -2349,16 +2531,21 @@ function createGraph(
       }
     }
     graph.setViewportTransform(candidate.scale, candidate.translation);
+    drawingPresentation = candidate.presentation;
   };
 
-  graph.applyCanonicalDrawingRevision = function (drawing) {
+  graph.applyCanonicalDrawingRevision = function (
+    drawing,
+    { sameRevision = false } = {},
+  ) {
     if (!canonicalElements) {
       throw new Error("No canonical drawing is mounted.");
     }
     // Validate and materialize before invalidating the current interactions.
-    const candidate = prepareCanonicalDrawing(drawing);
+    const candidate = prepareCanonicalDrawing(drawing, sameRevision);
     const previous = {
-      elements: canonicalElements,
+      drawing: acceptedDrawing,
+      state: graph.readCanonicalDrawingState(),
       scale: zoomFactor,
       translation: [...graphTranslation],
       display: {
@@ -2375,17 +2562,21 @@ function createGraph(
     bindViewportInteractions();
     clearAllHover();
     removeEditElements();
+    retireEditorOwnership();
     function install(prepared, display) {
       canonicalElements = prepared.elements;
+      acceptedDrawing = prepared.drawing;
+      installCanonicalRenderPlacements(prepared.elements);
       unfilteredData = {
         nodes: prepared.elements.nodes,
         properties: prepared.elements.properties,
       };
       applyCanonicalDisplay(display);
       refreshOntologyMetadata();
-      refreshGraphData();
-      drawCurrentGraphData();
+      refreshGraphData(prepared.reuse);
+      drawCurrentGraphData(prepared.reuse);
       graph.setViewportTransform(prepared.scale, prepared.translation);
+      drawingPresentation = prepared.presentation;
     }
     try {
       install(candidate, drawing.display);
@@ -2394,7 +2585,26 @@ function createGraph(
       // primitives. Reinstall the accepted primitives, including their live
       // placement and pin state, before reporting the failed revision.
       try {
-        install(previous, previous.display);
+        const recoveredDrawing = structuredClone(previous.drawing);
+        const placements = new Map(
+          previous.state.placements.map((placement) => [
+            placement.occurrence,
+            placement,
+          ]),
+        );
+        for (const row of [
+          ...recoveredDrawing.nodes,
+          ...recoveredDrawing.labels,
+        ]) {
+          const placement = placements.get(row.occurrence);
+          if (placement) {
+            row.position = placement.position;
+            row.pinned = placement.pinned;
+          }
+        }
+        recoveredDrawing.camera = previous.state.camera;
+        const recovered = prepareCanonicalDrawing(recoveredDrawing);
+        install(recovered, previous.display);
       } catch (recoveryError) {
         const failure = new AggregateError(
           [error, recoveryError],
@@ -2513,13 +2723,13 @@ function createGraph(
     drawCurrentGraphData();
   };
 
-  function drawCurrentGraphData() {
+  function drawCurrentGraphData(reuse = false) {
     // update node map
     updateNodeMap();
 
     refreshGraphStyle();
     force.start();
-    redrawContent();
+    redrawContent(reuse);
     graph.updatePulseIds(nodeArrayForPulse);
     updateHaloStyles();
     // Rebuilding the SVG must draw the current arrangement immediately. A
@@ -2528,6 +2738,7 @@ function createGraph(
     if (paused) {
       force.stop();
     }
+    canonicalElements?.dirty.clear();
   }
 
   graph.paused = function (p) {
@@ -2672,15 +2883,32 @@ function createGraph(
   }
 
   // Visibility and topology have already been resolved by the canonical scene.
-  function refreshGraphData() {
+  function refreshGraphData(reuse = false) {
     classNodes = unfilteredData.nodes;
     properties = unfilteredData.properties;
+    liveCanonicalPrimitives = new Set([...classNodes, ...properties]);
+    focuser.retainOnly(liveCanonicalPrimitives);
+    const colors = reuse
+      ? new Map(
+          [...liveCanonicalPrimitives].map((element) => [
+            element,
+            String(element.backgroundColor()),
+          ]),
+        )
+      : undefined;
     renderedGraphSettings.colorExternalsModule().filter(classNodes, properties);
-    refreshLinksAndLabels();
+    if (colors) {
+      for (const element of liveCanonicalPrimitives) {
+        if (colors.get(element) !== String(element.backgroundColor())) {
+          canonicalElements.dirty.add(element);
+        }
+      }
+    }
+    refreshLinksAndLabels(reuse);
   }
 
-  function refreshLinksAndLabels() {
-    links = linkCreator.createLinks(properties);
+  function refreshLinksAndLabels(reuse) {
+    links = linkCreator.createLinks(properties, reuse ? links : undefined);
     labelNodes = links.map(function (link) {
       return link.label();
     });
@@ -3550,6 +3778,16 @@ function createGraph(
         hoveredPropertyElement.frozen(graph.paused());
       }
     }
+  }
+
+  function retireEditorOwnership() {
+    clearTimeout(delayedHider);
+    for (const dragger of draggerObjectsArray) {
+      dragger.parent = undefined;
+      dragger.mouseButtonPressed = false;
+    }
+    draggingStarted = false;
+    ignoreOtherHoverEvents = false;
   }
 
   graph.editorMode = function (val) {

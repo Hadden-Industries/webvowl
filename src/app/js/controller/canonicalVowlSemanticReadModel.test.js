@@ -344,6 +344,51 @@ test("internal reads remain complete while public search and focus preserve thei
   }
 });
 
+test("bounded search limits neighborhood cloning before expanding an admitted equivalence group", async () => {
+  const h = await canonicalControllerHarness();
+  const clone = globalThis.structuredClone;
+  try {
+    const count = 128;
+    const names = Array.from({ length: count }, (_, i) => `<urn:C${i}>`);
+    await h.controller.loadOntology({
+      source: {
+        kind: "ontology-text",
+        documentIri: "urn:bounded-neighborhood",
+        format: "functional",
+        text: `Ontology(<urn:bounded-neighborhood> ${names.map((name) => `Declaration(Class(${name}))`).join(" ")} EquivalentClasses(${names.join(" ")}))`,
+      },
+    });
+    const copiedNeighborhoodSizes = [];
+    globalThis.structuredClone = (value, ...options) => {
+      if (Array.isArray(value?.equivalentClassReferences)) {
+        copiedNeighborhoodSizes.push(value.equivalentClassReferences.length);
+      }
+      return clone(value, ...options);
+    };
+    const result = h.controller.findOntologyElements({
+      query: "urn:C",
+      limit: 10,
+      includeNeighborhood: true,
+    });
+    globalThis.structuredClone = clone;
+    expect(result.matches).toHaveLength(10);
+    expect(result.totalMatchCount).toBe(count);
+    expect(result.optionalFactsTruncated).toBe(true);
+    expect(copiedNeighborhoodSizes).toHaveLength(10);
+    expect(Math.max(...copiedNeighborhoodSizes)).toBeLessThanOrEqual(
+      WEB_VOWL_OPERATION_LIMITS.maxFocusReferences,
+    );
+    for (const match of result.matches) {
+      expect(match.neighborhoodFacts.equivalentClassReferences).toHaveLength(
+        WEB_VOWL_OPERATION_LIMITS.maxFocusReferences,
+      );
+    }
+  } finally {
+    globalThis.structuredClone = clone;
+    h.controller.dispose();
+  }
+});
+
 test.each(["foaf", "goodrelations", "benchmark"])(
   "prepared queries preserve direct inspection on the shipped %s corpus",
   async (name) => {

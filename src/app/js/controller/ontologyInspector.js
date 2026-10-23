@@ -11,6 +11,11 @@ import { selectVowlLabel } from "./vowlDisplayProjector.js";
 
 const languageTools = createLanguageTools();
 
+// A semantic match can expose complete facts on demand while the public adapter
+// asks the same reader for a bounded copy. Weak ownership cannot retain a result
+// or its captured revision after the caller releases it.
+const searchNeighborhoodReaders = new WeakMap();
+
 const RECORD_COLLECTION_FIELD_NAMES_BY_KIND = Object.freeze({
   class: "classRecords",
   datatype: "datatypeRecords",
@@ -287,12 +292,22 @@ function indexLabelTextsByReferenceKey(ontologyInspectionSnapshot) {
   return labelTextsByReferenceKey;
 }
 
-function createNeighborhoodFacts(elementRecord, kind, snapshot) {
+function createNeighborhoodFacts(
+  elementRecord,
+  kind,
+  snapshot,
+  maximumEntryCount,
+  truncationTracker,
+) {
   const neighborhoodFacts = {};
   for (const neighborhoodFieldName of NEIGHBORHOOD_FIELD_NAMES_BY_KIND[kind]) {
-    neighborhoodFacts[neighborhoodFieldName] = Object.freeze([
-      ...relationReferences(elementRecord, neighborhoodFieldName, snapshot),
-    ]);
+    neighborhoodFacts[neighborhoodFieldName] = Object.freeze(
+      boundResultCollection(
+        relationReferences(elementRecord, neighborhoodFieldName, snapshot),
+        maximumEntryCount,
+        truncationTracker,
+      ),
+    );
   }
   return Object.freeze(neighborhoodFacts);
 }
@@ -511,18 +526,23 @@ function findOntologyElements(
       // A public page may retain only a few matches. Keep the full answer lazy
       // so omitted matches do not expand every equivalence group first.
       let facts;
+      const readFacts = (maximumEntryCount, truncationTracker) =>
+        Object.freeze(
+          structuredClone(
+            createNeighborhoodFacts(
+              elementRecord,
+              kind,
+              ontologyInspectionSnapshot,
+              maximumEntryCount,
+              truncationTracker,
+            ),
+          ),
+        );
+      searchNeighborhoodReaders.set(match, readFacts);
       Object.defineProperty(match, "neighborhoodFacts", {
         enumerable: true,
         get() {
-          facts ??= Object.freeze(
-            structuredClone(
-              createNeighborhoodFacts(
-                elementRecord,
-                kind,
-                ontologyInspectionSnapshot,
-              ),
-            ),
-          );
+          facts ??= readFacts();
           return facts;
         },
       });
@@ -782,30 +802,37 @@ export function boundOntologySearchResult(result, { limit, offset = 0 } = {}) {
     result.matches.slice(offset),
     matchLimit,
     truncation,
-  ).map((match) =>
-    Object.freeze({
-      ...match,
+  ).map((match) => {
+    const readNeighborhood = searchNeighborhoodReaders.get(match);
+    // Do not spread the match: that would evaluate the complete-facts getter
+    // before the public limit can stop the relation iterator.
+    const neighborhoodFacts = readNeighborhood
+      ? readNeighborhood(WEB_VOWL_OPERATION_LIMITS.maxFocusReferences, optional)
+      : match.neighborhoodFacts;
+    return Object.freeze({
+      ontologyElementReference: match.ontologyElementReference,
+      kind: match.kind,
       displayLabel: boundOntologyDerivedText(match.displayLabel, optional),
-      ...(match.neighborhoodFacts
+      iri: match.iri,
+      isFocusable: match.isFocusable,
+      ...(neighborhoodFacts
         ? {
             neighborhoodFacts: Object.freeze(
               Object.fromEntries(
-                Object.entries(match.neighborhoodFacts).map(
-                  ([field, values]) => [
-                    field,
-                    boundResultCollection(
-                      values,
-                      WEB_VOWL_OPERATION_LIMITS.maxFocusReferences,
-                      optional,
-                    ),
-                  ],
-                ),
+                Object.entries(neighborhoodFacts).map(([field, values]) => [
+                  field,
+                  boundResultCollection(
+                    values,
+                    WEB_VOWL_OPERATION_LIMITS.maxFocusReferences,
+                    optional,
+                  ),
+                ]),
               ),
             ),
           }
         : {}),
-    }),
-  );
+    });
+  });
   return Object.freeze({
     loadGeneration: result.loadGeneration,
     matches: Object.freeze(matches),

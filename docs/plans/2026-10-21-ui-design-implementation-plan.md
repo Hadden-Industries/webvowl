@@ -1,6 +1,7 @@
 # WebVOWL UI design implementation plan
 
-> **Status:** Draft revision 3, 21 October 2026; included in the authorized documentation commit; acceptance and open-decision review remain deferred until architecture and performance are implemented.
+> **Status:** Draft revision 4, 23 October 2026; UI acceptance and implementation remain unapproved.
+> The owner requires GPT-6.1 Sol on High for this stage and a pause at the performance handoff if this chat cannot switch itself.
 > **Sequence:** Plan 3 of 3, after architecture and performance.
 > **Basis:** [UI design review](../reviews/20261020-ui-design-review.md), including its requirements, wireframes and section 17 reconciliation.
 > **Method:** HISEW implementation planning with a draft change dossier, proposed risk route, decision gates, quality scenarios and traceability.
@@ -17,15 +18,20 @@ The owner subsequently authorized including this document in the first commit on
 That delivery instruction does not approve UI implementation or resolve any UI decision.
 Follow the [authorized delivery checkpoints](2026-10-21-architecture-implementation-plan.md#authorized-delivery-checkpoints) and return to the owner after the first two implementations.
 
-| Baseline item             | Recorded identity                                                                                                    |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| Planning checkout         | `C:/Users/maksy/GitHub/webvowl`, `main`                                                                              |
-| Planning HEAD             | `37fd52759f231d3c1b4794f15b5c599f717b0ddc`                                                                           |
-| Review's source HEAD      | `62961414530e141f8f79ec369afee2d68b9036a6`                                                                           |
-| UI review SHA-256         | `e732d80d688847a76bed36f7cc5a7ec60df2c08ae6fac401d4abd2baf3568fb7`                                                   |
-| Planning lockfile SHA-256 | `6c137dc6f69bfb4f70cc5db0ef4d7997fd76a1fc3544d33605612a733c49c458`                                                   |
-| Source reconciliation     | No changes under `src/`, `packages/`, `util/` or `docs/adr/` since review source; dependencies/lockfile have changed |
-| Implementation baseline   | To be recorded after performance completion; not predicted here                                                      |
+On 23 October, the owner required GPT-6.1 Sol with High reasoning for the UI stage, with performance publication and its records finished before any model-switch pause.
+The calling chat has no supported tool to change its own model, so UI acceptance work and implementation must wait for the owner's model selection and resumption.
+The [performance handoff](2026-10-23-performance-final-handoff.md) records the delivered contracts, verification, review dispositions and retained limits.
+That handoff is the new source context for revisiting this draft; it does not accept DEC-001–021.
+
+| Baseline item             | Recorded identity                                                                                                                                                                                                   |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Planning checkout         | `C:/Users/maksy/GitHub/webvowl`, `main`                                                                                                                                                                             |
+| Planning HEAD             | `37fd52759f231d3c1b4794f15b5c599f717b0ddc`                                                                                                                                                                          |
+| Review's source HEAD      | `62961414530e141f8f79ec369afee2d68b9036a6`                                                                                                                                                                          |
+| UI review SHA-256         | `e732d80d688847a76bed36f7cc5a7ec60df2c08ae6fac401d4abd2baf3568fb7`                                                                                                                                                  |
+| Planning lockfile SHA-256 | `6c137dc6f69bfb4f70cc5db0ef4d7997fd76a1fc3544d33605612a733c49c458`                                                                                                                                                  |
+| Source reconciliation     | No changes under `src/`, `packages/`, `util/` or `docs/adr/` since review source; dependencies/lockfile have changed                                                                                                |
+| Implementation baseline   | The final performance commit containing the [handoff record](2026-10-23-performance-final-handoff.md), following `528d8b821eb143b88fd761b4b4fa69647c983eab`; use its published OID from the final delivery readback |
 
 The [architecture plan](2026-10-21-architecture-implementation-plan.md) must complete first, then the [performance plan](2026-10-21-performance-implementation-plan.md).
 This includes their explicit gate dispositions, not merely elapsed work.
@@ -39,7 +45,8 @@ Required inherited facts:
 - Lifecycle ownership, transient-view selection clearing and retryable `LOAD_PENDING`.
 - Published `temporaryPresentation` and isolated subscriber failures.
 - Canonical-only renderer.
-- The actual S2 describe/summary/focus ownership contract, SF status and S0 production harness/budgets.
+- S2's frozen internal inspection reads and independent public copies; the adopted session-owned SF semantic read model; the S0 production harness and explicitly deferred foreground budgets.
+- S8's separate pending count intent, temporary layout hold preserving explicit Pause/Resume, capture flushing and bounded renderer reuse with full fallback.
 
 If a predecessor closed a required capability without delivering it, resolve the dependent UI gate explicitly.
 A completed performance plan is not proof that a deferred optimization exists.

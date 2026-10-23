@@ -936,7 +936,13 @@ export function createD3RenderedGraphAdapter(dependencies) {
         );
       }
       try {
-        renderedGraphInternals.applyCanonicalDrawingRevision(candidate.drawing);
+        renderedGraphInternals.applyCanonicalDrawingRevision(
+          candidate.drawing,
+          {
+            sameRevision:
+              candidate.documentRevision === canonicalDocumentRevision,
+          },
+        );
       } catch (error) {
         if (error.code === "CANONICAL_DRAWING_RECOVERY_FAILED") {
           canonicalDocumentRevision = null;

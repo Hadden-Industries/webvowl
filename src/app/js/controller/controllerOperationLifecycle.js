@@ -13,6 +13,8 @@ export const CONTROLLER_OPERATION_CLASSES = Object.freeze({
   setForceLayoutDistances: "view",
   resetVisualization: "view",
   setGraphLayoutPaused: "view",
+  flushNodeCountAdjustment: "view",
+  stageNodeCountAdjustment: "transient-view",
   revealOntologyNeighborhood: "transient-view",
   clearOntologyNeighborhood: "transient-view",
   setVisualizationArrangement: "transient-view",
@@ -41,6 +43,7 @@ export const CONTROLLER_APPLICATION_MEMBERS = Object.freeze({
   resizeVisualizationViewport: "viewport",
   setRenderingDiagnosticsEnabled: "diagnostics",
   setOntologyEditorOptions: "preferences",
+  setNodeCountAdjustmentVisible: "presentation-lifetime",
   dispose: "lifetime",
 });
 

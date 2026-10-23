@@ -41,6 +41,7 @@ import {
   installProductionCueProbe,
   measureProductionSearchCues,
 } from "./productionSearchCues.mjs";
+import { measureProductionRendererReuse } from "./productionRendererReuse.mjs";
 
 // A companion to qualify-canonical-browser.mjs: actual production HTML/CSS,
 // headed isolated Chrome, and separately labelled latency/diagnostic passes.
@@ -48,7 +49,7 @@ const [chromePath, buildPath, manifestPath, outputPath, ...options] =
   process.argv.slice(2);
 assert(
   chromePath && buildPath && manifestPath && outputPath,
-  "Usage: node util/measure-production-performance.mjs <chrome> <production-directory> <manifest> <new-evidence-directory> [--mode=latency|counters|trace|cues|lifetime|layout|functional|navigation] [--fixture=W1] [--diagnostic] [--private-fixture=path] [--allow-busy-host --admission-reference=path] [--headless-diagnostics --diagnostic-admission-reference=path] [--cohort-start=1 --cohort-end=40]",
+  "Usage: node util/measure-production-performance.mjs <chrome> <production-directory> <manifest> <new-evidence-directory> [--mode=latency|counters|trace|cues|lifetime|layout|reuse|functional|navigation] [--fixture=W1] [--diagnostic] [--private-fixture=path] [--allow-busy-host --admission-reference=path] [--headless-diagnostics --diagnostic-admission-reference=path] [--cohort-start=1 --cohort-end=40] [--renderer-reuse-reference]",
 );
 const option = (name, fallback) =>
   options
@@ -68,6 +69,7 @@ assert(
     "cues",
     "lifetime",
     "layout",
+    "reuse",
     "functional",
     "navigation",
   ].includes(mode),
@@ -80,13 +82,16 @@ const diagnosticAdmissionReference = option(
 );
 assert(
   !headlessDiagnostics ||
-    (["counters", "trace", "cues", "lifetime", "layout"].includes(mode) &&
+    (["counters", "trace", "cues", "lifetime", "layout", "reuse"].includes(
+      mode,
+    ) &&
       diagnosticAdmissionReference &&
       existsSync(diagnosticAdmissionReference)),
   "Headless diagnostics require counters/trace/cues/lifetime/layout mode and their owner decision; they cannot supply foreground latency",
 );
 assert(
-  !["cues", "lifetime", "layout"].includes(mode) || headlessDiagnostics,
+  !["cues", "lifetime", "layout", "reuse"].includes(mode) ||
+    headlessDiagnostics,
   "Cue, lifetime and layout probes are headless diagnostics only",
 );
 const requireForeground = !functional && !headlessDiagnostics;
@@ -1002,6 +1007,7 @@ try {
     resolve("util/productionTextLayout.mjs"),
     resolve("util/productionNavigation.mjs"),
     resolve("util/productionSearchCues.mjs"),
+    resolve("util/productionRendererReuse.mjs"),
   ].map((path) => ({ path, sha256: sha256(readFileSync(path)) }));
   report.environment = {
     platform: platform(),
@@ -1371,6 +1377,14 @@ try {
     }
     if (nativeTextControl) {
       await qualifyProductionTextLayoutControls({ evaluate, report });
+    } else if (mode === "reuse") {
+      await measureProductionRendererReuse({
+        call,
+        evaluate,
+        report,
+        output,
+        reference: options.includes("--renderer-reuse-reference"),
+      });
     } else if (mode === "layout") {
       await measureProductionTextLayout({ evaluate, measure, report });
     } else if (mode === "lifetime") {

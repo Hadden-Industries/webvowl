@@ -57,5 +57,13 @@ export function createFocuser(graph) {
     }
   };
 
+  // Retired primitives cannot own selection callbacks or keep a prior drawing
+  // alive. The controller remains responsible for the public semantic selection.
+  focuser.retainOnly = function (elements) {
+    if (!elements.has(focusedElement)) {
+      focusedElement = undefined;
+    }
+  };
+
   return focuser;
 }

@@ -1,4 +1,5 @@
 import { CANONICAL_NEIGHBORHOOD_LIMITS } from "./canonicalNeighborhoodLimits.js";
+import { createNodesShownIntent } from "./nodesShownContracts.js";
 
 const WEB_VOWL_OPERATION_ERROR_CODES = Object.freeze([
   "NO_ONTOLOGY",
@@ -32,6 +33,7 @@ export const WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES = Object.freeze([
   "selectedDocumentRecord",
   "renderProgress",
   "nodeCountStatus",
+  "nodeCountAdjustment",
   "editorMode",
   "renderingStatistics",
   "temporaryPresentation",
@@ -48,6 +50,7 @@ export const GENERATION_SCOPED_CONTROLLER_STATE_FIELDS = Object.freeze({
   selectedDocumentRecord: null,
   renderProgress: null,
   nodeCountStatus: null,
+  nodeCountAdjustment: null,
   zoomScale: null,
   translation: null,
 });
@@ -584,6 +587,21 @@ export function createWebVowlControllerState(controllerState) {
     )
   ) {
     throw new TypeError("The controller state has an invalid field set.");
+  }
+  // A draft is observable without claiming that its requested count is drawn.
+  const adjustment = controllerState.nodeCountAdjustment;
+  if (adjustment !== null) {
+    if (
+      !isPlainRecord(adjustment) ||
+      Object.keys(adjustment).sort().join(",") !==
+        "requestedNodesShown,status" ||
+      !["pending", "applying"].includes(adjustment.status)
+    ) {
+      throw new TypeError(
+        "Node-count adjustment must describe one pending or applying intent.",
+      );
+    }
+    createNodesShownIntent(adjustment.requestedNodesShown);
   }
   const temporary = controllerState.temporaryPresentation;
   if (temporary !== null) {

@@ -1,5 +1,6 @@
 import { jest } from "@jest/globals";
 import { createNodesShownControl } from "./nodesShownControl.js";
+import { createNodeCountAdjustment } from "../controller/nodeCountAdjustment.js";
 class Element extends EventTarget {
   value = "0";
   textContent = "";
@@ -17,39 +18,231 @@ class Element extends EventTarget {
 }
 function setup() {
   const controls = Object.fromEntries(
-    ["range", "exact", "minus", "plus", "fifty", "markers", "total-value"].map(
-      (name) => [name, new Element()],
-    ),
+    [
+      "range",
+      "exact",
+      "minus",
+      "plus",
+      "fifty",
+      "markers",
+      "total-value",
+      "status",
+    ].map((name) => [name, new Element()]),
   );
   const onChange = jest.fn();
-  const frames = [];
-  const control = createNodesShownControl({
-    documentObject: { getElementById: (id) => controls[id.slice(11)] },
-    onChange,
-    requestFrame: (callback) => {
-      frames.push(callback);
-      return frames.length;
+  let control = null;
+  const popover = new EventTarget();
+  const documentObject = new EventTarget();
+  documentObject.visibilityState = "visible";
+  documentObject.getElementById = (id) =>
+    id === "m_filter" ? popover : controls[id.slice(11)];
+  let status = { shownNodeCount: 50, eligibleNodeCount: 109 };
+  let acceptedIntent = { mode: "auto" };
+  let adjustmentState = null;
+  let now = 0;
+  let nextTimer = 0;
+  const timers = new Map();
+  const apply = async (intent) => {
+    await onChange(intent);
+    acceptedIntent = intent;
+    status = {
+      ...status,
+      shownNodeCount:
+        intent.mode === "all"
+          ? status.eligibleNodeCount
+          : Math.min(intent.requestedCount, status.eligibleNodeCount),
+    };
+    control.renderNodeCountStatus(status, intent, adjustmentState);
+  };
+  const adjustment = createNodeCountAdjustment({
+    readAccepted: () => ({
+      loadGeneration: 1,
+      documentRevision: 0,
+      nodesShown: acceptedIntent,
+    }),
+    apply,
+    holdLayout: () => ({ prepareInstallation() {}, release() {} }),
+    publish(next) {
+      adjustmentState = next;
+      control.renderNodeCountStatus(status, acceptedIntent, next);
     },
-    cancelFrame: jest.fn(),
+    reportError: (error) => {
+      throw error;
+    },
+    clock: {
+      now: () => now,
+      setTimeout(callback, delay) {
+        const id = ++nextTimer;
+        timers.set(id, { callback, due: now + delay });
+        return id;
+      },
+      clearTimeout: (id) => timers.delete(id),
+    },
+  });
+  control = createNodesShownControl({
+    documentObject,
+    onChange: (intent) => {
+      adjustment.cancel();
+      return apply(intent);
+    },
+    onAdjust: (intent) => adjustment.stage(intent),
+    onFlush: () => adjustment.flush(),
+    onVisibility: (visible) => adjustment.setVisible(visible),
   });
   control.setup();
-  const render = (shown = 50, eligible = 109, intent = { mode: "auto" }) =>
-    control.renderNodeCountStatus(
-      { shownNodeCount: shown, eligibleNodeCount: eligible },
-      intent,
-    );
+  const render = (shown = 50, eligible = 109, intent = { mode: "auto" }) => {
+    status = { shownNodeCount: shown, eligibleNodeCount: eligible };
+    acceptedIntent = intent;
+    control.renderNodeCountStatus(status, intent, adjustmentState);
+  };
   render();
-  return { controls, onChange, control, render, frames };
+  return {
+    controls,
+    onChange,
+    popover,
+    documentObject,
+    render,
+    control: {
+      ...control,
+      dispose() {
+        adjustment.dispose();
+        control.dispose();
+      },
+    },
+    async advance(ms) {
+      await flush();
+      now += ms;
+      for (const [id, entry] of [...timers]) {
+        if (entry.due <= now) {
+          timers.delete(id);
+          entry.callback();
+        }
+      }
+      await flush();
+    },
+  };
 }
 const key = (element, value) => {
   const event = new Event("keydown", { cancelable: true });
   event.key = value;
   element.dispatchEvent(event);
 };
-const flush = async () => {
-  await Promise.resolve();
-  await Promise.resolve();
-};
+async function flush() {
+  for (let turn = 0; turn < 20; turn++) {
+    await Promise.resolve();
+  }
+}
+
+test("a range burst spanning animation frames does not apply intermediate counts", async () => {
+  const { controls, onChange, control, advance } = setup();
+  try {
+    controls.range.value = "61";
+    controls.range.dispatchEvent(new Event("input"));
+    await advance(16);
+    controls.range.value = "73";
+    controls.range.dispatchEvent(new Event("input"));
+    await advance(16);
+    expect(controls.exact.value).toBe("73");
+    expect(onChange).not.toHaveBeenCalled();
+    await advance(1000);
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledWith({
+      mode: "exact",
+      requestedCount: 73,
+    });
+  } finally {
+    control.dispose();
+  }
+});
+
+test("a burst updates requested counts without repeating the pending live announcement", async () => {
+  const h = setup();
+  const announcements = [];
+  let text = "";
+  Object.defineProperty(h.controls.status, "textContent", {
+    get: () => text,
+    set(value) {
+      text = value;
+      announcements.push(value);
+    },
+  });
+  try {
+    for (const count of [61, 72, 73]) {
+      h.controls.range.value = String(count);
+      h.controls.range.dispatchEvent(new Event("input"));
+      await h.advance(16);
+    }
+    expect(announcements).toEqual([
+      "Node count will update when adjustment stops.",
+    ]);
+    expect(h.controls.exact.value).toBe("73");
+  } finally {
+    h.control.dispose();
+  }
+});
+
+test("closing Filters flushes the latest range input once even at the timer boundary", async () => {
+  const h = setup();
+  try {
+    h.controls.range.value = "73";
+    h.controls.range.dispatchEvent(new Event("input"));
+    const close = new Event("toggle");
+    close.newState = "closed";
+    h.popover.dispatchEvent(close);
+    await h.advance(1000);
+    expect(h.onChange.mock.calls).toEqual([
+      [{ mode: "exact", requestedCount: 73 }],
+    ]);
+    expect(h.controls.status.hidden).toBe(true);
+  } finally {
+    h.control.dispose();
+  }
+});
+
+test("requested count is announced separately, and the preset replaces a pending count immediately", async () => {
+  const h = setup();
+  try {
+    h.controls.range.value = "73";
+    h.controls.range.dispatchEvent(new Event("input"));
+    await flush();
+    expect(h.controls.range.attributes.get("aria-valuetext")).toBe(
+      "Requested 73; currently showing 50 of 109 available nodes.",
+    );
+    expect(h.controls.status.hidden).toBe(false);
+    expect(h.controls.fifty.disabled).toBe(false);
+    h.controls.fifty.dispatchEvent(new Event("click"));
+    await flush();
+    expect(h.onChange.mock.calls).toEqual([
+      [{ mode: "exact", requestedCount: 50 }],
+    ]);
+    await h.advance(2000);
+    expect(h.onChange).toHaveBeenCalledTimes(1);
+    expect(h.controls.exact.value).toBe("50");
+    expect(h.controls.status.hidden).toBe(true);
+  } finally {
+    h.control.dispose();
+  }
+});
+
+test("a hidden page defers the draft and applies it when visible again", async () => {
+  const h = setup();
+  try {
+    h.controls.range.value = "73";
+    h.controls.range.dispatchEvent(new Event("input"));
+    await flush();
+    h.documentObject.visibilityState = "hidden";
+    h.documentObject.dispatchEvent(new Event("visibilitychange"));
+    await h.advance(2000);
+    expect(h.onChange).not.toHaveBeenCalled();
+    h.documentObject.visibilityState = "visible";
+    h.documentObject.dispatchEvent(new Event("visibilitychange"));
+    await h.advance(0);
+    expect(h.onChange).toHaveBeenCalledTimes(1);
+    expect(h.controls.exact.value).toBe("73");
+  } finally {
+    h.control.dispose();
+  }
+});
 
 test("exact input normalizes on Enter/blur and restores unreadable drafts and Escape", async () => {
   const { controls, onChange, control, render } = setup();
@@ -99,15 +292,13 @@ test("exact input normalizes on Enter/blur and restores unreadable drafts and Es
   control.dispose();
 });
 test("range exploration coalesces and the maximum selects All on input and change", async () => {
-  const { controls, onChange, control, frames } = setup();
+  const { controls, onChange, control, advance } = setup();
   for (const value of ["37", "38", "109"]) {
     controls.range.value = value;
     controls.range.dispatchEvent(new Event("input"));
   }
-  expect(frames).toHaveLength(1);
   expect(controls.exact.value).toBe("109");
-  frames[0]();
-  await flush();
+  await advance(1000);
   expect(onChange).toHaveBeenLastCalledWith({ mode: "all" });
   controls.range.dispatchEvent(new Event("change"));
   await flush();
@@ -115,7 +306,7 @@ test("range exploration coalesces and the maximum selects All on input and chang
   for (const value of ["0", "49", "50", "51", "108"]) {
     controls.range.value = value;
     controls.range.dispatchEvent(new Event("change"));
-    await flush();
+    await advance(1000);
     expect(onChange).toHaveBeenLastCalledWith({
       mode: "exact",
       requestedCount: Number(value),
@@ -206,17 +397,20 @@ test("FOAF's filter cycle restores the 50 shortcut only when another count is sh
   expect(onChange).toHaveBeenCalledTimes(1);
   control.dispose();
 });
-test("wheel scrolling is never cancelled or bound to count; buttons use the applied count", async () => {
-  const { controls, onChange, control } = setup();
+test("wheel scrolling is never cancelled or bound to count; buttons accumulate requested counts", async () => {
+  const { controls, onChange, control, advance } = setup();
   const wheel = new Event("wheel", { cancelable: true });
   controls.range.dispatchEvent(wheel);
   expect(wheel.defaultPrevented).toBe(false);
   expect(onChange).not.toHaveBeenCalled();
   controls.plus.dispatchEvent(new Event("click"));
-  await flush();
+  controls.plus.dispatchEvent(new Event("click"));
+  controls.plus.dispatchEvent(new Event("click"));
+  expect(controls.exact.value).toBe("53");
+  await advance(1000);
   expect(onChange).toHaveBeenLastCalledWith({
     mode: "exact",
-    requestedCount: 51,
+    requestedCount: 53,
   });
   control.dispose();
 });

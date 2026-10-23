@@ -114,6 +114,11 @@ export function createWebVowlApplication({
   const nodesShownControl = createNodesShownControl({
     onChange: (nodesShown) =>
       webVowlController.setVisualizationView({ nodesShown }),
+    onAdjust: (nodesShown) =>
+      webVowlController.stageNodeCountAdjustment(nodesShown),
+    onFlush: () => webVowlController.flushNodeCountAdjustment(),
+    onVisibility: (visible) =>
+      webVowlController.setNodeCountAdjustmentVisible(visible),
   });
   const debugMenu = createDebugMenu({ webVowlController });
   const modeMenu = createModeMenu({ webVowlController });
@@ -495,6 +500,7 @@ export function createWebVowlApplication({
         if (
           changedFieldNames.includes("status") ||
           changedFieldNames.includes("nodeCountStatus") ||
+          changedFieldNames.includes("nodeCountAdjustment") ||
           changedFieldNames.includes("view")
         ) {
           nodesShownControl.renderNodeCountStatus(
@@ -502,6 +508,7 @@ export function createWebVowlApplication({
               ? null
               : controllerState.nodeCountStatus,
             controllerState.view?.nodesShown,
+            controllerState.nodeCountAdjustment,
           );
         }
       },

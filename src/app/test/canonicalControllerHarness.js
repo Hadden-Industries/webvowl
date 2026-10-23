@@ -7,7 +7,10 @@ import {
   deferred,
 } from "./canonicalRenderedGraphRuntimeDouble.js";
 
-export async function canonicalControllerHarness({ resolver } = {}) {
+export async function canonicalControllerHarness({
+  resolver,
+  nodeCountAdjustmentClock,
+} = {}) {
   const double = createCanonicalRenderedGraphRuntimeDouble({
     svgSnapshot: {
       svgText: '<svg xmlns="http://www.w3.org/2000/svg"/>',
@@ -57,6 +60,7 @@ export async function canonicalControllerHarness({ resolver } = {}) {
   const artifacts = [];
   let fontGate;
   const controller = createCanonicalWebVowlController({
+    nodeCountAdjustmentClock,
     renderedGraphRuntime: double.runtime,
     documentSession: session,
     sourceAcquisition: createCanonicalVowlSourceAcquisition({ resolver }),

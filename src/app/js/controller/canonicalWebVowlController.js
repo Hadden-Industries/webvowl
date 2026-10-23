@@ -1,4 +1,5 @@
 import isEqual from "lodash/isEqual.js";
+import { createNodeCountAdjustment } from "./nodeCountAdjustment.js";
 import { createControllerOperationLifecycle } from "./controllerOperationLifecycle.js";
 import { createCanonicalVowlDocumentSession } from "./canonicalVowlDocumentSession.js";
 import { exportCanonicalDrawing } from "./canonicalVowlDrawingExport.js";
@@ -62,6 +63,7 @@ const idle = {
   selectedDocumentRecord: null,
   renderProgress: null,
   nodeCountStatus: null,
+  nodeCountAdjustment: null,
   editorMode: null,
   renderingStatistics: null,
   temporaryPresentation: null,
@@ -85,6 +87,7 @@ export function createCanonicalWebVowlController({
   requestInverseDetachmentConfirmation,
   requestOntologyCreation,
   reconcileScene,
+  nodeCountAdjustmentClock,
 } = {}) {
   let state = createWebVowlControllerState(idle);
   let disposed = false;
@@ -96,10 +99,113 @@ export function createCanonicalWebVowlController({
   let nodesShown = { mode: "auto" };
   let viewInteraction = 0;
   let ordinaryPresentation;
+  let countLayoutHold;
   const lifecycle = createControllerOperationLifecycle({
     readIdentity: () => session.identity(),
     retirePresentation: () => clearNeighborhood(),
   });
+  const countAdjustment = createNodeCountAdjustment({
+    readAccepted: () => ({ ...session.identity(), nodesShown }),
+    apply: (intent, options) =>
+      applyVisualizationView(
+        validateVisualizationView({ nodesShown: intent }),
+        options,
+      ),
+    holdLayout: holdCountAdjustmentLayout,
+    beforeStage: () => lifecycle.retireCaptures(),
+    publish: (nodeCountAdjustment) => publish({ nodeCountAdjustment }),
+    reportError: (error) => {
+      if (
+        !disposed &&
+        error?.name !== "AbortError" &&
+        error?.code !== "LOAD_ABORTED"
+      ) {
+        publish({ error: toPublicWebVowlError(error) });
+      }
+    },
+    clock: nodeCountAdjustmentClock,
+  });
+  function validateVisualizationView(request) {
+    const accepted = current("setVisualizationView");
+    return createVisualizationViewApplicationRequest({
+      ...request,
+      loadGeneration: accepted.loadGeneration,
+    });
+  }
+  function layoutState(status) {
+    return {
+      status,
+      ...(countLayoutHold
+        ? { requestedIsPaused: countLayoutHold.requestedIsPaused }
+        : {}),
+    };
+  }
+  function holdCountAdjustmentLayout() {
+    const identity = session.identity();
+    const snapshot = runtime.readGraphLayoutSnapshot();
+    const owner = {
+      requestedIsPaused: snapshot.isPaused,
+      physicallyHeld: false,
+    };
+    countLayoutHold = owner;
+    const currentOwner = () => {
+      if (disposed || countLayoutHold !== owner) {
+        return false;
+      }
+      try {
+        const current = session.identity();
+        return (
+          current.loadGeneration === identity.loadGeneration &&
+          current.documentRevision === identity.documentRevision
+        );
+      } catch {
+        // A failed recovery can retire the session before the hold is released.
+        return false;
+      }
+    };
+    function prepareInstallation() {
+      if (!currentOwner()) {
+        throw new DOMException("The adjustment was retired.", "AbortError");
+      }
+      if (owner.physicallyHeld) {
+        return;
+      }
+      owner.physicallyHeld = true;
+      layoutIntent += 1;
+      runtime.setGraphLayoutPaused({
+        loadGeneration: identity.loadGeneration,
+        isPaused: true,
+      });
+      publish({ layout: layoutState("paused") });
+    }
+    return {
+      // Publish only after the adjustment owner has stored this hold. State
+      // subscribers may synchronously stage another count during publication.
+      beginAdjustment() {
+        // A cancelled draft must not reheat an already settled graph.
+        if (!snapshot.isPaused && !snapshot.hasEnded) {
+          prepareInstallation();
+        }
+      },
+      prepareInstallation,
+      release() {
+        const mayRestore = currentOwner();
+        if (countLayoutHold !== owner) {
+          return;
+        }
+        countLayoutHold = undefined;
+        if (!mayRestore || !owner.physicallyHeld) {
+          return;
+        }
+        layoutIntent += 1;
+        const result = runtime.setGraphLayoutPaused({
+          loadGeneration: identity.loadGeneration,
+          isPaused: owner.requestedIsPaused,
+        });
+        publish({ layout: layoutState(result.layoutStatus) });
+      },
+    };
+  }
   function clearNeighborhood() {
     if (!ordinaryPresentation) {
       return undefined;
@@ -297,6 +403,7 @@ export function createCanonicalWebVowlController({
   }
   async function command(intent, { signal } = {}) {
     const ticket = lifecycle.prepare("editOntologyRecord", { signal });
+    countAdjustment.cancel();
     const accepted = ticket.identity;
     ticket.prepareScene();
     const references = createCanonicalSemanticReferences(
@@ -327,6 +434,9 @@ export function createCanonicalWebVowlController({
           confirmDeletion: requestOntologyDeletionConfirmation,
           confirmInverseDetachment: requestInverseDetachmentConfirmation,
           prepareVisibility(inspection, { correspondence, selectNodes }) {
+            // A draft can begin while the worker is editing. Retire its hold
+            // before the replacement semantic revision reads layout state.
+            countAdjustment.cancel();
             const next = new Map(
               correspondence.map(({ previous, current: id }) => [previous, id]),
             );
@@ -483,7 +593,7 @@ export function createCanonicalWebVowlController({
             ? "settled"
             : "relaxing";
         if (state.layout.status !== status) {
-          publish({ layout: { status } });
+          publish({ layout: layoutState(status) });
         }
         break;
       }
@@ -540,6 +650,118 @@ export function createCanonicalWebVowlController({
         break;
     }
   });
+  async function applyVisualizationView(validated, { signal } = {}) {
+    const startedAt = performance.now();
+    const ticket = lifecycle.prepare("setVisualizationView", {
+      signal,
+      request: validated,
+    });
+    const restored = ticket.prepareScene();
+    const {
+      filters: changes,
+      nodesShown: requestedNodesShown,
+      language,
+      ...nativeView
+    } = validated;
+    if (restored && nativeView.focus === undefined) {
+      nativeView.focus = restored.focus;
+    }
+    const nextNodesShown = requestedNodesShown ?? nodesShown;
+    // Validate references before changing the scene; determine visibility afterwards.
+    if (nativeView.focus !== undefined) {
+      resolveFocusable(nativeView.focus);
+    }
+    const viewChanges = {};
+    const previous = {
+      filters,
+      nodesShown,
+      nodeCountStatus: state.nodeCountStatus,
+    };
+    let previousScene;
+    let visibility;
+    const nextFilters = { ...filters, ...changes };
+    if (changes !== undefined || requestedNodesShown !== undefined) {
+      visibility = session.selectNodes(
+        nextFilters,
+        nextNodesShown,
+        readUpstreamHidden(),
+      );
+      viewChanges.hidden = visibility.hidden.map((id) =>
+        session.scene().reference(id),
+      );
+    }
+    if (language !== undefined) {
+      viewChanges.labelSelection = canonicalLabelSelection(language);
+    }
+    if (Object.keys(viewChanges).length) {
+      previousScene = session.scene().snapshot();
+      session.updateView(viewChanges, { renderedGraphRuntime: runtime });
+      filters = nextFilters;
+      nodesShown = nextNodesShown;
+    }
+    ticket.accept();
+    const viewRevision = ++viewInteraction;
+    try {
+      if (Object.keys(viewChanges).length) {
+        publish({
+          view: readView(),
+          ...(visibility
+            ? { nodeCountStatus: visibility.nodeCountStatus }
+            : {}),
+        });
+      }
+      if (nativeView.focus !== undefined) {
+        const resolution = resolveFocusable(nativeView.focus);
+        nativeView.focus = [...resolution.focusableReferences];
+      }
+      if (nativeView.layout !== undefined) {
+        layoutIntent += 1;
+      }
+      await runtime.applyVisualizationView(nativeView, {
+        signal: ticket.signal,
+      });
+      ticket.assertCurrent();
+      session.synchronizeDrawing(runtime.readCanonicalDrawingState());
+      if (requestedNodesShown !== undefined) {
+        performance.clearMeasures("webvowl.node-count-interaction");
+        performance.measure("webvowl.node-count-interaction", {
+          start: startedAt,
+          end: performance.now(),
+          detail: { viewRevision, nodeCountStatus: state.nodeCountStatus },
+        });
+      }
+    } catch (error) {
+      if (previousScene && ticket.isCurrent() && !ticket.signal.aborted) {
+        session.updateView(
+          {
+            hidden: previousScene.hidden.map((id) =>
+              session.scene().reference(id),
+            ),
+            labelSelection: previousScene.labelSelection,
+          },
+          { renderedGraphRuntime: runtime },
+        );
+        filters = previous.filters;
+        nodesShown = previous.nodesShown;
+        visibility = { nodeCountStatus: previous.nodeCountStatus };
+      }
+      throw error;
+    } finally {
+      if (ticket.isCurrent()) {
+        publish({
+          view: readView(),
+          ...(visibility
+            ? {
+                nodeCountStatus: visibility.nodeCountStatus,
+              }
+            : {}),
+        });
+      }
+      ticket.release();
+    }
+    return state;
+  }
+
   return Object.freeze({
     getState: () => state,
     subscribeToState(listener) {
@@ -558,6 +780,7 @@ export function createCanonicalWebVowlController({
       );
       const retained = structuredClone(source);
       const ticket = lifecycle.prepare("loadOntology", { signal });
+      countAdjustment.cancel();
       ticket.prepareScene();
       ticket.accept();
       const combined = ticket.signal;
@@ -1084,121 +1307,41 @@ export function createCanonicalWebVowlController({
         ticket.release();
       }
     },
-    async setVisualizationView(request, { signal } = {}) {
-      const startedAt = performance.now();
-      const accepted = current("setVisualizationView");
-      const validated = createVisualizationViewApplicationRequest({
-        ...request,
-        loadGeneration: accepted.loadGeneration,
-      });
-      const ticket = lifecycle.prepare("setVisualizationView", {
-        signal,
-        request: validated,
-      });
-      const restored = ticket.prepareScene();
-      const {
-        filters: changes,
-        nodesShown: requestedNodesShown,
-        language,
-        ...nativeView
-      } = validated;
-      if (restored && nativeView.focus === undefined) {
-        nativeView.focus = restored.focus;
-      }
-      const nextNodesShown = requestedNodesShown ?? nodesShown;
-      // Validate references before changing the scene; determine visibility afterwards.
-      if (nativeView.focus !== undefined) {
-        resolveFocusable(nativeView.focus);
-      }
-      const viewChanges = {};
-      const previous = {
-        filters,
-        nodesShown,
-        nodeCountStatus: state.nodeCountStatus,
-      };
-      let previousScene;
-      let visibility;
-      const nextFilters = { ...filters, ...changes };
-      if (changes !== undefined || requestedNodesShown !== undefined) {
-        visibility = session.selectNodes(
-          nextFilters,
-          nextNodesShown,
-          readUpstreamHidden(),
-        );
-        viewChanges.hidden = visibility.hidden.map((id) =>
-          session.scene().reference(id),
-        );
-      }
-      if (language !== undefined) {
-        viewChanges.labelSelection = canonicalLabelSelection(language);
-      }
-      if (Object.keys(viewChanges).length) {
-        previousScene = session.scene().snapshot();
-        session.updateView(viewChanges, { renderedGraphRuntime: runtime });
-        filters = nextFilters;
-        nodesShown = nextNodesShown;
-      }
-      ticket.accept();
-      const viewRevision = ++viewInteraction;
-      try {
-        if (Object.keys(viewChanges).length) {
-          publish({
-            view: readView(),
-            ...(visibility
-              ? { nodeCountStatus: visibility.nodeCountStatus }
-              : {}),
-          });
-        }
-        if (nativeView.focus !== undefined) {
-          const resolution = resolveFocusable(nativeView.focus);
-          nativeView.focus = [...resolution.focusableReferences];
-        }
-        if (nativeView.layout !== undefined) {
-          layoutIntent += 1;
-        }
-        await runtime.applyVisualizationView(nativeView, {
-          signal: ticket.signal,
-        });
-        ticket.assertCurrent();
-        session.synchronizeDrawing(runtime.readCanonicalDrawingState());
-        if (requestedNodesShown !== undefined) {
-          performance.clearMeasures("webvowl.node-count-interaction");
-          performance.measure("webvowl.node-count-interaction", {
-            start: startedAt,
-            end: performance.now(),
-            detail: { viewRevision, nodeCountStatus: state.nodeCountStatus },
-          });
-        }
-      } catch (error) {
-        if (previousScene && ticket.isCurrent() && !ticket.signal.aborted) {
-          session.updateView(
-            {
-              hidden: previousScene.hidden.map((id) =>
-                session.scene().reference(id),
-              ),
-              labelSelection: previousScene.labelSelection,
-            },
-            { renderedGraphRuntime: runtime },
-          );
-          filters = previous.filters;
-          nodesShown = previous.nodesShown;
-          visibility = { nodeCountStatus: previous.nodeCountStatus };
-        }
-        throw error;
-      } finally {
-        if (ticket.isCurrent()) {
-          publish({
-            view: readView(),
-            ...(visibility
-              ? {
-                  nodeCountStatus: visibility.nodeCountStatus,
-                }
-              : {}),
-          });
-        }
-        ticket.release();
-      }
+    /** Stage human input; accepted scene ownership transfers only on flush. */
+    stageNodeCountAdjustment(request) {
+      current("stageNodeCountAdjustment");
+      return countAdjustment.stage(request);
+    },
+    async flushNodeCountAdjustment() {
+      current("flushNodeCountAdjustment");
+      await countAdjustment.flush();
       return state;
+    },
+    setNodeCountAdjustmentVisible(isVisible) {
+      if (typeof isVisible !== "boolean") {
+        throw new TypeError("Adjustment visibility must be Boolean.");
+      }
+      if (!disposed) {
+        countAdjustment.setVisible(isVisible);
+      }
+    },
+    async setVisualizationView(request, options) {
+      options?.signal?.throwIfAborted();
+      const validated = validateVisualizationView(request);
+      const replacesAdjustment =
+        validated.nodesShown !== undefined ||
+        validated.filters !== undefined ||
+        validated.language !== undefined ||
+        validated.layout !== undefined;
+      const draft = replacesAdjustment ? countAdjustment.take() : undefined;
+      return applyVisualizationView(
+        draft &&
+          validated.filters !== undefined &&
+          validated.nodesShown === undefined
+          ? { ...validated, nodesShown: draft }
+          : validated,
+        options,
+      );
     },
     async setVisualizationModes(request, { signal } = {}) {
       const ticket = lifecycle.prepare("setVisualizationModes", { signal });
@@ -1249,6 +1392,7 @@ export function createCanonicalWebVowlController({
     },
     async resetVisualization({ signal } = {}) {
       const ticket = lifecycle.prepare("resetVisualization", { signal });
+      countAdjustment.cancel();
       ticket.prepareScene();
       const resetNodesShown = { mode: "auto" };
       const visibility = session.selectNodes(
@@ -1322,9 +1466,15 @@ export function createCanonicalWebVowlController({
       ticket.prepareScene();
       ticket.accept();
       try {
-        const result = runtime.setGraphLayoutPaused(validated);
+        if (countLayoutHold) {
+          countLayoutHold.requestedIsPaused = validated.isPaused;
+          countLayoutHold.physicallyHeld = true;
+        }
+        const result = runtime.setGraphLayoutPaused(
+          countLayoutHold ? { ...validated, isPaused: true } : validated,
+        );
         layoutIntent += 1;
-        publish({ layout: { status: result.layoutStatus } });
+        publish({ layout: layoutState(result.layoutStatus) });
         return result;
       } finally {
         ticket.release();
@@ -1348,6 +1498,8 @@ export function createCanonicalWebVowlController({
       return Object.freeze({ ...editorOptions });
     },
     async exportVisualization(request = {}, { signal } = {}) {
+      signal?.throwIfAborted();
+      await countAdjustment.flush();
       const ticket = lifecycle.prepare("exportVisualization", { signal });
       const accepted = ticket.identity;
       const { format = "vowl-json", filename } = request;
@@ -1413,6 +1565,7 @@ export function createCanonicalWebVowlController({
       if (disposed) {
         return;
       }
+      countAdjustment.dispose();
       disposed = true;
       clearNeighborhood();
       lifecycle.dispose();

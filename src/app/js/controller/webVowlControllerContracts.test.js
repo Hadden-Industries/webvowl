@@ -24,7 +24,11 @@ beforeAll(async () => {
     { identifier: moduleUrl.href },
   );
   await sourceModule.link((specifier) => {
-    if (specifier === "./canonicalNeighborhoodLimits.js") {
+    if (
+      ["./canonicalNeighborhoodLimits.js", "./nodesShownContracts.js"].includes(
+        specifier,
+      )
+    ) {
       const limitsUrl = new URL(specifier, moduleUrl);
       return new SourceTextModule(
         readFileSync(fileURLToPath(limitsUrl), "utf8"),
@@ -599,6 +603,7 @@ const WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES = Object.freeze([
   "selectedDocumentRecord",
   "renderProgress",
   "nodeCountStatus",
+  "nodeCountAdjustment",
   "editorMode",
   "renderingStatistics",
   "temporaryPresentation",
@@ -620,6 +625,7 @@ const IDLE_CONTROLLER_STATE_FIELDS = Object.freeze({
   selectedDocumentRecord: null,
   renderProgress: null,
   nodeCountStatus: null,
+  nodeCountAdjustment: null,
   editorMode: null,
   renderingStatistics: null,
   temporaryPresentation: null,

@@ -56,6 +56,7 @@ export const SEPARATELY_PRESENTED_CONTROLLER_STATE_FIELD_NAMES = Object.freeze([
   "view",
   "translation",
   "nodeCountStatus",
+  "nodeCountAdjustment",
   "selectedDocumentRecord",
   "renderingStatistics",
 ]);
@@ -125,7 +126,10 @@ export function createControllerStatePresenter(dependencies) {
       }
 
       if (changedFields.has("layout")) {
-        renderGraphLayoutPaused(controllerState.layout?.status === "paused");
+        renderGraphLayoutPaused(
+          controllerState.layout?.requestedIsPaused ??
+            controllerState.layout?.status === "paused",
+        );
       }
 
       if (

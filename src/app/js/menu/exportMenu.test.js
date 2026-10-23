@@ -122,7 +122,7 @@ describe("export menu clipboard copying", () => {
 });
 
 describe("export menu share-link presentation", () => {
-  test("publishes the accepted source link and explains when a local document cannot be shared as a URL", () => {
+  test("publishes the accepted source link and explains when a local document cannot be shared as a URL", async () => {
     const controls = new Map(
       ["#exportedUrl", "#copyBt", "#exportUrlError"].map((id) => [
         id,
@@ -145,9 +145,12 @@ describe("export menu share-link presentation", () => {
       }),
       documentObject: { querySelector: (id) => controls.get(id) },
       locationObject: "https://viewer.test/#stale",
-      webVowlController: { getVisualizationShareLink },
+      webVowlController: {
+        getVisualizationShareLink,
+        flushNodeCountAdjustment: async () => {},
+      },
     });
-    menu.exportAsUrl();
+    await menu.exportAsUrl();
     expect(controls.get("#exportedUrl").value).toContain(
       "#url=https%3A%2F%2Fexample.test%2Faccepted.json",
     );
@@ -156,7 +159,7 @@ describe("export menu share-link presentation", () => {
       presentation: { editorMode: false, debugFeatures: false },
     });
     state.source = { kind: "vowl-json-text", displayName: "local.json" };
-    expect(() => menu.exportAsUrl()).not.toThrow();
+    await expect(menu.exportAsUrl()).resolves.toBeUndefined();
     expect(controls.get("#exportedUrl").value).toBe("");
     expect(controls.get("#copyBt").disabled).toBe(true);
     expect(controls.get("#exportUrlError").textContent).toContain(
