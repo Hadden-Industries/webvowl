@@ -1,42 +1,52 @@
 # WebVOWL UI design implementation plan
 
-> **Status:** Draft revision 4, 23 October 2026; UI acceptance and implementation remain unapproved.
-> The owner requires GPT-6.1 Sol on High for this stage and a pause at the performance handoff if this chat cannot switch itself.
+> **Status:** Accepted revision 6, 23 October 2026; DEC-001–021 and the recommended implementation scope are approved; implementation is authorized to resume.
+> The owner's later instruction, "Continue with the current model", supersedes the model-switch pause.
+> Foreground measurements are authorized only after other diagnostic avenues are exhausted and optimized code is ready.
 > **Sequence:** Plan 3 of 3, after architecture and performance.
 > **Basis:** [UI design review](../reviews/20261020-ui-design-review.md), including its requirements, wireframes and section 17 reconciliation.
-> **Method:** HISEW implementation planning with a draft change dossier, proposed risk route, decision gates, quality scenarios and traceability.
+> **Method:** HISEW implementation planning with accepted design decisions and R2 scope, remaining evidence gates, quality scenarios and traceability.
 > **Purpose:** Make choosing an ontology and inspecting its content clear on small and large screens while preserving graph interaction, semantic ownership and accessibility.
 
 ## 1. Authority, baseline and predecessors
 
-The owner requested a detailed plan and, on 21 October 2026, approved the architecture and performance plans while directing that UI acceptance and open decisions be revisited once both have been implemented.
-Revision 2 records this review timing; it accepts no UI design choice and closes no UI slice.
-The UI review's recommendations and this plan remain unapproved and unimplemented.
-All DEC-001–021 remain open, including D-01–D-19, the recommended shared presentation model and the two additional source inconsistencies.
-Architecture's accepted decisions and the performance plan's accepted directions remain binding; later UI review must use the capabilities actually delivered.
-The owner subsequently authorized including this document in the first commit on `feat/architecture-performance-ui` and publishing that branch, alongside implementation of architecture and performance.
-That delivery instruction does not approve UI implementation or resolve any UI decision.
-Follow the [authorized delivery checkpoints](2026-10-21-architecture-implementation-plan.md#authorized-delivery-checkpoints) and return to the owner after the first two implementations.
+The owner requested a detailed plan and, on 21 October 2026, approved the architecture and performance plans while deferring UI decisions until those implementations were complete.
+Revisions 2–4 preserved that boundary and did not approve UI implementation.
+After architecture and performance publication, the owner reviewed all 21 UI decisions, their tradeoffs and acceptance criteria, then stated on 23 October: "I accept your recommendations. Update the UI plan accordingly."
+This revision records that acceptance; it does not claim that implementation or qualification has occurred.
+DEC-001–021 are accepted as specified in section 4, including A4 source reflection, property-label treatment, background-click clearing and the shared presentation model.
+B5 anchoring and motion are selected for implementation and qualification; B6's additional decoration is not selected.
+An unsuccessful B5 qualification still requires an explicit owner decision on the measured fallback limitations.
+Architecture's accepted decisions and performance's delivered contracts remain binding.
+The branch remains `feat/architecture-performance-ui`; retain the [authorized delivery checkpoints](2026-10-21-architecture-implementation-plan.md#authorized-delivery-checkpoints) and their applicable publication authority.
 
 On 23 October, the owner required GPT-6.1 Sol with High reasoning for the UI stage, with performance publication and its records finished before any model-switch pause.
-The calling chat has no supported tool to change its own model, so UI acceptance work and implementation must wait for the owner's model selection and resumption.
+The owner subsequently requested and completed the acceptance discussion before switching models, authorizing this documentation update.
+The owner then instructed "Continue with the current model", superseding the earlier model requirement and authorizing resumption without a model switch.
 The [performance handoff](2026-10-23-performance-final-handoff.md) records the delivered contracts, verification, review dispositions and retained limits.
-That handoff is the new source context for revisiting this draft; it does not accept DEC-001–021.
+Its earlier statement that UI decisions were open describes that publication checkpoint; this later owner acceptance governs the UI stage.
 
-| Baseline item             | Recorded identity                                                                                                                                                                                                   |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Planning checkout         | `C:/Users/maksy/GitHub/webvowl`, `main`                                                                                                                                                                             |
-| Planning HEAD             | `37fd52759f231d3c1b4794f15b5c599f717b0ddc`                                                                                                                                                                          |
-| Review's source HEAD      | `62961414530e141f8f79ec369afee2d68b9036a6`                                                                                                                                                                          |
-| UI review SHA-256         | `e732d80d688847a76bed36f7cc5a7ec60df2c08ae6fac401d4abd2baf3568fb7`                                                                                                                                                  |
-| Planning lockfile SHA-256 | `6c137dc6f69bfb4f70cc5db0ef4d7997fd76a1fc3544d33605612a733c49c458`                                                                                                                                                  |
-| Source reconciliation     | No changes under `src/`, `packages/`, `util/` or `docs/adr/` since review source; dependencies/lockfile have changed                                                                                                |
-| Implementation baseline   | The final performance commit containing the [handoff record](2026-10-23-performance-final-handoff.md), following `528d8b821eb143b88fd761b4b4fa69647c983eab`; use its published OID from the final delivery readback |
+The owner also authorized resuming foreground measurements only after other diagnostic avenues are exhausted and optimized code has been produced.
+Section 8.3 defines that order without retroactively treating deferred performance timings as passed.
+For browser and assistive-technology coverage, use automated testing as far as practicable and collect every remaining owner-performed validation into one batch at the end, as specified in section 8.4.
 
-The [architecture plan](2026-10-21-architecture-implementation-plan.md) must complete first, then the [performance plan](2026-10-21-performance-implementation-plan.md).
-This includes their explicit gate dispositions, not merely elapsed work.
-Only after that implementation checkpoint should the owner revisit this plan's acceptance and resolve its open decisions against the delivered evidence.
-Even the chooser slices, which have few functional dependencies on earlier changes, stay in plan 3.
+| Baseline item                    | Recorded identity                                                                                                                                                                                     |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Planning checkout                | `C:/Users/maksy/GitHub/webvowl`, `main`                                                                                                                                                               |
+| Planning HEAD                    | `37fd52759f231d3c1b4794f15b5c599f717b0ddc`                                                                                                                                                            |
+| Review's source HEAD             | `62961414530e141f8f79ec369afee2d68b9036a6`                                                                                                                                                            |
+| UI review SHA-256                | `e732d80d688847a76bed36f7cc5a7ec60df2c08ae6fac401d4abd2baf3568fb7`                                                                                                                                    |
+| Planning lockfile SHA-256        | `6c137dc6f69bfb4f70cc5db0ef4d7997fd76a1fc3544d33605612a733c49c458`                                                                                                                                    |
+| Original planning reconciliation | At initial planning, no changes under `src/`, `packages/`, `util/` or `docs/adr/` since review source; dependencies/lockfile had changed                                                              |
+| Implementation baseline          | Published performance commit `20eb888693bae1434720b6023608c35dd3dc75f3`, following `528d8b821eb143b88fd761b4b4fa69647c983eab`; includes the [handoff record](2026-10-23-performance-final-handoff.md) |
+| Acceptance readback              | HEAD `20eb888693bae1434720b6023608c35dd3dc75f3`; working tree clean before this update; review and lockfile hashes above rechecked unchanged on 23 October                                            |
+
+The [architecture plan](2026-10-21-architecture-implementation-plan.md) and then the [performance plan](2026-10-21-performance-implementation-plan.md) have reached their recorded source-delivery checkpoints.
+Their actual gate dispositions and limits remain part of this baseline: native workflow admission and resource reconciliation are distinct from passed task checks and source publication.
+The performance-only execution was paused, not natively verified complete, at the handoff.
+The accepted UI programme now supersedes that execution's implementation scope; reconcile its bookkeeping using the retained evidence and the owner's exception against needless retesting, preserving native verification and resource limitations.
+Do not use that reconciliation to relabel historical evidence or rerun unchanged tests solely for admission.
+Chooser and details work remain plan 3.
 
 Required inherited facts:
 
@@ -45,20 +55,21 @@ Required inherited facts:
 - Lifecycle ownership, transient-view selection clearing and retryable `LOAD_PENDING`.
 - Published `temporaryPresentation` and isolated subscriber failures.
 - Canonical-only renderer.
-- S2's frozen internal inspection reads and independent public copies; the adopted session-owned SF semantic read model; the S0 production harness and explicitly deferred foreground budgets.
+- S2's frozen internal inspection reads and independent public copies; the adopted session-owned SF semantic read model; the S0 production harness and foreground budgets that remain unqualified until the newly authorized final measurement phase.
 - S8's separate pending count intent, temporary layout hold preserving explicit Pause/Resume, capture flushing and bounded renderer reuse with full fallback.
 
 If a predecessor closed a required capability without delivering it, resolve the dependent UI gate explicitly.
 A completed performance plan is not proof that a deferred optimization exists.
 Do not reopen an earlier accepted decision or move chooser work earlier without replanning.
 
-The fixed implementation order is A1 → A2 → A3 → A4 (optional) → B1 → B2 → B3 → B4 → B5 → B6 (optional).
+The selected implementation order is A1 → A2 → A3 → A4 → B1 → B2 → B3 → B4 → B5; B6 is closed as not selected.
 A terminal disposition is merge, not selected, stopped by a falsifier, or owner-deferred.
 Reviving a closed slice requires a later plan.
 
 ## 2. Scope and HISEW route
 
-In scope: curated URL suggestions, one submission seam, active/committed/edited states, keyboard/touch behavior, source reflection if selected, on-demand overview, adaptive details surfaces, multi-role preview/full details, conditional anchoring/motion and optional renderer decoration.
+In scope: curated URL suggestions, one submission seam, active/committed/edited states, keyboard/touch behavior, protected current-source reflection, on-demand overview, adaptive details surfaces, multi-role preview/full details and selected anchoring/motion subject to qualification.
+Additional renderer decoration is not selected; existing selection styling remains.
 
 Preserve upload, drag-and-drop, create gating, paste, facts, reload, existing hashes/share links, layout control, pins, arrangement, editing authority, exports and agent selection parity.
 Keep the renderer a projection and semantic facts in controller/session reads.
@@ -67,12 +78,13 @@ Non-goals: UI framework adoption, redesigning editing, new ontology formats, new
 
 ### Risk class:
 
-**R2 proposed for implementation.**
+**R2 accepted for the selected implementation scope.**
+Native execution routing is a separate resumption step; this document records the owner decision, not an engine transition.
 Source routing, public behavior, accessible interaction, cross-layer selection and renderer observation create material compatibility and availability risk.
 
 ### Decision owner:
 
-The repository owner accepts the exact UI design decisions and plan revision.
+The repository owner accepted the UI recommendations on 23 October; this revision records their exact scope.
 The implementation owner integrates serial slices.
 Independent accessibility/browser and contract reviewers verify the final candidate.
 
@@ -94,7 +106,8 @@ Contract R additions require coordinated consumers; a previous release is a roll
 
 ### Principal unknowns:
 
-Owner decisions; role ordering and duplicate semantic-key behavior; hidden-entity selection; reliable selected-occurrence geometry; browser/assistive-technology behavior; mobile frame cost and H1–H4 closure latency.
+Role ordering and duplicate semantic-key behavior; hidden-entity selection; reliable selected-occurrence geometry; browser/assistive-technology behavior; minimum usable canvas dimensions; mobile frame cost and H1–H4 closure latency.
+These are remaining proof and calibration questions, not a reopening of accepted DEC-001–021.
 
 ### Required artifacts:
 
@@ -107,24 +120,24 @@ Changes to URL/input handling and untrusted semantic-text rendering trigger a sc
 
 ### Required verification:
 
-Test-first unit/contract flows; production browser matrix; named assistive-technology checks; S0 performance measurements; export equivalence; final configured `full` route and independent verification.
+Test-first unit/contract flows; automated browser and accessibility checks to the practical limit of available tools; one final batch of residual manual checks; S0 foreground measurements after optimization; export equivalence; final configured `full` route and independent verification.
 
 ### Required human approvals:
 
-Review of UI plan/R2 acceptance, DEC-001–021 and material unresolved handoffs is deferred until both predecessor plans have been implemented.
-Keep D-01–D-19 and the two additional source inconsistencies in section 4 open until that review; resolve affected decisions before their slices.
-Configuration/lockfile/new dependency/lint-policy changes, new shims, commits and publication require their applicable separate approval.
+UI plan/R2 acceptance and DEC-001–021 are recorded in this revision.
+Further decisions are required only for material scope/contract changes, a failed B5 qualification and its proposed fallback, exact configuration/dependency/lint-policy changes or new shims, and the final disposition of required coverage that remains unavailable.
+Retain existing commit-message, commit and feature-branch publication authority; this acceptance adds no merge, deployment or unrelated configuration authority.
 
 ### Maximum sensible autonomy:
 
-Record the deferred acceptance review and validate this document now.
-After implementation acceptance, execute selected slices, preserve prior decisions and close optional features by their gates.
-No delegation, live user study or scanner launch is authorized by this draft.
+Record acceptance and validate this document now.
+Under the owner's current-model resumption, execute the selected slices, investigate and fix issues autonomously within scope, and batch residual owner-performed browser/AT validation at the end.
+No delegation or live user study is authorized by the plan itself; specialist tools remain within the accepted scope and their applicable procedures.
 
 ### Next lifecycle step:
 
-After architecture and performance implementation, reconcile their delivered capabilities and evidence, then revisit UI acceptance and every open decision with the owner.
-Only after that review and implementation authorization may SLICE-000 proceed.
+Reconcile the existing performance execution's bookkeeping, checkpoint this accepted plan and confirm the delivered baseline before SLICE-000.
+Do not repeat the accepted UI decision review or treat resumption as proof that any implementation gate passed.
 
 ## 3. Requirements and measurable acceptance
 
@@ -142,84 +155,91 @@ The review's A/B requirements are retained as source references, distinct from i
 | REQ-007 Preserve ownership and latest selection        | AC-007 Controller facts only; generation-safe refresh; latest selection wins; no preview-induced layout/pin/camera/export change                           | B7, reconciliation D-19    |
 | REQ-008 Provide accessible interaction                 | AC-008 Keyboard/touch/focus/AT cases in section 8 pass, with explicit untested-platform gaps                                                               | A/B accessibility criteria |
 | REQ-009 Make motion optional and bounded               | AC-009 Reduced motion removes translate/scale; interruption settles target state within one frame; accepted frame/latency budgets pass                     | B4/B5, PH-1–PH-3           |
-| REQ-010 Keep decoration out of artifacts               | AC-010 Optional ring is generation-local and excluded from SVG/drawing/canonical capture                                                                   | B7, AH-3                   |
+| REQ-010 Keep decoration out of artifacts               | AC-010 Applies only if B6 is later selected; no new ring is delivered in this revision. Existing surface/export equivalence remains required               | B7, AH-3                   |
 | REQ-011 Preserve implementation boundaries             | AC-011 No unauthorized configuration, new transport, public aliases or human-editing capability for agents                                                 | AGENTS.md, ADR 0012        |
 
 ### 3.1 Quality scenarios
 
-| Scenario                          | Stimulus/environment                                                                  | Required outcome                                                                                                       |
-| --------------------------------- | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| QA-001 Accidental-load prevention | Type a label; Enter, hold Enter, IME commit, tap a suggestion                         | Commitment only; second deliberate submission loads once; no native implicit-submit race                               |
-| QA-002 Source compatibility       | Dev HTTP packaged URL, production base path, each hash route, percent escapes         | Exact resolver URL; preset semantics retained; normalizer runs only for the appropriate uncommitted route              |
-| QA-003 Narrow-screen usability    | 375×812, 812×375, 768×1024, keyboard open, 200% zoom/320 CSS px, text spacing         | Usable full-width graph; controls/focus remain visible; sheets scroll without trapping non-modal preview focus         |
-| QA-004 Selection lifetime         | A→B rapidly, then load replacement/edit/language/hidden state                         | At most one describe per frame, latest current result only, no stale DOM/focus update or escaping subscriber exception |
-| QA-005 Semantic completeness      | Multi-role, repeated, anonymous, literal/datatype, property and details-only entities | Deterministic role display, all details accessible, no occurrence/record/entity identity interchange                   |
-| QA-006 Motion neutrality          | Active layout, drag, pan, zoom, pause, inline edit, export                            | No preview-induced simulation/arrangement/pin change; reduced-motion and interruption rules pass                       |
-| QA-007 Agent parity               | Human versus WebMCP reveal/select/reset/load                                          | Same published state and preview consequences; pending load shown as retryable state without automatic resubmission    |
-| QA-008 Untrusted content          | Markup-like labels, hostile IRI schemes, long values and load errors                  | Text remains text, actionable URLs validated, existing acquisition limits/credentials behavior retained                |
-| QA-009 Cleanup                    | Repeated open/close, load/dispose, hidden-tab transitions                             | No leaked subscriptions, animation frames, observers, dialogs or retired occurrence references                         |
+| Scenario                          | Stimulus/environment                                                                              | Required outcome                                                                                                       |
+| --------------------------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| QA-001 Accidental-load prevention | Type a label; Enter, hold Enter, IME commit, tap a suggestion                                     | Commitment only; second deliberate submission loads once; no native implicit-submit race                               |
+| QA-002 Source compatibility       | Dev HTTP packaged URL, production base path, each hash route, percent escapes                     | Exact resolver URL; preset semantics retained; normalizer runs only for the appropriate uncommitted route              |
+| QA-003 Narrow-screen usability    | 375×812, 812×375, 768×1024, keyboard open, 200% zoom and separate 320 CSS px reflow, text spacing | Usable full-width graph; controls/focus remain visible; sheets scroll without trapping non-modal preview focus         |
+| QA-004 Selection lifetime         | A→B rapidly, then load replacement/edit/language/hidden state                                     | At most one describe per frame, latest current result only, no stale DOM/focus update or escaping subscriber exception |
+| QA-005 Semantic completeness      | Multi-role, repeated, anonymous, literal/datatype, property and details-only entities             | Deterministic role display, all details accessible, no occurrence/record/entity identity interchange                   |
+| QA-006 Motion neutrality          | Active layout, drag, pan, zoom, pause, inline edit, export                                        | No preview-induced simulation/arrangement/pin change; reduced-motion and interruption rules pass                       |
+| QA-007 Agent parity               | Human versus WebMCP reveal/select/reset/load                                                      | Same published state and preview consequences; pending load shown as retryable state without automatic resubmission    |
+| QA-008 Untrusted content          | Markup-like labels, hostile IRI schemes, long values and load errors                              | Text remains text, actionable URLs validated, existing acquisition limits/credentials behavior retained                |
+| QA-009 Cleanup                    | Repeated open/close, load/dispose, hidden-tab transitions                                         | No leaked subscriptions, animation frames, observers, dialogs or retired occurrence references                         |
 
 ## 4. Decision register and unresolved handoffs
 
-These recommendations remain draft choices, not recorded owner acceptance.
-The owner deferred their review until the architecture and performance plans are implemented; approval of those plans does not accept these UI choices or resolve the handoffs below.
+All DEC-001–021 below were accepted by the owner on 23 October after the post-performance walkthrough.
+The implementation and evidence gates remain; acceptance of a choice is not a passed test or release qualification.
 
-| Decision       | Recommended choice                                                                         | Before                                                         |
-| -------------- | ------------------------------------------------------------------------------------------ | -------------------------------------------------------------- |
-| DEC-001 / D-01 | Unedited packaged suggestion submits its preset route                                      | A2                                                             |
-| DEC-002 / D-02 | Derive exact commitment before HTTP→HTTPS normalization                                    | A2                                                             |
-| DEC-003 / D-03 | Genuine URL textbox with controlled list and expanded toggle; no unsupported combobox role | A3                                                             |
-| DEC-004 / D-04 | Published titles with short category badges                                                | A1                                                             |
-| DEC-005 / D-05 | Verbatim `latest` / `latest-unstable` badges                                               | A1                                                             |
-| DEC-006 / D-06 | No benchmark suggestion; preserve `#benchmark`                                             | A1                                                             |
-| DEC-007 / D-07 | Keep submitted/failed text; optional idle current-source reflection                        | A2/A4; deliberately replaces a field-clearing test expectation |
-| DEC-008 / D-08 | Reject unmatched bare words with guidance                                                  | A2; define host:port/localhost distinctions explicitly         |
-| DEC-009 / D-09 | Wide inspector closed by default, opt-in pinning; editor workflow remains available        | B2                                                             |
-| DEC-010 / D-10 | Shape-styled, content-sized preview with constant Details action                           | B3                                                             |
-| DEC-011 / D-11 | Owner clarifies whether “rectangular nodes” includes property-label rectangles             | B3                                                             |
-| DEC-012 / D-12 | No literal circular content card in first delivery                                         | B3                                                             |
-| DEC-013 / D-13 | Compact `sidebar=1` neither docks nor automatically opens a surface                        | B2; explicit bookmark-presentation change                      |
-| DEC-014 / D-14 | No View Transitions in first delivery                                                      | B5                                                             |
-| DEC-015 / D-15 | Viewport meta remains separate accessibility work                                          | Scope boundary                                                 |
-| DEC-016 / D-16 | No agent catalogue-listing tool                                                            | Scope boundary                                                 |
-| DEC-017 / D-17 | Preserve native-disabled Visualize until valid                                             | A3                                                             |
-| DEC-018 / D-18 | Background press/release clears selection only if owner accepts it and no drag occurred    | B3; otherwise retain current behavior                          |
-| DEC-019 / D-19 | One pure description-to-presentation model for preview, details and docked inspector       | B3; independent expected outputs                               |
-| DEC-020        | Resolve details-close state ambiguity as described below                                   | B3/B4                                                          |
-| DEC-021        | Resolve matching example inconsistency against the accepted matching rule                  | A1                                                             |
+| Decision       | Accepted choice, 23 October                                                                              | Implementation gate                                                                              |
+| -------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| DEC-001 / D-01 | Unedited packaged suggestion submits its preset route                                                    | A2                                                                                               |
+| DEC-002 / D-02 | Derive exact commitment before HTTP→HTTPS normalization                                                  | A2                                                                                               |
+| DEC-003 / D-03 | Genuine URL textbox with controlled list and expanded toggle; no unsupported combobox role               | A3                                                                                               |
+| DEC-004 / D-04 | Published titles with short category badges                                                              | A1                                                                                               |
+| DEC-005 / D-05 | Verbatim `latest` / `latest-unstable` badges                                                             | A1                                                                                               |
+| DEC-006 / D-06 | No benchmark suggestion; preserve `#benchmark`                                                           | A1                                                                                               |
+| DEC-007 / D-07 | Keep submitted/failed text; select A4 current-source reflection only while unfocused and unedited        | A2/A4; deliberately replaces the field-clearing expectation; failures and edits remain protected |
+| DEC-008 / D-08 | Reject unmatched bare words with guidance                                                                | A2; define host:port/localhost distinctions explicitly                                           |
+| DEC-009 / D-09 | Wide inspector closed by default, opt-in pinning; editor workflow remains available                      | B2                                                                                               |
+| DEC-010 / D-10 | Shape-styled, content-sized preview with constant Details action                                         | B3                                                                                               |
+| DEC-011 / D-11 | Include property-label rectangles in the visual treatment; shape never limits available information      | B3; complete property details remain reachable                                                   |
+| DEC-012 / D-12 | No literal circular content card in first delivery                                                       | B3                                                                                               |
+| DEC-013 / D-13 | Compact `sidebar=1` neither docks nor automatically opens a surface                                      | B2; explicit bookmark-presentation change                                                        |
+| DEC-014 / D-14 | No View Transitions in first delivery                                                                    | B5                                                                                               |
+| DEC-015 / D-15 | Viewport meta remains separate accessibility work                                                        | Scope boundary                                                                                   |
+| DEC-016 / D-16 | No agent catalogue-listing tool                                                                          | Scope boundary                                                                                   |
+| DEC-017 / D-17 | Preserve native-disabled Visualize until valid                                                           | A3                                                                                               |
+| DEC-018 / D-18 | Background click/tap clears selection only when no drag/pan crossed the existing movement threshold      | B3; protect pan, drag and touch behavior                                                         |
+| DEC-019 / D-19 | One pure description-to-presentation model for preview, details and docked inspector                     | B3; independent expected outputs                                                                 |
+| DEC-020        | Closing full details returns to preview; closing preview clears controller selection                     | B3/B4; no hidden dismissed-selection state                                                       |
+| DEC-021        | Matching rules govern contradictory examples; Core URLs do not imply Extended, and SIOC can match `core` | A1; absolute typed URLs are never automatically replaced                                         |
 
 **DEC-020: details-close ambiguity.**
 Review section 7.1 labels Close/Escape from full details as `Closed` with selection retained, while it also says a preview exists whenever selection is non-empty.
 The storyboard/state diagram says the preview remains.
-Recommended interpretation: details-open is an orthogonal presentation mode; closing full details returns to the selection's preview, while closing the preview clears selection through the controller.
+Accepted interpretation: details-open is an orthogonal presentation mode; closing full details returns to the selection's preview, while closing the preview clears selection through the controller.
 Loads/stale references suppress both immediately.
-Accept this transition table before B3/B4; do not introduce an undocumented “dismissed selection” flag.
+Implement and independently test these accepted transitions in B3/B4; do not introduce an undocumented “dismissed selection” flag.
 
 **DEC-021: matching example inconsistency.**
 Review section 4.6 says a typed Core `latest` URL lists H3 and H4, but its stated substring rule and catalogue give H4 an Extended URL, not a Core URL.
-Recommend the rule-derived result, with H3 matching its URL prefix and H4 not matching unless an explicit searchable field actually matches.
+Use the accepted rule-derived result, with H3 matching its URL prefix and H4 not matching unless an explicit searchable field actually matches.
 Likewise the illustrative one-result `core` wireframe must not override SIOC's “Core Ontology” title.
 In all cases an absolute typed URL has no automatic activation and is submitted unchanged.
-Owner acceptance resolves examples before they become test oracles.
+The owner accepted these corrections before they become test oracles.
+
+**Selected enhancements and retained boundaries.**
+A4 reflection is selected, with no overwrite of focused/dirty text and no automatic submission.
+B5 anchoring and motion are selected for implementation and qualification after B3/B4 establish complete static behavior.
+B6's extra ring/halo is not selected; retain existing selection styling and add no decoration contract member.
+DEC-015 keeps viewport-meta changes outside this delivery and leaves the existing zoom restriction visible as a limitation.
+The owner has not preaccepted a failed B5 qualification, reduced semantic completeness or an inaccessible fallback.
 
 ### 4.1 Handoff questions and their minimum evidence
 
-| Question                                 | Disposition / cheapest evidence                                                                                                                                                            | Consumer            |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------- |
-| AH-1/AH-2 anchor and selected occurrence | Contract R permits a classified renderer observation; design a generation/revision-scoped arrangement fact for the actual selected occurrence, never a semantic/editing identity           | B5                  |
-| AH-3 decoration                          | Permitted renderer-local member under R, subject to export exclusion and optional selection                                                                                                | B6                  |
-| AH-4 role order                          | Permute input/record order on punning fixtures; accept a stable semantic ordering and deterministic tie-break                                                                              | B3                  |
-| AH-5 duplicate semantic keys             | Verify canonical snapshot invariant and inspector differential; SF evidence may supply it, otherwise add focused proof                                                                     | B3                  |
-| AH-6 entity-scoped facts                 | Keep a section-level ontology-facts link by default; new entity read requires explicit contract and ADR 0012 parity decision                                                               | B4                  |
-| AH-7 submission owner                    | One source-submission module called directly by chooser/search; location loader retains loading authority                                                                                  | A2                  |
-| AH-8 explicit-IRI node count             | Current session chooses `auto` without saved visualization; explicit routes do not force preset overrides. Test actual H1–H4 admission and keep this rule unless a new decision changes it | A2                  |
-| AH-9 graph keyboard selection            | No new graph navigation in this scope; preserve search keyboard path. A semantic-only hidden target cannot be passed to occurrence selection                                               | B3/B4               |
-| AH-10 agent catalogue                    | D-16 excludes a new tool; URL loading parity already exists                                                                                                                                | A1                  |
-| AH-11 viewport metrics                   | Extract one application-owned producer from search's current implementation; current chooser must work before search ever opens                                                            | A3                  |
-| PH-1/PH-2                                | S0 harness: selected-anchor cost and real compositing/frame cost during active SVG layout, including constrained devices                                                                   | B5                  |
-| PH-3                                     | Re-measure click→painted preview and rapid-selection coalescing on actual post-performance source                                                                                          | B3                  |
-| PH-4                                     | Recheck H1–H4 retrieval, import closure, load and settle; historical 200 responses are not current end-to-end proof                                                                        | A2/A3 qualification |
-| PH-5                                     | Suspend unnecessary hidden-tab/idle anchor work, but continue event-driven pan/zoom/drag/resize updates while layout is paused                                                             | B5                  |
+| Question                                 | Disposition / cheapest evidence                                                                                                                                                            | Consumer                                      |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------- |
+| AH-1/AH-2 anchor and selected occurrence | Contract R permits a classified renderer observation; design a generation/revision-scoped arrangement fact for the actual selected occurrence, never a semantic/editing identity           | B5                                            |
+| AH-3 decoration                          | B6 not selected on 23 October; retain existing selection styling and add no new renderer member                                                                                            | Closed for this delivery                      |
+| AH-4 role order                          | Permute input/record order on punning fixtures; accept a stable semantic ordering and deterministic tie-break                                                                              | B3                                            |
+| AH-5 duplicate semantic keys             | Verify canonical snapshot invariant and inspector differential; SF evidence may supply it, otherwise add focused proof                                                                     | B3                                            |
+| AH-6 entity-scoped facts                 | Keep a section-level ontology-facts link by default; new entity read requires explicit contract and ADR 0012 parity decision                                                               | B4                                            |
+| AH-7 submission owner                    | One source-submission module called directly by chooser/search; location loader retains loading authority                                                                                  | A2                                            |
+| AH-8 explicit-IRI node count             | Current session chooses `auto` without saved visualization; explicit routes do not force preset overrides. Test actual H1–H4 admission and keep this rule unless a new decision changes it | A2                                            |
+| AH-9 graph keyboard selection            | No new graph navigation in this scope; preserve search keyboard path. A semantic-only hidden target cannot be passed to occurrence selection                                               | B3/B4                                         |
+| AH-10 agent catalogue                    | D-16 excludes a new tool; URL loading parity already exists                                                                                                                                | A1                                            |
+| AH-11 viewport metrics                   | Extract one application-owned producer from search's current implementation; current chooser must work before search ever opens                                                            | A3                                            |
+| PH-1/PH-2                                | Diagnose and optimize anchor/compositing work first; use S0 for real foreground cost on the consolidated optimized candidate, including available constrained devices                      | B5 final qualification                        |
+| PH-3                                     | Prove rapid-selection coalescing with counters during B3; measure click→painted preview after the optimization-first gate in section 8.3                                                   | B3 implementation; final timing qualification |
+| PH-4                                     | Automate H1–H4 retrieval/import/load correctness first; measure foreground load/settle only after section 8.3's gate; historical 200 responses are not current end-to-end proof            | A2/A3 implementation; final qualification     |
+| PH-5                                     | Suspend unnecessary hidden-tab/idle anchor work, but continue event-driven pan/zoom/drag/resize updates while layout is paused                                                             | B5                                            |
 
 **Additional integration gap: semantic-only selection.**
 Current `selectVisualizationElement` delegates to an occurrence selection validator.
@@ -327,13 +347,14 @@ Content model:
 
 ### SLICE-000 — Re-anchor and accept the UI baseline
 
-**Entry:** both predecessor plans complete; exact UI scope/route and affected decisions accepted.
+**Entry:** both predecessor source checkpoints and their limits recorded; this UI scope/R2 route and DEC-001–021 accepted; owner authorized resumption with the current model.
 
 Bind final source, lockfile, review hashes, delivered contracts, browser target and S0 evidence.
 Refresh HISEW applicability, execution ownership and profiles.
 Check every open handoff in section 4.1.
 Retain prior decisions and expected predecessor changes.
 Record actual unavailable browser/AT/device capabilities without claiming coverage.
+Carry unavailable manual-only checks forward to the single final owner validation batch; do not interrupt individual slices merely to ask the owner to exercise each platform.
 
 **Output:** a concrete accepted decision packet and per-slice entry gates.
 No app, source catalogue or workflow configuration is changed by drafting.
@@ -345,7 +366,7 @@ No app, source catalogue or workflow configuration is changed by drafting.
 
 Write exact H1–H4 string/order tests and all six packaged source tests.
 Test group ordering, badge/provenance matching, NFKC/case behavior, empty/no-match input and absolute-URL non-activation.
-Resolve DEC-021 before freezing expected results.
+Freeze expected results using accepted DEC-021.
 A displayed short badge never substitutes for the actual URL.
 
 **Demonstration:** pure catalogue/matching tests show the intended suggestions without loading anything.
@@ -360,7 +381,7 @@ A displayed short badge never substitutes for the actual URL.
 Separate commit from submit.
 Replace `setIriText`'s synthetic events with a directly invoked submission operation shared by chooser and search.
 Preserve validation-before-native-submission ordering.
-Keep submitted text only under accepted D-07 and associate failures with the actual submitted source.
+Keep submitted text under accepted D-07 and associate failures with the actual submitted source.
 An agent/hash load does not cause automatic resubmission.
 
 **Tests/oracle:** all route rows, dev HTTP packaged URL, base-path deployment, native URL sanitization, existing encoded-percent tests, explicit source defaults, invalid/credential schemes, unmatched bare words versus valid host:port, same-hash retry and load supersession.
@@ -393,7 +414,7 @@ No new global policy setting is required.
 **Stop:** required semantics fail in target AT/browser; resolve a conforming design, not a role or lint bypass.
 **Cleanup:** remove obsolete handlers/listeners and old duplicated viewport publication.
 
-### SLICE-004 — A4: optional current-source reflection
+### SLICE-004 — A4: selected current-source reflection
 
 **Dependencies:** A3 and selected DEC-007 reflection option.
 **Predicted files:** chooser presenter, state presenter and tests.
@@ -405,12 +426,12 @@ Clear obsolete failure hints only for their owning source.
 Reflection never invokes submission.
 
 **Accept:** source reflection, dirty/focus protection, failure recovery and no-load spies.
-**Close unselected:** preserve submitted text without adding reflection.
+**Selection:** accepted on 23 October; omitting reflection requires a changed scope decision.
 **Recovery:** remove reflection subscription without undoing A2's accepted submission behavior.
 
 ### SLICE-005 — B1: ontology overview on demand
 
-**Dependencies:** A4 disposition.
+**Dependencies:** A4 implementation.
 **Predicted files:** markup, sidebar, state presenter, CSS and a small overview presenter/dialog module.
 
 Add a visible title/Overview control before the graph in tab order.
@@ -434,7 +455,7 @@ Existing 280/320/360 px panel tokens are starting evidence, not fixed acceptance
 Keep editor content and authority intact: full-height compact sheet, existing wide docked workflow.
 Do not introduce preference persistence.
 
-**Tests/oracle:** compact portrait/landscape, tablet, wide, 200% zoom/320 CSS px, text spacing, on-screen keyboard, editor entry/exit and `sidebar=1`.
+**Tests/oracle:** compact portrait/landscape, tablet, wide, 200% zoom and separate 320 CSS px reflow, text spacing, on-screen keyboard, editor entry/exit and `sidebar=1`.
 Apply reduced motion to existing panel transitions too.
 Use native dialog focus behavior; non-modal docked region remains interactive with the graph.
 
@@ -447,6 +468,7 @@ Use native dialog focus behavior; non-modal docked region remains interactive wi
 **Dependencies:** B2; DEC-010/011/012/018/019/020; AH-4/AH-5/AH-9; actual performance read path.
 
 Create one pure description-to-presentation model and a presenter that schedules at most one describe per animation frame.
+The model formats the delivered SF semantic answers; it does not duplicate semantic authority or create a second semantic cache.
 Check generation before reading and again before applying a queued result.
 Handle `LOAD_PENDING` without retry loops or exceptions escaping publication.
 Refresh language/revision changes while retaining valid focus/scroll.
@@ -455,14 +477,15 @@ Read published temporary presentation and current drawn availability; do not inf
 Use an initially docked preview with no renderer decoration or morph.
 A basic wide placement may use existing controller arrangement facts only if the identity is unambiguous.
 Exact tapped-occurrence tracking and moving-node keep-clear guarantees belong to B5.
-If those are mandatory for the first release, B3 remains a prerequisite increment until B5 qualifies; do not claim the fallback already proves them.
+B3 remains a prerequisite increment for selected B5; do not claim the static fallback already proves moving-node keep-clear behavior.
 
 Test all roles/kinds, repeated and hidden entities, rapid selection, selection removed by edit, load start, revision/language changes, WebMCP selection/reset and disposal.
 Preview Close reports null selection through the controller.
-Background-click clearing is implemented only if DEC-018 is accepted, with existing drag threshold and pan/touch behavior protected.
+Implement accepted DEC-018 background-click clearing, with existing drag threshold and pan/touch behavior protected.
 Inline editing suppresses preview interaction without altering editor authority.
 
-**Accept:** AC-006/007, bounded describe counters, B4 click-to-preview budget and no runtime layout/pin/camera writes.
+**Implementation accept:** AC-006/007 correctness, bounded describe counters and no runtime layout/pin/camera writes.
+**Final qualification:** the inherited W5 `all` click-to-painted-details lab p95 is at most 200 ms; measure only after section 8.3's gate, and keep timing acceptance pending until then.
 **Stop:** mutating read consumer, stale content or unresolved semantic-only selection contract.
 **Fallback:** docked non-animated preview plus complete details, subject to actual occlusion/accessibility evidence.
 
@@ -487,7 +510,8 @@ Resolve the contract or scope with the owner; do not read the SVG.
 
 ### SLICE-009 — B5: selected-occurrence anchor and interruptible motion
 
-**Dependencies:** B4; AH-1/AH-2, PH-1–PH-5; DEC-014; accepted quantitative motion budget.
+**Dependencies:** B4; AH-1/AH-2 and PH-5 design/correctness proof; accepted DEC-014.
+PH-1–PH-4 foreground qualification follows optimized implementation under section 8.3; establish explicit quantitative anchor/frame budgets before those acceptance measurements.
 
 **Predicted files:** contract R module delivered by architecture, adapter/internals, controller arrangement-observation routing, preview presenter/placement, CSS and conformance/browser tests.
 
@@ -509,12 +533,15 @@ Reduced motion uses instant or short opacity only.
 
 **Tests/oracle:** R1–R4 independent conformance; repeated occurrence clicked versus entity meaning; generation/revision expiry; reselect during open/close; drag/zoom/resize; hidden tab; reduced motion; exported graph unchanged.
 Use S0 on admitted workloads and separately labeled 1k/10k synthetic occurrence stress cases.
-Measure PH-1/PH-2 and compositing on actual available devices; transform usage alone is not GPU proof.
+Diagnose work with static analysis, counters and headless traces first, then measure PH-1/PH-2 and compositing on the optimized candidate and actual available devices; transform usage alone is not GPU proof.
 
 **Accept:** measured motion/latency budgets, no per-tick SVG measurement, stable keep-clear placement and all invariant tests.
 **Falsifier/recovery:** if anchoring/compositing remains too costly or inaccessible, close B5 with evidence and owner-accept the B1–B4 fallback; do not weaken predecessor budgets.
 
 ### SLICE-010 — B6: optional renderer-local expansion decoration
+
+**Disposition:** not selected by the owner on 23 October; do not implement this slice.
+The design below is retained for traceability only; reopening it needs a later decision.
 
 **Dependencies:** B5 accepted and owner selects decoration.
 **Predicted files:** contract R, adapter/internals selection decoration and export-clone tests.
@@ -531,18 +558,18 @@ Retire it on selection/generation change and disposal.
 
 ## 8. Verification and traceability
 
-| Slice          | Requirement / acceptance / quality / decisions                          | Proof                                          | Release/cleanup implication         | Initial status |
-| -------------- | ----------------------------------------------------------------------- | ---------------------------------------------- | ----------------------------------- | -------------- |
-| A1 / SLICE-001 | REQ-002 / AC-002 / QA-002 / DEC-004/005/006/021                         | Exact catalogue and independent matching tests | No loading side effects             | Gate pending   |
-| A2 / SLICE-002 | REQ-003/004 / AC-003/004 / QA-001/002/007 / DEC-001/002/007/008         | Routes, single submit, unchanged share links   | Retire synthetic submission         | Gate pending   |
-| A3 / SLICE-003 | REQ-001/008 / AC-001/008 / QA-001/003/009 / DEC-003/017                 | Keyboard/ARIA/touch and metrics ownership      | Remove preset links/dead handlers   | Gate pending   |
-| A4 / SLICE-004 | REQ-004/007 / AC-004/007 / QA-007 / DEC-007                             | Dirty/focus/source reflection tests            | Optional subscription only          | Optional       |
-| B1 / SLICE-005 | REQ-005/006 / AC-005/006 / QA-003                                       | Overview field inventory and focus             | Metadata remains reachable          | Gate pending   |
-| B2 / SLICE-006 | REQ-005/008 / AC-005/008 / QA-003/006 / DEC-009/013                     | Responsive/editor/reduced-motion checks        | No preference/schema migration      | Gate pending   |
-| B3 / SLICE-007 | REQ-006/007 / AC-006/007 / QA-004/005/007 / DEC-010/011/012/018/019/020 | Presentation oracle, lifetime and performance  | Remove first-role-only presentation | Gate pending   |
-| B4 / SLICE-008 | REQ-006/008 / AC-006/008 / QA-005/008 / DEC-020                         | Completeness, navigation and focus             | Complete details remain available   | Gate pending   |
-| B5 / SLICE-009 | REQ-007/009 / AC-007/009 / QA-004/006/009 / DEC-014                     | Contract R, browser motion and S0 evidence     | Accepted fallback if gate fails     | Conditional    |
-| B6 / SLICE-010 | REQ-010 / AC-010 / QA-006/009                                           | Export equality and lifetime                   | Retire optional decoration cleanly  | Optional       |
+| Slice          | Requirement / acceptance / quality / decisions                          | Proof                                                      | Release/cleanup implication                       | Initial status           |
+| -------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------- | ------------------------ |
+| A1 / SLICE-001 | REQ-002 / AC-002 / QA-002 / DEC-004/005/006/021                         | Exact catalogue and independent matching tests             | No loading side effects                           | Gate pending             |
+| A2 / SLICE-002 | REQ-003/004 / AC-003/004 / QA-001/002/007 / DEC-001/002/007/008         | Routes, single submit, unchanged share links               | Retire synthetic submission                       | Gate pending             |
+| A3 / SLICE-003 | REQ-001/008 / AC-001/008 / QA-001/003/009 / DEC-003/017                 | Keyboard/ARIA/touch and metrics ownership                  | Remove preset links/dead handlers                 | Gate pending             |
+| A4 / SLICE-004 | REQ-004/007 / AC-004/007 / QA-007 / DEC-007                             | Dirty/focus/source reflection tests                        | Scoped subscription with disposal                 | Selected; proof pending  |
+| B1 / SLICE-005 | REQ-005/006 / AC-005/006 / QA-003                                       | Overview field inventory and focus                         | Metadata remains reachable                        | Gate pending             |
+| B2 / SLICE-006 | REQ-005/008 / AC-005/008 / QA-003/006 / DEC-009/013                     | Responsive/editor/reduced-motion checks                    | No preference/schema migration                    | Gate pending             |
+| B3 / SLICE-007 | REQ-006/007 / AC-006/007 / QA-004/005/007 / DEC-010/011/012/018/019/020 | Presentation oracle, lifetime and performance              | Remove first-role-only presentation               | Gate pending             |
+| B4 / SLICE-008 | REQ-006/008 / AC-006/008 / QA-005/008 / DEC-020                         | Completeness, navigation and focus                         | Complete details remain available                 | Gate pending             |
+| B5 / SLICE-009 | REQ-007/009 / AC-007/009 / QA-004/006/009 / DEC-014                     | Contract R, optimized browser motion and final S0 evidence | Owner must accept fallback if qualification fails | Selected; proof pending  |
+| B6 / SLICE-010 | REQ-010 / AC-010 / QA-006/009                                           | No new decoration implemented                              | Existing selection styling retained               | Not selected, 23 October |
 
 ### 8.1 Existing test boundaries
 
@@ -552,7 +579,11 @@ The honest runtime double cannot prove actual DOM focus, geometry, paint or acce
 
 Format/lint the exact commit scope before any authorized commit.
 Current HISEW profiles are `focused → npm run lint`, `affected → npm run test`, `full → npm run check`, with 600-second command timeout and no declared coverage/input order.
-Reinspect before execution; final assurance uses the accepted full relevant route after stable implementation/review fixes.
+Reinspect before execution; final assurance uses the accepted full relevant route after stable implementation and issue resolution.
+Consolidate changes before broad review and keep follow-up reviews narrowly scoped.
+Reserve external review for the final implementation commit candidate, after the full required automated tests have run and their issues have been resolved.
+Retain the owner's reviewer selection: AGY with Flash 3.8 on High and a 60-minute timeout, without additional turn, token or spend limits.
+If that review produces fixes, verify their affected behavior and refresh broader evidence only where changed inputs or unresolved risk require it; preserve failed attempts.
 Keep browser and performance proof separate.
 
 ### 8.2 Browser and accessibility matrix
@@ -562,31 +593,86 @@ Keep browser and performance proof separate.
 | Browser engines      | Chrome/Blink, Firefox/Gecko and Safari/WebKit; desktop and actual mobile cases where required                                                                   |
 | Keyboard             | E1–E6, arrow/Alt navigation, Escape layering, Tab order, modal containment, non-modal escape and focus return                                                   |
 | Assistive technology | NVDA+Firefox/Chrome, JAWS+Chrome, VoiceOver macOS/iOS Safari, TalkBack Android Chrome; active versus committed announcement, group descriptions and live status |
-| Reflow               | 200% zoom, 320 CSS px equivalent, text spacing, narrow landscape, long labels/IRIs and keyboard viewport                                                        |
+| Reflow               | Separate checks for 200% zoom and reflow at 320 CSS px equivalent, plus text spacing, narrow landscape, long labels/IRIs and keyboard viewport                  |
 | Visibility           | Focus ring/contrast, focused-control non-obscuration, selected-anchor keep-clear when B5 is selected                                                            |
-| Targets and gestures | At least 24 CSS px applicable target minimum; proposed 44 px controls; no drag-only essential action                                                            |
+| Targets and gestures | Applicable 24-by-24 CSS px target minimum and its defined exceptions; aim for 44 px controls; no drag-only essential action                                     |
 | Preferences          | Reduced motion and Windows forced colors; no hidden animation or illegible badges                                                                               |
 | Graph continuity     | Drag/pan/zoom, pause/resume, pick-and-pin, inline edit, reveal/clear, reset and source replacement                                                              |
-| Performance          | S0 B4 after preview, PH-1–PH-4 with source/workload identity; no concurrent acceptance measurement                                                              |
+| Performance          | S0 B4 and PH-1–PH-4 on the consolidated optimized candidate after section 8.3; retain source/workload identity and avoid competing acceptance work              |
 | Export               | Same semantic/canonical bytes and fixed-state geometry with surfaces/decoration open and closed                                                                 |
 
 Record the actual engine/device/AT version and test result.
 Windows Chromium or emulated WebKit does not prove real iOS VoiceOver or Safari behavior.
-Unavailable required coverage needs an accountable release disposition.
+Maximize automated coverage first and collect unavailable or irreducibly manual coverage in the single final owner batch in section 8.4.
+Unavailable required coverage still needs an accountable release disposition; batching it does not waive it or turn it into a pass.
 The pre-existing `user-scalable=no` limitation remains visible in acceptance; do not claim whole-app WCAG conformance or silently change it under this task.
+
+### 8.3 Optimization before foreground measurement
+
+On 23 October the owner authorized foreground measurements to resume, but only after other avenues have been exhausted and optimized code has been produced.
+This changes the future measurement order; historical deferred or rejected timings remain deferred or rejected.
+
+1. Reuse the delivered architecture/performance evidence and inspect the new UI paths statically.
+   Identify avoidable copies, repeated description work, layout reads, redundant subscriptions, stale callbacks and unnecessary per-frame or hidden-tab work.
+   Do not collect foreground acceptance timings of an unoptimized draft.
+2. Use focused tests, headless browser checks, counters and targeted traces to diagnose the actual problems.
+   Implement the selected optimizations and fixes, prove semantic equivalence, lifetime and export safety, and resolve actionable findings within scope.
+   Retain only baseline collection needed for a concrete comparison; do not expand baseline cohorts before fixing known waste.
+3. Consolidate the optimized code and complete the relevant correctness, browser/accessibility automation and full automated checks. Record the diagnostic avenues used, issues resolved and any residual limit with its evidence and disposition. The foreground gate opens when available static/headless/counter avenues have been exhausted for the identified issues and no known actionable optimization or correctness defect remains unaddressed within scope.
+   Functional headed-browser checks needed to verify focus, input or layout may run earlier; they are not acceptance timing cohorts.
+4. Run foreground paint, selected-anchor/compositing and H1–H4 load/settle measurements against that optimized production candidate.
+   Keep valid workload/source identities, real visibility, separate timing/trace/counter passes and the applicable S0 calibration/comparison controls.
+   CPU-exception readings retain their recorded scope and contended-host labels; do not silently change shared defaults or treat noisy results as accepted improvements.
+
+The inherited W5 `all` click-to-painted-details target remains lab p95 at most 200 ms; it is not field INP conformance.
+Record actual minimum usable canvas width/height and explicit anchor/frame budgets before final acceptance runs.
+The proposed 180–240 ms motion duration and roughly 40% compact height are calibration starting points, not performance pass criteria.
+Reduced motion removes translation/scaling; interrupted transitions establish the latest target state within one frame without queued animations.
+Do not require successful foreground timing before B3/B5 can be implemented and optimized, and do not mark their final timing acceptance passed until it is measured.
+If final measurements reveal a regression, return to focused diagnosis and fixes, then repeat only the affected qualification; do not weaken budgets or silently drop B5.
+
+### 8.4 Automated coverage and one final manual-validation batch
+
+The owner requested: "Get as far as you can with automated testing of this, if there are others I need to validate manually, batch them all up at the end."
+This is the execution policy for the browser and assistive-technology matrix, not permission to substitute simulation for an actual platform result.
+
+Use available automation to exercise the real UI in each accessible browser engine, including keyboard submission/selection, focus and Escape behavior, modal containment/return, accessibility names/roles/states, live-status structure, responsive layout, text spacing, preferences, hit targets, stale-selection prevention and graph/export continuity.
+Use native accessibility-tree inspection and existing automated accessibility checks where available, plus actual assistive-technology automation where supported.
+Automated DOM/tree checks and synthesized keyboard events are partial evidence for screen-reader behavior; they do not establish spoken announcements, reading order, touch exploration or real mobile keyboard usability on an untested device.
+Do not report browser emulation as actual Safari/iOS, VoiceOver, JAWS or TalkBack coverage.
+Use existing tools first; a needed package, lockfile, test configuration or CI change still requires exact approval under section 9.
+
+Maintain one coverage ledger throughout implementation with the test case, engine/OS/device/AT version, candidate identity, automation method, actual result and residual gap.
+Distinguish actual-platform passes from proxy/emulated coverage, failures, unavailable cases and checks requiring human judgment.
+Fix automated failures before assigning residual validation to the owner.
+Unavailable manual-only coverage does not block independent implementation; a demonstrated semantic or accessibility defect still requires repair or an explicit changed disposition.
+
+After optimized implementation, automated checks, authorized foreground qualification and final review/fixes, deliver one consolidated manual-validation packet for the exact candidate.
+Include every remaining required check across the named browser/AT combinations, grouped by platform and deduplicated into short scenarios.
+Each scenario must specify:
+
+- Exact build/commit and launch location, fixture and starting state, plus required browser/device/AT and settings.
+- Numbered keyboard, pointer or touch steps, including any real mobile keyboard, zoom/reflow or forced-colors behavior that automation could not establish.
+- Expected visible behavior, focus destination and screen-reader announcement or reading behavior, with a concrete pass/fail condition.
+- The automated evidence already obtained, why manual validation remains necessary, and a compact place to record the actual versions, result and failure evidence.
+
+Do not send piecemeal owner-testing requests while individual slices are still changing.
+Ask earlier only for a genuinely blocking product, scope or exact configuration decision, rather than asking the owner to perform a test that can wait for the final batch.
+If a required platform is unavailable to both the agent and owner, retain it as an explicit release decision in that same packet; do not silently remove the requirement.
+After any manual finding, fix and recheck the affected flows; request only necessary follow-up scenarios against the new candidate, with the reason for repetition stated.
 
 ## 9. Configuration, trust boundaries and release
 
-No configuration change is required by the selected draft design.
+No configuration change is required by the accepted design as currently specified.
 The following are possibilities, not approved edits:
 
-| Possible exact scope                                                  | Behavioral/pipeline impact                                   | Smallest planned treatment                                                                               |
-| --------------------------------------------------------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
-| `package.json`, `package-lock.json`, new browser-test config/workflow | Adds automated browser/accessibility tooling and CI cost     | Use existing/manual tools first; propose exact package/settings only if a demonstrated gap requires them |
-| HTML-validation policy or a new lint-suppression directive            | Changes enforced markup rules                                | Seek a conforming implementation first; no policy relaxation is preapproved                              |
-| `vite.config.mjs` benchmark-strip behavior                            | Build cleanup for removed benchmark link                     | Leave unchanged unless a reproduced build problem requires an exact proposal                             |
-| `src/index.html` viewport meta                                        | Changes zoom/accessibility behavior beyond reviewed surfaces | D-15 separate scope and explicit decision                                                                |
-| Browser support target / new polyfill                                 | Changes supported clients and shipped bytes                  | Preserve target; no new shim without scoped NSH-01 approval                                              |
+| Possible exact scope                                                  | Behavioral/pipeline impact                                   | Smallest planned treatment                                                                                                              |
+| --------------------------------------------------------------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `package.json`, `package-lock.json`, new browser-test config/workflow | Adds automated browser/accessibility tooling and CI cost     | Maximize existing automation first; propose exact package/settings only for a demonstrated gap; batch residual manual checks at the end |
+| HTML-validation policy or a new lint-suppression directive            | Changes enforced markup rules                                | Seek a conforming implementation first; no policy relaxation is preapproved                                                             |
+| `vite.config.mjs` benchmark-strip behavior                            | Build cleanup for removed benchmark link                     | Leave unchanged unless a reproduced build problem requires an exact proposal                                                            |
+| `src/index.html` viewport meta                                        | Changes zoom/accessibility behavior beyond reviewed surfaces | D-15 separate scope and explicit decision                                                                                               |
+| Browser support target / new polyfill                                 | Changes supported clients and shipped bytes                  | Preserve target; no new shim without scoped NSH-01 approval                                                                             |
 
 Render hostile labels/annotations as text, constrain actionable URL protocols and preserve request credentials/import limits.
 Keep raw private ontologies, browser traces and screenshots in restricted evidence storage.
@@ -601,8 +687,12 @@ Cleanup never discards user-owned work or shared deployment files.
 ## 10. Completion, rollout and recovery
 
 Each slice records merge or terminal gate identity, evidence, reviewer and remaining limitation.
-A1–A3 plus B1–B4 is the proposed minimal fallback; A4/B6 are optional, and B5's fallback requires the owner to accept any remaining occlusion/motion limitation.
+A1–A4 plus B1–B5 are selected; B6 is closed as not selected.
+A1–A4 plus B1–B4 is a possible reduced delivery only if the owner explicitly accepts a failed B5 qualification and the measured remaining occlusion/motion limitations.
 Unresolved semantic completeness or accessibility failures are not a successful fallback.
+
+UI decisions are accepted, but implementation, measured acceptance, manual coverage and release remain separate states.
+Finish automated and foreground work in the order above, then give the owner the single residual manual-validation packet before claiming complete required browser/AT qualification.
 
 Before an authorized rollout, the release owner qualifies the exact build on existing routes and real H1–H4 loads, completes required browser/AT/performance dispositions and retains the prior qualified artifact.
 Observe loading failures, duplicate submissions, `LOAD_PENDING`, stale previews, console errors, focus loss, frame cost and export differences.
