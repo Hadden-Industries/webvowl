@@ -58,8 +58,24 @@ test("fresh nodes have distinct deterministic positions translated around the ca
     expect(position.x).toBeCloseTo(placements[index].position.x + 40);
     expect(position.y).toBeCloseTo(placements[index].position.y - 20);
     expect(pinned).toBe(false);
-    expect(Math.hypot(position.x - 40, position.y + 20)).toBeLessThan(300);
+    expect(Math.hypot(position.x - 40, position.y + 20)).toBeLessThan(6000);
   });
+});
+
+test("fresh connected classes begin with room for their ordinary glyphs", () => {
+  const occurrences = [
+    { id: "a", kind: "class-node" },
+    { id: "b", kind: "class-node" },
+    { id: "edge", kind: "subclass-edge", from: "a", to: "b" },
+  ];
+  const [a, b] = createCanonicalVowlScene(occurrences, {
+    loadGeneration: 1,
+  }).snapshot().placements;
+  // An ordinary class glyph is 100 world units across. This is a geometry
+  // regression, not a browser latency assertion or the initializer formula.
+  expect(
+    Math.hypot(a.position.x - b.position.x, a.position.y - b.position.y),
+  ).toBeGreaterThanOrEqual(100);
 });
 
 test("labels and operators retain incidence-based placement among distributed nodes", () => {

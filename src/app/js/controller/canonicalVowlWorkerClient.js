@@ -86,7 +86,7 @@ function limitRecord(value) {
   return value;
 }
 
-/** Bound plain checkpoint/request data before structuredClone allocates its copy. */
+/** Bound plain checkpoint/request data before transport allocates its copy. */
 function measureCheckpointInput(value, maximum, maxDepth) {
   let size = 0;
   const ancestors = new Set();
@@ -221,6 +221,8 @@ function measureCheckpointInput(value, maximum, maxDepth) {
  * Owns worker lifetime, source-byte transfer and caller-controlled acquisition.
  * Requests carry their exact document generation/revision; the controller must
  * still compare those to its current state before committing a returned result.
+ * Injected workers must implement native postMessage's synchronous serialization
+ * and independent receiver ownership; retaining the caller's request is invalid.
  */
 export function createCanonicalVowlWorkerClient({
   createWorker = () =>
@@ -235,7 +237,13 @@ export function createCanonicalVowlWorkerClient({
   return Object.freeze({
     async run(
       request,
-      { loadGeneration, baseRevision, signal, resolveImport } = {},
+      {
+        loadGeneration,
+        baseRevision,
+        signal,
+        resolveImport,
+        deferNodeOrdering = false,
+      } = {},
     ) {
       if (disposed) {
         throw failure("CANONICAL_CLIENT_DISPOSED");
@@ -266,8 +274,8 @@ export function createCanonicalVowlWorkerClient({
         DEFAULT_INPUT_BYTES,
         MAXIMUM_INPUT_BYTES,
       );
-      // Snapshot before yielding. Transferring our copy must not detach the
-      // caller's last accepted document or its source acquisition buffers.
+      // Serialize before yielding. Only owned source-byte copies are transferred;
+      // checkpoint buffers stay owned by the caller and are cloned by transport.
       const checkpointOperation = [
         "recover-model",
         "edit-model",
@@ -319,9 +327,8 @@ export function createCanonicalVowlWorkerClient({
       if (acquiredBytes > inputLimit) {
         throw failure("RESOURCE_LIMIT_EXCEEDED");
       }
-      const payload = structuredClone(
-        checkpointPayload ?? { ...request, bytes },
-      );
+      const payload =
+        checkpointPayload ?? structuredClone({ ...request, bytes });
       if (modelOperations.has(request.operation)) {
         payload.limits = { ...payload.limits, deadlineMs };
       }
@@ -339,6 +346,10 @@ export function createCanonicalVowlWorkerClient({
         const importIds = new Set();
         let finished = false;
         let resultTimer;
+        let previewTimer;
+        let previewDelivered = false;
+        let orderingStarted = false;
+        let finishOrdering;
         const timer = setTimeout(
           () =>
             settle(
@@ -356,11 +367,14 @@ export function createCanonicalVowlWorkerClient({
           finished = true;
           clearTimeout(timer);
           clearTimeout(resultTimer);
+          clearTimeout(previewTimer);
           signal?.removeEventListener("abort", abort);
           acquisition.abort();
           worker.terminate();
           pending.delete(abort);
-          if (error) {
+          if (previewDelivered) {
+            finishOrdering(error ? { error } : result);
+          } else if (error) {
             reject(error);
           } else {
             resolve({ ...context, ...result });
@@ -387,7 +401,55 @@ export function createCanonicalVowlWorkerClient({
           ) {
             return;
           }
-          if (data.type === "result") {
+          if (data.type === "preview") {
+            if (
+              !deferNodeOrdering ||
+              request.operation !== "open-owl-model" ||
+              previewTimer !== undefined ||
+              previewDelivered
+            ) {
+              settle(failure("CANONICAL_WORKER_FAILED"));
+              return;
+            }
+            const ready = new Promise((done) => {
+              finishOrdering = done;
+            });
+            previewTimer = setTimeout(() => {
+              previewTimer = undefined;
+              if (finished) {
+                return;
+              }
+              previewDelivered = true;
+              resolve({
+                ...context,
+                ...data.result,
+                nodeOrdering: {
+                  ready,
+                  start() {
+                    if (finished || orderingStarted) {
+                      return;
+                    }
+                    orderingStarted = true;
+                    try {
+                      worker.postMessage({
+                        type: "continue-ordering",
+                        ...context,
+                      });
+                    } catch {
+                      settle(failure("CANONICAL_WORKER_FAILED"));
+                    }
+                  },
+                },
+              });
+            }, 0);
+          } else if (data.type === "result") {
+            if (
+              previewTimer !== undefined ||
+              (previewDelivered && !orderingStarted)
+            ) {
+              settle(failure("CANONICAL_WORKER_FAILED"));
+              return;
+            }
             // Receiving a large structured clone already uses the main thread.
             // Start consumer processing in another task so input/cancellation
             // can run before scene construction or the next request snapshot.
@@ -462,7 +524,12 @@ export function createCanonicalVowlWorkerClient({
         }
         try {
           worker.postMessage(
-            { type: "run", ...context, request: payload },
+            {
+              type: "run",
+              ...context,
+              request: payload,
+              ...(deferNodeOrdering ? { deferNodeOrdering: true } : {}),
+            },
             bytes ? [payload.bytes.buffer] : [],
           );
         } catch {

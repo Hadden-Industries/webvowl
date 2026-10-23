@@ -3,7 +3,7 @@
 // feedback and consumes expected cancellation of the previous choice.
 export async function runVisualizationControlAction(action, documentObject) {
   const status = documentObject.getElementById("visualizationActionStatus");
-  if (status) {
+  if (status && status.dataset?.presentationKind !== "neighborhood") {
     status.hidden = true;
   }
   try {
@@ -13,6 +13,9 @@ export async function runVisualizationControlAction(action, documentObject) {
       return;
     }
     if (status) {
+      if (status.dataset) {
+        delete status.dataset.presentationKind;
+      }
       status.textContent =
         "The visualization could not be updated. Please try again.";
       status.hidden = false;

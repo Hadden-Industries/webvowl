@@ -43,7 +43,7 @@ test("native npm admits the declared minimum and rejects an unsatisfied floor be
   expect(npmCliPath).toBeTruthy();
   expect(repositoryManifest.devEngines?.packageManager).toEqual({
     name: "npm",
-    version: ">=12.2.0",
+    version: expect.stringMatching(/^>=\d+\.\d+\.\d+$/),
     onFail: "error",
   });
   const fixture = {
@@ -73,13 +73,12 @@ test("native npm admits the declared minimum and rejects an unsatisfied floor be
   expect(rejected.stdout).not.toContain("NPM_POLICY_EXECUTED");
 });
 
-test("setup accepts npm admitted by devEngines even when its exact reference differs", () => {
+test("setup accepts npm admitted by devEngines without a second exact selector", () => {
   const setupUrl = new URL("./setUpDevelopmentEnvironment.mjs", import.meta.url)
     .href;
   const result = withNpmProject(
     {
       private: true,
-      packageManager: "npm@12.0.2",
       devEngines: repositoryManifest.devEngines,
       scripts: { probe: "node runner.mjs" },
     },
@@ -128,7 +127,7 @@ test.each(["tooling", "application"])(
       "node util/installSelectedNpm.mjs",
       "npm ci --ignore-scripts",
     ]);
-    expect(repositoryManifest.packageManager).toBe("npm@12.2.0");
+    expect(repositoryManifest.packageManager).toBeUndefined();
   },
 );
 

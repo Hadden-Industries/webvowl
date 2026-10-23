@@ -2,17 +2,16 @@ export { AbstractTextElement };
 
 function AbstractTextElement(container, backgroundColor) {
   const textColor = this._getTextColor(backgroundColor);
+  let classes = "text";
+  if (textColor === AbstractTextElement.prototype.LIGHT_TEXT_COLOR) {
+    classes += " text-on-dark";
+  }
+  if (textColor === AbstractTextElement.prototype.DARK_TEXT_COLOR) {
+    classes += " text-on-light";
+  }
   const textBlock = container
     .append("text")
-    .classed("text", true)
-    .classed(
-      "text-on-dark",
-      textColor === AbstractTextElement.prototype.LIGHT_TEXT_COLOR,
-    )
-    .classed(
-      "text-on-light",
-      textColor === AbstractTextElement.prototype.DARK_TEXT_COLOR,
-    )
+    .attr("class", classes)
     .attr("text-anchor", "middle");
 
   this._textBlock = function () {
@@ -28,6 +27,15 @@ AbstractTextElement.prototype.CSS_CLASSES = {
 };
 AbstractTextElement.prototype.DARK_TEXT_COLOR = "#000";
 AbstractTextElement.prototype.LIGHT_TEXT_COLOR = "#fff";
+
+// Fresh spans have no classes to preserve; publish their classes in one write.
+AbstractTextElement.prototype._appendTextSpan = function (style) {
+  const defaultStyle = this.CSS_CLASSES.default;
+  return this._textBlock()
+    .append("tspan")
+    .attr("class", style === defaultStyle ? style : defaultStyle + " " + style)
+    .attr("x", 0);
+};
 
 AbstractTextElement.prototype.translation = function (x, y) {
   this._textBlock().attr("transform", "translate(" + x + ", " + y + ")");

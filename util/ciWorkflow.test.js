@@ -21,12 +21,18 @@ test("Python provisioning preserves the repository selector and isolated locked 
     "astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884",
   );
   expect(provisioning.with).toEqual({
-    version: "0.13.0",
+    version: "${{ steps.runtimes.outputs.uv }}",
     "activate-environment": true,
     "venv-path": "${{ runner.temp }}/python",
     "no-project": true,
     "enable-cache": false,
   });
+  const runtimeIndex = steps.findIndex((step) => step.id === "runtimes");
+  expect(runtimeIndex).toBeGreaterThanOrEqual(0);
+  expect(runtimeIndex).toBeLessThan(steps.indexOf(provisioning));
+  expect(steps[runtimeIndex].run).toBe(
+    "node util/runtimeTargets.mjs --github-output",
+  );
   // With no Python override, uv discovers the repository's sole version file.
   expect(
     readFileSync(new URL("../.python-version", import.meta.url), "utf8").trim(),

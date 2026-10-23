@@ -64,6 +64,15 @@ It uses the producer's structural RDF mapping, compatible-mapping partition refi
 Ranking keys are not a promise of canonical v1 artifact IDs; the operation does not grant artifact authority, replace live handles or weaken capture qualification checks.
 Cache keys by structural revision and handle failed/cancelled identity work without replacing the previous view.
 Symmetric representations compare through the canonical isomorphism, not arbitrary source handles.
+
+`readModelDisplayOrderKeys(model, {signal, limits})` returns a frozen `{purpose, revision, correspondence}` for counted class/datatype occurrences only.
+Its `purpose` is `display-order-v1`, exported as `DISPLAY_ORDER_KEY_PURPOSE`.
+The [finite display mapping](../../docs/plans/2026-10-23-display-ranking-identity-decision.md#b1-finite-experiment-mapping) retains typed semantic anchors and complete display incidence, excluding annotations, appearance, visibility and count.
+It uses the same bounded refinement/RDFC policy on that smaller graph.
+Keys are unique within a revision; interchangeable anonymous occurrences have only the cross-load correspondence supported by the encoded topology.
+These keys must not replace semantic, renderer, saved-view or canonical artifact identifiers.
+The application selects this purpose for its versioned connected/fair node ordering; the full structural identity operation remains available separately.
+
 The visualization field is required for artifact capture and forbidden for structural-content capture.
 Failed editing, recovery or capture leaves the previous model usable.
 `openOwl(bytes, {documentIri, mediaType, resolveImport, signal, limits})` on `vowl/owl` now admits a compatible live model and returns `{model, correspondence}` without RDFC.

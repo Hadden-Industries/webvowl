@@ -1,55 +1,6 @@
 import { runVisualizationControlAction } from "../ui/visualizationControlAction.js";
-const ONTOLOGY_URL_HINT = "Enter an ontology URL";
-const ONTOLOGY_URL_ERROR = "Enter a valid HTTP or HTTPS URL";
-
-function normalizeOntologyUrl(value) {
-  const enteredValue = typeof value === "string" ? value.trim() : "";
-  if (!enteredValue) {
-    return { valid: false, empty: true, message: ONTOLOGY_URL_HINT };
-  }
-  for (let index = 0; index < enteredValue.length; index++) {
-    const characterCode = enteredValue.charCodeAt(index);
-    if (characterCode <= 32 || characterCode === 127) {
-      return { valid: false, empty: false, message: ONTOLOGY_URL_ERROR };
-    }
-  }
-
-  let candidate = enteredValue;
-  const explicitScheme = candidate.match(/^([a-z][a-z\d+.-]*):/i);
-  const hostWithPort = /^[^/?#]+:\d+(?:[/?#]|$)/.test(candidate);
-  if (!explicitScheme || hostWithPort) {
-    candidate = "https://" + candidate;
-  }
-
-  let parsedUrl;
-  try {
-    parsedUrl = new URL(candidate);
-  } catch {
-    return { valid: false, empty: false, message: ONTOLOGY_URL_ERROR };
-  }
-
-  if (parsedUrl.protocol === "http:") {
-    parsedUrl.protocol = "https:";
-  }
-
-  if (
-    parsedUrl.protocol !== "https:" ||
-    !parsedUrl.hostname ||
-    parsedUrl.hostname.includes("%") ||
-    parsedUrl.username ||
-    parsedUrl.password
-  ) {
-    return { valid: false, empty: false, message: ONTOLOGY_URL_ERROR };
-  }
-
-  return {
-    valid: true,
-    empty: false,
-    normalizedUrl: parsedUrl.href,
-    isJson: parsedUrl.pathname.toLowerCase().endsWith(".json"),
-    wasNormalized: parsedUrl.href !== enteredValue,
-  };
-}
+import { createOntologySourceSubmission } from "../ui/ontologySourceSubmission.js";
+import { createOntologyChooser } from "../ui/ontologyChooser.js";
 
 function createOntologyMenu({
   documentObject = globalThis.document,
@@ -63,6 +14,19 @@ function createOntologyMenu({
   windowObject = globalThis.window,
 } = {}) {
   const ontologyMenu = {};
+  const submitSource = createOntologySourceSubmission({
+    locationObject,
+    loadOntologyFromLocation,
+  });
+  let chooser;
+  const ownedListeners = [];
+  function on(target, type, listener) {
+    if (!target) {
+      return;
+    }
+    target.addEventListener(type, listener);
+    ownedListeners.push(() => target.removeEventListener(type, listener));
+  }
 
   ontologyMenu.reloadOntologySource = async function () {
     const source = webVowlController.getState().source;
@@ -104,21 +68,19 @@ function createOntologyMenu({
     setupConverterButtons();
     setupUploadButton();
     setupEmptyButton();
-    documentObject
-      .getElementById("reloadOntologySource")
-      ?.addEventListener("click", () => {
-        void runVisualizationControlAction(
-          () => ontologyMenu.reloadOntologySource(),
-          documentObject,
-        );
-      });
+    on(documentObject.getElementById("reloadOntologySource"), "click", () => {
+      void runVisualizationControlAction(
+        () => ontologyMenu.reloadOntologySource(),
+        documentObject,
+      );
+    });
 
     setupUriListener();
   };
 
   function setupUriListener() {
     // reload ontology when hash parameter gets changed manually
-    windowObject.addEventListener("hashchange", function (event) {
+    on(windowObject, "hashchange", function (event) {
       const oldURL = event.oldURL,
         newURL = event.newURL;
       if (oldURL !== newURL) {
@@ -131,12 +93,14 @@ function createOntologyMenu({
     });
   }
 
-  ontologyMenu.setIriText = function (text) {
-    const iriInput = documentObject.getElementById("iri-converter-input");
-    const iriForm = documentObject.getElementById("iri-converter-form");
-    iriInput.value = text;
-    iriInput.dispatchEvent(new Event("input"));
-    iriForm.dispatchEvent(new Event("submit"));
+  ontologyMenu.submitOntologySource = (text) => chooser.submit(text);
+  ontologyMenu.renderControllerState = (state) =>
+    chooser?.renderControllerState(state);
+  ontologyMenu.dispose = () => {
+    chooser?.dispose();
+    for (const remove of ownedListeners.splice(0)) {
+      remove();
+    }
   };
 
   ontologyMenu.clearDetailInformation = function () {
@@ -209,112 +173,20 @@ function createOntologyMenu({
   }
 
   function setupConverterButtons() {
-    const iriConverterButton = documentObject.getElementById(
-      "iri-converter-button",
-    );
-    const iriConverterInput = documentObject.getElementById(
-      "iri-converter-input",
-    );
-    const iriConverterHint =
-      documentObject.getElementById("iri-converter-hint");
-    let validationWasShown = false;
-
-    function updateConverterState(options) {
-      const stateOptions = options || {};
-      const result = normalizeOntologyUrl(iriConverterInput.value);
-
-      if (stateOptions.normalize && result.valid) {
-        iriConverterInput.value = result.normalizedUrl;
-      }
-
-      const showError =
-        stateOptions.showError && !result.empty && !result.valid;
-      iriConverterButton.disabled = !result.valid;
-      if (showError) {
-        iriConverterInput.setAttribute("aria-invalid", "true");
-      } else {
-        iriConverterInput.removeAttribute("aria-invalid");
-      }
-      iriConverterHint.textContent = showError
-        ? result.message
-        : ONTOLOGY_URL_HINT;
-      if (showError) {
-        iriConverterHint.classList.add("converter-input-hint--error");
-      } else {
-        iriConverterHint.classList.remove("converter-input-hint--error");
-      }
-
-      return result;
-    }
-
-    iriConverterInput.addEventListener("input", function () {
-      const result = updateConverterState({ showError: validationWasShown });
-      if (result.valid || result.empty) {
-        validationWasShown = false;
-      }
-    });
-
-    iriConverterInput.addEventListener("change", function () {
-      validationWasShown = true;
-      updateConverterState({ normalize: true, showError: true });
-    });
-
-    iriConverterInput.addEventListener("keydown", function (event) {
-      if (event && event.key === "Enter") {
-        validationWasShown = true;
-        const result = updateConverterState({
-          normalize: true,
-          showError: true,
-        });
-        if (!result.valid) {
-          event.preventDefault();
+    chooser = createOntologyChooser({
+      documentObject,
+      windowObject,
+      submitSource(value) {
+        const result = submitSource(value);
+        if (result.completion) {
+          void runVisualizationControlAction(
+            () => result.completion,
+            documentObject,
+          );
         }
-      }
+        return result;
+      },
     });
-
-    iriConverterButton.addEventListener("click", function (event) {
-      validationWasShown = true;
-      const result = updateConverterState({ normalize: true, showError: true });
-      if (
-        !result.valid &&
-        event &&
-        typeof event.preventDefault === "function"
-      ) {
-        event.preventDefault();
-      }
-    });
-
-    documentObject
-      .getElementById("iri-converter-form")
-      .addEventListener("submit", function (event) {
-        if (event && typeof event.preventDefault === "function") {
-          event.preventDefault();
-        }
-
-        validationWasShown = true;
-        const result = updateConverterState({
-          normalize: true,
-          showError: true,
-        });
-        if (!result.valid) {
-          if (
-            iriConverterInput &&
-            typeof iriConverterInput.focus === "function"
-          ) {
-            iriConverterInput.focus();
-          }
-          return false;
-        }
-
-        const routeKey = result.isJson ? "url=" : "iri=";
-        locationObject.hash = routeKey + encodeURI(result.normalizedUrl);
-        iriConverterInput.value = "";
-        validationWasShown = false;
-        updateConverterState();
-        return false;
-      });
-
-    updateConverterState();
   }
 
   function setupUploadButton() {
@@ -322,7 +194,7 @@ function createOntologyMenu({
       inputLabel = documentObject.getElementById("file-converter-label"),
       uploadButton = documentObject.getElementById("file-converter-button");
 
-    input.addEventListener("change", function () {
+    on(input, "change", function () {
       const selectedFiles = input.files;
       if (selectedFiles.length <= 0) {
         inputLabel.textContent = "Select ontology file";
@@ -336,7 +208,7 @@ function createOntologyMenu({
       }
     });
 
-    uploadButton.addEventListener("click", function () {
+    on(uploadButton, "click", function () {
       const selectedFile = input.files[0];
       if (!selectedFile) {
         return false;
@@ -390,7 +262,7 @@ function createOntologyMenu({
   function setupEmptyButton() {
     const emptyButton = documentObject.getElementById("empty");
     if (emptyButton) {
-      emptyButton.addEventListener("click", function () {
+      on(emptyButton, "click", function () {
         if (emptyButton.disabled) {
           return false;
         }
@@ -406,4 +278,4 @@ function createOntologyMenu({
   return ontologyMenu;
 }
 
-export { createOntologyMenu, normalizeOntologyUrl };
+export { createOntologyMenu };

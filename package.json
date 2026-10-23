@@ -10,7 +10,7 @@
     "@xmldom/xmldom": "0.9.12",
     "d3": "^7.9.0",
     "lodash": "^4.18.1",
-    "owlapi": "npm:@hadden-industries/owlapi@0.1.0-rc.2"
+    "owlapi": "git+https://github.com/Hadden-Industries/owlapi.git#86d02d38019013d56d11f0210b282373d29755f8"
   },
   "devDependencies": {
     "@eslint/js": ">=10.0.1",
@@ -106,11 +106,10 @@
   "browserslist": [
     "baseline widely available"
   ],
-  "packageManager": "npm@12.2.0",
   "devEngines": {
     "packageManager": {
       "name": "npm",
-      "version": ">=12.2.0",
+      "version": ">=12.2.1",
       "onFail": "error"
     }
   }

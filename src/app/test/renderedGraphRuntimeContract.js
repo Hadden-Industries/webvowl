@@ -1,13 +1,10 @@
-import { assertRenderedGraphRuntime } from "../js/controller/renderedGraphRuntimeContracts.js";
+import { assertCanonicalRenderedGraphRuntime } from "../js/controller/canonicalRenderedGraphRuntimeContract.js";
+import { canonicalRuntimeRequestFixture } from "./canonicalRuntimeRequestFixture.js";
 
 function createReplacementRequest(loadGeneration) {
-  return {
-    loadGeneration,
-    vowlModel: {
-      class: [{ id: String(loadGeneration), type: "owl:Class" }],
-      header: { iri: `https://example.test/ontology/${loadGeneration}` },
-    },
-  };
+  const request = canonicalRuntimeRequestFixture(loadGeneration);
+  request.drawing.labelSelection = { mode: "language", range: "en" };
+  return request;
 }
 
 async function expectPromiseToRemainPending(promise, expect) {
@@ -26,7 +23,7 @@ async function expectPromiseToRemainPending(promise, expect) {
 
 async function completeRenderedGraphLoad(adapterHarness, loadGeneration) {
   const replacementPromise =
-    adapterHarness.renderedGraphRuntime.replaceVowlModel(
+    adapterHarness.renderedGraphRuntime.replaceCanonicalDrawing(
       createReplacementRequest(loadGeneration),
       { signal: new AbortController().signal },
     );
@@ -41,23 +38,38 @@ export async function assertRenderedGraphRuntimeContract({
   {
     const adapterHarness = createAdapterHarness();
     const { renderedGraphRuntime, renderedGraphTestHarness } = adapterHarness;
-    expect(assertRenderedGraphRuntime(renderedGraphRuntime)).toBe(
+    expect(assertCanonicalRenderedGraphRuntime(renderedGraphRuntime)).toBe(
       renderedGraphRuntime,
     );
 
-    const replacementPromise = renderedGraphRuntime.replaceVowlModel(
-      createReplacementRequest(1),
+    const request = createReplacementRequest(1);
+    const replacementPromise = renderedGraphRuntime.replaceCanonicalDrawing(
+      request,
       { signal: new AbortController().signal },
     );
+    request.drawing.applicationBindings[0].semanticReferences[0].iri =
+      "urn:mutated-input";
+    request.drawing.nodes[0].position.x = 99999;
+    await expectPromiseToRemainPending(replacementPromise, expect);
+    await expectPromiseToRemainPending(replacementPromise, expect);
     await expectPromiseToRemainPending(replacementPromise, expect);
     expect(renderedGraphTestHarness.completeInitialPaint(1)).toBe(true);
-    await expect(replacementPromise).resolves.toEqual({ loadGeneration: 1 });
+    await expect(replacementPromise).resolves.toEqual({
+      loadGeneration: 1,
+      documentRevision: 0,
+    });
 
     const visibleRenderedGraphSnapshot =
       renderedGraphRuntime.readVisibleRenderedGraphSnapshot();
     const graphLayoutSnapshot = renderedGraphRuntime.readGraphLayoutSnapshot();
     expect(visibleRenderedGraphSnapshot.loadGeneration).toBe(1);
     expect(graphLayoutSnapshot.loadGeneration).toBe(1);
+    expect(
+      visibleRenderedGraphSnapshot.visibleElementReferences,
+    ).toContainEqual({ kind: "class", iri: "https://example.test/Person" });
+    expect(
+      renderedGraphRuntime.readCanonicalDrawingState().placements[0].position.x,
+    ).not.toBe(99999);
     expect(Object.isFrozen(visibleRenderedGraphSnapshot)).toBe(true);
     expect(Object.isFrozen(graphLayoutSnapshot)).toBe(true);
     expect(renderedGraphRuntime.readVisibleRenderedGraphSnapshot()).not.toBe(
@@ -78,14 +90,31 @@ export async function assertRenderedGraphRuntimeContract({
   }
 
   {
+    const { renderedGraphRuntime, renderedGraphTestHarness } =
+      createAdapterHarness();
+    const abort = new AbortController();
+    abort.abort(new DOMException("Cancelled before replacement", "AbortError"));
+    let pending;
+    expect(() => {
+      pending = renderedGraphRuntime.replaceCanonicalDrawing(
+        createReplacementRequest(1),
+        { signal: abort.signal },
+      );
+    }).not.toThrow();
+    await expect(pending).rejects.toBe(abort.signal.reason);
+    expect(renderedGraphTestHarness.completeInitialPaint(1)).toBe(false);
+    renderedGraphRuntime.dispose();
+  }
+
+  {
     const adapterHarness = createAdapterHarness();
     const generationOnePromise =
-      adapterHarness.renderedGraphRuntime.replaceVowlModel(
+      adapterHarness.renderedGraphRuntime.replaceCanonicalDrawing(
         createReplacementRequest(1),
         { signal: new AbortController().signal },
       );
     const generationTwoPromise =
-      adapterHarness.renderedGraphRuntime.replaceVowlModel(
+      adapterHarness.renderedGraphRuntime.replaceCanonicalDrawing(
         createReplacementRequest(2),
         { signal: new AbortController().signal },
       );
@@ -100,7 +129,10 @@ export async function assertRenderedGraphRuntimeContract({
     expect(
       adapterHarness.renderedGraphTestHarness.completeInitialPaint(2),
     ).toBe(true);
-    await expect(generationTwoPromise).resolves.toEqual({ loadGeneration: 2 });
+    await expect(generationTwoPromise).resolves.toEqual({
+      loadGeneration: 2,
+      documentRevision: 0,
+    });
 
     adapterHarness.renderedGraphRuntime.dispose();
   }
@@ -113,7 +145,7 @@ export async function assertRenderedGraphRuntimeContract({
       "AbortError",
     );
     const replacementPromise =
-      adapterHarness.renderedGraphRuntime.replaceVowlModel(
+      adapterHarness.renderedGraphRuntime.replaceCanonicalDrawing(
         createReplacementRequest(1),
         { signal: abortController.signal },
       );
@@ -256,7 +288,7 @@ export async function assertRenderedGraphRuntimeContract({
     ]);
 
     const replacementPromise =
-      adapterHarness.renderedGraphRuntime.replaceVowlModel(
+      adapterHarness.renderedGraphRuntime.replaceCanonicalDrawing(
         createReplacementRequest(2),
         { signal: new AbortController().signal },
       );
@@ -366,7 +398,7 @@ export async function assertRenderedGraphRuntimeContract({
   {
     const adapterHarness = createAdapterHarness();
     const pendingReplacement =
-      adapterHarness.renderedGraphRuntime.replaceVowlModel(
+      adapterHarness.renderedGraphRuntime.replaceCanonicalDrawing(
         createReplacementRequest(1),
         { signal: new AbortController().signal },
       );

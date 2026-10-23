@@ -1,45 +1,50 @@
 import { createNodesShownIntent } from "../controller/nodesShownContracts.js";
 import { runVisualizationControlAction } from "./visualizationControlAction.js";
 
-/** Native range exploration with an exact draft committed on Enter or blur. */
+/** Presents requested and accepted counts; the controller owns timed application. */
 export function createNodesShownControl({
   documentObject = globalThis.document,
   onChange,
-  requestFrame = globalThis.requestAnimationFrame?.bind(globalThis),
-  cancelFrame = globalThis.cancelAnimationFrame?.bind(globalThis),
+  onAdjust,
+  onFlush,
+  onVisibility,
 } = {}) {
   const lifecycle = new AbortController();
   let controls;
   let status = { eligibleNodeCount: 0, shownNodeCount: 0 };
   let draft = false;
-  let frame;
-  let pendingIntent;
+  let requestedIntent;
   let requestRevision = 0;
   function restore() {
     draft = false;
-    controls.exact.value = String(status.shownNodeCount);
+    controls.exact.value = String(requestedCount());
+  }
+  function requestedCount() {
+    return requestedIntent?.mode === "all"
+      ? status.eligibleNodeCount
+      : requestedIntent?.mode === "exact"
+        ? Math.min(requestedIntent.requestedCount, status.eligibleNodeCount)
+        : status.shownNodeCount;
+  }
+  function renderTotal(count) {
+    controls["total-value"].textContent = String(count);
+    controls["total-value"].setAttribute(
+      "aria-label",
+      `Show all ${count} available nodes`,
+    );
+    controls["total-description"].textContent = `Available nodes: ${count}.`;
   }
   function submit(intent, coalesce = false) {
-    pendingIntent = intent;
-    if (coalesce && requestFrame) {
-      if (frame === undefined) {
-        frame = requestFrame(() => {
-          frame = undefined;
-          submit(pendingIntent);
-        });
-      }
+    if (["preparing", "failed"].includes(status.orderingStatus)) {
       return;
     }
-    if (frame !== undefined) {
-      cancelFrame?.(frame);
-      frame = undefined;
-    }
+    requestedIntent = intent;
     const revision = ++requestRevision;
     Promise.resolve().then(() => {
       if (!lifecycle.signal.aborted && revision === requestRevision) {
         return runVisualizationControlAction(async () => {
           try {
-            await onChange(intent);
+            await (coalesce ? onAdjust(intent) : onChange(intent));
           } catch (error) {
             if (
               lifecycle.signal.aborted ||
@@ -49,6 +54,7 @@ export function createNodesShownControl({
             ) {
               return;
             }
+            requestedIntent = undefined;
             restore();
             throw error;
           }
@@ -96,6 +102,8 @@ export function createNodesShownControl({
           "fifty",
           "markers",
           "total-value",
+          "total-description",
+          "status",
         ].map((name) => [
           name,
           documentObject.getElementById(`nodesShown-${name}`),
@@ -113,7 +121,29 @@ export function createNodesShownControl({
         controls.exact.value = controls.range.value;
         submit(rangeIntent(), true);
       });
-      listen("range", "change", () => submit(rangeIntent()));
+      listen("range", "change", () => submit(rangeIntent(), true));
+      documentObject.getElementById("m_filter").addEventListener(
+        "toggle",
+        (event) => {
+          if (event.newState === "closed") {
+            // Event handlers schedule draft submission as a microtask. Flush after
+            // it, including an exact field's blur during native light dismissal.
+            void Promise.resolve().then(() => {
+              if (!lifecycle.signal.aborted) {
+                return runVisualizationControlAction(onFlush, documentObject);
+              }
+            });
+          }
+        },
+        { signal: lifecycle.signal },
+      );
+      documentObject.addEventListener(
+        "visibilitychange",
+        () => {
+          onVisibility(documentObject.visibilityState !== "hidden");
+        },
+        { signal: lifecycle.signal },
+      );
       listen("exact", "input", () => {
         draft = true;
       });
@@ -130,40 +160,61 @@ export function createNodesShownControl({
       });
       listen("minus", "click", () => {
         restore();
-        submit({
-          mode: "exact",
-          requestedCount: Math.max(0, status.shownNodeCount - 1),
-        });
+        submit(
+          {
+            mode: "exact",
+            requestedCount: Math.max(0, requestedCount() - 1),
+          },
+          true,
+        );
+        restore();
       });
       listen("plus", "click", () => {
         restore();
-        submit({
-          mode: "exact",
-          requestedCount: Math.min(
-            status.eligibleNodeCount,
-            status.shownNodeCount + 1,
-          ),
-        });
+        submit(
+          {
+            mode: "exact",
+            requestedCount: Math.min(
+              status.eligibleNodeCount,
+              requestedCount() + 1,
+            ),
+          },
+          true,
+        );
+        restore();
       });
       listen("fifty", "click", () => {
-        if (status.eligibleNodeCount > 50 && status.shownNodeCount !== 50) {
+        if (status.eligibleNodeCount > 50 && requestedCount() !== 50) {
           restore();
           submit({ mode: "exact", requestedCount: 50 });
         }
       });
+      listen("total-value", "click", () => {
+        if (
+          status.eligibleNodeCount > 0 &&
+          requestedCount() !== status.eligibleNodeCount
+        ) {
+          restore();
+          submit({ mode: "all" });
+        }
+      });
     },
-    renderNodeCountStatus(next, intent) {
+    renderNodeCountStatus(next, intent, adjustment = null) {
       if (!controls || lifecycle.signal.aborted) {
         return;
       }
       if (!next) {
         draft = false;
         requestRevision += 1;
-        if (frame !== undefined) {
-          cancelFrame?.(frame);
-        }
-        frame = undefined;
-        for (const name of ["range", "exact", "minus", "plus", "fifty"]) {
+        requestedIntent = undefined;
+        for (const name of [
+          "range",
+          "exact",
+          "minus",
+          "plus",
+          "fifty",
+          "total-value",
+        ]) {
           controls[name].disabled = true;
         }
         status = { eligibleNodeCount: 0, shownNodeCount: 0 };
@@ -171,27 +222,50 @@ export function createNodesShownControl({
         controls.range.value = "0";
         controls.range.removeAttribute("aria-valuetext");
         controls.exact.max = "0";
-        controls["total-value"].textContent = "0";
+        renderTotal(0);
         controls.fifty.hidden = true;
+        controls.status.hidden = true;
         restore();
         return;
       }
       status = next;
+      const orderingUnavailable = ["preparing", "failed"].includes(
+        status.orderingStatus,
+      );
+      if (orderingUnavailable) {
+        draft = false;
+        requestRevision += 1;
+      }
+      requestedIntent = adjustment?.requestedNodesShown;
       controls.range.max = String(status.eligibleNodeCount);
       controls.exact.max = controls.range.max;
-      controls["total-value"].textContent = controls.range.max;
-      controls.range.value = String(status.shownNodeCount);
+      renderTotal(status.eligibleNodeCount);
+      controls["total-value"].disabled =
+        status.eligibleNodeCount === 0 ||
+        requestedCount() === status.eligibleNodeCount;
+      controls.range.value = String(requestedCount());
       if (!draft) {
         controls.exact.value = controls.range.value;
       }
-      controls.minus.disabled = status.shownNodeCount === 0;
-      controls.plus.disabled =
-        status.shownNodeCount === status.eligibleNodeCount;
+      controls.minus.disabled = requestedCount() === 0;
+      controls.plus.disabled = requestedCount() === status.eligibleNodeCount;
       controls.range.disabled = status.eligibleNodeCount === 0;
       controls.exact.disabled = false;
       controls.fifty.hidden = status.eligibleNodeCount <= 50;
       controls.fifty.disabled =
-        controls.fifty.hidden || status.shownNodeCount === 50;
+        controls.fifty.hidden || requestedCount() === 50;
+      if (orderingUnavailable) {
+        for (const name of [
+          "range",
+          "exact",
+          "minus",
+          "plus",
+          "fifty",
+          "total-value",
+        ]) {
+          controls[name].disabled = true;
+        }
+      }
       if (!controls.fifty.hidden) {
         controls.markers.style.setProperty(
           "--nodes-shown-fifty-position",
@@ -208,12 +282,31 @@ export function createNodesShownControl({
           ? "No nodes are available with the current filters."
           : `${intent.mode === "auto" && status.shownNodeCount < status.eligibleNodeCount ? "Automatically showing" : "Showing"} ${status.shownNodeCount} of ${status.eligibleNodeCount} available nodes.${shortfall}`;
       controls.range.setAttribute("aria-valuetext", text);
+      controls.status.hidden = adjustment === null && !orderingUnavailable;
+      if (orderingUnavailable) {
+        const message =
+          status.orderingStatus === "preparing"
+            ? "Preparing node count controls…"
+            : "Node count controls are unavailable. Reload the ontology to retry.";
+        if (controls.status.textContent !== message) {
+          controls.status.textContent = message;
+        }
+      } else if (adjustment) {
+        const message =
+          adjustment.status === "applying"
+            ? "Applying node count…"
+            : "Node count will update when adjustment stops.";
+        if (controls.status.textContent !== message) {
+          controls.status.textContent = message;
+        }
+        controls.range.setAttribute(
+          "aria-valuetext",
+          `Requested ${requestedCount()}; currently showing ${status.shownNodeCount} of ${status.eligibleNodeCount} available nodes.`,
+        );
+      }
     },
     dispose() {
       lifecycle.abort();
-      if (frame !== undefined) {
-        cancelFrame?.(frame);
-      }
     },
   });
 }

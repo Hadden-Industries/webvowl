@@ -1,4 +1,6 @@
 import isEqual from "lodash/isEqual.js";
+import { createNodeCountAdjustment } from "./nodeCountAdjustment.js";
+import { createControllerOperationLifecycle } from "./controllerOperationLifecycle.js";
 import { createCanonicalVowlDocumentSession } from "./canonicalVowlDocumentSession.js";
 import { exportCanonicalDrawing } from "./canonicalVowlDrawingExport.js";
 import { createCanonicalVowlWorkerClient } from "./canonicalVowlWorkerClient.js";
@@ -8,19 +10,24 @@ import {
 } from "./canonicalVowlFailure.js";
 import { createCanonicalVowlSourceAcquisition } from "./canonicalVowlSourceAcquisition.js";
 import { applyCanonicalEditorCommand } from "./canonicalVowlEditorCommands.js";
-import { createOntologyInspector } from "./ontologyInspector.js";
+import {
+  createOntologyInspector,
+  boundOntologySearchResult,
+  boundOntologyFocusResult,
+} from "./ontologyInspector.js";
 import { createCanonicalSemanticReferences } from "./canonicalVowlInspectionProjector.js";
 import { createVisualizationShareLink } from "./visualizationShareLink.js";
 import {
   CANONICAL_VISIBLE_FILTERS,
   canonicalLabelSelection,
-  prepareCanonicalVisibility,
 } from "./canonicalVowlViewControls.js";
-import { createCanonicalVowlRenderProjection } from "./canonicalVowlRenderProjection.js";
 import {
   createVisualizationViewApplicationRequest,
   createVisualizationModesRequest,
   createInitialVisualizationRequest,
+  createForceLayoutDistancesRequest,
+  createGraphLayoutPauseRequest,
+  createContinuousZoomRequest,
 } from "./renderedGraphRuntimeContracts.js";
 import {
   createWebVowlControllerState,
@@ -56,8 +63,10 @@ const idle = {
   selectedDocumentRecord: null,
   renderProgress: null,
   nodeCountStatus: null,
+  nodeCountAdjustment: null,
   editorMode: null,
   renderingStatistics: null,
+  temporaryPresentation: null,
   error: null,
 };
 
@@ -78,39 +87,194 @@ export function createCanonicalWebVowlController({
   requestInverseDetachmentConfirmation,
   requestOntologyCreation,
   reconcileScene,
+  nodeCountAdjustmentClock,
 } = {}) {
   let state = createWebVowlControllerState(idle);
   let disposed = false;
-  let pendingLoad;
-  let loadSequence = 0;
   let retainedState = state;
-  let activeExport;
   let layoutIntent = 0;
   let viewportSize;
-  const edits = new Set();
   let filters = { ...CANONICAL_VISIBLE_FILTERS };
   let retainedHidden = [];
   let nodesShown = { mode: "auto" };
-  let viewSequence = 0;
-  let pendingView;
-  let revealCache;
+  let viewInteraction = 0;
   let ordinaryPresentation;
+  let countLayoutHold;
+  let replacementLayoutHold;
+  const lifecycle = createControllerOperationLifecycle({
+    readIdentity: () => session.identity(),
+    retirePresentation: () => clearNeighborhood(),
+  });
+  const countAdjustment = createNodeCountAdjustment({
+    readAccepted: () => ({ ...session.identity(), nodesShown }),
+    apply: (intent, options) =>
+      applyVisualizationView(
+        validateVisualizationView({ nodesShown: intent }),
+        options,
+      ),
+    holdLayout: holdCountAdjustmentLayout,
+    beforeStage: () => lifecycle.retireCaptures(),
+    publish: (nodeCountAdjustment) => publish({ nodeCountAdjustment }),
+    reportError: (error) => {
+      if (
+        !disposed &&
+        error?.name !== "AbortError" &&
+        error?.code !== "LOAD_ABORTED"
+      ) {
+        publish({ error: toPublicWebVowlError(error) });
+      }
+    },
+    clock: nodeCountAdjustmentClock,
+  });
+  function validateVisualizationView(request) {
+    const accepted = current("setVisualizationView");
+    return createVisualizationViewApplicationRequest({
+      ...request,
+      loadGeneration: accepted.loadGeneration,
+    });
+  }
+  function layoutState(status) {
+    const hold = countLayoutHold ?? replacementLayoutHold;
+    return {
+      status,
+      ...(hold ? { requestedIsPaused: hold.requestedIsPaused } : {}),
+    };
+  }
+  // Keep the accepted drawing available for recovery without spending frames
+  // relaxing it while its replacement is acquired and prepared. Overlapping
+  // loads transfer this hold; only its latest owner may restore the old layout.
+  function holdReplacementLayout() {
+    if (!retainedState.loadGeneration) {
+      return () => {};
+    }
+    const identity = session.identity();
+    const snapshot = runtime.readGraphLayoutSnapshot();
+    if (!replacementLayoutHold && (snapshot.isPaused || snapshot.hasEnded)) {
+      return () => {};
+    }
+    const owner = { requestedIsPaused: false };
+    replacementLayoutHold = owner;
+    layoutIntent += 1;
+    if (!snapshot.isPaused) {
+      runtime.setGraphLayoutPaused({
+        loadGeneration: identity.loadGeneration,
+        isPaused: true,
+      });
+    }
+    return () => {
+      if (replacementLayoutHold !== owner) {
+        return;
+      }
+      replacementLayoutHold = undefined;
+      if (
+        !disposed &&
+        session.identity().loadGeneration === identity.loadGeneration
+      ) {
+        // A failed/cancelled load keeps its old document and running choice.
+        // Successful installation owns its own initial layout request.
+        runtime.setGraphLayoutPaused({
+          loadGeneration: identity.loadGeneration,
+          isPaused: owner.requestedIsPaused,
+        });
+      }
+    };
+  }
+  function holdCountAdjustmentLayout() {
+    const identity = session.identity();
+    const snapshot = runtime.readGraphLayoutSnapshot();
+    const owner = {
+      requestedIsPaused: snapshot.isPaused,
+      physicallyHeld: false,
+    };
+    countLayoutHold = owner;
+    const currentOwner = () => {
+      if (disposed || countLayoutHold !== owner) {
+        return false;
+      }
+      try {
+        const current = session.identity();
+        return (
+          current.loadGeneration === identity.loadGeneration &&
+          current.documentRevision === identity.documentRevision
+        );
+      } catch {
+        // A failed recovery can retire the session before the hold is released.
+        return false;
+      }
+    };
+    function prepareInstallation() {
+      if (!currentOwner()) {
+        throw new DOMException("The adjustment was retired.", "AbortError");
+      }
+      if (owner.physicallyHeld) {
+        return;
+      }
+      owner.physicallyHeld = true;
+      layoutIntent += 1;
+      runtime.setGraphLayoutPaused({
+        loadGeneration: identity.loadGeneration,
+        isPaused: true,
+      });
+      publish({ layout: layoutState("paused") });
+    }
+    return {
+      // Publish only after the adjustment owner has stored this hold. State
+      // subscribers may synchronously stage another count during publication.
+      beginAdjustment() {
+        // A cancelled draft must not reheat an already settled graph.
+        if (!snapshot.isPaused && !snapshot.hasEnded) {
+          prepareInstallation();
+        }
+      },
+      prepareInstallation,
+      release() {
+        const mayRestore = currentOwner();
+        if (countLayoutHold !== owner) {
+          return;
+        }
+        countLayoutHold = undefined;
+        if (!mayRestore || !owner.physicallyHeld) {
+          return;
+        }
+        layoutIntent += 1;
+        const result = runtime.setGraphLayoutPaused({
+          loadGeneration: identity.loadGeneration,
+          isPaused: owner.requestedIsPaused,
+        });
+        publish({ layout: layoutState(result.layoutStatus) });
+      },
+    };
+  }
   function clearNeighborhood() {
     if (!ordinaryPresentation) {
       return undefined;
     }
-    pendingView?.abort();
-    pendingView = undefined;
-    viewSequence++;
-    session.clearNeighborhood({ renderedGraphRuntime: runtime });
-    const restored = ordinaryPresentation;
-    runtime.setVisualizationFocus({
-      loadGeneration: session.identity().loadGeneration,
-      focus: restored.focus,
+    if (disposed) {
+      ordinaryPresentation = undefined;
+      state = createWebVowlControllerState({
+        ...state,
+        temporaryPresentation: null,
+      });
+      return undefined;
+    }
+    const restoredScene = session.clearNeighborhood({
+      renderedGraphRuntime: runtime,
     });
+    lifecycle.retireViews();
+    const restored = ordinaryPresentation;
+    if (restoredScene) {
+      runtime.setVisualizationFocus({
+        loadGeneration: session.identity().loadGeneration,
+        focus: restored.focus,
+      });
+    }
     ordinaryPresentation = undefined;
-    publish({ view: readView(), ...runtime.readVisualizationViewport() });
-    return restored;
+    publish({
+      temporaryPresentation: null,
+      view: readView(),
+      ...runtime.readVisualizationViewport(),
+    });
+    return restoredScene ? restored : undefined;
   }
   function readUpstreamHidden() {
     return retainedHidden.flatMap((reference) => {
@@ -124,55 +288,110 @@ export function createCanonicalWebVowlController({
       }
     });
   }
-  function readView() {
+  function readView(applied = runtime.readVisualizationView()) {
     return {
-      ...runtime.readVisualizationView(),
+      ...applied,
       filters: { ...filters },
       nodesShown: { ...nodesShown },
     };
   }
   let editorOptions = { ...DEFAULT_ONTOLOGY_EDITOR_OPTIONS };
   const subscribers = new Set();
+  const occurrenceObservers = new Set();
+  function publishOccurrenceObservation(observation) {
+    if (
+      observation &&
+      (observation.loadGeneration !== state.loadGeneration ||
+        observation.documentRevision !== state.documentRevision)
+    ) {
+      return;
+    }
+    for (const observer of [...occurrenceObservers]) {
+      try {
+        observer(observation);
+      } catch {
+        // An observation consumer cannot disrupt drawing or other readers.
+        occurrenceObservers.delete(observer);
+      }
+    }
+  }
   function publish(changes) {
     if (disposed) {
       return;
     }
     const previous = state;
-    state = createWebVowlControllerState({ ...state, ...changes });
-    if (!pendingLoad) {
+    state = createWebVowlControllerState({
+      ...state,
+      ...changes,
+      ...(changes.warnings ? { warnings: changes.warnings.slice(-10) } : {}),
+    });
+    if (!lifecycle.has("load")) {
       retainedState = state;
     }
     const fields = Object.freeze(
       Object.keys(changes).filter((key) => !isEqual(previous[key], state[key])),
     );
+    const published = state;
+    if (fields.includes("selection") && state.selection.length === 0) {
+      publishOccurrenceObservation(null);
+    }
+    const failed = new Set();
     for (const subscriber of [...subscribers]) {
-      subscriber(state, fields);
+      try {
+        subscriber(published, fields);
+      } catch {
+        failed.add(subscriber);
+      }
+    }
+    const warning =
+      "A presentation subscriber failed. The document remains available.";
+    if (
+      failed.size &&
+      state === published &&
+      !state.warnings.includes(warning)
+    ) {
+      state = createWebVowlControllerState({
+        ...state,
+        warnings: [...state.warnings, warning].slice(-10),
+      });
+      if (!lifecycle.has("load")) {
+        retainedState = state;
+      }
+      const warned = state;
+      const warningFields = Object.freeze(["warnings"]);
+      for (const subscriber of [...subscribers]) {
+        if (!failed.has(subscriber)) {
+          try {
+            subscriber(warned, warningFields);
+          } catch {
+            // Reporting a presentation failure cannot recursively report another one.
+          }
+        }
+      }
     }
   }
-  function current() {
-    if (disposed) {
-      throw new WebVowlOperationError({
-        code: "LOAD_ABORTED",
-        message: "The application has been disposed.",
-      });
-    }
-    if (pendingLoad) {
-      throw new WebVowlOperationError({
-        code: "EDIT_REJECTED",
-        message: "Wait for the current document load to finish.",
-      });
-    }
-    return session.identity();
+  function current(operation) {
+    return lifecycle.check(operation);
   }
-  function snapshots() {
-    current();
+  function resolveFocusable(ontologyElementReferences) {
+    current("getOntologySummary");
+    return boundOntologyFocusResult(
+      session.readModel().resolveFocusable({
+        visibleRenderedGraphSnapshot:
+          runtime.readVisibleRenderedGraphSnapshot(),
+        ontologyElementReferences,
+      }),
+    );
+  }
+  function snapshots(operation = "getOntologySummary") {
+    current(operation);
     return {
-      ontologyInspectionSnapshot: session.inspectOntology(),
+      ontologyInspectionSnapshot: session.readOntologyInspection(),
       visibleRenderedGraphSnapshot: runtime.readVisibleRenderedGraphSnapshot(),
     };
   }
   function editorRequest(request, allowed) {
-    const accepted = current();
+    const accepted = current("editOntologyRecord");
     if (
       !request ||
       Object.keys(request).some(
@@ -189,15 +408,11 @@ export function createCanonicalWebVowlController({
           "The editor request is invalid or belongs to a retired document revision.",
       });
     }
-    clearNeighborhood();
     return request;
   }
   function acceptRevision(result, selectionTargets) {
-    ordinaryPresentation = undefined;
-    revealCache = undefined;
-    pendingView?.abort();
-    pendingView = undefined;
-    viewSequence += 1;
+    clearNeighborhood();
+    lifecycle.retireViews();
     let selectedDocumentRecord =
       result.selectedTarget ?? state.selectedDocumentRecord;
     if (selectedDocumentRecord) {
@@ -247,9 +462,10 @@ export function createCanonicalWebVowlController({
     return state;
   }
   async function command(intent, { signal } = {}) {
-    const accepted = current();
-    signal?.throwIfAborted();
-    clearNeighborhood();
+    const ticket = lifecycle.prepare("editOntologyRecord", { signal });
+    countAdjustment.cancel();
+    const accepted = ticket.identity;
+    ticket.prepareScene();
     const references = createCanonicalSemanticReferences(
       session.inspectRecords(),
       accepted.loadGeneration,
@@ -263,13 +479,7 @@ export function createCanonicalWebVowlController({
         ? [session.target(id)]
         : [],
     );
-    activeExport?.abort();
-    const sequence = loadSequence;
-    const owner = new AbortController();
-    edits.add(owner);
-    const combined = signal
-      ? AbortSignal.any([signal, owner.signal])
-      : owner.signal;
+    ticket.accept();
     try {
       const result = await applyCanonicalEditorCommand(
         session,
@@ -279,11 +489,14 @@ export function createCanonicalWebVowlController({
         },
         {
           renderedGraphRuntime: runtime,
-          signal: combined,
+          signal: ticket.signal,
           reconcile: reconcileScene,
           confirmDeletion: requestOntologyDeletionConfirmation,
           confirmInverseDetachment: requestInverseDetachmentConfirmation,
           prepareVisibility(inspection, { correspondence, selectNodes }) {
+            // A draft can begin while the worker is editing. Retire its hold
+            // before the replacement semantic revision reads layout state.
+            countAdjustment.cancel();
             const next = new Map(
               correspondence.map(({ previous, current: id }) => [previous, id]),
             );
@@ -302,31 +515,32 @@ export function createCanonicalWebVowlController({
           },
         },
       );
-      if (disposed || sequence !== loadSequence) {
-        throw new DOMException("The edit was superseded.", "AbortError");
-      }
+      ticket.assertCurrent();
       return acceptRevision(result, selectionTargets);
     } catch (cause) {
       throw new WebVowlOperationError({
         code: "EDIT_REJECTED",
         message: cause.message,
-        details: { reason: cause.code },
+        ...(typeof cause.code === "string"
+          ? { details: { reason: cause.code } }
+          : {}),
         cause,
       });
     } finally {
-      edits.delete(owner);
+      ticket.release();
     }
   }
   function observe(promise) {
-    const sequence = loadSequence;
+    const isCurrent = lifecycle.checkpoint();
     void promise.catch((error) => {
-      if (!disposed && sequence === loadSequence && !pendingLoad) {
+      if (isCurrent()) {
         publish({ error: toPublicWebVowlError(error) });
       }
     });
   }
   async function createFromGesture(payload) {
-    const accepted = current();
+    const ticket = lifecycle.prepare("editOntologyRecord");
+    const accepted = ticket.identity;
     const inspection = session.inspectRecords();
     if (payload.documentRevision !== accepted.documentRevision) {
       throw new Error("The creation gesture belongs to an earlier revision.");
@@ -334,8 +548,8 @@ export function createCanonicalWebVowlController({
     if (typeof requestOntologyCreation !== "function") {
       throw new Error("Semantic creation input is unavailable.");
     }
-    const owner = new AbortController();
-    edits.add(owner);
+    ticket.prepareScene();
+    ticket.accept();
     const subjects = new Map(
       inspection.records.subjects.map((record) => [record.id, record]),
     );
@@ -352,9 +566,9 @@ export function createCanonicalWebVowlController({
             }),
           resolveIri: session.resolveEditorIri,
         },
-        { signal: owner.signal },
+        { signal: ticket.signal },
       );
-      owner.signal.throwIfAborted();
+      ticket.assertCurrent();
       if (input === null) {
         return;
       }
@@ -385,23 +599,26 @@ export function createCanonicalWebVowlController({
               ...(payload.fromTarget ? { domain: payload.fromTarget } : {}),
               ...(payload.toTarget ? { range: payload.toTarget } : {}),
             },
-        { signal: owner.signal },
+        { signal: ticket.signal },
       );
     } finally {
-      edits.delete(owner);
+      ticket.release();
     }
   }
   let selectedEditorOccurrence;
   const unsubscribe = runtime.subscribeToRenderedGraphEvents((event) => {
     if (
       disposed ||
-      pendingLoad ||
+      lifecycle.has("load") ||
       event.loadGeneration !== state.loadGeneration
     ) {
       return;
     }
     const payload = event.payload;
     switch (event.kind) {
+      case "selected-occurrence-geometry-changed":
+        publishOccurrenceObservation(payload.observation);
+        break;
       case "semantic-creation-requested":
         observe(createFromGesture(payload));
         break;
@@ -423,11 +640,7 @@ export function createCanonicalWebVowlController({
         break;
       case "visualization-view-changed":
         publish({
-          view: {
-            ...payload.appliedVisualizationView,
-            filters: { ...filters },
-            nodesShown: { ...nodesShown },
-          },
+          view: readView(payload.appliedVisualizationView),
         });
         break;
       case "editor-mode-changed":
@@ -443,7 +656,7 @@ export function createCanonicalWebVowlController({
             ? "settled"
             : "relaxing";
         if (state.layout.status !== status) {
-          publish({ layout: { status } });
+          publish({ layout: layoutState(status) });
         }
         break;
       }
@@ -500,6 +713,121 @@ export function createCanonicalWebVowlController({
         break;
     }
   });
+  async function applyVisualizationView(validated, { signal } = {}) {
+    const startedAt = performance.now();
+    const ticket = lifecycle.prepare("setVisualizationView", {
+      signal,
+      request: validated,
+    });
+    if (validated.nodesShown !== undefined) {
+      session.assertNodeOrderingReady?.();
+    }
+    const restored = ticket.prepareScene();
+    const {
+      filters: changes,
+      nodesShown: requestedNodesShown,
+      language,
+      ...nativeView
+    } = validated;
+    if (restored && nativeView.focus === undefined) {
+      nativeView.focus = restored.focus;
+    }
+    const nextNodesShown = requestedNodesShown ?? nodesShown;
+    // Validate references before changing the scene; determine visibility afterwards.
+    if (nativeView.focus !== undefined) {
+      resolveFocusable(nativeView.focus);
+    }
+    const viewChanges = {};
+    const previous = {
+      filters,
+      nodesShown,
+      nodeCountStatus: state.nodeCountStatus,
+    };
+    let previousScene;
+    let visibility;
+    const nextFilters = { ...filters, ...changes };
+    if (changes !== undefined || requestedNodesShown !== undefined) {
+      visibility = session.selectNodes(
+        nextFilters,
+        nextNodesShown,
+        readUpstreamHidden(),
+      );
+      viewChanges.hidden = visibility.hidden.map((id) =>
+        session.scene().reference(id),
+      );
+    }
+    if (language !== undefined) {
+      viewChanges.labelSelection = canonicalLabelSelection(language);
+    }
+    if (Object.keys(viewChanges).length) {
+      previousScene = session.scene().snapshot();
+      session.updateView(viewChanges, { renderedGraphRuntime: runtime });
+      filters = nextFilters;
+      nodesShown = nextNodesShown;
+    }
+    ticket.accept();
+    const viewRevision = ++viewInteraction;
+    try {
+      if (Object.keys(viewChanges).length) {
+        publish({
+          view: readView(),
+          ...(visibility
+            ? { nodeCountStatus: visibility.nodeCountStatus }
+            : {}),
+        });
+      }
+      if (nativeView.focus !== undefined) {
+        const resolution = resolveFocusable(nativeView.focus);
+        nativeView.focus = [...resolution.focusableReferences];
+      }
+      if (nativeView.layout !== undefined) {
+        layoutIntent += 1;
+      }
+      await runtime.applyVisualizationView(nativeView, {
+        signal: ticket.signal,
+      });
+      ticket.assertCurrent();
+      session.synchronizeDrawing(runtime.readCanonicalDrawingState());
+      if (requestedNodesShown !== undefined) {
+        performance.clearMeasures("webvowl.node-count-interaction");
+        performance.measure("webvowl.node-count-interaction", {
+          start: startedAt,
+          end: performance.now(),
+          detail: { viewRevision, nodeCountStatus: state.nodeCountStatus },
+        });
+      }
+    } catch (error) {
+      if (previousScene && ticket.isCurrent() && !ticket.signal.aborted) {
+        session.updateView(
+          {
+            hidden: previousScene.hidden.map((id) =>
+              session.scene().reference(id),
+            ),
+            labelSelection: previousScene.labelSelection,
+          },
+          { renderedGraphRuntime: runtime },
+        );
+        filters = previous.filters;
+        nodesShown = previous.nodesShown;
+        visibility = { nodeCountStatus: previous.nodeCountStatus };
+      }
+      throw error;
+    } finally {
+      if (ticket.isCurrent()) {
+        publish({
+          view: readView(),
+          ...(visibility
+            ? {
+                nodeCountStatus: visibility.nodeCountStatus,
+              }
+            : {}),
+        });
+      }
+      ticket.release();
+    }
+    return state;
+  }
+
   return Object.freeze({
     getState: () => state,
     subscribeToState(listener) {
@@ -509,6 +837,22 @@ export function createCanonicalWebVowlController({
       subscribers.add(listener);
       return () => subscribers.delete(listener);
     },
+    subscribeToSelectedVisualizationOccurrence(listener) {
+      if (typeof listener !== "function") {
+        throw new TypeError("An occurrence observer must be a function.");
+      }
+      occurrenceObservers.add(listener);
+      return () => occurrenceObservers.delete(listener);
+    },
+    getSelectedVisualizationOccurrence() {
+      const accepted = current("getSelectedVisualizationOccurrence");
+      const observation = runtime.readSelectedOccurrenceObservation();
+      return observation &&
+        observation.loadGeneration === accepted.loadGeneration &&
+        observation.documentRevision === accepted.documentRevision
+        ? observation
+        : null;
+    },
     async loadOntology(
       { source },
       { signal, initialVisualization, useAutomaticNodesShown } = {},
@@ -516,36 +860,25 @@ export function createCanonicalWebVowlController({
       const initial = createInitialVisualizationRequest(
         initialVisualization ?? {},
       );
-      if (disposed) {
-        throw new WebVowlOperationError({
-          code: "LOAD_ABORTED",
-          message: "The application has been disposed.",
-        });
-      }
       const retained = structuredClone(source);
-      clearNeighborhood();
-      revealCache = undefined;
-      loadSequence += 1;
-      pendingView?.abort();
-      viewSequence += 1;
-      activeExport?.abort();
-      for (const edit of edits) {
-        edit.abort();
-      }
-      pendingLoad?.abort();
-      const owner = new AbortController();
-      pendingLoad = owner;
-      const combined = signal
-        ? AbortSignal.any([signal, owner.signal])
-        : owner.signal;
+      const ticket = lifecycle.prepare("loadOntology", { signal });
+      countAdjustment.cancel();
+      ticket.prepareScene();
+      ticket.accept();
+      const combined = ticket.signal;
       const previous = retainedState;
-      publish({
-        status: "loading",
-        selection: [],
-        selectedDocumentRecord: null,
-        error: null,
-      });
+      let releaseLayout = () => {};
       try {
+        combined.throwIfAborted();
+        releaseLayout = holdReplacementLayout();
+        ticket.assertCurrent();
+        publish({
+          status: "loading",
+          ...(replacementLayoutHold ? { layout: layoutState("paused") } : {}),
+          selection: [],
+          selectedDocumentRecord: null,
+          error: null,
+        });
         combined.throwIfAborted();
         let request;
         if (retained.kind === "ontology-document-iri") {
@@ -609,6 +942,19 @@ export function createCanonicalWebVowlController({
                 imports?.resolveImport ?? acquisition.resolveImport,
               renderedGraphRuntime: runtime,
               useAutomaticNodesShown,
+              onNodeOrdering: ({
+                loadGeneration,
+                documentRevision,
+                nodeCountStatus,
+              }) => {
+                if (
+                  !disposed &&
+                  state.loadGeneration === loadGeneration &&
+                  state.documentRevision === documentRevision
+                ) {
+                  publish({ nodeCountStatus });
+                }
+              },
               ...(viewportSize
                 ? {
                     center: {
@@ -637,10 +983,9 @@ export function createCanonicalWebVowlController({
             }
           }
         }
-        if (pendingLoad !== owner) {
-          throw new DOMException("The load was superseded.", "AbortError");
-        }
-        pendingLoad = undefined;
+        ticket.assertCurrent();
+        releaseLayout();
+        ticket.release();
         selectedEditorOccurrence = undefined;
         filters = accepted.appliedFilters ?? {
           ...CANONICAL_VISIBLE_FILTERS,
@@ -685,11 +1030,15 @@ export function createCanonicalWebVowlController({
         });
         return state;
       } catch (cause) {
-        if (pendingLoad === owner) {
-          pendingLoad = undefined;
+        if (ticket.isCurrent()) {
+          releaseLayout();
+          ticket.release();
           const cancelled = combined.aborted || cause?.name === "AbortError";
           publish({
             ...previous,
+            ...(previous.nodeCountStatus && session.nodeCountStatus
+              ? { nodeCountStatus: session.nodeCountStatus() }
+              : {}),
             status: cancelled ? previous.status : "error",
             error: cancelled
               ? previous.error
@@ -711,14 +1060,17 @@ export function createCanonicalWebVowlController({
           });
         }
         throw cause;
+      } finally {
+        releaseLayout();
+        ticket.release();
       }
     },
     getOntologyEditorView(target) {
-      current();
+      current("getOntologyEditorView");
       return session.inspectEditor(target);
     },
     resolveOntologyEditorIri(value) {
-      current();
+      current("resolveOntologyEditorIri");
       return session.resolveEditorIri(value);
     },
     editOntologyRecord(request, options) {
@@ -742,22 +1094,32 @@ export function createCanonicalWebVowlController({
     },
     setOntologyPrefix(request, { signal } = {}) {
       editorRequest(request, ["name", "previousName", "iri"]);
-      signal?.throwIfAborted();
-      activeExport?.abort();
+      const ticket = lifecycle.prepare("setOntologyPrefix", { signal });
+      ticket.prepareScene();
+      ticket.accept();
       const { loadGeneration, documentRevision, ...prefix } = request;
       void loadGeneration;
       void documentRevision;
-      return acceptRevision(
-        session.setPrefix(prefix, { renderedGraphRuntime: runtime }),
-      );
+      try {
+        return acceptRevision(
+          session.setPrefix(prefix, { renderedGraphRuntime: runtime }),
+        );
+      } finally {
+        ticket.release();
+      }
     },
     removeOntologyPrefix(request, { signal } = {}) {
       editorRequest(request, ["name"]);
-      signal?.throwIfAborted();
-      activeExport?.abort();
-      return acceptRevision(
-        session.removePrefix(request.name, { renderedGraphRuntime: runtime }),
-      );
+      const ticket = lifecycle.prepare("removeOntologyPrefix", { signal });
+      ticket.prepareScene();
+      ticket.accept();
+      try {
+        return acceptRevision(
+          session.removePrefix(request.name, { renderedGraphRuntime: runtime }),
+        );
+      } finally {
+        ticket.release();
+      }
     },
     getOntologySummary() {
       return inspector.getOntologySummary({
@@ -768,99 +1130,31 @@ export function createCanonicalWebVowlController({
       });
     },
     getOntologyElementRevealPlan(ontologyElementReferences) {
-      current();
-      const retained = readUpstreamHidden();
-      const signature = structuredClone([
-        session.identity(),
-        filters,
-        retained,
-      ]);
-      if (!isEqual(revealCache?.signature, signature)) {
-        const inspection = session.inspectRecords();
-        const references = createCanonicalSemanticReferences(
-          inspection,
-          state.loadGeneration,
-          session.target,
-        );
-        const visibility = session.selectNodes(filters, nodesShown, retained, {
-          measure: false,
-        });
-        const ranks = new Map(
-          visibility.rankedNodeOccurrenceIds.map((id, index) => [
-            id,
-            index + 1,
-          ]),
-        );
-        const upstream = new Set(
-          prepareCanonicalVisibility(inspection, filters, retained).hidden,
-        );
-        const projection = createCanonicalVowlRenderProjection(
-          inspection,
-          session.scene().snapshot(),
-        );
-        const requiredByOccurrence = new Map(
-          projection.nodes.map((row) => [
-            row.occurrence,
-            ranks.get(row.occurrence),
-          ]),
-        );
-        for (const edge of projection.edges) {
-          const ends = [ranks.get(edge.from), ranks.get(edge.to)];
-          if (ends.every((rank) => rank !== undefined)) {
-            requiredByOccurrence.set(edge.occurrence, Math.max(...ends));
-          }
-        }
-        for (const label of projection.labels) {
-          requiredByOccurrence.set(
-            label.occurrence,
-            requiredByOccurrence.get(label.edge),
-          );
-        }
-        const byElement = new Map();
-        for (const row of [
-          ...projection.nodes,
-          ...projection.edges,
-          ...projection.labels,
-        ]) {
-          const rank = requiredByOccurrence.get(row.occurrence);
-          if (rank === undefined || upstream.has(row.occurrence)) {
-            continue;
-          }
-          for (const id of row.targets ?? row.records ?? []) {
-            const reference = references.get(id);
-            if (reference) {
-              const key = ontologyElementReferenceKey(reference);
-              byElement.set(
-                key,
-                Math.min(byElement.get(key) ?? Infinity, rank),
-              );
-            }
-          }
-        }
-        revealCache = { signature, byElement };
-      }
+      current("getOntologyElementRevealPlan");
+      const ranks = session.readModel().revealRanks(
+        {
+          filters,
+          nodesShown,
+          upstreamHidden: readUpstreamHidden(),
+        },
+        ontologyElementReferences,
+      );
       const requested = new Set(
         ontologyElementReferences.map(ontologyElementReferenceKey),
       );
-      let requestedCount = state.nodeCountStatus.shownNodeCount;
-      const matched = new Set();
-      for (const key of requested) {
-        const rank = revealCache.byElement.get(key);
-        if (rank !== undefined) {
-          matched.add(key);
-          requestedCount = Math.max(requestedCount, rank);
-        }
-      }
       return Object.freeze({
-        canReveal: matched.size === requested.size && requested.size > 0,
-        requestedCount,
+        canReveal: ranks.length === requested.size && requested.size > 0,
+        requestedCount: ranks.reduce(
+          (count, row) => Math.max(count, row.requiredNodeCount),
+          state.nodeCountStatus.shownNodeCount,
+        ),
       });
     },
     getOntologyNeighborhoodRevealPlan(ontologyElementReferences) {
-      current();
-      const { canReveal, reason, counts } = session.planNeighborhood(
-        ontologyElementReferences,
-      );
+      current("getOntologyNeighborhoodRevealPlan");
+      const { canReveal, reason, counts } = session
+        .readModel()
+        .planNeighborhood(ontologyElementReferences);
       return Object.freeze({
         canReveal,
         ...(reason ? { reason } : {}),
@@ -871,16 +1165,13 @@ export function createCanonicalWebVowlController({
       { ontologyElementReferences },
       { signal } = {},
     ) {
-      const accepted = current();
-      signal?.throwIfAborted();
-      if (edits.size > 0) {
-        throw new WebVowlOperationError({
-          code: "VIEW_REJECTED",
-          message:
-            "Wait for the current edit before revealing a neighbourhood.",
-        });
-      }
-      const plan = session.planNeighborhood(ontologyElementReferences);
+      const ticket = lifecycle.prepare("revealOntologyNeighborhood", {
+        signal,
+      });
+      const accepted = ticket.identity;
+      const plan = session
+        .readModel()
+        .planNeighborhood(ontologyElementReferences);
       if (!plan.canReveal) {
         return Object.freeze({
           ...accepted,
@@ -889,43 +1180,34 @@ export function createCanonicalWebVowlController({
           counts: plan.counts,
         });
       }
-      activeExport?.abort();
-      pendingView?.abort();
-      const viewRevision = ++viewSequence;
-      const sequence = loadSequence;
-      const owner = new AbortController();
-      pendingView = owner;
-      const viewSignal = signal
-        ? AbortSignal.any([signal, owner.signal])
-        : owner.signal;
       const ordinary = ordinaryPresentation ?? {
         viewport: runtime.readVisualizationViewport(),
         focus: state.view?.focus ?? [],
       };
+      ticket.prepareScene();
       try {
         session.revealNeighborhood(plan.hidden, {
           renderedGraphRuntime: runtime,
         });
+        ticket.accept();
         ordinaryPresentation = ordinary;
+        const { nodes, edges, labels } = plan.counts;
+        publish({
+          temporaryPresentation: {
+            kind: "neighborhood",
+            ...accepted,
+            counts: { nodes, edges, labels },
+          },
+          view: readView(),
+        });
         await runtime.applyVisualizationView(
           {
             loadGeneration: accepted.loadGeneration,
             focus: ontologyElementReferences,
           },
-          { signal: viewSignal },
+          { signal: ticket.signal },
         );
-        if (
-          disposed ||
-          sequence !== loadSequence ||
-          viewRevision !== viewSequence ||
-          session.identity().documentRevision !== accepted.documentRevision ||
-          viewSignal.aborted
-        ) {
-          throw new DOMException(
-            "The neighborhood was superseded.",
-            "AbortError",
-          );
-        }
+        ticket.assertCurrent();
         session.synchronizeDrawing(runtime.readCanonicalDrawingState());
         publish({ view: readView() });
         return Object.freeze({
@@ -934,32 +1216,31 @@ export function createCanonicalWebVowlController({
           counts: plan.counts,
         });
       } catch (error) {
-        if (
-          !disposed &&
-          sequence === loadSequence &&
-          viewRevision === viewSequence &&
-          session.identity().documentRevision === accepted.documentRevision
-        ) {
+        if (ticket.isCurrent()) {
           clearNeighborhood();
         }
         throw error;
       } finally {
-        if (pendingView === owner) {
-          pendingView = undefined;
-        }
+        ticket.release();
       }
     },
     async clearOntologyNeighborhood(_request = {}, { signal } = {}) {
-      const accepted = current();
-      signal?.throwIfAborted();
-      activeExport?.abort();
-      const restored = clearNeighborhood();
+      const ticket = lifecycle.prepare("clearOntologyNeighborhood", { signal });
+      const accepted = ticket.identity;
+      ticket.accept();
+      let restored;
+      try {
+        restored = clearNeighborhood();
+      } finally {
+        ticket.release();
+      }
       if (restored) {
         await this.setVisualizationView({ focus: restored.focus }, { signal });
       }
       return Object.freeze({ ...accepted, status: "cleared" });
     },
     async revealOntologyElements({ ontologyElementReferences }, options) {
+      current("revealOntologyElements");
       const plan = this.getOntologyElementRevealPlan(ontologyElementReferences);
       if (!plan.canReveal) {
         throw new WebVowlOperationError({
@@ -977,45 +1258,39 @@ export function createCanonicalWebVowlController({
       );
     },
     findOntologyElements(request) {
-      current();
-      return session.findOntologyElements(
-        {
+      current("findOntologyElements");
+      return boundOntologySearchResult(
+        session.readModel().find({
           visibleRenderedGraphSnapshot:
             runtime.readVisibleRenderedGraphSnapshot(),
           ...request,
           language: state.view?.language,
-        },
-        inspector,
+        }),
+        request,
       );
     },
     describeOntologyElements(request) {
-      return inspector.describeOntologyElements({
-        ...snapshots(),
+      current("describeOntologyElements");
+      return session.readModel().describe({
+        visibleRenderedGraphSnapshot:
+          runtime.readVisibleRenderedGraphSnapshot(),
         ...request,
         language: state.view?.language,
       });
     },
     getOntologyFacts(request) {
-      if (disposed || pendingLoad) {
-        throw new WebVowlOperationError({
-          code: "LOAD_ABORTED",
-          message: "Wait for the current document load to finish.",
-        });
-      }
+      current("getOntologyFacts");
       return session.inspectFacts(request);
     },
     getOntologyEditorOptions: () =>
       Object.freeze({ ...editorOptions, ...ONTOLOGY_CREATION_TYPES }),
     getVisualizationFocus() {
       const focus =
-        disposed || pendingLoad || state.status === "idle"
+        disposed || lifecycle.has("load") || state.status === "idle"
           ? []
           : (state.view?.focus ?? []);
       const resolved = focus.length
-        ? inspector.resolveFocusableOntologyElementReferences({
-            ...snapshots(),
-            ontologyElementReferences: focus,
-          })
+        ? resolveFocusable(focus)
         : { focusableReferences: [] };
       return Object.freeze({
         focus: Object.freeze([...focus]),
@@ -1023,7 +1298,7 @@ export function createCanonicalWebVowlController({
       });
     },
     getVisualizationShareLink(request = {}) {
-      const accepted = current();
+      const accepted = current("getVisualizationShareLink");
       if (Object.keys(request).some((field) => field !== "presentation")) {
         throw new TypeError("Invalid share-link request.");
       }
@@ -1051,7 +1326,7 @@ export function createCanonicalWebVowlController({
       });
     },
     getVisualizationArrangement(request = {}) {
-      const accepted = current();
+      const accepted = current("getVisualizationArrangement");
       const { ontologyElementReference, offset, limit } =
         createRenderedArrangementQuery(request);
       const snapshot = runtime.readRenderedArrangement();
@@ -1065,7 +1340,7 @@ export function createCanonicalWebVowlController({
             "The ontology reference belongs to a retired document.",
           );
         }
-        const inspection = session.inspectOntology();
+        const inspection = session.readOntologyInspection();
         const references = [
           "classRecords",
           "datatypeRecords",
@@ -1097,197 +1372,88 @@ export function createCanonicalWebVowlController({
       });
     },
     async setVisualizationArrangement(request, { signal } = {}) {
-      const accepted = current();
-      const validated = createRenderedArrangementRequest(request);
-      signal?.throwIfAborted();
-      activeExport?.abort();
-      const sequence = loadSequence;
-      const result = await runtime.setRenderedArrangement(validated, {
+      const ticket = lifecycle.prepare("setVisualizationArrangement", {
         signal,
       });
-      if (disposed || sequence !== loadSequence) {
-        throw new DOMException("The arrangement was superseded.", "AbortError");
-      }
-      session.synchronizeDrawing(runtime.readCanonicalDrawingState());
-      const requested = new Set(
-        validated.changes.map(({ reference }) => reference.occurrenceId),
-      );
-      return Object.freeze({
-        loadGeneration: accepted.loadGeneration,
-        changedOccurrenceCount: requested.size,
-        occurrences: Object.freeze(
-          result.occurrences.filter(({ reference }) =>
-            requested.has(reference.occurrenceId),
+      const accepted = ticket.identity;
+      const validated = createRenderedArrangementRequest(request);
+      ticket.accept();
+      try {
+        const result = await runtime.setRenderedArrangement(validated, {
+          signal: ticket.signal,
+        });
+        ticket.assertCurrent();
+        session.synchronizeDrawing(runtime.readCanonicalDrawingState());
+        const requested = new Set(
+          validated.changes.map(({ reference }) => reference.occurrenceId),
+        );
+        return Object.freeze({
+          loadGeneration: accepted.loadGeneration,
+          changedOccurrenceCount: requested.size,
+          occurrences: Object.freeze(
+            result.occurrences.filter(({ reference }) =>
+              requested.has(reference.occurrenceId),
+            ),
           ),
-        ),
-      });
+        });
+      } finally {
+        ticket.release();
+      }
     },
     async selectVisualizationElement(request, { signal } = {}) {
-      current();
-      signal?.throwIfAborted();
-      runtime.selectRenderedOccurrence(
-        createRenderedOccurrenceSelectionRequest(request),
-      );
+      const ticket = lifecycle.prepare("selectVisualizationElement", {
+        signal,
+      });
+      const validated = createRenderedOccurrenceSelectionRequest(request);
+      ticket.accept();
+      try {
+        runtime.selectRenderedOccurrence(validated);
+        return state;
+      } finally {
+        ticket.release();
+      }
+    },
+    /** Stage human input; accepted scene ownership transfers only on flush. */
+    stageNodeCountAdjustment(request) {
+      current("stageNodeCountAdjustment");
+      session.assertNodeOrderingReady?.();
+      return countAdjustment.stage(request);
+    },
+    async flushNodeCountAdjustment() {
+      current("flushNodeCountAdjustment");
+      await countAdjustment.flush();
       return state;
     },
-    async setVisualizationView(request, { signal } = {}) {
-      const startedAt = performance.now();
-      const accepted = current();
-      const validated = createVisualizationViewApplicationRequest({
-        ...request,
-        loadGeneration: accepted.loadGeneration,
-      });
-      signal?.throwIfAborted();
-      const restored =
-        validated.filters !== undefined ||
+    setNodeCountAdjustmentVisible(isVisible) {
+      if (typeof isVisible !== "boolean") {
+        throw new TypeError("Adjustment visibility must be Boolean.");
+      }
+      if (!disposed) {
+        countAdjustment.setVisible(isVisible);
+      }
+    },
+    async setVisualizationView(request, options) {
+      options?.signal?.throwIfAborted();
+      const validated = validateVisualizationView(request);
+      const replacesAdjustment =
         validated.nodesShown !== undefined ||
+        validated.filters !== undefined ||
         validated.language !== undefined ||
-        validated.layout !== undefined ||
-        validated.focus?.length === 0
-          ? clearNeighborhood()
-          : undefined;
-      activeExport?.abort();
-      const sequence = loadSequence;
-      const {
-        filters: changes,
-        nodesShown: requestedNodesShown,
-        language,
-        ...nativeView
-      } = validated;
-      if (restored && nativeView.focus === undefined) {
-        nativeView.focus = restored.focus;
-      }
-      const nextNodesShown = requestedNodesShown ?? nodesShown;
-      // Validate references before changing the scene; determine visibility afterwards.
-      if (nativeView.focus !== undefined) {
-        inspector.resolveFocusableOntologyElementReferences({
-          ...snapshots(),
-          ontologyElementReferences: nativeView.focus,
-        });
-      }
-      const viewChanges = {};
-      const previous = {
-        filters,
-        nodesShown,
-        nodeCountStatus: state.nodeCountStatus,
-      };
-      let previousScene;
-      let visibility;
-      const nextFilters = { ...filters, ...changes };
-      if (changes !== undefined || requestedNodesShown !== undefined) {
-        visibility = session.selectNodes(
-          nextFilters,
-          nextNodesShown,
-          readUpstreamHidden(),
-        );
-        viewChanges.hidden = visibility.hidden.map((id) =>
-          session.scene().reference(id),
-        );
-      }
-      if (language !== undefined) {
-        viewChanges.labelSelection = canonicalLabelSelection(language);
-      }
-      if (Object.keys(viewChanges).length) {
-        previousScene = session.scene().snapshot();
-        session.updateView(viewChanges, { renderedGraphRuntime: runtime });
-        filters = nextFilters;
-        nodesShown = nextNodesShown;
-      }
-      const viewRevision = ++viewSequence;
-      pendingView?.abort();
-      const owner = new AbortController();
-      pendingView = owner;
-      const viewSignal = signal
-        ? AbortSignal.any([signal, owner.signal])
-        : owner.signal;
-      if (Object.keys(viewChanges).length) {
-        publish({
-          view: readView(),
-          ...(visibility
-            ? { nodeCountStatus: visibility.nodeCountStatus }
-            : {}),
-        });
-      }
-      if (nativeView.focus !== undefined) {
-        const resolution = inspector.resolveFocusableOntologyElementReferences({
-          ...snapshots(),
-          ontologyElementReferences: nativeView.focus,
-        });
-        nativeView.focus = [...resolution.focusableReferences];
-      }
-      if (nativeView.layout !== undefined) {
-        layoutIntent += 1;
-      }
-      try {
-        await runtime.applyVisualizationView(nativeView, {
-          signal: viewSignal,
-        });
-        if (
-          disposed ||
-          sequence !== loadSequence ||
-          viewRevision !== viewSequence ||
-          session.identity().documentRevision !== accepted.documentRevision ||
-          viewSignal.aborted
-        ) {
-          throw new DOMException("The view was superseded.", "AbortError");
-        }
-        session.synchronizeDrawing(runtime.readCanonicalDrawingState());
-        if (requestedNodesShown !== undefined) {
-          performance.clearMeasures("webvowl.node-count-interaction");
-          performance.measure("webvowl.node-count-interaction", {
-            start: startedAt,
-            end: performance.now(),
-            detail: { viewRevision, nodeCountStatus: state.nodeCountStatus },
-          });
-        }
-      } catch (error) {
-        if (
-          previousScene &&
-          !disposed &&
-          sequence === loadSequence &&
-          viewRevision === viewSequence &&
-          session.identity().documentRevision === accepted.documentRevision
-        ) {
-          session.updateView(
-            {
-              hidden: previousScene.hidden.map((id) =>
-                session.scene().reference(id),
-              ),
-              labelSelection: previousScene.labelSelection,
-            },
-            { renderedGraphRuntime: runtime },
-          );
-          filters = previous.filters;
-          nodesShown = previous.nodesShown;
-          visibility = { nodeCountStatus: previous.nodeCountStatus };
-        }
-        throw error;
-      } finally {
-        if (
-          !disposed &&
-          sequence === loadSequence &&
-          viewRevision === viewSequence &&
-          session.identity().documentRevision === accepted.documentRevision
-        ) {
-          pendingView = undefined;
-          publish({
-            view: readView(),
-            ...(visibility
-              ? {
-                  nodeCountStatus: visibility.nodeCountStatus,
-                }
-              : {}),
-          });
-        }
-      }
-      return state;
+        validated.layout !== undefined;
+      const draft = replacesAdjustment ? countAdjustment.take() : undefined;
+      return applyVisualizationView(
+        draft &&
+          validated.filters !== undefined &&
+          validated.nodesShown === undefined
+          ? { ...validated, nodesShown: draft }
+          : validated,
+        options,
+      );
     },
     async setVisualizationModes(request, { signal } = {}) {
-      current();
+      const ticket = lifecycle.prepare("setVisualizationModes", { signal });
       const modes = createVisualizationModesRequest(request);
-      signal?.throwIfAborted();
-      clearNeighborhood();
-      activeExport?.abort();
+      ticket.prepareScene();
       const { compactNotation, nodeScaling, colorExternals, ...nativeModes } =
         modes;
       const display = {
@@ -1302,36 +1468,40 @@ export function createCanonicalWebVowlController({
       if (Object.keys(display).length) {
         session.updateView({ display }, { renderedGraphRuntime: runtime });
       }
-      const sequence = loadSequence;
+      ticket.accept();
       try {
         if (Object.keys(nativeModes).length) {
-          await runtime.setVisualizationModes(nativeModes, { signal });
+          await runtime.setVisualizationModes(nativeModes, {
+            signal: ticket.signal,
+          });
         }
-        if (disposed || sequence !== loadSequence) {
-          throw new DOMException("The display was superseded.", "AbortError");
-        }
+        ticket.assertCurrent();
       } finally {
-        if (!disposed && sequence === loadSequence) {
+        if (ticket.isCurrent()) {
           publish({ view: readView() });
         }
+        ticket.release();
       }
       return state;
     },
     async setForceLayoutDistances(request, { signal } = {}) {
-      current();
-      signal?.throwIfAborted();
-      clearNeighborhood();
-      activeExport?.abort();
-      runtime.setForceLayoutDistances(request);
-      publish({ view: readView() });
-      return state;
+      const ticket = lifecycle.prepare("setForceLayoutDistances", { signal });
+      const validated = createForceLayoutDistancesRequest(request);
+      ticket.prepareScene();
+      ticket.accept();
+      try {
+        runtime.setForceLayoutDistances(validated);
+        publish({ view: readView() });
+        return state;
+      } finally {
+        ticket.release();
+      }
     },
     async resetVisualization({ signal } = {}) {
-      current();
-      signal?.throwIfAborted();
-      clearNeighborhood();
-      activeExport?.abort();
-      const sequence = loadSequence;
+      const ticket = lifecycle.prepare("resetVisualization", { signal });
+      session.assertNodeOrderingReady?.();
+      countAdjustment.cancel();
+      ticket.prepareScene();
       const resetNodesShown = { mode: "auto" };
       const visibility = session.selectNodes(
         CANONICAL_VISIBLE_FILTERS,
@@ -1349,35 +1519,24 @@ export function createCanonicalWebVowlController({
         },
         { renderedGraphRuntime: runtime },
       );
-      const viewRevision = ++viewSequence;
-      pendingView?.abort();
-      pendingView = undefined;
+      ticket.accept();
       nodesShown = resetNodesShown;
       filters = { ...CANONICAL_VISIBLE_FILTERS };
       retainedHidden = [];
       layoutIntent += 1;
       try {
-        await runtime.resetVisualization({ signal });
-        if (
-          disposed ||
-          sequence !== loadSequence ||
-          viewRevision !== viewSequence
-        ) {
-          throw new DOMException("The reset was superseded.", "AbortError");
-        }
+        await runtime.resetVisualization({ signal: ticket.signal });
+        ticket.assertCurrent();
         session.synchronizeDrawing(runtime.readCanonicalDrawingState());
       } finally {
-        if (
-          !disposed &&
-          sequence === loadSequence &&
-          viewRevision === viewSequence
-        ) {
+        if (ticket.isCurrent()) {
           publish({
             view: readView(),
             nodeCountStatus: visibility.nodeCountStatus,
             ...runtime.readVisualizationViewport(),
           });
         }
+        ticket.release();
       }
       return state;
     },
@@ -1388,7 +1547,7 @@ export function createCanonicalWebVowlController({
           "AbortError",
         );
       }
-      activeExport?.abort();
+      lifecycle.retireCaptures();
       const size = createVisualizationViewportSize(request);
       const result = runtime.resizeVisualizationViewport(size);
       viewportSize = size;
@@ -1407,21 +1566,37 @@ export function createCanonicalWebVowlController({
       runtime.setRenderingDiagnosticsEnabled(isEnabled);
     },
     setGraphLayoutPaused(request) {
-      const accepted = current();
-      clearNeighborhood();
-      const result = runtime.setGraphLayoutPaused({
-        loadGeneration: accepted.loadGeneration,
+      const ticket = lifecycle.prepare("setGraphLayoutPaused");
+      const validated = createGraphLayoutPauseRequest({
+        loadGeneration: ticket.identity.loadGeneration,
         isPaused: request?.isPaused,
       });
-      layoutIntent += 1;
-      activeExport?.abort();
-      publish({ layout: { status: result.layoutStatus } });
-      return result;
+      ticket.prepareScene();
+      ticket.accept();
+      try {
+        if (countLayoutHold) {
+          countLayoutHold.requestedIsPaused = validated.isPaused;
+          countLayoutHold.physicallyHeld = true;
+        }
+        const result = runtime.setGraphLayoutPaused(
+          countLayoutHold ? { ...validated, isPaused: true } : validated,
+        );
+        layoutIntent += 1;
+        publish({ layout: layoutState(result.layoutStatus) });
+        return result;
+      } finally {
+        ticket.release();
+      }
     },
     setContinuousZoom(request) {
-      current();
-      activeExport?.abort();
-      return runtime.setContinuousZoom(request);
+      const ticket = lifecycle.prepare("setContinuousZoom");
+      const validated = createContinuousZoomRequest(request);
+      ticket.accept();
+      try {
+        return runtime.setContinuousZoom(validated);
+      } finally {
+        ticket.release();
+      }
     },
     setOntologyEditorOptions(request) {
       const changes = createOntologyEditorOptionsRequest(request);
@@ -1431,20 +1606,13 @@ export function createCanonicalWebVowlController({
       return Object.freeze({ ...editorOptions });
     },
     async exportVisualization(request = {}, { signal } = {}) {
-      const accepted = current();
+      signal?.throwIfAborted();
+      await countAdjustment.flush();
+      const ticket = lifecycle.prepare("exportVisualization", { signal });
+      const accepted = ticket.identity;
       const { format = "vowl-json", filename } = request;
-      if (activeExport) {
-        throw new WebVowlOperationError({
-          code: "EXPORT_FAILED",
-          message: "An export is already in progress.",
-        });
-      }
-      const owner = new AbortController();
-      activeExport = owner;
-      const combined = signal
-        ? AbortSignal.any([signal, owner.signal])
-        : owner.signal;
-      const sequence = loadSequence;
+      ticket.accept();
+      const combined = ticket.signal;
       const pauseSequence = layoutIntent;
       const options = {
         artifactService: artifacts,
@@ -1472,46 +1640,22 @@ export function createCanonicalWebVowlController({
           source: state.source,
           view: state.view,
           signal: combined,
-          assertCurrent() {
-            if (
-              disposed ||
-              sequence !== loadSequence ||
-              session.identity().documentRevision !== accepted.documentRevision
-            ) {
-              throw new DOMException(
-                "The export was superseded.",
-                "AbortError",
-              );
-            }
-          },
+          assertCurrent: ticket.assertCurrent,
           canRestoreLayout: () =>
-            !disposed &&
-            sequence === loadSequence &&
-            pauseSequence === layoutIntent,
+            ticket.isCurrent() && pauseSequence === layoutIntent,
         });
       } finally {
-        if (activeExport === owner) {
-          activeExport = undefined;
-        }
+        ticket.release();
       }
     },
     getOriginalSources() {
-      current();
+      current("getOriginalSources");
       return session.originalSources();
     },
     async exportOriginalSource({ documentId, filename }, { signal } = {}) {
-      current();
-      if (activeExport) {
-        throw new WebVowlOperationError({
-          code: "EXPORT_FAILED",
-          message: "An export is already in progress.",
-        });
-      }
-      const owner = new AbortController();
-      activeExport = owner;
-      const combined = signal
-        ? AbortSignal.any([signal, owner.signal])
-        : owner.signal;
+      const ticket = lifecycle.prepare("exportOriginalSource", { signal });
+      ticket.accept();
+      const combined = ticket.signal;
       try {
         combined.throwIfAborted();
         return await session.exportOriginalSourceArtifact({
@@ -1522,27 +1666,21 @@ export function createCanonicalWebVowlController({
           source: state.source,
         });
       } finally {
-        if (activeExport === owner) {
-          activeExport = undefined;
-        }
+        ticket.release();
       }
     },
     dispose() {
       if (disposed) {
         return;
       }
+      countAdjustment.dispose();
       disposed = true;
-      ordinaryPresentation = undefined;
-      revealCache = undefined;
-      viewSequence += 1;
-      pendingView?.abort();
-      activeExport?.abort();
-      for (const edit of edits) {
-        edit.abort();
-      }
-      pendingLoad?.abort();
+      replacementLayoutHold = undefined;
+      clearNeighborhood();
+      lifecycle.dispose();
       unsubscribe();
       subscribers.clear();
+      occurrenceObservers.clear();
       session.dispose();
       runtime.dispose();
       artifacts.dispose();

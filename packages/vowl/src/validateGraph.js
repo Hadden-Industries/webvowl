@@ -61,6 +61,7 @@ export function validateGraph(
   decoding,
   normalizing = false,
 ) {
+  budget.check();
   const model = source.structural;
   const index = new Map();
   const locations = new Map();
@@ -68,7 +69,7 @@ export function validateGraph(
   const shape = envelope(profile);
   for (const collection of Object.keys(categories).sort()) {
     model[collection].forEach((record, i) => {
-      budget.check();
+      budget.poll();
       const pointer = `/structural/${collection}/${i}`;
       if (
         !record.id.length ||
@@ -87,17 +88,19 @@ export function validateGraph(
     });
   }
   walkTyped(source, shape, (value, descriptor, pointer) => {
-    budget.check();
+    budget.poll();
     if (descriptor?.reference) {
       references.push({ value, descriptor, pointer });
     }
   });
   for (const { value, pointer } of references) {
+    budget.poll();
     if (!index.has(value)) {
       fail("REFERENCE_DANGLING", pointer);
     }
   }
   for (const { value, descriptor, pointer } of references) {
+    budget.poll();
     const { record, category } = index.get(value);
     if (!matches(record, descriptor, category)) {
       fail("REFERENCE_KIND", pointer);
@@ -126,6 +129,7 @@ export function validateGraph(
     const record = index.get(id).record;
     const children = [];
     walkTyped(record, "Expression", (value, descriptor) => {
+      budget.poll();
       if (descriptor?.reference && index.get(value).category === "X") {
         children.push(value);
         visitExpression(value, depth + 1);
@@ -160,6 +164,7 @@ export function validateGraph(
   }
 
   if (normalizing) {
+    budget.check();
     return {
       index,
       locations,
@@ -179,7 +184,7 @@ export function validateGraph(
   const occurrenceKeys = new Map();
   for (const collection of Object.keys(categories).sort()) {
     for (const record of model[collection]) {
-      budget.check();
+      budget.poll();
       let key;
       let seen;
       if (collection === "subjects" && record.iri !== undefined) {
@@ -221,10 +226,11 @@ export function validateGraph(
     }
   }
   walkTyped(source, shape, (value, descriptor, pointer) => {
-    budget.check();
+    budget.poll();
     if (descriptor?.items && !descriptor.sequence) {
       const seen = new Set();
       value.forEach((member, i) => {
+        budget.poll();
         // Primary identity is checked above; two distinct anonymous subjects stay distinct.
         const key =
           member && typeof member === "object" && Object.hasOwn(member, "id")
@@ -237,6 +243,7 @@ export function validateGraph(
       });
     }
   });
+  budget.check();
   return {
     index,
     locations,
@@ -296,6 +303,7 @@ export function createAssertionSupportLookup(model, get, budget) {
 
 /** Validate anchors, direct endpoint normalization and the finite signature closure. */
 export function validateMeaning(source, context, budget) {
+  budget.check();
   const { index, locations, get, expressionChildren } = context;
   const model = source.structural;
   const { support, endpoints } = createAssertionSupportLookup(
@@ -304,7 +312,7 @@ export function validateMeaning(source, context, budget) {
     budget,
   );
   for (const construct of model.constructs) {
-    budget.check();
+    budget.poll();
     if (construct.kind !== "assertion-anchor") {
       continue;
     }
@@ -317,6 +325,7 @@ export function validateMeaning(source, context, budget) {
   }
   const endpointSeen = new Set();
   for (const construct of model.constructs) {
+    budget.poll();
     if (endpointKind.test(construct.kind)) {
       // json-identity-contract: ordered-tuple; owner: VOWL graph validation; reason: Validated role-kind, property-ID, subject-ID or IRI scalars form ordered semantic lookup tuples.
       const key = JSON.stringify([construct.property, construct.kind]);
@@ -336,6 +345,7 @@ export function validateMeaning(source, context, budget) {
   const rolesBySubject = new Map();
   const usedSubjects = new Set();
   for (const role of model.roles) {
+    budget.poll();
     const subject = get(role.subject);
     usedSubjects.add(role.subject);
     const kinds = rolesBySubject.get(role.subject) ?? new Set();
@@ -353,6 +363,7 @@ export function validateMeaning(source, context, budget) {
     }
   }
   for (const role of model.roles) {
+    budget.poll();
     const kinds = rolesBySubject.get(role.subject);
     if (
       (role.kind === "rdf-class" && kinds.has("class")) ||
@@ -365,7 +376,7 @@ export function validateMeaning(source, context, budget) {
     }
   }
   walkTyped(source.structural, "Structural", (value, descriptor, pointer) => {
-    budget.check();
+    budget.poll();
     if (!descriptor?.fields) {
       return;
     }
@@ -405,13 +416,14 @@ export function validateMeaning(source, context, budget) {
     }
   });
   for (const subject of model.subjects) {
+    budget.poll();
     if (!usedSubjects.has(subject.id)) {
       fail("NORMALIZATION_INVALID", locations.get(subject.id));
     }
   }
   const reachable = new Set();
   function reach(id) {
-    budget.check();
+    budget.poll();
     if (reachable.has(id)) {
       return;
     }
@@ -421,16 +433,20 @@ export function validateMeaning(source, context, budget) {
     }
   }
   for (const construct of model.constructs) {
+    budget.poll();
     walkTyped(construct, "Construct", (value, descriptor) => {
+      budget.poll();
       if (descriptor?.reference && index.get(value).category === "X") {
         reach(value);
       }
     });
   }
   for (const expression of model.expressions) {
+    budget.poll();
     if (!reachable.has(expression.id)) {
       fail("NORMALIZATION_INVALID", locations.get(expression.id));
     }
   }
+  budget.check();
   return { ...context, roleMap, endpoints };
 }

@@ -201,7 +201,9 @@ export function createVisualizationViewControlsAdapter(dependencies) {
   ) {
     isPresentingControllerState = true;
     try {
-      isGraphLayoutPaused = controllerState.layout.status === "paused";
+      isGraphLayoutPaused =
+        controllerState.layout.requestedIsPaused ??
+        controllerState.layout.status === "paused";
       if (
         changedFieldNames.some((name) =>
           ["status", "view", "nodeCountStatus", "loadGeneration"].includes(

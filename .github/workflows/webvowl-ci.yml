@@ -86,9 +86,12 @@ jobs:
         run: |
           node util/installSelectedNpm.mjs
           npm ci --ignore-scripts
+      - name: Read selected runtime versions
+        id: runtimes
+        run: node util/runtimeTargets.mjs --github-output
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
-          version: "0.13.0"
+          version: ${{ steps.runtimes.outputs.uv }}
           activate-environment: true
           venv-path: ${{ runner.temp }}/python
           no-project: true

@@ -4,13 +4,7 @@ import {
   resolveOntologyElementReference,
 } from "./webVowlControllerContracts.js";
 
-export const CANONICAL_NEIGHBORHOOD_LIMITS = Object.freeze({
-  references: 25,
-  nodes: 500,
-  edges: 1000,
-  labels: 2000,
-  adjacencyEntries: 10000,
-});
+import { CANONICAL_NEIGHBORHOOD_LIMITS } from "./canonicalNeighborhoodLimits.js";
 
 /** Revision-owned index over admitted occurrences, independent of visibility. */
 export function createCanonicalSearchProjection(

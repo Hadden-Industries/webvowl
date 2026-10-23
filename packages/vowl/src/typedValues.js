@@ -183,12 +183,19 @@ export function walkTyped(value, descriptor, visit, pointer = "", parent, key) {
 /** Check closed shapes and scalar domains before any reference or graph invariant. */
 export function validateFields(value, descriptor, budget, pointer = "") {
   budget.check();
+  const result = validateField(value, descriptor, budget, pointer);
+  budget.check();
+  return result;
+}
+
+function validateField(value, descriptor, budget, pointer) {
+  budget.poll();
   const resolved = descriptorFor(value, descriptor, pointer);
   if (resolved?.fields || resolved?.items) {
     shallowValidate(value, resolved, pointer);
     if (resolved.fields) {
       for (const name of Object.keys(value).sort()) {
-        value[name] = validateFields(
+        value[name] = validateField(
           value[name],
           resolved.fields[name],
           budget,
@@ -197,7 +204,7 @@ export function validateFields(value, descriptor, budget, pointer = "") {
       }
     } else {
       value.forEach((member, index) => {
-        value[index] = validateFields(
+        value[index] = validateField(
           member,
           resolved.items,
           budget,

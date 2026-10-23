@@ -1,13 +1,19 @@
 import { createCanonicalVowlScene } from "./canonicalVowlScene.js";
 import { readCanonicalFacts } from "./canonicalVowlFacts.js";
 import { createCanonicalVowlRenderProjection } from "./canonicalVowlRenderProjection.js";
-import { prepareOntologySearch } from "./ontologyInspector.js";
-import { createCanonicalSearchProjection } from "./canonicalSearchProjection.js";
+import { ownCanonicalInspection } from "./canonicalVowlInspectionOwnership.js";
+import { createCanonicalVowlSemanticReadModel } from "./canonicalVowlSemanticReadModel.js";
 import {
   createCanonicalVowlInspectionProjection,
   createCanonicalSemanticReferences,
 } from "./canonicalVowlInspectionProjector.js";
-import { profiles, compatibleArtifactProfile } from "vowl";
+import {
+  profiles,
+  compatibleArtifactProfile,
+  DISPLAY_ORDER_KEY_PURPOSE,
+} from "vowl";
+import { deepFreezePlainData } from "./controllerDataContracts.js";
+import { WebVowlOperationError } from "./webVowlControllerContracts.js";
 import { createCanonicalVowlEditorView } from "./canonicalVowlEditorView.js";
 import { createInitialVisualizationRequest } from "./renderedGraphRuntimeContracts.js";
 import {
@@ -33,23 +39,54 @@ function semanticRecords(inspection) {
   return EDITABLE_COLLECTIONS.flatMap((name) => inspection.records[name]);
 }
 
-function readResult(result, revision) {
+function readResult(result, revision, preview = false) {
   if (
     result.inspection?.revision !== revision ||
     result.checkpoint?.revision !== revision ||
-    result.rankingIdentity?.revision !== revision
+    (!preview &&
+      (result.displayOrderKeys?.revision !== revision ||
+        result.displayOrderKeys.purpose !== DISPLAY_ORDER_KEY_PURPOSE))
   ) {
     throw rejected("DOCUMENT_WORKER_RESULT_INVALID");
   }
-  const inspection = structuredClone(result.inspection);
+  const inspection = ownCanonicalInspection(result.inspection);
   return {
     inspection,
     checkpoint: structuredClone(result.checkpoint),
     selectNodes: createCanonicalNodeSelector(
       inspection,
-      result.rankingIdentity,
+      preview
+        ? undefined
+        : deepFreezePlainData(structuredClone(result.displayOrderKeys)),
+      { preview },
     ),
   };
+}
+
+/**
+ * Capture one accepted document value, not the mutable session owner. A result
+ * owns one mutable copy after its first read; replacing the accessor also
+ * releases its source reference. Unread fields remain assignable/deletable.
+ */
+function defineOwnedDocumentField(result, name, source) {
+  function assign(value) {
+    Object.defineProperty(this, name, {
+      value,
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    });
+  }
+  Object.defineProperty(result, name, {
+    enumerable: true,
+    configurable: true,
+    get() {
+      const value = structuredClone(source);
+      assign.call(this, value);
+      return value;
+    },
+    set: assign,
+  });
 }
 
 function projectInspection(inspection, visualization, generation, records) {
@@ -253,6 +290,25 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
     selectNodes(filters, nodesShown, hidden, options) {
       return loaded().selectNodes(filters, nodesShown, hidden, options);
     },
+    nodeCountStatus() {
+      return loaded().selectNodes.status();
+    },
+    assertNodeOrderingReady() {
+      const status = loaded().selectNodes.status().orderingStatus;
+      if (status === "preparing" || status === "failed") {
+        throw new WebVowlOperationError({
+          code:
+            status === "preparing"
+              ? "NODE_ORDERING_PENDING"
+              : "NODE_ORDERING_UNAVAILABLE",
+          message:
+            status === "preparing"
+              ? "Wait for node count preparation to finish."
+              : "Node count preparation failed. Reload the ontology to retry.",
+          isRetryable: status === "preparing",
+        });
+      }
+    },
     inspectRecords() {
       return structuredClone(loaded().inspection);
     },
@@ -273,47 +329,61 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
         ),
       );
     },
+    /**
+     * Bind identity and scene to this instant. Inspection/checkpoint stay
+     * readable but copy only on first access, once per field per result.
+     * Extend this result in place: object spread would eagerly read them.
+     */
     snapshot() {
       const accepted = loaded();
-      return {
+      // A literal allocation site's cached shape can retain one of the lazy
+      // getters below, including its old inspection. Use an ordinary object
+      // without that allocation-site feedback; lazy ownership is unchanged.
+      const result = Object.assign(Object.create(Object.prototype), {
         loadGeneration: accepted.generation,
         documentRevision: accepted.revision,
-        inspection: structuredClone(accepted.inspection),
-        checkpoint: structuredClone(accepted.checkpoint),
         visualization: accepted.scene.snapshot(),
-      };
+      });
+      defineOwnedDocumentField(result, "inspection", accepted.inspection);
+      defineOwnedDocumentField(result, "checkpoint", accepted.checkpoint);
+      return result;
     },
     scene() {
       return loaded().scene;
     },
+    /** Return an independently mutable copy for callers that require ownership. */
     inspectOntology() {
       return structuredClone(loaded().ontologyInspection);
     },
-    findOntologyElements(request, inspector) {
-      const accepted = loaded();
-      if (accepted.search?.inspector !== inspector) {
-        accepted.search = {
-          inspector,
-          prepared: prepareOntologySearch(
-            accepted.ontologyInspection,
-            inspector,
-          ),
-        };
-      }
-      return accepted.search.prepared.findOntologyElements(request);
+    /**
+     * Internal readers borrow the deeply frozen projection, including retained
+     * facts. Obtain it per operation: revision or presentation changes replace
+     * it, while previously returned values stay immutable. No indexes escape.
+     */
+    readOntologyInspection() {
+      return loaded().ontologyInspection;
     },
-    planNeighborhood(references) {
+    /** Lazily bind reads to this accepted revision and immutable presentation. */
+    readModel() {
       const accepted = loaded();
-      accepted.neighborhood ??= createCanonicalSearchProjection(
-        accepted.inspection,
-        createCanonicalSemanticReferences(
-          accepted.inspection,
-          accepted.generation,
-          target,
-        ),
-        accepted.generation,
-      );
-      return accepted.neighborhood.plan(references);
+      // Capture values, not `accepted` or the session's dynamic target method:
+      // a retained old model must neither keep its successor nor change meaning.
+      if (!accepted.readModel) {
+        const { generation: loadGeneration, records } = accepted;
+        accepted.readModel = createCanonicalVowlSemanticReadModel({
+          inspection: accepted.inspection,
+          ontologyInspection: accepted.ontologyInspection,
+          visualization: accepted.scene.snapshot(),
+          loadGeneration,
+          targetForRecord: (id) =>
+            Object.freeze({
+              loadGeneration,
+              recordToken: records.get(id),
+            }),
+          selectNodes: accepted.selectNodes,
+        });
+      }
+      return accepted.readModel;
     },
     revealNeighborhood(hidden, options = {}) {
       const accepted = loaded();
@@ -443,9 +513,9 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
         changes.labelSelection !== undefined ||
         changes.prefixes !== undefined
       ) {
-        base.search?.prepared.updatePresentation(ontologyInspection);
+        base.readModel = undefined;
       }
-      return { ...this.snapshot(), projection };
+      return Object.assign(this.snapshot(), { projection });
     },
     synchronizeDrawing({
       loadGeneration,
@@ -469,6 +539,7 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
         { camera },
       );
     },
+    /** prepareProjection borrows a deeply frozen accepted inspection. */
     async load(
       request,
       {
@@ -480,6 +551,7 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
         renderedGraphRuntime,
         initialVisualization,
         useAutomaticNodesShown = false,
+        onNodeOrdering,
       } = {},
     ) {
       checkOpen();
@@ -495,12 +567,15 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
       const operation = makeOperation(signal);
       loading = operation;
       const loadGeneration = ++generation;
+      let ordering;
+      let installed = false;
       try {
         const result = await workerClient.run(request, {
           loadGeneration,
           baseRevision: 0,
           signal: operation.signal,
           resolveImport,
+          deferNodeOrdering: request.operation === "open-owl-model",
         });
         if (
           disposed ||
@@ -511,7 +586,18 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
         ) {
           throw rejected("LOAD_ABORTED");
         }
-        const candidate = readResult(result, 0);
+        const initialPlacementStarted = performance.now();
+        ordering = result.nodeOrdering;
+        if (
+          ordering &&
+          (request.operation !== "open-owl-model" ||
+            typeof ordering.start !== "function" ||
+            typeof ordering.ready?.then !== "function")
+        ) {
+          throw rejected("DOCUMENT_WORKER_RESULT_INVALID");
+        }
+        const candidate = readResult(result, 0, Boolean(ordering));
+        const seedStarted = performance.now();
         const scene = createCanonicalVowlScene(
           candidate.inspection.occurrences,
           {
@@ -519,8 +605,16 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
             visualization: result.visualization ?? undefined,
             center,
             suppliedPositions,
+            forceDistances: initial.forceDistances,
+            layoutInitialTree: renderedGraphRuntime?.layoutInitialTree,
           },
         );
+        const seedDuration = performance.now() - seedStarted;
+        const fitInitialDrawing =
+          !result.visualization &&
+          !suppliedPositions?.size &&
+          initial.view?.zoomScale === undefined &&
+          initial.view?.translation === undefined;
         const retainedHidden = scene.snapshot().hidden;
         const {
           filters,
@@ -571,7 +665,7 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
           ]),
         );
         const preparedProjection = prepareProjection(
-          structuredClone(candidate.inspection),
+          candidate.inspection,
           scene.snapshot(),
         );
         const projection = bindDrawing(
@@ -651,6 +745,7 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
                   documentRevision: 0,
                   drawing: projection,
                   layout: initialLayout,
+                  ...(fitInitialDrawing ? { fitInitialDrawing: true } : {}),
                   ...(Object.keys(nativeInitial).length
                     ? { initialVisualization: nativeInitial }
                     : {}),
@@ -658,7 +753,7 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
                 { signal: operation.signal },
               );
               checkCurrent();
-              if (Object.keys(nativeInitial).length) {
+              if (fitInitialDrawing || Object.keys(nativeInitial).length) {
                 const observed =
                   renderedGraphRuntime.readCanonicalDrawingState();
                 scene.arrange(
@@ -673,6 +768,22 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
                 );
                 projection.camera = structuredClone(observed.camera);
               }
+              performance.clearMeasures("webvowl.initial-placement");
+              performance.measure("webvowl.initial-placement", {
+                start: seedStarted,
+                duration: seedDuration,
+                detail: { loadGeneration },
+              });
+              performance.clearMeasures("webvowl.initial-usable-drawing");
+              performance.measure("webvowl.initial-usable-drawing", {
+                start: initialPlacementStarted,
+                end: performance.now(),
+                detail: {
+                  loadGeneration,
+                  layout: initialLayout,
+                  fitInitialDrawing,
+                },
+              });
             } catch (error) {
               try {
                 if (previous && !disposed) {
@@ -703,6 +814,7 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
             }
           }
           checkCurrent();
+          current?.orderingOperation?.abort.abort();
           current = {
             ...candidate,
             generation: loadGeneration,
@@ -711,9 +823,45 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
             records,
             nextRecordToken: records.size,
             ontologyInspection,
+            ...(ordering ? { orderingOperation: operation } : {}),
           };
-          return {
-            ...this.snapshot(),
+          installed = true;
+          if (ordering) {
+            const owner = current;
+            const finish = (outcome) => {
+              if (disposed || current !== owner) {
+                return;
+              }
+              let nodeCountStatus;
+              try {
+                if (outcome.error) {
+                  throw outcome.error;
+                }
+                const keys = outcome.displayOrderKeys;
+                if (
+                  keys?.revision !== owner.revision ||
+                  keys?.purpose !== DISPLAY_ORDER_KEY_PURPOSE
+                ) {
+                  throw rejected("DOCUMENT_WORKER_RESULT_INVALID");
+                }
+                nodeCountStatus = owner.selectNodes.completeOrdering(
+                  deepFreezePlainData(structuredClone(keys)),
+                );
+              } catch {
+                nodeCountStatus = owner.selectNodes.failOrdering();
+              }
+              owner.orderingOperation = undefined;
+              owner.readModel = undefined;
+              onNodeOrdering?.({
+                loadGeneration,
+                documentRevision: owner.revision,
+                nodeCountStatus,
+              });
+            };
+            void ordering.ready.then(finish, (error) => finish({ error }));
+            ordering.start();
+          }
+          return Object.assign(this.snapshot(), {
             projection,
             initialLayout,
             retainedHidden,
@@ -724,16 +872,28 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
               ...candidate.inspection.diagnostics,
               ...(result.diagnostics ?? []),
             ]),
-          };
+          });
         });
-        presentationTail = acceptance.catch(() => {});
+        // This tail serializes presentation only. Keeping the accepted result
+        // would retain its unread document fields after the next edit retires it.
+        presentationTail = acceptance.then(
+          () => {},
+          () => {},
+        );
         return await acceptance;
       } finally {
+        if (!installed) {
+          operation.abort.abort();
+        }
         if (loading === operation) {
           loading = undefined;
         }
       }
     },
+    /**
+     * Projection, visibility and supplied-position preparation borrow the frozen
+     * candidate inspection. Authorization/reconciliation keep owned UI copies.
+     */
     async edit(
       changes,
       {
@@ -837,13 +997,13 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
           },
           {
             center,
-            hidden: prepareVisibility?.(structuredClone(candidate.inspection), {
+            hidden: prepareVisibility?.(candidate.inspection, {
               correspondence: structuredClone(result.correspondence),
               selectNodes: candidate.selectNodes,
             }),
             suppliedPositions:
               typeof suppliedPositions === "function"
-                ? suppliedPositions(structuredClone(candidate.inspection), {
+                ? suppliedPositions(candidate.inspection, {
                     correspondence: structuredClone(result.correspondence),
                   })
                 : suppliedPositions,
@@ -882,7 +1042,7 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
         const acceptedChoices = structuredClone(choices);
         // Inspection/render projection failures must precede any live mutation.
         const preparedProjection = prepareProjection(
-          structuredClone(candidate.inspection),
+          candidate.inspection,
           proposal.preview(acceptedChoices),
           { correspondence: structuredClone(result.correspondence) },
         );
@@ -918,6 +1078,7 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
         } finally {
           presenting = false;
         }
+        base.orderingOperation?.abort.abort();
         current = {
           ...base,
           ...candidate,
@@ -925,16 +1086,15 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
           nextRecordToken,
           revision: base.revision + 1,
           ontologyInspection,
-          search: undefined,
-          neighborhood: undefined,
+          readModel: undefined,
           ordinaryScene: undefined,
+          orderingOperation: undefined,
         };
-        return {
-          ...this.snapshot(),
+        return Object.assign(this.snapshot(), {
           projection,
           correspondence: structuredClone(result.correspondence),
           created: [...result.created],
-        };
+        });
       } finally {
         if (mutation === operation) {
           mutation = undefined;
@@ -1042,6 +1202,7 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
       checkNotPresenting();
       disposed = true;
       loading?.abort.abort();
+      current?.orderingOperation?.abort.abort();
       mutation?.abort.abort();
       for (const capture of captures) {
         capture.abort.abort();

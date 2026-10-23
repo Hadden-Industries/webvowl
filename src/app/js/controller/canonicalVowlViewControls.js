@@ -3,6 +3,9 @@ import { closeVowlVisibility } from "./canonicalVowlScene.js";
 import {
   rankCanonicalNodeOccurrences,
   NODE_RANKING_POLICY_VERSION,
+  PREVIEW_NODE_RANKING_POLICY_VERSION,
+  previewNodeOrderingKeys,
+  isCountedOccurrence,
 } from "./canonicalNodeOrdering.js";
 import {
   createNodesShownIntent,
@@ -81,7 +84,19 @@ export function canonicalLabelSelection(language) {
 }
 
 /** Cache one ranking per eligibility signature within a structural revision. */
-export function createCanonicalNodeSelector(inspection, identity) {
+export function createCanonicalNodeSelector(
+  inspection,
+  identity,
+  { preview = false } = {},
+) {
+  if (preview) {
+    identity = previewNodeOrderingKeys(inspection);
+  }
+  const policyVersion = preview
+    ? PREVIEW_NODE_RANKING_POLICY_VERSION
+    : NODE_RANKING_POLICY_VERSION;
+  let orderingStatus = preview ? "preparing" : "ready";
+  let pinVisible = false;
   let signature;
   let upstreamHidden;
   let rankedNodeOccurrenceIds;
@@ -106,7 +121,13 @@ export function createCanonicalNodeSelector(inspection, identity) {
       }
     }
   }
-  return (
+  const status = () => ({
+    eligibleNodeCount: rankedNodeOccurrenceIds?.length ?? 0,
+    shownNodeCount: appliedCount,
+    nodeRankingPolicyVersion: policyVersion,
+    ...(preview ? { orderingStatus } : {}),
+  });
+  const select = (
     filters,
     nodesShown,
     retainedHidden = [],
@@ -114,6 +135,7 @@ export function createCanonicalNodeSelector(inspection, identity) {
   ) => {
     const startedAt = performance.now();
     const intent = createNodesShownIntent(nodesShown);
+    pinVisible = intent.mode !== "all";
     const nextSignature = structuredClone([
       filters,
       [...retainedHidden].sort(),
@@ -191,7 +213,7 @@ export function createCanonicalNodeSelector(inspection, identity) {
           rankingCacheReused,
           eligibleNodeCount,
           shownNodeCount,
-          nodeRankingPolicyVersion: NODE_RANKING_POLICY_VERSION,
+          nodeRankingPolicyVersion: policyVersion,
         },
       });
     }
@@ -199,11 +221,50 @@ export function createCanonicalNodeSelector(inspection, identity) {
       hidden: [...hidden],
       rankedNodeOccurrenceIds,
       countHiddenOccurrenceIds,
-      nodeCountStatus: {
-        eligibleNodeCount,
-        shownNodeCount,
-        nodeRankingPolicyVersion: NODE_RANKING_POLICY_VERSION,
-      },
+      nodeCountStatus: status(),
     };
   };
+  select.status = status;
+  select.completeOrdering = (nextIdentity) => {
+    const keys = new Map(
+      nextIdentity.correspondence.map(({ previous, current }) => [
+        previous,
+        current,
+      ]),
+    );
+    const counted = inspection.occurrences.filter(isCountedOccurrence);
+    if (
+      keys.size !== counted.length ||
+      nextIdentity.correspondence.length !== counted.length ||
+      new Set(keys.values()).size !== keys.size ||
+      counted.some(({ id }) => typeof keys.get(id) !== "string")
+    ) {
+      throw new TypeError(
+        "Complete, unique display ordering keys are required.",
+      );
+    }
+    if (rankedNodeOccurrenceIds) {
+      const prefix = pinVisible
+        ? rankedNodeOccurrenceIds.slice(0, appliedCount)
+        : [];
+      const pinned = new Set(prefix);
+      const complete = rankCanonicalNodeOccurrences(
+        inspection.occurrences,
+        upstreamHidden,
+        nextIdentity,
+      );
+      rankedNodeOccurrenceIds = Object.freeze([
+        ...prefix,
+        ...complete.filter((id) => !pinned.has(id)),
+      ]);
+    }
+    identity = nextIdentity;
+    orderingStatus = "ready";
+    return status();
+  };
+  select.failOrdering = () => {
+    orderingStatus = "failed";
+    return status();
+  };
+  return select;
 }

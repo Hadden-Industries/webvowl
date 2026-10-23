@@ -1,4 +1,5 @@
 import { isIri } from "@hyperjump/uri";
+import { createCanonicalVowlInitialPositions } from "./canonicalVowlInitialPositions.js";
 
 const POSITIONABLE = new Set(["class-node", "datatype-node", "label"]);
 
@@ -36,17 +37,26 @@ export function closeVowlVisibility(occurrences, hidden) {
   return [...result];
 }
 
-function initializePlacements(occurrences, retained, center, supplied) {
+function initializePlacements(
+  occurrences,
+  retained,
+  center,
+  supplied,
+  freshSeeds,
+) {
   const byId = new Map(occurrences.map((record) => [record.id, record]));
   // Deterministic phyllotaxis gives fresh nodes a finite, distributed seed.
   // Explicit scene positions bypass the force engine's missing-position seed;
   // coincident seeds instead create an enormous initial repulsive impulse.
   // Index the whole node inventory once, including retained nodes, so additions
   // do not restart the sequence at positions already assigned to predecessors.
-  const seeds = new Map();
+  const seeds = freshSeeds ?? new Map();
   const angle = Math.PI * (3 - Math.sqrt(5));
   for (const occurrence of occurrences) {
-    if (["class-node", "datatype-node"].includes(occurrence.kind)) {
+    if (
+      !freshSeeds &&
+      ["class-node", "datatype-node"].includes(occurrence.kind)
+    ) {
       const index = seeds.size;
       const radius = 10 * Math.sqrt(0.5 + index);
       seeds.set(occurrence.id, {
@@ -155,6 +165,8 @@ export function createCanonicalVowlScene(
     visualization,
     center = { x: 0, y: 0 },
     suppliedPositions = new Map(),
+    forceDistances,
+    layoutInitialTree,
   },
 ) {
   if (!Number.isSafeInteger(loadGeneration) || loadGeneration < 1) {
@@ -193,6 +205,14 @@ export function createCanonicalVowlScene(
       [],
       finitePoint(center),
       suppliedPositions,
+      suppliedPositions.size === 0
+        ? createCanonicalVowlInitialPositions(
+            current,
+            center,
+            forceDistances,
+            layoutInitialTree,
+          )
+        : undefined,
     );
   }
   validatePlacements(current, state);

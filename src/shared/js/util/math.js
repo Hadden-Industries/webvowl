@@ -52,6 +52,44 @@ const createMath = (function () {
     );
   }
 
+  function followsStraightChord(start, middle, end, controls) {
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+    const axis = Math.abs(dx) >= Math.abs(dy) ? "x" : "y";
+    const other = axis === "x" ? "y" : "x";
+    const extent = end[axis] - start[axis];
+    if (!Number.isFinite(extent) || extent === 0) {
+      return false;
+    }
+
+    const expected =
+      start[other] +
+      ((middle[axis] - start[axis]) / extent) * (end[other] - start[other]);
+    // Admit only floating-point roundoff, never a visibly bent property.
+    const roundoff =
+      4 *
+      Number.EPSILON *
+      Math.max(
+        1,
+        Math.abs(start[other]),
+        Math.abs(middle[other]),
+        Math.abs(end[other]),
+      );
+    if (Math.abs(middle[other] - expected) > roundoff) {
+      return false;
+    }
+
+    // Collinear curves can still double back. Preserve those and their marker
+    // directions rather than shortening their geometry and dash progression.
+    const direction = Math.sign(extent);
+    return (
+      (controls.first[axis] - start[axis]) * direction >= 0 &&
+      (middle[axis] - controls.first[axis]) * direction >= 0 &&
+      (controls.final[axis] - middle[axis]) * direction >= 0 &&
+      (end[axis] - controls.final[axis]) * direction >= 0
+    );
+  }
+
   function buildCurvePath(points, tension) {
     const [start, middle, end] = points;
     const tangentScale = (1 - tension) / 3;
@@ -78,6 +116,15 @@ const createMath = (function () {
           ? { x: chord.x / 6, y: chord.y / 6 }
           : { x: 1, y: 0 };
       controls = controlsFor(middle, fallback);
+    }
+
+    // Express a monotonic straight chord directly with SVG's line command.
+    // Stroke patterns are independent; loops, bends and reversals stay curves.
+    if (
+      tension === DEFAULT_CURVE_TENSION &&
+      followsStraightChord(start, middle, end, controls)
+    ) {
+      return "M" + formatCurvePoint(start) + " L" + formatCurvePoint(end);
     }
 
     return (

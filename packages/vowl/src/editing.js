@@ -24,6 +24,7 @@ const endpoint = (kind) => /^(object|data|rdf)-(domain|range)$/.test(kind);
 
 /** Apply explicit edit intent to an owned draft; references and dependencies stay fail-closed. */
 export function applyChanges(source, changes, budget) {
+  budget.check();
   if (!Array.isArray(changes)) {
     fail("EDIT_INVALID", "/changes");
   }
@@ -33,14 +34,14 @@ export function applyChanges(source, changes, budget) {
   const reservedHandles = new Set();
   for (const collection of [...Object.keys(collections), "occurrences"]) {
     for (const record of model[collection]) {
-      budget.check();
+      budget.poll();
       reservedHandles.add(record.id);
     }
   }
   const lookup = (id) => {
     for (const collection of Object.keys(collections)) {
       const position = model[collection].findIndex((record) => {
-        budget.check();
+        budget.poll();
         return record.id === id;
       });
       if (position >= 0) {
@@ -55,7 +56,7 @@ export function applyChanges(source, changes, budget) {
     }
     const priorKey = semanticKey(previous, "Construct", undefined, budget);
     for (const record of model.constructs) {
-      budget.check();
+      budget.poll();
       if (record.kind !== "assertion-anchor") {
         continue;
       }
@@ -78,7 +79,7 @@ export function applyChanges(source, changes, budget) {
             aggregate?.kind,
           ) &&
           aggregate.members.some((id) => {
-            budget.check();
+            budget.poll();
             return id === record.assertion.target;
           })
         ) {
@@ -88,7 +89,7 @@ export function applyChanges(source, changes, budget) {
     }
   }
   changes.forEach((change, i) => {
-    budget.check();
+    budget.poll();
     const path = `/changes/${i}`;
     const fields =
       change &&
@@ -161,49 +162,59 @@ export function applyChanges(source, changes, budget) {
     model[target.collection][target.position] = replacement;
   });
   model.occurrences = [];
+  budget.check();
 }
 
 /** Normalize only the A2/A5/B2 producer obligations, with no OWL entailment or layout. */
 export function normalizeDraft(source, budget, reservedHandles = []) {
+  budget.check();
   const model = source.structural;
   // A removed duplicate remains an alias. Its name cannot be issued to a new
   // aggregate or signature record later in this same normalization operation.
   const usedIds = new Set(reservedHandles);
   for (const collection of [...Object.keys(collections), "occurrences"]) {
     for (const record of model[collection]) {
-      budget.check();
+      budget.poll();
       usedIds.add(record.id);
     }
   }
   const aliases = new Map();
+  let rewrittenAliases = 0;
   const resolve = (id) => {
     const visited = [];
     while (aliases.has(id)) {
-      budget.check();
+      budget.poll();
       visited.push(id);
       id = aliases.get(id);
     }
     for (const prior of visited) {
-      budget.check();
+      budget.poll();
       aliases.set(prior, id);
     }
     return id;
   };
-  const rewrite = () =>
+  const rewrite = () => {
+    // Aliased records are removed before this boundary; later generated records
+    // refer to the current model. Path compression does not introduce an alias.
+    if (aliases.size === rewrittenAliases) {
+      return;
+    }
     walkTyped(
       source,
       envelope(profiles.structuralContent),
       (value, descriptor, _pointer, parent, key) => {
-        budget.check();
+        budget.poll();
         if (descriptor?.reference) {
           parent[key] = resolve(value);
         }
       },
     );
+    rewrittenAliases = aliases.size;
+  };
   function deduplicate(collection, getKey) {
     const seen = new Map();
     model[collection] = model[collection].filter((record) => {
-      budget.check();
+      budget.poll();
       const key = getKey(record);
       if (seen.has(key)) {
         aliases.set(record.id, seen.get(key));
@@ -215,7 +226,7 @@ export function normalizeDraft(source, budget, reservedHandles = []) {
     rewrite();
   }
   function deduplicateSets(value, descriptor) {
-    budget.check();
+    budget.poll();
     const shape = descriptorFor(value, descriptor, "");
     if (shape?.fields) {
       for (const key of Object.keys(value)) {
@@ -227,7 +238,7 @@ export function normalizeDraft(source, budget, reservedHandles = []) {
         const seen = new Set();
         let write = 0;
         for (const member of value) {
-          budget.check();
+          budget.poll();
           const key =
             member && typeof member === "object" && Object.hasOwn(member, "id")
               ? member.id
@@ -255,14 +266,14 @@ export function normalizeDraft(source, budget, reservedHandles = []) {
   // Index once so generic-role promotion does not scan every role for every role.
   const rolesBySubject = new Map();
   for (const role of model.roles) {
-    budget.check();
+    budget.poll();
     if (!rolesBySubject.has(role.subject)) {
       rolesBySubject.set(role.subject, new Map());
     }
     rolesBySubject.get(role.subject).set(role.kind, role);
   }
   for (const role of model.roles) {
-    budget.check();
+    budget.poll();
     const siblings = rolesBySubject.get(role.subject);
     if (role.kind === "rdf-class") {
       const specific = siblings.get("class");
@@ -290,7 +301,7 @@ export function normalizeDraft(source, budget, reservedHandles = []) {
   }
   const removeAliasedRoles = () => {
     model.roles = model.roles.filter((role) => {
-      budget.check();
+      budget.poll();
       return !aliases.has(role.id);
     });
   };
@@ -311,7 +322,7 @@ export function normalizeDraft(source, budget, reservedHandles = []) {
   function freshId() {
     let id;
     do {
-      budget.check();
+      budget.poll();
       id = `normalized${nextId++}`;
     } while (usedIds.has(id) || aliases.has(id));
     usedIds.add(id);
@@ -329,7 +340,7 @@ export function normalizeDraft(source, budget, reservedHandles = []) {
   }
   const aggregates = new Map();
   for (const construct of model.constructs) {
-    budget.check();
+    budget.poll();
     if (!endpoint(construct.kind)) {
       continue;
     }
@@ -342,11 +353,11 @@ export function normalizeDraft(source, budget, reservedHandles = []) {
   }
   let endpointGraph;
   for (const group of aggregates.values()) {
-    budget.check();
+    budget.poll();
     const targets = [
       ...new Set(
         group.map((record) => {
-          budget.check();
+          budget.poll();
           return record.target;
         }),
       ),
@@ -360,7 +371,7 @@ export function normalizeDraft(source, budget, reservedHandles = []) {
         true,
       );
       const data = targets.map((id) => {
-        budget.check();
+        budget.poll();
         const record = endpointGraph.get(id);
         return (
           record.kind === "datatype" || dataRangeKinds.includes(record.kind)
@@ -375,12 +386,12 @@ export function normalizeDraft(source, budget, reservedHandles = []) {
       }).id;
     }
     for (const record of group.slice(1)) {
-      budget.check();
+      budget.poll();
       aliases.set(record.id, group[0].id);
     }
   }
   model.constructs = model.constructs.filter((record) => {
-    budget.check();
+    budget.poll();
     return !aliases.has(record.id);
   });
   rewrite();
@@ -392,7 +403,7 @@ export function normalizeDraft(source, budget, reservedHandles = []) {
   const subjectsByIri = new Map();
   const subjectsById = new Map();
   for (const subject of model.subjects) {
-    budget.check();
+    budget.poll();
     subjectsById.set(subject.id, subject);
     if (subject.iri !== undefined) {
       subjectsByIri.set(subject.iri, subject);
@@ -407,7 +418,7 @@ export function normalizeDraft(source, budget, reservedHandles = []) {
     }
   }
   function ensureRole(iri, kind, deferRewrite = false) {
-    budget.check();
+    budget.poll();
     let subject = subjectsByIri.get(iri);
     if (!subject) {
       subject = append("subjects", { iri });
@@ -445,7 +456,7 @@ export function normalizeDraft(source, budget, reservedHandles = []) {
     return role;
   }
   walkTyped(model, "Structural", (value, shape) => {
-    budget.check();
+    budget.poll();
     if (!shape?.fields) {
       return;
     }
@@ -473,7 +484,7 @@ export function normalizeDraft(source, budget, reservedHandles = []) {
   );
   const reached = new Set();
   function reach(id) {
-    budget.check();
+    budget.poll();
     if (reached.has(id)) {
       return;
     }
@@ -484,14 +495,14 @@ export function normalizeDraft(source, budget, reservedHandles = []) {
   }
   for (const construct of model.constructs) {
     walkTyped(construct, "Construct", (value, shape) => {
-      budget.check();
+      budget.poll();
       if (shape?.reference && graph.index.get(value).category === "X") {
         reach(value);
       }
     });
   }
   model.expressions = model.expressions.filter((record) => {
-    budget.check();
+    budget.poll();
     return reached.has(record.id);
   });
   const context = validateMeaning(
@@ -511,11 +522,13 @@ export function normalizeDraft(source, budget, reservedHandles = []) {
     normalizing: true,
     createBuiltin,
   }).expected;
+  budget.check();
   return resolve;
 }
 
 /** Preserve only explicit record identities and exact B1 generation-key correspondence. */
 export function editingCorrespondence(original, draft, resolve, budget) {
+  budget.check();
   const oldRecords = new Map(
     Object.values(original.structural)
       .filter(Array.isArray)
@@ -539,8 +552,8 @@ export function editingCorrespondence(original, draft, resolve, budget) {
       record.id,
     ]),
   );
-  return [...oldRecords.values()].map((record) => {
-    budget.check();
+  const correspondence = [...oldRecords.values()].map((record) => {
+    budget.poll();
     const occurrence = oldOccurrences.has(record.id);
     const current = occurrence
       ? nextKeys.get(
@@ -557,4 +570,6 @@ export function editingCorrespondence(original, draft, resolve, budget) {
         : undefined;
     return { previous: record.id, current: current ?? null };
   });
+  budget.check();
+  return correspondence;
 }

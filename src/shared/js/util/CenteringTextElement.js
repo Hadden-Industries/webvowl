@@ -1,5 +1,10 @@
 import { AbstractTextElement } from "./AbstractTextElement.js";
 import { createTextTools as textToolsFactory } from "./textTools.js";
+import {
+  centerTextBlock,
+  positionCenteredTextLine,
+  truncateTextLine,
+} from "./textLayoutBatch.js";
 const textTools = textToolsFactory();
 
 export { CenteringTextElement };
@@ -66,19 +71,15 @@ CenteringTextElement.prototype.addTextline = function (
   prefix,
   postfix,
 ) {
-  const truncatedText = textTools.truncate(
-    text,
-    this._textBlock().datum().textWidth(),
-    style,
-  );
+  const maxWidth = this._textBlock().datum().textWidth();
   this.saveFullTextLine(text);
   this.saveStyle(style);
-  const tspan = this._textBlock()
-    .append("tspan")
-    .classed(this.CSS_CLASSES.default, true)
-    .classed(style, true)
-    .text(this._applyPreAndPostFix(truncatedText, prefix, postfix))
-    .attr("x", 0);
+  const tspan = this._appendTextSpan(style);
+  truncateTextLine(
+    tspan.node(),
+    { text, maxWidth, textStyle: style },
+    (value) => tspan.text(this._applyPreAndPostFix(value, prefix, postfix)),
+  );
   this._repositionTextLine(tspan);
   this.saveCorrespondingSpan(tspan);
 
@@ -86,15 +87,9 @@ CenteringTextElement.prototype.addTextline = function (
 };
 
 CenteringTextElement.prototype._repositionTextLine = function (tspan) {
-  const fontSizeProperty = window
-    .getComputedStyle(tspan.node())
-    .getPropertyValue("font-size");
-  const fontSize = parseFloat(fontSizeProperty);
-
   const siblingCount = this._lineCount() - 1;
   const lineDistance = siblingCount > 0 ? this.LINE_DISTANCE : 0;
-
-  tspan.attr("dy", fontSize + lineDistance + "px");
+  positionCenteredTextLine(tspan.node(), lineDistance);
 };
 
 CenteringTextElement.prototype.getTextBox = function () {
@@ -109,8 +104,7 @@ CenteringTextElement.prototype._repositionTextBlock = function () {
     return;
   }
 
-  const textBlockHeight = this._textBlock().node().getBBox().height;
-  this._textBlock().attr("y", -textBlockHeight * 0.5 + "px");
+  centerTextBlock(this._textBlock().node());
 };
 
 CenteringTextElement.prototype._lineCount = function () {

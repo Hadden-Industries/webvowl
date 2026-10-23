@@ -1,3 +1,4 @@
+import { jest } from "@jest/globals";
 import { openOwl } from "vowl/owl";
 import {
   inspectModel,
@@ -255,6 +256,78 @@ test("source evidence and origin are checked at checkpoint recovery", async () =
     code: "CHECKPOINT_INVALID",
   });
 });
+
+test.each(["caller mutation", "abort", "deadline"])(
+  "checkpoint admission preserves %s across asynchronous source verification",
+  async (scenario) => {
+    const bytes = encode(prefix + "<urn:A> a owl:Class.");
+    const { model } = await openOwl(bytes, options);
+    const before = inspectModel(model);
+    const checkpoint = transport(await checkpointModel(model));
+    const abort = new AbortController();
+    let release;
+    let reached;
+    const gate = new Promise((resolve) => {
+      release = resolve;
+    });
+    const hashing = new Promise((resolve) => {
+      reached = resolve;
+    });
+    const nativeDigest = crypto.subtle.digest;
+    const nativeNow = performance.now.bind(performance);
+    let elapsed = 0;
+    const clock = jest
+      .spyOn(performance, "now")
+      .mockImplementation(() => nativeNow() + elapsed);
+    // Hold only the native asynchronous boundary; all validation, hashing,
+    // copying and accounting still execute. No timer race determines the case.
+    const digest = jest
+      .spyOn(crypto.subtle, "digest")
+      .mockImplementation(async function (...args) {
+        const result = nativeDigest.apply(this, args);
+        reached();
+        await gate;
+        return result;
+      });
+    let pending;
+    try {
+      pending = readmitModel(checkpoint, {
+        signal: abort.signal,
+        limits: { deadlineMs: 300000 },
+      });
+      await hashing;
+      expect(digest).toHaveBeenCalledTimes(1);
+      if (scenario === "caller mutation") {
+        checkpoint.structural.roles[0].subject = "missing";
+        checkpoint.supports.length = 0;
+        checkpoint.source.sources[0].bytes.fill(0);
+      } else if (scenario === "abort") {
+        abort.abort();
+      } else {
+        elapsed = 300001;
+      }
+      release();
+      if (scenario === "caller mutation") {
+        const recovered = await pending;
+        expect(inspectModel(recovered.model)).toEqual(before);
+        expect(
+          (await readModelSource(recovered.model, before.documents[0].id))
+            .bytes,
+        ).toEqual(bytes);
+      } else {
+        await expect(pending).rejects.toMatchObject({
+          code: scenario === "abort" ? "ABORTED" : "DEADLINE_EXCEEDED",
+        });
+      }
+      expect(inspectModel(model)).toBe(before);
+    } finally {
+      release();
+      await pending?.catch(() => {});
+      digest.mockRestore();
+      clock.mockRestore();
+    }
+  },
+);
 
 test("literal invalidity and unavailable datatype validation remain distinct lexical assessments", async () => {
   const { model } = await openOwl(

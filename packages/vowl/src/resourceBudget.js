@@ -129,13 +129,22 @@ export class ResourceBudget {
     if (performance.now() >= this.deadline) {
       fail("DEADLINE_EXCEEDED");
     }
+    this.remainingVisits = 1024;
+  }
+
+  /** Owned inner work: A8 permits at most 1024 visits between observations. */
+  poll() {
+    if (--this.remainingVisits === 0) {
+      this.check();
+    }
   }
 
   /** Charge before allocation; callers select the stage-specific stable resource code. */
   charge(name, amount = 1, pointer, code = "MODEL_RESOURCE_LIMIT") {
-    this.check();
+    this.poll();
     const actual = (this.counts[name] ?? 0) + amount;
     if (actual > this.limits[name]) {
+      this.check();
       fail(code, pointer, { limit: name, maximum: this.limits[name], actual });
     }
     this.counts[name] = actual;
@@ -143,8 +152,9 @@ export class ResourceBudget {
 
   /** Check a non-aggregate bound such as nesting or a single string's UTF-8 length. */
   bound(name, actual, pointer, code = "MODEL_RESOURCE_LIMIT") {
-    this.check();
+    this.poll();
     if (actual > this.limits[name]) {
+      this.check();
       fail(code, pointer, { limit: name, maximum: this.limits[name], actual });
     }
   }

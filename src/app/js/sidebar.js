@@ -63,12 +63,13 @@ export function createSidebar({
   onViewportGeometryChanged = () => {},
   hideNavigationMenus = () => {},
   updateNavigationOverflow = () => {},
+  onToggleDetailsPanel,
 }) {
   const sidebar = {};
   const lifecycleAbortController = new AbortController();
   let activeOntologySummaryLanguage = null;
   // Required for reloading when the language changes
-  let isSidebarVisible = true;
+  let isSidebarVisible = false;
   // The last editor mode the renderer reported, kept here so no presentation
   // asks the renderer which mode it is in.
   let isEditorMode = false;
@@ -86,73 +87,6 @@ export function createSidebar({
    * Setup the menu bar.
    */
 
-  function toggleOntologyDetailsAccordionTrigger(selectedTrigger) {
-    const ontologyDetailsSection = document.querySelector("#generalDetails");
-    const activeTriggers = ontologyDetailsSection.querySelectorAll(
-      ".accordion-trigger-active",
-    );
-
-    if (selectedTrigger.classList.contains("accordion-trigger-active")) {
-      if (selectedTrigger.nextElementSibling) {
-        selectedTrigger.nextElementSibling.classList.add("hidden");
-      }
-      selectedTrigger.classList.remove("accordion-trigger-active");
-      return;
-    }
-
-    ontologyDetailsSection
-      .querySelectorAll(".accordion-trigger-active + div")
-      .forEach(function (element) {
-        element.classList.add("hidden");
-      });
-    activeTriggers.forEach(function (activeTrigger) {
-      activeTrigger.classList.remove("accordion-trigger-active");
-    });
-    if (selectedTrigger.nextElementSibling) {
-      selectedTrigger.nextElementSibling.classList.remove("hidden");
-    }
-    selectedTrigger.classList.add("accordion-trigger-active");
-  }
-
-  function setupCollapsing() {
-    // adapted version of this example: http://www.normansblog.de/simple-jquery-accordion/
-    const ontologyDetailsSection = document.querySelector("#generalDetails");
-    const triggers =
-      ontologyDetailsSection.querySelectorAll(".accordion-trigger");
-
-    // Collapse all inactive triggers on startup
-    ontologyDetailsSection
-      .querySelectorAll(
-        ".accordion-trigger:not(.accordion-trigger-active) + div",
-      )
-      .forEach(function (el) {
-        el.classList.add("hidden");
-      });
-
-    triggers.forEach(function (trigger) {
-      trigger.setAttribute("tabindex", "0");
-      trigger.setAttribute("role", "button");
-      trigger.addEventListener(
-        "keydown",
-        function (event) {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            toggleOntologyDetailsAccordionTrigger(event.currentTarget);
-          }
-        },
-        { signal: lifecycleAbortController.signal },
-      );
-
-      trigger.addEventListener(
-        "click",
-        function (event) {
-          toggleOntologyDetailsAccordionTrigger(event.currentTarget);
-        },
-        { signal: lifecycleAbortController.signal },
-      );
-    });
-  }
-
   sidebar.clearOntologyInformation = function () {
     document.querySelector("#title").textContent = "No title available";
     renderOntologyIri(document.querySelector("#about"));
@@ -168,17 +102,6 @@ export function createSidebar({
     document.querySelector("#individualCount").textContent = "0";
     document.querySelector("#nodeCount").textContent = "0";
     document.querySelector("#edgeCount").textContent = "0";
-
-    // clear selectedNode info
-    const isTriggerActive = document
-      .querySelector("#selection-details-trigger")
-      .classList.contains("accordion-trigger-active");
-    if (isTriggerActive) {
-      toggleOntologyDetailsAccordionTrigger(
-        document.querySelector("#selection-details-trigger"),
-      );
-    }
-    showSelectionAdvice();
   };
 
   /**
@@ -404,175 +327,6 @@ export function createSidebar({
     }
   }
 
-  const RANK_MAP = {
-    name: 1,
-    "skos:definition": 2,
-    definition: 2,
-    type: 3,
-    inverse: 4,
-    domain: 5,
-    range: 6,
-    subprop: 7,
-    superprop: 8,
-    equiv: 9,
-    disjoint: 10,
-    cardinality: 11,
-    charac: 12,
-    individuals: 13,
-    description: 14,
-    comment: 15,
-    "dcterms:identifier": 16,
-    identifier: 16,
-    "dcterms:creator": 17,
-    creator: 17,
-    "dcterms:created": 18,
-    created: 18,
-    "dcterms:modified": 19,
-    modified: 19,
-    "rdfs:label": 20,
-    label: 20,
-    "skos:altLabel": 21,
-    altLabel: 21,
-    "skos:hiddenLabel": 22,
-    hiddenLabel: 22,
-    "skos:scopeNote": 23,
-    scopeNote: 23,
-    "skos:example": 24,
-    example: 24,
-    "dcterms:source": 25,
-    source: 25,
-    "skos:changeNote": 26,
-    changeNote: 26,
-    "skos:editorialNote": 27,
-    editorialNote: 27,
-    "skos:historyNote": 28,
-    historyNote: 28,
-    "skos:note": 29,
-    note: 29,
-    "dcterms:references": 30,
-    references: 30,
-    "rdfs:seeAlso": 31,
-    seeAlso: 31,
-    "rdfs:comment": 32,
-  };
-
-  function getParagraphIdentifier(pNode) {
-    const dataId = pNode.getAttribute("data-identifier");
-    if (dataId) {
-      return dataId;
-    }
-
-    const span = pNode.querySelector("span");
-    if (span && span.id) {
-      const id = span.id;
-      if (id === "propname") {
-        return "name";
-      }
-      if (id === "typeProp" || id === "typeNode") {
-        return "type";
-      }
-      if (id === "classEquivUri" || id === "propEquivUri") {
-        return "equiv";
-      }
-      if (id === "disjointNodes") {
-        return "disjoint";
-      }
-      if (id === "classAttributes" || id === "propAttributes") {
-        return "charac";
-      }
-      if (id === "individuals") {
-        return "individuals";
-      }
-      if (id === "nodeDescription" || id === "propDescription") {
-        return "description";
-      }
-      if (id === "nodeComment" || id === "propComment") {
-        return "comment";
-      }
-      if (id === "subproperties") {
-        return "subprop";
-      }
-      if (id === "superproperties") {
-        return "superprop";
-      }
-      if (
-        id === "infoCardinality" ||
-        id === "minCardinality" ||
-        id === "maxCardinality"
-      ) {
-        return "cardinality";
-      }
-      if (id === "inverse") {
-        return "inverse";
-      }
-      if (id === "domain") {
-        return "domain";
-      }
-      if (id === "range") {
-        return "range";
-      }
-      return id;
-    }
-
-    const text = pNode.textContent || pNode.innerText || "";
-    const parts = text.split(":");
-    if (parts.length > 0) {
-      return parts[0].trim();
-    }
-    return "";
-  }
-
-  function compareParagraphs(a, b) {
-    const idA = getParagraphIdentifier(a);
-    const idB = getParagraphIdentifier(b);
-
-    const rankA = RANK_MAP[idA] !== undefined ? RANK_MAP[idA] : 100;
-    const rankB = RANK_MAP[idB] !== undefined ? RANK_MAP[idB] : 100;
-
-    if (rankA !== rankB) {
-      return rankA - rankB;
-    }
-
-    const labelA = String(idA).toLowerCase();
-    const labelB = String(idB).toLowerCase();
-    if (labelA < labelB) {
-      return -1;
-    }
-    if (labelA > labelB) {
-      return 1;
-    }
-
-    const textA = String(a.textContent || a.innerText || "").toLowerCase();
-    const textB = String(b.textContent || b.innerText || "").toLowerCase();
-    if (textA < textB) {
-      return -1;
-    }
-    if (textA > textB) {
-      return 1;
-    }
-
-    return 0;
-  }
-
-  function sortDetailsPane(containerSelector) {
-    const parent = document.querySelector(containerSelector);
-    if (!parent) {
-      return;
-    }
-
-    const paragraphs = Array.prototype.slice
-      .call(parent.children)
-      .filter(function (el) {
-        return el.tagName.toLowerCase() === "p";
-      });
-
-    paragraphs.sort(compareParagraphs);
-
-    paragraphs.forEach(function (pNode) {
-      parent.appendChild(pNode);
-    });
-  }
-
   function isLanguageMatch(entryLang, preferredLang) {
     if (!entryLang || !preferredLang) {
       return false;
@@ -710,61 +464,6 @@ export function createSidebar({
     });
   }
 
-  /**
-   * Update the information of the selected node.
-   * @param selectedElement the selection or null if nothing is selected
-   */
-  // Presentation only: the controller decides what is selected, this renders
-  // the description it published. Nothing here reads a drawn element.
-  // Presentation only. Selection is cleared by the controller when a load
-  // begins, so nothing here clears it as a side effect of summarising.
-  sidebar.renderSelectedOntologyElementDetails = function (
-    elementDescriptions,
-  ) {
-    const [elementDescription] = elementDescriptions ?? [];
-
-    const isTriggerActive = document
-      .querySelector("#selection-details-trigger")
-      .classList.contains("accordion-trigger-active");
-    if (elementDescription && !isTriggerActive) {
-      toggleOntologyDetailsAccordionTrigger(
-        document.querySelector("#selection-details-trigger"),
-      );
-    } else if (!elementDescription && isTriggerActive) {
-      showSelectionAdvice();
-      return;
-    }
-    if (!elementDescription) {
-      return;
-    }
-
-    if (elementDescription.kind === "property") {
-      displayPropertyInformation(elementDescription);
-    } else {
-      displayNodeInformation(elementDescription);
-    }
-  };
-
-  function showSelectionAdvice() {
-    setSelectionInformationVisibility(false, false, true);
-  }
-
-  function setSelectionInformationVisibility(
-    showClasses,
-    showProperties,
-    showAdvice,
-  ) {
-    document
-      .querySelector("#classSelectionInformation")
-      .classList.toggle("hidden", !showClasses);
-    document
-      .querySelector("#propertySelectionInformation")
-      .classList.toggle("hidden", !showProperties);
-    document
-      .querySelector("#noSelectionInformation")
-      .classList.toggle("hidden", !showAdvice);
-  }
-
   // VOWL groups annotations under a bare local name and the DOM helper below
   // still consumes that shape, so a description's flat annotation list is
   // regrouped here rather than duplicating the helper.
@@ -802,256 +501,6 @@ export function createSidebar({
       });
     }
     return annotationGroups;
-  }
-
-  function displayElementAttributes(elementDescription, textSpan) {
-    // Both lists describe the element; VOWL's own type markers add nothing a
-    // reader can act on and were already suppressed before this migration.
-    displayAttributes(
-      [
-        ...elementDescription.characteristicNames,
-        ...elementDescription.unclassifiedAttributeNames,
-      ],
-      textSpan,
-    );
-  }
-
-  function displayPropertyInformation(propertyDescription) {
-    showPropertyInformations();
-
-    setIriLabel(
-      document.querySelector("#propname"),
-      propertyDescription.displayLabel,
-      propertyDescription.iri,
-    );
-
-    document.querySelector("#typeProp").textContent =
-      propertyDescription.elementTypeName ?? "";
-
-    const [inverseElement] = propertyDescription.inversePropertyElements;
-    if (inverseElement !== undefined) {
-      document.querySelector("#inverse").classList.remove("hidden");
-      setIriLabel(
-        document.querySelector("#inverse span"),
-        inverseElement.displayLabel,
-        inverseElement.iri,
-      );
-    } else {
-      document.querySelector("#inverse").classList.add("hidden");
-    }
-
-    listNodeArray(
-      document.querySelector("#propEquivUri"),
-      propertyDescription.equivalentPropertyElements,
-    );
-    listNodeArray(
-      document.querySelector("#subproperties"),
-      propertyDescription.subpropertyElements,
-    );
-    listNodeArray(
-      document.querySelector("#superproperties"),
-      propertyDescription.superpropertyElements,
-    );
-
-    const { exact, minimum, maximum } = propertyDescription.cardinalityRecord;
-    if (minimum !== null) {
-      document.querySelector("#infoCardinality").classList.add("hidden");
-      document.querySelector("#minCardinality").classList.remove("hidden");
-      document.querySelector("#minCardinality span").textContent = minimum;
-      document.querySelector("#maxCardinality").classList.remove("hidden");
-      // An absent upper bound is unbounded, which VOWL and the reader both
-      // write as an asterisk.
-      document.querySelector("#maxCardinality span").textContent =
-        maximum === null ? "*" : maximum;
-    } else if (exact !== null) {
-      document.querySelector("#minCardinality").classList.add("hidden");
-      document.querySelector("#maxCardinality").classList.add("hidden");
-      document.querySelector("#infoCardinality").classList.remove("hidden");
-      document.querySelector("#infoCardinality span").textContent = exact;
-    } else {
-      document.querySelector("#infoCardinality").classList.add("hidden");
-      document.querySelector("#minCardinality").classList.add("hidden");
-      document.querySelector("#maxCardinality").classList.add("hidden");
-    }
-
-    const [domainElement] = propertyDescription.domainElements;
-    const [rangeElement] = propertyDescription.rangeElements;
-    setIriLabel(
-      document.querySelector("#domain"),
-      domainElement?.displayLabel,
-      domainElement?.iri,
-    );
-    setIriLabel(
-      document.querySelector("#range"),
-      rangeElement?.displayLabel,
-      rangeElement?.iri,
-    );
-
-    displayElementAttributes(
-      propertyDescription,
-      document.querySelector("#propAttributes"),
-    );
-
-    setTextAndVisibility(
-      document.querySelector("#propDescription"),
-      propertyDescription.descriptionText,
-    );
-    setTextAndVisibility(
-      document.querySelector("#propComment"),
-      propertyDescription.commentText,
-    );
-
-    listAnnotations(
-      document.querySelector("#propertySelectionInformation"),
-      annotationGroupsFromRecords(
-        propertyDescription.annotationRecords,
-        propertyDescription.displayLabel,
-      ),
-    );
-    sortDetailsPane("#propertySelectionInformation");
-  }
-
-  function showPropertyInformations() {
-    setSelectionInformationVisibility(false, true, false);
-  }
-
-  function setIriLabel(element, name, iri) {
-    const parent = element.parentNode;
-
-    if (name) {
-      element.innerHTML = "";
-      appendIriLabel(element, name, iri);
-      parent.classList.remove("hidden");
-    } else {
-      parent.classList.add("hidden");
-    }
-  }
-
-  function displayAttributes(attributes, textSpan) {
-    const spanParent = textSpan.parentNode;
-
-    if (attributes && attributes.length > 0) {
-      // Remove redundant redundant attributes for sidebar
-      removeElementFromArray("object", attributes);
-      removeElementFromArray("datatype", attributes);
-      removeElementFromArray("rdf", attributes);
-    }
-
-    if (attributes && attributes.length > 0) {
-      textSpan.textContent = attributes.join(", ");
-
-      spanParent.classList.remove("hidden");
-    } else {
-      spanParent.classList.add("hidden");
-    }
-  }
-
-  function removeElementFromArray(element, array) {
-    const index = array.indexOf(element);
-    if (index > -1) {
-      array.splice(index, 1);
-    }
-  }
-
-  function displayNodeInformation(classDescription) {
-    showClassInformations();
-
-    setIriLabel(
-      document.querySelector("#name"),
-      classDescription.displayLabel,
-      classDescription.iri,
-    );
-
-    listNodeArray(
-      document.querySelector("#classEquivUri"),
-      classDescription.equivalentClassElements,
-    );
-
-    document.querySelector("#typeNode").textContent =
-      classDescription.elementTypeName ?? "";
-    listNodeArray(
-      document.querySelector("#individuals"),
-      classDescription.individualElements,
-    );
-
-    const disjointNodes = document.querySelector("#disjointNodes");
-    const disjointNodesParent = disjointNodes.parentNode;
-    if (classDescription.disjointClassElements.length > 0) {
-      disjointNodes.innerHTML = "";
-      classDescription.disjointClassElements.forEach(
-        function (disjointElement, elementIndex) {
-          if (elementIndex > 0) {
-            const separator = document.createElement("span");
-            separator.textContent = ", ";
-            disjointNodes.appendChild(separator);
-          }
-          appendIriLabel(
-            disjointNodes,
-            disjointElement.displayLabel,
-            disjointElement.iri,
-          );
-        },
-      );
-      disjointNodesParent.classList.remove("hidden");
-    } else {
-      disjointNodesParent.classList.add("hidden");
-    }
-
-    displayElementAttributes(
-      classDescription,
-      document.querySelector("#classAttributes"),
-    );
-
-    setTextAndVisibility(
-      document.querySelector("#nodeDescription"),
-      classDescription.descriptionText,
-    );
-    setTextAndVisibility(
-      document.querySelector("#nodeComment"),
-      classDescription.commentText,
-    );
-
-    listAnnotations(
-      document.querySelector("#classSelectionInformation"),
-      annotationGroupsFromRecords(
-        classDescription.annotationRecords,
-        classDescription.displayLabel,
-      ),
-    );
-    sortDetailsPane("#classSelectionInformation");
-  }
-
-  function showClassInformations() {
-    setSelectionInformationVisibility(true, false, false);
-  }
-
-  function listNodeArray(textSpan, nodes) {
-    const spanParent = textSpan.parentNode;
-
-    if (nodes && nodes.length) {
-      textSpan.innerHTML = "";
-      nodes.forEach(function (element, index) {
-        if (index > 0) {
-          const s = document.createElement("span");
-          s.textContent = ", ";
-          textSpan.appendChild(s);
-        }
-        appendIriLabel(textSpan, element.displayLabel, element.iri);
-      });
-
-      spanParent.classList.remove("hidden");
-    } else {
-      spanParent.classList.add("hidden");
-    }
-  }
-
-  function setTextAndVisibility(label, value) {
-    const parentNode = label.parentNode;
-    const hasValue = !!value;
-    if (value) {
-      label.textContent = value;
-    }
-    parentNode.classList.toggle("hidden", !hasValue);
   }
 
   /** Collapsible Sidebar functions; **/
@@ -1100,7 +549,7 @@ export function createSidebar({
       ownsNoTransitionClass = true;
     }
 
-    if (requestedVisibilityValue === 1) {
+    if (requestedVisibilityValue === 1 && window.innerWidth > 1024) {
       isSidebarVisible = true;
       sidebarToggleButton.textContent = ">";
       detailsSidebar.classList.remove("hidden");
@@ -1117,6 +566,13 @@ export function createSidebar({
         .querySelector("#WarningErrorMessagesContainer")
         .classList.remove("sidebar-visible");
     }
+
+    detailsSidebar.inert = !isSidebarVisible;
+    sidebarToggleButton.setAttribute("aria-expanded", String(isSidebarVisible));
+    sidebarToggleButton.setAttribute(
+      "aria-label",
+      isSidebarVisible ? "Hide details panel" : "Show details panel",
+    );
 
     sidebar.updateDockedControlsPosition();
     onViewportGeometryChanged();
@@ -1172,13 +628,16 @@ export function createSidebar({
       return;
     }
     isSetup = true;
-    setupCollapsing();
     sidebar.initSideBarAnimation();
 
     sidebarToggleButton.addEventListener(
       "click",
       function () {
         hideNavMenus();
+        if (onToggleDetailsPanel) {
+          onToggleDetailsPanel();
+          return;
+        }
         const currentVisibilityValue = Number.parseInt(
           sidebar.getSidebarVisibility(),
           10,
@@ -1200,10 +659,7 @@ export function createSidebar({
       { signal: lifecycleAbortController.signal },
     );
 
-    sidebar.showSidebar(
-      window.innerWidth <= 1024 ? 0 : Number(sidebar.getSidebarVisibility()),
-      true,
-    );
+    sidebar.showSidebar(0, true);
   };
 
   sidebar.dispose = function () {

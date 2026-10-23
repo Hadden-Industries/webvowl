@@ -1,4 +1,5 @@
-import { createOntologyInspectionSnapshot } from "./renderedGraphRuntimeContracts.js";
+import { createOntologyInspectionSnapshot } from "./ontologyInspectionContracts.js";
+import { ownCanonicalInspection } from "./canonicalVowlInspectionOwnership.js";
 import { createOntologyElementReference } from "./webVowlControllerContracts.js";
 import { indexVowlLabelCandidates } from "./vowlDisplayProjector.js";
 import { namespaces, dataRangeKinds } from "vowl";
@@ -61,6 +62,7 @@ export function createCanonicalSemanticReferences(
   return references;
 }
 
+/** Retained facts reuse an owned frozen inspection; mutable inputs are copied. */
 export function createCanonicalVowlInspectionProjection(
   inspection,
   { loadGeneration, visualization, targetForRecord },
@@ -201,7 +203,6 @@ export function createCanonicalVowlInspectionProjection(
     // summary. Typed values, anchors, qualifications and details-only facts
     // remain available even when they have no drawable occurrence.
     // The public snapshot constructor makes the owned, frozen copy once.
-    retainedFacts: inspection,
   };
   for (const record of semantic) {
     const reference = ref(record.id);
@@ -288,5 +289,8 @@ export function createCanonicalVowlInspectionProjection(
       });
     }
   }
-  return createOntologyInspectionSnapshot(snapshot);
+  return Object.freeze({
+    ...createOntologyInspectionSnapshot(snapshot),
+    retainedFacts: ownCanonicalInspection(inspection),
+  });
 }

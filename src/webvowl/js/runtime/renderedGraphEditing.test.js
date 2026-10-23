@@ -1,8 +1,9 @@
 import * as d3 from "d3";
 import { createLegacyForceSimulation } from "./legacyForceSimulation.js";
-import { DOMImplementation } from "@xmldom/xmldom";
+import { DOMImplementation, XMLSerializer } from "@xmldom/xmldom";
 import { beforeAll, expect, jest, test } from "@jest/globals";
 import { readFileSync } from "node:fs";
+import { canonicalControllerHarness } from "../../../app/test/canonicalControllerHarness.js";
 
 const createdDragBehaviours = [];
 const createdSimulations = [];
@@ -24,17 +25,15 @@ jest.unstable_mockModule("./legacyForceSimulation.js", () => ({
 }));
 
 let createRenderedGraphInternals;
-let createVowlDocumentInsertionRecords;
 beforeAll(async () => {
   ({ createRenderedGraphInternals } =
     await import("./renderedGraphInternals.js"));
-  ({ createVowlDocumentInsertionRecords } =
-    await import("../../../app/js/controller/ontologyEditorDrawingRecords.js"));
 });
 
-// Real D3, parser and SVG elements; only browser layout metrics and event
+// Real D3, canonical constructors and SVG elements; only browser layout metrics and event
 // installation are supplied here. The tests replay the installed drag callbacks.
-function mountGraph(model) {
+function mountGraph(canonicalDrawing) {
+  const metrics = { created: 0, widths: 0, boxes: 0 };
   const document = new DOMImplementation().createDocument(
     "http://www.w3.org/1999/xhtml",
     "div",
@@ -56,6 +55,11 @@ function mountGraph(model) {
     });
   }
   function enhance(element) {
+    // Match DOM pre-insert's node === reference step; xmldom otherwise corrupts
+    // its child list. See https://dom.spec.whatwg.org/#concept-node-pre-insert.
+    const insertBefore = element.insertBefore.bind(element);
+    element.insertBefore = (node, reference) =>
+      insertBefore(node, reference === node ? node.nextSibling : reference);
     if (element.localName === "svg") {
       element.width = { baseVal: { value: 800 } };
       element.height = { baseVal: { value: 600 } };
@@ -63,19 +67,25 @@ function mountGraph(model) {
     element.querySelectorAll = (selector) => descendants(element, selector);
     element.querySelector = (selector) =>
       element.querySelectorAll(selector)[0] ?? null;
-    element.addEventListener = () => {};
+    element.addEventListener = jest.fn();
     element.removeEventListener = () => {};
     element.remove = () => element.parentNode?.removeChild(element);
     element.contains = (candidate) =>
       candidate === element || descendants(element, "*").includes(candidate);
-    element.getBBox = () => ({ x: 0, y: 0, width: 50, height: 14 });
+    element.getBBox = () => {
+      metrics.boxes++;
+      return { x: 0, y: 0, width: 50, height: 14 };
+    };
     Object.defineProperty(element, "childElementCount", {
       get: () =>
         Array.from(element.childNodes).filter((node) => node.nodeType === 1)
           .length,
     });
     Object.defineProperty(element, "offsetWidth", {
-      get: () => element.textContent.length * 7,
+      get: () => {
+        metrics.widths++;
+        return element.textContent.length * 7;
+      },
     });
     const properties = new Map();
     element.style = {
@@ -86,7 +96,10 @@ function mountGraph(model) {
     return element;
   }
   const createElementNS = document.createElementNS.bind(document);
-  document.createElementNS = (...args) => enhance(createElementNS(...args));
+  document.createElementNS = (...args) => {
+    metrics.created++;
+    return enhance(createElementNS(...args));
+  };
   document.createElement = (name) =>
     document.createElementNS("http://www.w3.org/1999/xhtml", name);
   enhance(document.documentElement);
@@ -134,14 +147,17 @@ function mountGraph(model) {
       widthPx: 800,
       heightPx: 600,
     });
-    if (model !== undefined) {
-      graph.options().data(structuredClone(model));
-      graph.load(1, { isPaused: true, centerViewport: false });
+    if (canonicalDrawing !== undefined) {
+      graph.load(1, {
+        canonicalDrawing: structuredClone(canonicalDrawing),
+        isPaused: true,
+      });
     }
     graph.editorMode(true);
     return {
       graph,
       document,
+      metrics,
       drag: createdDragBehaviours.at(-1),
       dispose,
     };
@@ -151,16 +167,8 @@ function mountGraph(model) {
   }
 }
 
-const MODEL = {
-  header: { iri: "https://example.test/" },
-  class: [{ id: "a", type: "owl:Class" }],
-  classAttribute: [
-    { id: "a", label: "A", iri: "https://example.test/A", pos: [30, 40] },
-  ],
-};
-
 test("real renderer tick and end status do not request coordinate snapshots", () => {
-  const { graph, dispose } = mountGraph(MODEL);
+  const { graph, dispose } = mountCanonicalGraph();
   try {
     const simulation = createdSimulations.at(-1);
     const events = [];
@@ -195,10 +203,655 @@ test("real renderer tick and end status do not request coordinate snapshots", ()
   }
 });
 
+// Independently authored occurrence rows; no legacy model or migration supplies these expectations.
+const CANONICAL_DRAWING = {
+  nodes: [
+    {
+      occurrence: "a",
+      targets: ["record:a"],
+      principal: {
+        record: "record:a",
+        kind: "class",
+        iri: "https://example.test/A",
+        name: "A",
+        externalStyle: false,
+      },
+      aliases: [],
+      position: { x: 30, y: 40 },
+      pinned: true,
+      radiusFactor: 1,
+      hidden: false,
+    },
+  ],
+  edges: [],
+  labels: [],
+  display: {
+    compactNotation: false,
+    externalColoring: true,
+    nodeScaling: "uniform",
+  },
+  camera: { center: { x: 400, y: 300 }, zoom: 1 },
+};
+function mountCanonicalGraph(drawing = CANONICAL_DRAWING) {
+  return mountGraph(drawing);
+}
+
+test("a visibility-only revision retains unaffected primitives, DOM and force references", () => {
+  const drawing = {
+    ...CANONICAL_DRAWING,
+    nodes: ["a", "b"].map((id, index) => ({
+      ...CANONICAL_DRAWING.nodes[0],
+      occurrence: id,
+      targets: [id],
+      principal: {
+        ...CANONICAL_DRAWING.nodes[0].principal,
+        record: id,
+        iri: `urn:${id}`,
+        name: id,
+      },
+      position: { x: 30 + index * 200, y: 40 },
+    })),
+  };
+  const { graph, document, dispose } = mountCanonicalGraph(drawing);
+  try {
+    const node = graph.getUnfilteredData().nodes[0];
+    const dom = document.querySelector("#a");
+    const text = dom.querySelector("text");
+    const next = structuredClone(drawing);
+    next.nodes[1].hidden = true;
+    graph.applyCanonicalDrawingRevision(next, { sameRevision: true });
+    expect(graph.getUnfilteredData().nodes).toEqual([node]);
+    expect(graph.getUnfilteredData().nodes[0]).toBe(node);
+    expect(document.querySelector("#a")).toBe(dom);
+    expect(dom.querySelector("text")).toBe(text);
+    expect(document.querySelector("#b")).toBeNull();
+    expect(createdSimulations.at(-1).nodes()).toEqual([node]);
+  } finally {
+    dispose();
+  }
+});
+
+function reuseDrawing() {
+  const nodes = ["a", "b", "c"].map((id, index) => ({
+    ...CANONICAL_DRAWING.nodes[0],
+    occurrence: id,
+    targets: [id],
+    pinned: index === 0,
+    principal: {
+      ...CANONICAL_DRAWING.nodes[0].principal,
+      record: id,
+      iri: `urn:${id}`,
+      name: id,
+    },
+    position: { x: 30 + index * 200, y: 40 + index * 20 },
+  }));
+  const pairs = [
+    ["ab", "a", "b"],
+    ["parallel", "b", "a"],
+    ["loop", "b", "b"],
+    ["bc", "b", "c"],
+  ];
+  return {
+    ...CANONICAL_DRAWING,
+    nodes,
+    edges: pairs.map(([id, from, to]) => ({
+      occurrence: id,
+      from,
+      to,
+      kind: "object-edge",
+      records: [id],
+      hidden: false,
+    })),
+    labels: pairs.map(([id], index) => ({
+      occurrence: `label:${id}`,
+      edge: id,
+      direction: "forward",
+      records: [id],
+      principal: {
+        record: id,
+        kind: "object-property",
+        iri: `urn:${id}`,
+        name: id,
+        externalStyle: false,
+      },
+      name: id,
+      aliases: [],
+      characteristics: [],
+      cardinality: index === 0 ? "1..*" : undefined,
+      position: { x: 70 + index * 71, y: -50 + index * 33 },
+      pinned: false,
+      hidden: false,
+    })),
+  };
+}
+function withoutOccurrences(drawing, ids) {
+  const next = structuredClone(drawing);
+  for (const row of [...next.nodes, ...next.edges, ...next.labels]) {
+    row.hidden =
+      ids.includes(row.occurrence) ||
+      ids.includes(row.edge) ||
+      ids.includes(row.from) ||
+      ids.includes(row.to);
+  }
+  return next;
+}
+function rendererObservation(graph, document, simulation) {
+  const links = [...new Set(simulation.links().map((part) => part.link()))];
+  const serializer = new XMLSerializer();
+  return {
+    state: graph.readCanonicalDrawingState(),
+    bindings: [...graph.readCanonicalDrawingBindings()],
+    layers: links.map((link) => ({
+      id: link.property().id(),
+      layers: link.layers().map((item) => item.property().id()),
+      index: link.layerIndex(),
+      loops: link.loops()?.map((item) => item.property().id()),
+      loopIndex: link.loopIndex(),
+    })),
+    points: simulation.nodes().map((node) => ({
+      id: node.property ? node.property().id() : node.id(),
+      x: node.x,
+      y: node.y,
+      px: node.px,
+      py: node.py,
+      fixed: node.fixed,
+      weight: node.weight,
+    })),
+    svg: [
+      "nodeContainer",
+      "labelContainer",
+      "cardinalityContainer",
+      "linkContainer",
+    ].map((name) =>
+      serializer.serializeToString(document.querySelector(`.${name}`)),
+    ),
+  };
+}
+
+test.each(["paused", "running", "settled"])(
+  "%s visibility changes agree with full rebuilding, including parallel links, loops and force ticks",
+  (mode) => {
+    const random = jest.spyOn(Math, "random").mockReturnValue(0.37);
+    const drawing = reuseDrawing();
+    const next = withoutOccurrences(drawing, ["c", "parallel"]);
+    function run(sameRevision) {
+      const h = mountCanonicalGraph(drawing);
+      try {
+        h.graph.setRenderedGraphEventPort({ publishGraphLayoutState() {} });
+        const simulation = createdSimulations.at(-1);
+        if (mode !== "paused") {
+          h.graph.paused(false);
+        }
+        simulation.stop();
+        if (mode === "settled") {
+          simulation.alpha(0);
+        }
+        const initialLabels = new Map(
+          h.graph
+            .graphLabelElements()
+            .map((label) => [label.property().id(), label]),
+        );
+        Object.assign(h.metrics, { created: 0, widths: 0, boxes: 0 });
+        h.graph.applyCanonicalDrawingRevision(next, { sameRevision });
+        simulation.stop();
+        const work = { ...h.metrics };
+        if (sameRevision) {
+          for (const label of h.graph.graphLabelElements()) {
+            expect(label).toBe(initialLabels.get(label.property().id()));
+            expect(label.link()).toBe(label.property().link());
+            for (const part of label.link().linkParts()) {
+              expect(simulation.nodes()).toContain(part.source);
+              expect(simulation.nodes()).toContain(part.target);
+            }
+          }
+        }
+        const installed = rendererObservation(h.graph, h.document, simulation);
+        if (mode !== "paused") {
+          for (let index = 0; index < 8; index++) {
+            simulation.tick();
+          }
+        }
+        const advanced = rendererObservation(h.graph, h.document, simulation);
+        h.graph.applyCanonicalDrawingRevision(drawing, { sameRevision });
+        simulation.stop();
+        const restored = rendererObservation(h.graph, h.document, simulation);
+        return { installed, advanced, restored, work };
+      } finally {
+        h.dispose();
+      }
+    }
+    try {
+      const reference = run(false);
+      const reused = run(true);
+      expect(reused.installed).toEqual(reference.installed);
+      expect(reused.advanced).toEqual(reference.advanced);
+      expect(reused.restored).toEqual(reference.restored);
+      expect(reused.work.created).toBeLessThan(reference.work.created);
+      expect(reused.work.widths).toBe(0);
+      expect(reused.work.boxes).toBe(0);
+    } finally {
+      random.mockRestore();
+    }
+  },
+);
+
+test.each(["before", "enter", "update", "exit", "finish"])(
+  "failure at %s recovers through full rebuilding",
+  (phase) => {
+    const drawing = reuseDrawing();
+    const h = mountCanonicalGraph(drawing);
+    try {
+      const simulation = createdSimulations.at(-1);
+      const expected = rendererObservation(h.graph, h.document, simulation);
+      const next = withoutOccurrences(drawing, ["c"]);
+      let spy;
+      if (phase === "before") {
+        next.camera.zoom = Infinity;
+      }
+      if (phase === "enter") {
+        h.graph.applyCanonicalDrawingRevision(next, { sameRevision: true });
+        Object.assign(next, drawing);
+        const create = h.document.createElementNS;
+        spy = jest
+          .spyOn(h.document, "createElementNS")
+          .mockImplementationOnce(() => {
+            throw new Error("enter failed");
+          });
+        spy.mockImplementation((...args) => create(...args));
+      }
+      if (phase === "exit") {
+        spy = jest
+          .spyOn(h.document.querySelector("#c").parentNode, "removeChild")
+          .mockImplementationOnce(() => {
+            throw new Error("exit failed");
+          });
+      }
+      if (phase === "update") {
+        next.nodes[0].pinned = false;
+        spy = jest
+          .spyOn(h.graph.getUnfilteredData().nodes[0], "draw")
+          .mockImplementationOnce(() => {
+            throw new Error("update failed");
+          });
+      }
+      if (phase === "finish") {
+        spy = jest
+          .spyOn(h.graph, "setViewportTransform")
+          .mockImplementationOnce(() => {
+            throw new Error("finish failed");
+          });
+      }
+      const before = rendererObservation(h.graph, h.document, simulation);
+      expect(() =>
+        h.graph.applyCanonicalDrawingRevision(next, { sameRevision: true }),
+      ).toThrow();
+      expect(rendererObservation(h.graph, h.document, simulation)).toEqual(
+        phase === "enter" ? before : expected,
+      );
+      spy?.mockRestore();
+    } finally {
+      h.dispose();
+    }
+  },
+);
+
+test("a reuse failure and failed full recovery preserve the runtime retirement signal", () => {
+  const h = mountCanonicalGraph(reuseDrawing());
+  try {
+    const spy = jest
+      .spyOn(h.graph, "setViewportTransform")
+      .mockImplementation(() => {
+        throw new Error("viewport unavailable");
+      });
+    expect(() =>
+      h.graph.applyCanonicalDrawingRevision(
+        withoutOccurrences(reuseDrawing(), ["c"]),
+        { sameRevision: true },
+      ),
+    ).toThrow(
+      expect.objectContaining({ code: "CANONICAL_DRAWING_RECOVERY_FAILED" }),
+    );
+    spy.mockRestore();
+  } finally {
+    h.dispose();
+  }
+});
+
 test.each([
-  [MODEL, true],
+  "semantic revision",
+  "label",
+  "cardinality",
+  "kind",
+  "language",
+  "notation",
+])("%s leaves the bounded visibility reuse route", (change) => {
+  const drawing = reuseDrawing();
+  const h = mountCanonicalGraph(drawing);
+  try {
+    const node = h.graph.getUnfilteredData().nodes[0];
+    const dom = h.document.querySelector("#a");
+    const next = structuredClone(drawing);
+    if (change === "label") {
+      next.labels[0].name = "New label";
+    }
+    if (change === "cardinality") {
+      next.labels[0].cardinality = "3";
+    }
+    if (change === "kind") {
+      next.nodes[0].principal.kind = "rdf-class";
+    }
+    if (change === "language") {
+      next.labelSelection = { mode: "language", language: "de" };
+    }
+    if (change === "notation") {
+      next.display.compactNotation = true;
+    }
+    h.graph.applyCanonicalDrawingRevision(next, {
+      sameRevision: change !== "semantic revision",
+    });
+    expect(h.graph.getUnfilteredData().nodes[0]).not.toBe(node);
+    expect(h.document.querySelector("#a")).not.toBe(dom);
+    expect(h.graph.readCanonicalDrawingState().placements[0].position).toEqual(
+      drawing.nodes[0].position,
+    );
+  } finally {
+    h.dispose();
+  }
+});
+
+test("adjacency-derived indications dirty their node and coherent links, while other text survives", () => {
+  const drawing = reuseDrawing();
+  const h = mountCanonicalGraph(drawing);
+  try {
+    const old = new Map(
+      h.graph.getUnfilteredData().nodes.map((node) => [node.id(), node]),
+    );
+    const text = h.document.querySelector("#a").querySelector("text");
+    const next = structuredClone(drawing);
+    next.nodes[1].additionalOperands = ["extra"];
+    h.graph.applyCanonicalDrawingRevision(next, { sameRevision: true });
+    const current = new Map(
+      h.graph.getUnfilteredData().nodes.map((node) => [node.id(), node]),
+    );
+    expect(current.get("a")).toBe(old.get("a"));
+    expect(current.get("b")).not.toBe(old.get("b"));
+    expect(h.document.querySelector("#a").querySelector("text")).toBe(text);
+    expect(h.document.querySelector("#b").textContent).toContain(
+      "(additional...)",
+    );
+    expect(current.get("b").indications()).toContain(
+      "additional operands in details",
+    );
+    for (const property of h.graph.getUnfilteredData().properties) {
+      expect(property.domain()).toBe(current.get(property.domain().id()));
+      expect(property.range()).toBe(current.get(property.range().id()));
+      expect(property.link().property()).toBe(property);
+    }
+  } finally {
+    h.dispose();
+  }
+});
+
+test("drawing installs one hover binding per node, then refreshes retained nodes once", () => {
+  const drawing = reuseDrawing();
+  const h = mountCanonicalGraph(drawing);
+  try {
+    const bindings = (node) =>
+      node.addEventListener.mock.calls.filter(([type]) => type === "mouseover")
+        .length;
+    const first = h.document.querySelector("#a");
+    expect(bindings(first)).toBe(1);
+    h.graph.applyCanonicalDrawingRevision(withoutOccurrences(drawing, ["c"]), {
+      sameRevision: true,
+    });
+    expect(h.document.querySelector("#a")).toBe(first);
+    expect(bindings(first)).toBe(2);
+    h.graph.applyCanonicalDrawingRevision(drawing, { sameRevision: true });
+    expect(bindings(first)).toBe(3);
+    expect(bindings(h.document.querySelector("#c"))).toBe(1);
+  } finally {
+    h.dispose();
+  }
+});
+
+test("old hover, click and drag callbacks expire even when their node survives", () => {
+  const h = mountCanonicalGraph(reuseDrawing());
+  try {
+    const node = h.graph.getUnfilteredData().nodes[0];
+    const dom = h.document.querySelector("#a");
+    const over = d3.select(dom).on("mouseover");
+    const out = d3.select(dom).on("mouseout");
+    const click = d3.select(dom).on("click");
+    const drag = h.drag;
+    h.graph.applyCanonicalDrawingRevision(
+      withoutOccurrences(reuseDrawing(), ["c"]),
+      { sameRevision: true },
+    );
+    expect(h.document.querySelector("#a")).toBe(dom);
+    const before = h.graph.readCanonicalDrawingState();
+    over.call(dom, {});
+    click.call(dom, {}, node);
+    drag.on("drag").call(dom, { x: 999, y: 999 }, node);
+    expect(node.mouseEntered()).toBe(false);
+    expect(h.graph.readCanonicalDrawingState()).toEqual(before);
+    d3.select(dom).on("mouseover").call(dom, {});
+    expect(node.mouseEntered()).toBe(true);
+    out.call(dom, {});
+    expect(node.mouseEntered()).toBe(true);
+    d3.select(dom).on("mouseout").call(dom, {});
+    expect(node.mouseEntered()).toBe(false);
+  } finally {
+    h.dispose();
+  }
+});
+
+test("retained inverse labels refresh hover callbacks for both directions", () => {
+  const drawing = reuseDrawing();
+  drawing.edges[0].kind = "inverse-edge";
+  drawing.edges[0].records.push("inverse-property");
+  drawing.labels.push({
+    ...drawing.labels[0],
+    occurrence: "reverse:ab",
+    direction: "reverse",
+    records: ["inverse-property"],
+    principal: {
+      ...drawing.labels[0].principal,
+      record: "inverse-property",
+      iri: "urn:inverse-property",
+      name: "inverse",
+    },
+    name: "inverse",
+  });
+  const h = mountCanonicalGraph(drawing);
+  try {
+    const inverse = h.graph
+      .getUnfilteredData()
+      .properties.find((property) => property.id() === "reverse:ab");
+    const label = inverse.labelElement();
+    const oldOver = label.on("mouseover");
+    h.graph.applyCanonicalDrawingRevision(withoutOccurrences(drawing, ["c"]), {
+      sameRevision: true,
+    });
+    expect(inverse.labelElement().node()).toBe(label.node());
+    oldOver.call(label.node(), {});
+    expect(inverse.mouseEntered()).toBe(false);
+    label.on("mouseover").call(label.node(), {});
+    expect(inverse.mouseEntered()).toBe(true);
+    label.on("mouseout").call(label.node(), {});
+    expect(inverse.mouseEntered()).toBe(false);
+  } finally {
+    h.dispose();
+  }
+});
+
+test("canonical revision retains the mounted viewport and never re-enters initial loading", () => {
+  const { graph, document, dispose } = mountCanonicalGraph();
+  try {
+    graph.setViewportTransform(0.5, [12, -20]);
+    const svg = document.querySelector("svg");
+    const container = svg.firstChild;
+    const publishRenderProgress = jest.fn();
+    graph.setRenderedGraphEventPort({ publishRenderProgress });
+    graph.applyCanonicalDrawingRevision({
+      ...CANONICAL_DRAWING,
+      nodes: [
+        ...CANONICAL_DRAWING.nodes,
+        {
+          ...CANONICAL_DRAWING.nodes[0],
+          occurrence: "thing",
+          targets: ["record:thing"],
+          principal: {
+            record: "record:thing",
+            kind: "class",
+            iri: "http://www.w3.org/2002/07/owl#Thing",
+            name: "Thing",
+            externalStyle: false,
+          },
+          position: { x: 300, y: 220 },
+        },
+      ],
+      camera: graph.readCanonicalDrawingState().camera,
+    });
+    expect(document.querySelector("svg")).toBe(svg);
+    expect(svg.firstChild).toBe(container);
+    expect(container.getAttribute("transform")).toBe(
+      "translate(12,-20)scale(0.5)",
+    );
+    expect(graph.paused()).toBe(true);
+    expect(graph.editorMode()).toBe(true);
+    expect(graph.readVisibleElementIds().nodeIds).toEqual(["a", "thing"]);
+    expect(graph.getUnfilteredData().nodes.map(({ x, y }) => [x, y])).toEqual([
+      [30, 40],
+      [300, 220],
+    ]);
+    expect(publishRenderProgress).not.toHaveBeenCalled();
+  } finally {
+    dispose();
+  }
+});
+
+test("canonical revision expires old inline label submissions and accepts current ones", () => {
+  const { graph, dispose } = mountCanonicalGraph();
+  try {
+    const previousEpoch = graph.currentRenderInteractionEpoch();
+    const publishRecordLabelEdit = jest.fn();
+    graph.setRenderedGraphEventPort({ publishRecordLabelEdit });
+    graph.applyCanonicalDrawingRevision(structuredClone(CANONICAL_DRAWING));
+    expect(
+      graph.requestRecordLabelEdit("a", "Obsolete label", false, previousEpoch),
+    ).toBe(false);
+    expect(publishRecordLabelEdit).not.toHaveBeenCalled();
+    graph.requestRecordLabelEdit(
+      "a",
+      "Current label",
+      false,
+      graph.currentRenderInteractionEpoch(),
+    );
+    expect(publishRecordLabelEdit).toHaveBeenCalledWith(
+      "a",
+      "Current label",
+      false,
+    );
+  } finally {
+    dispose();
+  }
+});
+
+test("canonical revision ends an active pan and subsequent native wheel input changes magnification", () => {
+  const { graph, document, dispose } = mountCanonicalGraph();
+  try {
+    const svg = document.querySelector("svg");
+    const window = document.defaultView;
+    const event = (type, extra = {}) => ({
+      type,
+      currentTarget: svg,
+      view: window,
+      button: 0,
+      clientX: 100,
+      clientY: 100,
+      pageX: 100,
+      pageY: 100,
+      preventDefault() {},
+      stopImmediatePropagation() {},
+      ...extra,
+    });
+    d3.select(svg).on("mousedown.zoom").call(svg, event("mousedown"));
+    expect(typeof d3.select(window).on("mouseup.zoom")).toBe("function");
+    expect(svg.__zooming).toBeDefined();
+    graph.applyCanonicalDrawingRevision(structuredClone(CANONICAL_DRAWING));
+    d3.select(window).on("mouseup.zoom")?.call(window, event("mouseup"));
+    const panEnded = svg.__zooming === undefined;
+    d3.select(svg)
+      .on("wheel.zoom")
+      .call(svg, event("wheel", { deltaY: -100, deltaMode: 0 }));
+    expect(document.querySelector("svg")).toBe(svg);
+    expect(svg.__zoom.k).toBeGreaterThan(1);
+    expect(graph.scaleFactor()).toBe(svg.__zoom.k);
+    expect(graph.translation()).toEqual([svg.__zoom.x, svg.__zoom.y]);
+    expect(panEnded).toBe(true);
+    expect(d3.select(window).on("mouseup.zoom")).toBeUndefined();
+  } finally {
+    dispose();
+  }
+});
+
+test("canonical loop revision retains an explicit zero coordinate instead of the old simulation placement", () => {
+  const drawing = {
+    ...CANONICAL_DRAWING,
+    edges: [
+      {
+        occurrence: "loop",
+        kind: "object-edge",
+        from: "a",
+        to: "a",
+        records: ["record:p"],
+        hidden: false,
+      },
+    ],
+    labels: [
+      {
+        occurrence: "label:p",
+        edge: "loop",
+        direction: "forward",
+        principal: {
+          record: "record:p",
+          kind: "object-property",
+          iri: "urn:p",
+          name: "loop",
+          externalStyle: false,
+        },
+        name: "loop",
+        aliases: [],
+        records: ["record:p"],
+        characteristics: [],
+        position: { x: 110, y: 190 },
+        pinned: true,
+        hidden: false,
+      },
+    ],
+  };
+  const { graph, dispose } = mountCanonicalGraph(drawing);
+  try {
+    graph.applyCanonicalDrawingRevision({
+      ...drawing,
+      labels: [{ ...drawing.labels[0], position: { x: 0, y: -150 } }],
+    });
+    const label = graph.graphLabelElements()[0];
+    expect([label.x, label.y]).toEqual([0, -150]);
+    expect(graph.readCanonicalDrawingState().placements).toContainEqual({
+      occurrence: "label:p",
+      position: { x: 0, y: -150 },
+      pinned: true,
+    });
+  } finally {
+    dispose();
+  }
+});
+
+test.each([
+  [CANONICAL_DRAWING, true],
   [undefined, true],
-  [MODEL, false],
+  [CANONICAL_DRAWING, false],
   [undefined, false],
 ])(
   "canonical native mount preserves topology and camera with prior input %j and paused %j",
@@ -292,23 +945,33 @@ test.each([
           camera: { ...drawing.camera, zoom: 10 },
         },
       });
-      const labelArrangement = graph
-        .readArrangement()
-        .find(({ kind }) => kind === "property-label");
-      expect(labelArrangement).toMatchObject({
-        xPx: 0,
-        yPx: -30,
-        canMove: true,
-        canPin: true,
-      });
-      graph.applyArrangement([
-        {
-          rendererKey: labelArrangement.rendererKey,
-          xPx: 75,
-          yPx: -90,
-          isPinned: true,
-        },
-      ]);
+      // Canonical placement authority does not depend on scanning endpoint links.
+      const linkReads = graph.getUnfilteredData().nodes.map((node) =>
+        jest.spyOn(node, "links").mockImplementation(() => {
+          throw new Error("Arrangement must use canonical placement bindings.");
+        }),
+      );
+      try {
+        const labelArrangement = graph
+          .readArrangement()
+          .find(({ kind }) => kind === "property-label");
+        expect(labelArrangement).toMatchObject({
+          xPx: 0,
+          yPx: -30,
+          canMove: true,
+          canPin: true,
+        });
+        graph.applyArrangement([
+          {
+            rendererKey: labelArrangement.rendererKey,
+            xPx: 75,
+            yPx: -90,
+            isPinned: true,
+          },
+        ]);
+      } finally {
+        linkReads.forEach((read) => read.mockRestore());
+      }
       graph.update();
       expect(graph.readCanonicalDrawingState().camera).toEqual({
         ...drawing.camera,
@@ -366,9 +1029,11 @@ test.each([
         position: { x: 0, y: -99 },
         pinned: true,
       });
-      graph.options().data(structuredClone(MODEL));
-      graph.load(3, { isPaused: true, centerViewport: false });
-      expect(graph.readCanonicalDrawingBindings().size).toBe(0);
+      graph.load(4, {
+        canonicalDrawing: structuredClone(CANONICAL_DRAWING),
+        isPaused: true,
+      });
+      expect([...graph.readCanonicalDrawingBindings().keys()]).toEqual(["a"]);
       expect(graph.getUnfilteredData().nodes.map((node) => node.id())).toEqual([
         "a",
       ]);
@@ -378,15 +1043,20 @@ test.each([
   },
 );
 
-test("draws the bundled MUTO document on an uncached native mount", () => {
-  const model = JSON.parse(
-    readFileSync(
-      new URL("../../../app/data/muto.json", import.meta.url),
-      "utf8",
-    ),
-  );
-  const { graph, dispose } = mountGraph(model);
+test("draws the canonical bundled MUTO document on an uncached native mount", async () => {
+  const h = await canonicalControllerHarness();
+  let mounted;
   try {
+    const accepted = await h.session.load({
+      operation: "open-canonical-model",
+      bytes: new Uint8Array(
+        readFileSync(
+          new URL("../../../canonical-examples/muto.json", import.meta.url),
+        ),
+      ),
+    });
+    mounted = mountCanonicalGraph(accepted.projection);
+    const { graph } = mounted;
     expect(graph.readVisibleElementIds().nodeIds.length).toBeGreaterThan(0);
     expect(graph.isReadyForPaint()).toBe(true);
     const simulation = createdSimulations.at(-1);
@@ -417,38 +1087,34 @@ test("draws the bundled MUTO document on an uncached native mount", () => {
         ),
     ).toBe(true);
   } finally {
-    dispose();
+    mounted?.dispose();
+    h.controller.dispose();
   }
 });
 
-test("accepts records emitted by the native datatype plus on the first editor mount", () => {
-  const { graph, document, dispose } = mountGraph(MODEL);
+test("canonical native datatype plus publishes semantic intent on the first editor mount", () => {
+  const { graph, document, dispose } = mountCanonicalGraph();
   try {
     const creations = [];
     graph.setRenderedGraphEventPort({
-      publishRecordCreation: (payload) =>
-        creations.push(createVowlDocumentInsertionRecords(payload.records)),
+      publishSemanticCreation: (payload) => creations.push(payload),
     });
     graph.activateHoverElements(true, graph.getUnfilteredData().nodes[0]);
     const circle = document.querySelector(".addDataPropertyElement").firstChild;
     d3.select(circle).on("click").call(circle, { stopPropagation: jest.fn() });
     expect(creations).toHaveLength(1);
-    expect(creations[0]).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          collection: "property",
-          type: "owl:DatatypeProperty",
-          domain: "a",
-        }),
-      ]),
-    );
+    expect(creations[0]).toMatchObject({
+      type: "owl:datatypeProperty",
+      from: "a",
+      position: { x: expect.any(Number), y: expect.any(Number) },
+    });
   } finally {
     dispose();
   }
 });
 
 test("keeps both editor circles attached while dragging a paused class", () => {
-  const { graph, document, drag, dispose } = mountGraph(MODEL);
+  const { graph, document, drag, dispose } = mountCanonicalGraph();
   try {
     const node = graph.getUnfilteredData().nodes[0];
     const nodeElement = graph.graphNodeElements().node();
@@ -472,143 +1138,6 @@ test("keeps both editor circles attached while dragging a paused class", () => {
         `translate(${x + 100},${y + 200})`,
       );
     }
-  } finally {
-    dispose();
-  }
-});
-
-test("draws an in-place document revision without replacing the viewport or starting initial loading", () => {
-  const { graph, document, dispose } = mountGraph(MODEL);
-  try {
-    graph.setViewportTransform(0.5, [12, -20]);
-    const svg = document.querySelector("svg");
-    const drawing = svg.firstChild;
-    const publishRenderProgress = jest.fn();
-    graph.setRenderedGraphEventPort({ publishRenderProgress });
-    graph.applyVowlModelRevision(
-      structuredClone({
-        ...MODEL,
-        class: [...MODEL.class, { id: "thing", type: "owl:Thing" }],
-        classAttribute: [
-          ...MODEL.classAttribute,
-          {
-            id: "thing",
-            iri: "http://www.w3.org/2002/07/owl#Thing",
-            label: "Thing",
-            pos: [300, 220],
-          },
-        ],
-      }),
-    );
-    expect(document.querySelector("svg")).toBe(svg);
-    expect(svg.firstChild).toBe(drawing);
-    expect(drawing.getAttribute("transform")).toBe(
-      "translate(12,-20)scale(0.5)",
-    );
-    expect(graph.paused()).toBe(true);
-    expect(graph.editorMode()).toBe(true);
-    expect(graph.readVisibleElementIds().nodeIds).toEqual(["a", "thing"]);
-    expect(graph.getUnfilteredData().nodes.map(({ x, y }) => [x, y])).toEqual([
-      [30, 40],
-      [300, 220],
-    ]);
-    expect(publishRenderProgress).not.toHaveBeenCalled();
-  } finally {
-    dispose();
-  }
-});
-
-test("expires inline label submissions when their rendered document is revised", () => {
-  const { graph, dispose } = mountGraph(MODEL);
-  try {
-    const previousEpoch = graph.currentRenderInteractionEpoch();
-    const publishRecordLabelEdit = jest.fn();
-    graph.setRenderedGraphEventPort({ publishRecordLabelEdit });
-    graph.applyVowlModelRevision(structuredClone(MODEL));
-    expect(
-      graph.requestRecordLabelEdit("a", "Obsolete label", false, previousEpoch),
-    ).toBe(false);
-    expect(publishRecordLabelEdit).not.toHaveBeenCalled();
-    graph.requestRecordLabelEdit(
-      "a",
-      "Current label",
-      false,
-      graph.currentRenderInteractionEpoch(),
-    );
-    expect(publishRecordLabelEdit).toHaveBeenCalledWith(
-      "a",
-      "Current label",
-      false,
-    );
-  } finally {
-    dispose();
-  }
-});
-
-test("applies native wheel magnification after a document revision during a pan", () => {
-  const { graph, document, dispose } = mountGraph(MODEL);
-  try {
-    graph.setViewportTransform(1, [0, 0]);
-    const svg = document.querySelector("svg");
-    const window = document.defaultView;
-    const event = (type, extra = {}) => ({
-      type,
-      currentTarget: svg,
-      view: window,
-      button: 0,
-      clientX: 100,
-      clientY: 100,
-      pageX: 100,
-      pageY: 100,
-      preventDefault() {},
-      stopImmediatePropagation() {},
-      ...extra,
-    });
-    d3.select(svg).on("mousedown.zoom").call(svg, event("mousedown"));
-    const mouseup = d3.select(window).on("mouseup.zoom");
-    expect(typeof mouseup).toBe("function");
-    expect(svg.__zooming).toBeDefined();
-
-    // Committing a sidebar field can revise the model after canvas mousedown.
-    graph.applyVowlModelRevision(structuredClone(MODEL));
-    d3.select(window).on("mouseup.zoom")?.call(window, event("mouseup"));
-    const panEnded = svg.__zooming === undefined;
-    d3.select(svg)
-      .on("wheel.zoom")
-      .call(svg, event("wheel", { deltaY: -100, deltaMode: 0 }));
-
-    expect(document.querySelector("svg")).toBe(svg);
-    expect(svg.__zoom.k).toBeGreaterThan(1);
-    // D3's own magnification must reach the renderer. Animation/paint needs a
-    // browser SVG DOM; this fixture checks the immediate viewport state.
-    expect(graph.scaleFactor()).toBeGreaterThan(1);
-    expect(graph.scaleFactor()).toBe(svg.__zoom.k);
-    expect(graph.translation()).toEqual([svg.__zoom.x, svg.__zoom.y]);
-    expect(panEnded).toBe(true);
-    expect(d3.select(window).on("mouseup.zoom")).toBeUndefined();
-  } finally {
-    dispose();
-  }
-});
-
-test("retains revised loop label positions instead of overwriting them from the old simulation", () => {
-  const model = {
-    ...MODEL,
-    property: [{ id: "p", type: "owl:ObjectProperty" }],
-    propertyAttribute: [
-      { id: "p", domain: "a", range: "a", label: "loop", pos: [110, 190] },
-    ],
-  };
-  const { graph, dispose } = mountGraph(model);
-  try {
-    graph.applyVowlModelRevision(
-      structuredClone({
-        ...model,
-        propertyAttribute: [{ ...model.propertyAttribute[0], pos: [0, -150] }],
-      }),
-    );
-    const label = graph.graphLabelElements()[0];
-    expect([label.x, label.y]).toEqual([0, -150]);
   } finally {
     dispose();
   }

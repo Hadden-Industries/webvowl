@@ -32,6 +32,7 @@ export function mapDataset(
   budget,
   contract = mappingContract(document),
 ) {
+  budget.check();
   const dataset = [];
   const primaryNodes = new Map();
   const encoded = new Set();
@@ -45,14 +46,14 @@ export function mapDataset(
     emit(node, type, named(namespaces.mapping + kind));
   for (const collection of contract.collections) {
     for (const record of collection.records) {
-      budget.check();
+      budget.poll();
       const node = blank();
       primaryNodes.set(record.id, node);
       typed(node, collection.type);
     }
   }
   function encode(value, descriptor, root) {
-    budget.check();
+    budget.poll();
     const shape = descriptorFor(value, descriptor, "");
     if (shape?.reference) {
       return primaryNodes.get(value);
@@ -124,6 +125,7 @@ export function mapDataset(
     return literal(value, namespaces.xsd + "string");
   }
   encode(document, contract.descriptor, named(namespaces.mapping + "root"));
+  budget.check();
   return { dataset, primaryNodes, blankCount };
 }
 
@@ -138,6 +140,47 @@ export async function issueIds(
   const dataset = refine
     ? (await refine(mapped.dataset, budget)).dataset
     : mapped.dataset;
+  const canonicalIdMap = await canonicalizeRdfDataset(
+    dataset,
+    blankCount,
+    budget,
+  );
+  const replacements = new Map();
+  const issued = new Set();
+  for (const { records, prefix } of contract.collections) {
+    const ranked = records.map((record) => {
+      budget.poll();
+      const label = canonicalIdMap.get(primaryNodes.get(record.id).value);
+      if (
+        typeof label !== "string" ||
+        !/^c14n(0|[1-9][0-9]*)$/.test(label) ||
+        issued.has(label)
+      ) {
+        fail("DEPENDENCY_FAILURE", undefined, { stage: "id-map" });
+      }
+      issued.add(label);
+      return { id: record.id, rank: BigInt(label.slice(4)) };
+    });
+    ranked.sort((a, b) => (a.rank < b.rank ? -1 : a.rank > b.rank ? 1 : 0));
+    ranked.forEach((entry, i) => replacements.set(entry.id, `${prefix}${i}`));
+  }
+  walkTyped(
+    document,
+    contract.descriptor,
+    (value, shape, _pointer, parent, field) => {
+      budget.poll();
+      if (shape?.reference || shape?.id) {
+        parent[field] = replacements.get(value);
+      }
+    },
+  );
+  budget.check();
+  return replacements;
+}
+
+/** One RDFC policy for artifact identity and separately mapped display keys. */
+export async function canonicalizeRdfDataset(dataset, blankCount, budget) {
+  budget.check();
   const canonicalIdMap = new Map();
   // The approved A8 amendment allows recursive work while retaining the absolute cap.
   const maxDeepIterations = Math.min(
@@ -170,33 +213,5 @@ export async function issueIds(
     });
   }
   budget.check();
-  const replacements = new Map();
-  const issued = new Set();
-  for (const { records, prefix } of contract.collections) {
-    const ranked = records.map((record) => {
-      const label = canonicalIdMap.get(primaryNodes.get(record.id).value);
-      if (
-        typeof label !== "string" ||
-        !/^c14n(0|[1-9][0-9]*)$/.test(label) ||
-        issued.has(label)
-      ) {
-        fail("DEPENDENCY_FAILURE", undefined, { stage: "id-map" });
-      }
-      issued.add(label);
-      return { id: record.id, rank: BigInt(label.slice(4)) };
-    });
-    ranked.sort((a, b) => (a.rank < b.rank ? -1 : a.rank > b.rank ? 1 : 0));
-    ranked.forEach((entry, i) => replacements.set(entry.id, `${prefix}${i}`));
-  }
-  walkTyped(
-    document,
-    contract.descriptor,
-    (value, shape, _pointer, parent, field) => {
-      budget.check();
-      if (shape?.reference || shape?.id) {
-        parent[field] = replacements.get(value);
-      }
-    },
-  );
-  return replacements;
+  return canonicalIdMap;
 }

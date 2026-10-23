@@ -8,11 +8,17 @@ let WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES;
 beforeAll(async () => {
   ({ WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES } =
     await import("../controller/webVowlControllerContracts.js"));
+  const { createControllerStatePresenter: createPresenter, ...fieldNames } =
+    await import("./controllerStatePresenter.js");
+  createControllerStatePresenter = (dependencies) =>
+    createPresenter(dependencies, {
+      requestFrame: (callback) => callback(),
+      cancelFrame: () => {},
+    });
   ({
-    createControllerStatePresenter,
     PRESENTED_CONTROLLER_STATE_FIELD_NAMES,
     SEPARATELY_PRESENTED_CONTROLLER_STATE_FIELD_NAMES,
-  } = await import("./controllerStatePresenter.js"));
+  } = fieldNames);
 });
 
 const PERSON_REFERENCE = Object.freeze({
@@ -35,6 +41,7 @@ function createControllerState(overrides = {}) {
     selection: [],
     renderProgress: null,
     editorMode: null,
+    temporaryPresentation: null,
     error: null,
     ...overrides,
   });
@@ -48,6 +55,7 @@ function createPresentationSpies() {
     renderOntologySummary: jest.fn(),
     renderViewport: jest.fn(),
     renderEditorMode: jest.fn(),
+    renderTemporaryPresentation: jest.fn(),
     describeOntologyElements: jest.fn(() => ({
       elementDescriptions: [{ kind: "class", displayLabel: "Person" }],
     })),
@@ -68,6 +76,27 @@ function mountPresenter(initialStateOverrides = {}) {
 }
 
 describe("controller state presentation", () => {
+  test("routes temporary state independently of selection and semantic summaries", () => {
+    const { presenter, presentationSpies } = mountPresenter();
+    const temporaryPresentation = {
+      kind: "neighborhood",
+      loadGeneration: 1,
+      documentRevision: 1,
+      counts: { nodes: 2, edges: 1, labels: 0 },
+    };
+    presenter.present(createControllerState({ temporaryPresentation }), [
+      "temporaryPresentation",
+    ]);
+    expect(presentationSpies.renderTemporaryPresentation).toHaveBeenCalledWith(
+      temporaryPresentation,
+    );
+    expect(presentationSpies.readOntologySummary).not.toHaveBeenCalled();
+    expect(presentationSpies.describeOntologyElements).not.toHaveBeenCalled();
+    presenter.present(createControllerState(), ["temporaryPresentation"]);
+    expect(
+      presentationSpies.renderTemporaryPresentation,
+    ).toHaveBeenLastCalledWith(null);
+  });
   test("refreshes document content after an edit without presenting a source load", () => {
     const { presenter, presentationSpies } = mountPresenter({
       selection: [PERSON_REFERENCE],

@@ -181,6 +181,9 @@ const BaseNode = (function () {
           }
         })
         .on("blur", function () {
+          if (labelEditEpoch !== graph.currentRenderInteractionEpoch()) {
+            return;
+          }
           if (!that.editingTextElement) {
             return;
           }
@@ -311,10 +314,19 @@ const BaseNode = (function () {
         return;
       }
 
+      const epoch = graph.currentRenderInteractionEpoch?.();
       that
         .nodeElement()
-        .on("mouseover", onMouseOver)
-        .on("mouseout", onMouseOut);
+        .on("mouseover", (event) => {
+          if (epoch === graph.currentRenderInteractionEpoch?.()) {
+            onMouseOver(event);
+          }
+        })
+        .on("mouseout", (event) => {
+          if (epoch === graph.currentRenderInteractionEpoch?.()) {
+            onMouseOut(event);
+          }
+        });
     };
 
     this.animationProcess = function () {
@@ -352,6 +364,9 @@ const BaseNode = (function () {
     };
 
     function onMouseOver(event) {
+      if (graph.isRenderedOccurrenceCurrent?.(that) === false) {
+        return;
+      }
       if (
         that.mouseEntered() ||
         ignoreLocalHoverEvents === true ||
@@ -387,6 +402,9 @@ const BaseNode = (function () {
     }
 
     function onMouseOut(event) {
+      if (graph.isRenderedOccurrenceCurrent?.(that) === false) {
+        return;
+      }
       const selectedNode = that.nodeElement()
         ? that.nodeElement().node()
         : null;

@@ -8,6 +8,9 @@ import {
 import { createCanonicalVowlWorkerClient } from "./canonicalVowlWorkerClient.js";
 
 const context = { loadGeneration: 7, baseRevision: 3 };
+// Native postMessage serializes synchronously; keep received data distinct from
+// the arguments recorded by the mock and from application clone instrumentation.
+const transportClone = structuredClone;
 const text = new TextEncoder();
 const owlRequest = {
   operation: "owl",
@@ -55,36 +58,38 @@ test("desktop defaults preserve rejection of malformed caller limit records", as
   expect(getter).not.toHaveBeenCalled();
 });
 
-test("ordinary large named-class ontologies rank by default while explicit smaller budgets still reject", async () => {
+test("display ordering admits large named-class ontologies within the former failing string budget", async () => {
   const request = {
     operation: "open-owl-model",
     documentIri: "urn:ranking-resource-regression",
     mediaType: "text/owl-functional",
-    limits: { deadlineMs: 60000 },
+    limits: { deadlineMs: 60000, totalStringBytes: 16777216 },
     bytes: text.encode(
       `Ontology(<urn:ranking-resource-regression> ${Array.from({ length: 8250 }, (_, i) => `Declaration(Class(<urn:class:${i}>))`).join("\n")})`,
     ),
   };
-  await expect(
-    runCanonicalVowlOperation({
-      ...request,
-      limits: { ...request.limits, totalStringBytes: 16777216 },
-    }),
-  ).rejects.toMatchObject({
-    code: "RDF_RESOURCE_LIMIT",
-    details: {
-      stage: "node-ranking",
-      resource: "totalStringBytes",
-      maximum: 16777216,
-    },
-  });
   const opened = await runCanonicalVowlOperation(request);
   expect(opened.inspection.occurrences).toHaveLength(8250);
-  expect(opened.rankingIdentity.correspondence).toHaveLength(8250);
+  expect(opened.displayOrderKeys.correspondence).toHaveLength(8250);
   expect(
-    new Set(opened.rankingIdentity.correspondence.map(({ current }) => current))
-      .size,
+    new Set(
+      opened.displayOrderKeys.correspondence.map(({ current }) => current),
+    ).size,
   ).toBe(8250);
+  await expect(
+    runCanonicalVowlOperation(
+      {
+        operation: "recover-model",
+        checkpoint: opened.checkpoint,
+        limits: { ...request.limits, rdfQuads: 1 },
+      },
+      undefined,
+      { baseRevision: 0 },
+    ),
+  ).rejects.toMatchObject({
+    code: "RDF_RESOURCE_LIMIT",
+    details: { stage: "node-ranking", resource: "rdfQuads", maximum: 1 },
+  });
 }, 60000);
 
 test("extensionless and misleading acquisition names open RDF/XML through the real worker operation", async () => {
@@ -184,7 +189,7 @@ test.each(["recover-model", "read-model-source", "export-model-rdf"])(
       { operation, checkpoint: opened.checkpoint },
       context,
     );
-    const sent = workers[0].postMessage.mock.calls[0][0];
+    const sent = workers[0].messages[0];
     opened.checkpoint.source.sources[0].bytes.fill(0);
     expect(sent.request.checkpoint.source.sources[0].bytes).toEqual(
       owlRequest.bytes,
@@ -219,7 +224,11 @@ test("per-operation workers recover live checkpoints and produce separate rankin
     undefined,
     { baseRevision: 0 },
   );
-  expect(changed.rankingIdentity).toEqual({ revision: 1, correspondence: [] });
+  expect(changed.displayOrderKeys).toEqual({
+    purpose: "display-order-v1",
+    revision: 1,
+    correspondence: [],
+  });
   expect(changed.inspection.revision).toBe(1);
   expect(changed.inspection.records.roles).toEqual([]);
   expect(checkpoint).toEqual(opened.checkpoint);
@@ -352,7 +361,13 @@ function harness() {
   const workers = [];
   const client = createCanonicalVowlWorkerClient({
     createWorker: () => {
-      const worker = { postMessage: jest.fn(), terminate: jest.fn() };
+      const worker = {
+        messages: [],
+        postMessage: jest.fn((message, transfer) => {
+          worker.messages.push(transportClone(message, { transfer }));
+        }),
+        terminate: jest.fn(),
+      };
       workers.push(worker);
       return worker;
     },
@@ -360,7 +375,156 @@ function harness() {
   return { workers, client };
 }
 
-test("checkpoint requests are copied and cancellation leaves the accepted recovery state intact", async () => {
+test("preview delivery keeps one worker alive until the drawing starts background ordering", async () => {
+  const { client, workers } = harness();
+  const pending = client.run(
+    { ...owlRequest, operation: "open-owl-model" },
+    { ...context, deferNodeOrdering: true },
+  );
+  const worker = workers[0];
+  const sent = worker.messages[0];
+  expect(sent.deferNodeOrdering).toBe(true);
+  await worker.onmessage({
+    data: { ...sent, type: "preview", result: { inspection: { revision: 0 } } },
+  });
+  const preview = await pending;
+  expect(preview.inspection.revision).toBe(0);
+  expect(worker.terminate).not.toHaveBeenCalled();
+  expect(worker.messages).toHaveLength(1);
+  preview.nodeOrdering.start();
+  preview.nodeOrdering.start();
+  expect(worker.messages).toHaveLength(2);
+  expect(worker.messages[1]).toMatchObject({
+    ...context,
+    type: "continue-ordering",
+    requestId: sent.requestId,
+  });
+  const keys = { revision: 0, correspondence: [] };
+  await worker.onmessage({
+    data: {
+      ...sent,
+      loadGeneration: 999,
+      type: "result",
+      result: { displayOrderKeys: keys },
+    },
+  });
+  expect(worker.terminate).not.toHaveBeenCalled();
+  await worker.onmessage({
+    data: { ...sent, type: "result", result: { displayOrderKeys: keys } },
+  });
+  expect(await preview.nodeOrdering.ready).toEqual({ displayOrderKeys: keys });
+  expect(worker.terminate).toHaveBeenCalledTimes(1);
+  client.dispose();
+});
+
+test.each(["abort", "dispose", "failure", "duplicate-preview"])(
+  "a %s after preview retires its worker and resolves the background failure",
+  async (kind) => {
+    const { client, workers } = harness();
+    const abort = new AbortController();
+    const pending = client.run(
+      { ...owlRequest, operation: "open-owl-model" },
+      { ...context, signal: abort.signal, deferNodeOrdering: true },
+    );
+    const worker = workers[0];
+    const sent = worker.messages[0];
+    await worker.onmessage({ data: { ...sent, type: "preview", result: {} } });
+    const preview = await pending;
+    if (kind === "abort") {
+      abort.abort();
+    } else if (kind === "dispose") {
+      client.dispose();
+    } else {
+      await worker.onmessage({
+        data: {
+          ...sent,
+          type: kind === "failure" ? "failure" : "preview",
+          failure: { code: "RDF_RESOURCE_LIMIT" },
+        },
+      });
+    }
+    expect(await preview.nodeOrdering.ready).toMatchObject({
+      error: {
+        code:
+          kind === "failure"
+            ? "RDF_RESOURCE_LIMIT"
+            : kind === "duplicate-preview"
+              ? "CANONICAL_WORKER_FAILED"
+              : "LOAD_ABORTED",
+      },
+    });
+    preview.nodeOrdering.start();
+    expect(worker.messages).toHaveLength(1);
+    expect(worker.terminate).toHaveBeenCalledTimes(1);
+    client.dispose();
+  },
+);
+
+test("an unsolicited preview cannot turn a one-result operation into a retained worker", async () => {
+  const { client, workers } = harness();
+  const pending = client.run(owlRequest, context);
+  await workers[0].onmessage({
+    data: { ...workers[0].messages[0], type: "preview", result: {} },
+  });
+  await expect(pending).rejects.toMatchObject({
+    code: "CANONICAL_WORKER_FAILED",
+  });
+  expect(workers[0].terminate).toHaveBeenCalledTimes(1);
+  client.dispose();
+});
+
+test("the worker sends admitted preview data once and waits for the drawing before computing keys", async () => {
+  const originalPost = globalThis.postMessage;
+  const originalHandler = globalThis.onmessage;
+  const messages = [];
+  let previewReady;
+  const preview = new Promise((resolve) => {
+    previewReady = resolve;
+  });
+  globalThis.postMessage = (message) => {
+    messages.push(message);
+    if (message.type === "preview") {
+      previewReady(message);
+    }
+  };
+  try {
+    const { handleCanonicalVowlWorkerMessage } =
+      await import("./canonicalVowlWorker.js");
+    const jobContext = { requestId: 1, loadGeneration: 1, baseRevision: 0 };
+    const run = handleCanonicalVowlWorkerMessage({
+      data: {
+        type: "run",
+        ...jobContext,
+        deferNodeOrdering: true,
+        request: { ...owlRequest, operation: "open-owl-model" },
+      },
+    });
+    const early = await preview;
+    expect(early.result.inspection.revision).toBe(0);
+    expect(early.result.checkpoint.revision).toBe(0);
+    expect(early.result.displayOrderKeys).toBeUndefined();
+    await handleCanonicalVowlWorkerMessage({
+      data: { type: "continue-ordering", ...jobContext, loadGeneration: 2 },
+    });
+    expect(messages).toHaveLength(1);
+    await handleCanonicalVowlWorkerMessage({
+      data: { type: "continue-ordering", ...jobContext },
+    });
+    await run;
+    expect(messages.map(({ type }) => type)).toEqual(["preview", "result"]);
+    expect(messages[1].result.displayOrderKeys).toMatchObject({
+      revision: 0,
+      purpose: "display-order-v1",
+    });
+    expect(messages[1].result.inspection).toBeUndefined();
+    expect(messages[1].result.checkpoint).toBeUndefined();
+  } finally {
+    globalThis.postMessage = originalPost;
+    globalThis.onmessage = originalHandler;
+  }
+});
+
+test("checkpoint transport serializes once and cancellation leaves the accepted recovery state intact", async () => {
   const { client, workers } = harness();
   const checkpoint = {
     revision: 3,
@@ -372,7 +536,7 @@ test("checkpoint requests are copied and cancellation leaves the accepted recove
     { ...context, signal: abort.signal },
   );
   const worker = workers[0];
-  const sent = worker.postMessage.mock.calls[0][0];
+  const sent = worker.messages[0];
   expect(worker.postMessage.mock.calls[0][1]).toEqual([]);
   checkpoint.structural.subjects[0].id = "changed-after-request";
   expect(sent.request.checkpoint.structural.subjects[0].id).toBe("original");
@@ -381,6 +545,37 @@ test("checkpoint requests are copied and cancellation leaves the accepted recove
   expect(worker.terminate).toHaveBeenCalledTimes(1);
   expect(checkpoint.revision).toBe(3);
   client.dispose();
+});
+
+test("checkpoint transport relies on native serialization without a redundant pre-send clone", async () => {
+  const { client, workers } = harness();
+  const checkpoint = {
+    revision: 3,
+    structural: { subjects: [{ id: "original" }] },
+  };
+  const limits = { inputBytes: 2048 };
+  const clone = jest.spyOn(globalThis, "structuredClone");
+  const abort = new AbortController();
+  const pending = client.run(
+    { operation: "recover-model", checkpoint, limits },
+    { ...context, signal: abort.signal },
+  );
+  try {
+    expect(workers).toHaveLength(1);
+    const received = workers[0].messages[0].request;
+    expect(received.checkpoint).toEqual(checkpoint);
+    expect(received.checkpoint).not.toBe(checkpoint);
+    expect(received.limits.deadlineMs).toBe(60000);
+    expect(limits).toEqual({ inputBytes: 2048 });
+    received.checkpoint.structural.subjects[0].id = "receiver mutation";
+    expect(checkpoint.structural.subjects[0].id).toBe("original");
+    expect(clone).not.toHaveBeenCalled();
+  } finally {
+    clone.mockRestore();
+    abort.abort();
+    await expect(pending).rejects.toMatchObject({ code: "LOAD_ABORTED" });
+    client.dispose();
+  }
 });
 
 test("client rejects oversized and accessor checkpoints before creating a worker", async () => {
@@ -452,7 +647,7 @@ test.each(["plain ASCII", 'quotes"and\\slashes', "é😀\n\u0000", "\ud800"])(
     }
     const { client, workers } = harness();
     const pending = client.run(request, context);
-    const sent = workers[0].postMessage.mock.calls[0][0];
+    const sent = workers[0].messages[0];
     workers[0].onmessage({
       data: { ...sent, type: "result", result: { accepted: true } },
     });
@@ -473,7 +668,7 @@ test("cancellation wins while a received result waits for consumer processing", 
     { operation: "decode", bytes: text.encode("{}") },
     { ...context, signal: abort.signal },
   );
-  const sent = workers[0].postMessage.mock.calls[0][0];
+  const sent = workers[0].messages[0];
   workers[0].onmessage({
     data: { ...sent, type: "result", result: { accepted: true } },
   });
@@ -491,7 +686,7 @@ test("a received result closes peer messages while cancellation remains availabl
     { ...context, resolveImport },
   );
   const worker = workers[0];
-  const sent = worker.postMessage.mock.calls[0][0];
+  const sent = worker.messages[0];
   worker.onmessage({
     data: { ...sent, type: "result", result: { accepted: true } },
   });
@@ -531,7 +726,7 @@ test("worker requests snapshot input, ignore stale revisions and terminate after
   const bytes = Uint8Array.of(1, 2);
   const promise = client.run({ operation: "decode", bytes }, context);
   const worker = workers[0];
-  const sent = worker.postMessage.mock.calls[0][0];
+  const sent = worker.messages[0];
   bytes[0] = 9;
   expect(sent.request.bytes).toEqual(Uint8Array.of(1, 2));
   await worker.onmessage({
@@ -564,7 +759,7 @@ test("cancellation terminates work and aborts an in-flight import acquisition", 
     },
   });
   const worker = workers[0];
-  const sent = worker.postMessage.mock.calls[0][0];
+  const sent = worker.messages[0];
   const importWait = worker.onmessage({
     data: {
       ...sent,
@@ -609,7 +804,7 @@ test("aggregate acquisition counts root plus every imported document", async () 
   const worker = workers[0];
   await worker.onmessage({
     data: {
-      ...worker.postMessage.mock.calls[0][0],
+      ...worker.messages[0],
       type: "import",
       importId: 1,
       importIri: "urn:i",
@@ -630,9 +825,7 @@ test("OWL opening and artifact operations retain distinct whole-job deadlines", 
     const assertion = expect(opening).rejects.toMatchObject({
       code: "DEADLINE_EXCEEDED",
     });
-    expect(
-      workers[0].postMessage.mock.calls[0][0].request.limits.deadlineMs,
-    ).toBe(60000);
+    expect(workers[0].messages[0].request.limits.deadlineMs).toBe(60000);
     jest.advanceTimersByTime(10000);
     expect(workers[0].terminate).not.toHaveBeenCalled();
     jest.advanceTimersByTime(50000);
@@ -677,9 +870,7 @@ test.each([
     const rejection = expect(pending).rejects.toMatchObject({
       code: "DEADLINE_EXCEEDED",
     });
-    expect(
-      workers[0].postMessage.mock.calls[0][0].request.limits.deadlineMs,
-    ).toBe(60000);
+    expect(workers[0].messages[0].request.limits.deadlineMs).toBe(60000);
     jest.advanceTimersByTime(10000);
     expect(workers[0].terminate).not.toHaveBeenCalled();
     jest.advanceTimersByTime(50000);
@@ -691,31 +882,19 @@ test.each([
   }
 });
 
-test("the desktop profile admits an ordinary hierarchy without overriding a tighter work limit", async () => {
+test("display ordering admits an ordinary hierarchy within the former failing work limit", async () => {
   const request = {
     operation: "open-owl-model",
     documentIri: "urn:hierarchy-resource-regression",
     mediaType: "text/owl-functional",
+    limits: { embeddedValues: 1500000 },
     bytes: text.encode(
       `Ontology(<urn:hierarchy-resource-regression> ${Array.from({ length: 5000 }, (_, i) => `Declaration(Class(<urn:hierarchy:C${i}>))${i ? ` SubClassOf(<urn:hierarchy:C${i}> <urn:hierarchy:C${i - 1}>)` : ""}`).join("\n")})`,
     ),
   };
-  await expect(
-    runCanonicalVowlOperation({
-      ...request,
-      limits: { embeddedValues: 1500000 },
-    }),
-  ).rejects.toMatchObject({
-    code: "RDF_RESOURCE_LIMIT",
-    details: {
-      stage: "node-ranking",
-      resource: "embeddedValues",
-      maximum: 1500000,
-    },
-  });
   const opened = await runCanonicalVowlOperation(request);
   expect(opened.inspection.records.roles).toHaveLength(5000);
-  expect(opened.rankingIdentity.correspondence).toHaveLength(14998);
+  expect(opened.displayOrderKeys.correspondence).toHaveLength(5000);
 }, 60000);
 
 test("whole-job deadline terminates an unresponsive worker", async () => {
@@ -768,7 +947,7 @@ test("producer ranking budget facts survive the worker client and drive its mess
   const pending = client.run(owlRequest, context);
   await workers[0].onmessage({
     data: {
-      ...workers[0].postMessage.mock.calls[0][0],
+      ...workers[0].messages[0],
       type: "failure",
       failure: safe,
     },
@@ -801,7 +980,7 @@ test("resource failures retain only safe stage and resource facts across the wor
   const worker = workers[0];
   await worker.onmessage({
     data: {
-      ...worker.postMessage.mock.calls[0][0],
+      ...worker.messages[0],
       type: "failure",
       failure: safe,
     },
