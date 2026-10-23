@@ -2,6 +2,8 @@
 
 Status: the single residual browser and assistive-technology batch for the UI delivery on `feat/architecture-performance-ui`.
 This packet does not claim that an untested platform passed, and does not authorize deployment.
+On 23 October 2026 the owner explicitly kept manual acceptance pending until this batch is validated; no unrun combination is waived.
+The [bounded initial-layout follow-up](2026-10-23-initial-layout-improvement-plan.md) proceeds through its separate design decision, while this packet remains the single manual acceptance batch.
 
 ## Candidate and starting state
 

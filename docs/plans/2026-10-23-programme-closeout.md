@@ -95,3 +95,13 @@ Deployment remains separate.
 HISEW receipt admission and retained-resource disposal remain separate from source delivery; [HISEW issue #197](https://github.com/Hadden-Industries/software-engineering-workflow/issues/197) tracks the native scratch-disposal blocker.
 The later resource observation records approximately 1.87 GiB of retained evidence and browser scratch, exceeding the existing 1.25 GiB allowance; that unresolved overrun is recorded in the resource handoff rather than silently increasing the allowance or bypassing native cleanup.
 No failed receipt is rewritten, no native completion is claimed, and no unchanged full suite is repeated merely for bookkeeping.
+
+## Owner disposition after closeout
+
+On 23 October 2026 the owner selected “Keep PR draft; plan a bounded initial-layout improvement” and “Keep manual acceptance pending until the batch is validated.”
+The performance limits and unrun platform combinations are therefore not waived.
+The [initial-layout improvement plan](2026-10-23-initial-layout-improvement-plan.md) records the bounded follow-up and pending PERF-DEC-013 implementation decision.
+Following the owner's suggestion, its recommended first experiment compares better spacing with inexpensive topology-aware initial positions for newly loaded ontology sources, keeping the force solver and scheduling unchanged.
+Saved layouts remain a compatibility constraint; there is no usage telemetry establishing their relative frequency.
+It also distinguishes this collector's paused-load/reheat preconditions from an ordinary automatically running load: the 127.17-second settling phase followed a deliberate reheat, rather than measuring ordinary load duration.
+The retained observations remain unchanged.

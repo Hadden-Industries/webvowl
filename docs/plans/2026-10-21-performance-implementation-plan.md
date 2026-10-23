@@ -1,10 +1,10 @@
 # WebVOWL performance implementation plan
 
-> **Status:** Approved plan; revision 15 records the final performance source and handoff on 23 October 2026, including approved S8 and the bounded-search review repair.
+> **Status:** Approved delivery plan; revision 16 records the owner's bounded initial-layout planning follow-up after final performance/UI source delivery on 23 October 2026.
 > The final repaired source passed 9,930 tests in 172 suites and the full repository check.
-> Substantive external/security review is complete with no unresolved source finding; numerical foreground acceptance remains owner-deferred, and native HISEW evidence-admission limits remain explicitly recorded.
+> Substantive external/security review of the delivered implementation is complete with no unresolved source finding; numerical foreground acceptance remains unqualified, and native HISEW evidence-admission limits remain explicitly recorded.
 > The owner accepted PERF-DEC-012 revision 2, option A: implement batched count adjustment and bounded renderer reuse now.
-> The owner's CPU-admission exception and foreground timing deferral remain in force.
+> The owner's CPU-admission exception remains in force; foreground measurements are authorized after diagnostic avenues are exhausted and optimized code is ready.
 > S7 is selected only for the maintainability refactor in PERF-DEC-011; SF is reopened within the accepted scope of PERF-DEC-010.
 > **Sequence:** Plan 2 of 3, after architecture and before UI.
 > **Basis:** [Performance review](../reviews/20261020-performance-review.md), especially sections 6, 7 and 12, plus architecture contract S.
@@ -12,6 +12,11 @@
 > **Purpose:** Improve measured user interactions and document operations without weakening correctness, ownership, resource limits or recovery.
 
 ## 1. Authority, baseline and entry gate
+
+After the [programme closeout](2026-10-23-programme-closeout.md), the owner chose to keep PR #85 in draft and plan a bounded initial-layout improvement, with manual platform acceptance still pending.
+The [follow-up plan](2026-10-23-initial-layout-improvement-plan.md) proposes SLICE-010–012 and PERF-DEC-013 against closeout source `302fb27516ae60553bc8b4bd4cde1c34b2cf9c3b`.
+Planning is authorized; its implementation envelope and proposed targets are not yet approved.
+Original B3/B4/B5 and small-input guards remain binding, and retained measurements are not relabeled as complete acceptance.
 
 On 21 October 2026, the owner accepted all recommendations in the decision walkthrough and approved the performance plan.
 Revision 2 records acceptance of draft revision 1, its R2 risk classification, DEC-001–004 and DEC-008, including the proof conditions attached to the contract changes.

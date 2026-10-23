@@ -1,6 +1,6 @@
 # WebVOWL UI design implementation plan
 
-> **Status:** Accepted scope, revision 11, 23 October 2026; DEC-001–022 are approved.
+> **Status:** Accepted scope, revision 12, 23 October 2026; DEC-001–022 are approved.
 > A1–A4 and B1–B5 are implemented; automated checks, scoped foreground qualification and final reviews are complete.
 > The consolidated manual batch remains a release requirement.
 > The owner's later instruction, "Continue with the current model", supersedes the model-switch pause.
@@ -21,6 +21,8 @@ Revision 8 adds the owner's runtime-alignment and single-declaration instruction
 Revision 9 records completed automated checks, browser-engine coverage and scoped foreground observations, including the repaired presentation-order and held-zoom notification defects.
 Revision 10 records the final AGY review, its narrow evidence correction, the completed native security scan and the [source handoff](2026-10-23-ui-final-handoff.md).
 Revision 11 records the owner-authorized [programme closeout](2026-10-23-programme-closeout.md): PR #85, removal of the viewport zoom restriction, focused count/active-layout observations and explicit remaining performance and actual-platform acceptance limits.
+Revision 12 records the owner's decision to keep PR #85 in draft, plan a [bounded initial-layout improvement](2026-10-23-initial-layout-improvement-plan.md), and keep manual acceptance pending until the consolidated batch is validated.
+The follow-up is planning-authorized; its proposed implementation and new numerical targets await PERF-DEC-013 and do not reopen accepted UI scope.
 DEC-001–021 are accepted as specified in section 4, including A4 source reflection, property-label treatment, background-click clearing and the shared presentation model.
 B5 anchoring and motion are selected for implementation and qualification; B6's additional decoration is not selected.
 
