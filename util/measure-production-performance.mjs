@@ -44,6 +44,7 @@ import {
 import { measureProductionRendererReuse } from "./productionRendererReuse.mjs";
 import { measureProductionUiPreview } from "./productionUiPreview.mjs";
 import { measureProductionUiSources } from "./productionUiSources.mjs";
+import { measureProductionCountAdjustment } from "./productionCountAdjustment.mjs";
 
 // A companion to qualify-canonical-browser.mjs: actual production HTML/CSS,
 // headed isolated Chrome, and separately labelled latency/diagnostic passes.
@@ -51,7 +52,7 @@ const [chromePath, buildPath, manifestPath, outputPath, ...options] =
   process.argv.slice(2);
 assert(
   chromePath && buildPath && manifestPath && outputPath,
-  "Usage: node util/measure-production-performance.mjs <chrome> <production-directory> <manifest> <new-evidence-directory> [--mode=latency|counters|trace|cues|lifetime|layout|reuse|functional|navigation] [--fixture=W1] [--diagnostic] [--private-fixture=path] [--allow-busy-host --admission-reference=path] [--headless-diagnostics --diagnostic-admission-reference=path] [--cohort-start=1 --cohort-end=40] [--renderer-reuse-reference] [--ui-selection-only [--ui-preview-diagnostics] | --ui-sources-only]",
+  "Usage: node util/measure-production-performance.mjs <chrome> <production-directory> <manifest> <new-evidence-directory> [--mode=latency|counters|trace|cues|lifetime|layout|reuse|functional|navigation] [--fixture=W1] [--diagnostic] [--private-fixture=path] [--allow-busy-host --admission-reference=path] [--headless-diagnostics --diagnostic-admission-reference=path] [--cohort-start=1 --cohort-end=40] [--renderer-reuse-reference] [--ui-selection-only [--ui-preview-diagnostics] | --ui-sources-only | --count-adjustment-only [--count-initial-layout=settled|fresh-paused] [--count-backdrop-control]]",
 );
 const option = (name, fallback) =>
   options
@@ -60,6 +61,16 @@ const option = (name, fallback) =>
 const mode = option("mode", "latency");
 const uiSelectionOnly = options.includes("--ui-selection-only");
 const uiSourcesOnly = options.includes("--ui-sources-only");
+const countAdjustmentOnly = options.includes("--count-adjustment-only");
+const countInitialLayout = option("count-initial-layout", "settled");
+assert(["settled", "fresh-paused"].includes(countInitialLayout));
+assert(
+  !countAdjustmentOnly ||
+    (!uiSelectionOnly &&
+      !uiSourcesOnly &&
+      ["latency", "trace", "functional"].includes(mode)),
+  "Count adjustment requires its own latency, trace or functional pass",
+);
 assert(
   !uiSourcesOnly || (mode === "latency" && !uiSelectionOnly),
   "Public-source observations require an uninstrumented foreground pass",
@@ -114,6 +125,12 @@ assert(
   "Cue, lifetime and layout probes are headless diagnostics only",
 );
 const requireForeground = !functional && !headlessDiagnostics;
+const countBackdropControl = options.includes("--count-backdrop-control");
+assert(
+  !countBackdropControl ||
+    (countAdjustmentOnly && headlessDiagnostics && mode === "trace"),
+  "The backdrop control is a headless count trace, never production latency",
+);
 const allowBusyHost = options.includes("--allow-busy-host");
 const admissionReference = option("admission-reference", undefined);
 assert(
@@ -684,6 +701,8 @@ function installMeasurement(
       loadGeneration: state.loadGeneration,
       documentRevision: state.documentRevision,
       nodeCountStatus: state.nodeCountStatus,
+      nodeCountAdjustment: state.nodeCountAdjustment,
+      layout: state.layout,
       selection: state.selection,
       selectedDocumentRecord: state.selectedDocumentRecord,
     };
@@ -896,15 +915,25 @@ function installMeasurement(
       reset();
       const range = document.querySelector("#nodesShown-range");
       let start;
-      range.addEventListener(
-        "input",
-        (event) => {
+      const inputs = [];
+      const acceptedCounts = [];
+      let previousCount = controller.getState().nodeCountStatus.shownNodeCount;
+      const unsubscribe = controller.subscribeToState((state) => {
+        const count = state.nodeCountStatus?.shownNodeCount;
+        if (count !== previousCount) {
+          acceptedCounts.push(count);
+          previousCount = count;
+        }
+      });
+      const input = (event) => {
+        if (start === undefined) {
           counting = true;
           start = event.timeStamp;
           traceMark("start");
-        },
-        { capture: true, once: true },
-      );
+        }
+        inputs.push({ at: event.timeStamp, value: Number(range.value) });
+      };
+      range.addEventListener("input", input, { capture: true });
       interaction = new Promise((done) => {
         const completion = new PerformanceObserver(async (list) => {
           const entry = list
@@ -916,6 +945,8 @@ function installMeasurement(
             );
           if (!entry || start === undefined) return;
           completion.disconnect();
+          range.removeEventListener("input", input, { capture: true });
+          unsubscribe();
           const completed = entry.startTime + entry.duration;
           traceMark("completed");
           const frames = await twoFrames();
@@ -929,6 +960,10 @@ function installMeasurement(
             ...frames,
             ...observations(),
             inputValue: Number(range.value),
+            inputs,
+            acceptedCounts,
+            applicationStartedAt: entry.startTime,
+            applicationDurationMs: entry.duration,
             foregroundLost:
               foregroundLost ||
               document.visibilityState !== "visible" ||
@@ -1029,6 +1064,7 @@ try {
     resolve("util/productionRendererReuse.mjs"),
     resolve("util/productionUiPreview.mjs"),
     resolve("util/productionUiSources.mjs"),
+    resolve("util/productionCountAdjustment.mjs"),
   ].map((path) => ({ path, sha256: sha256(readFileSync(path)) }));
   report.environment = {
     platform: platform(),
@@ -1146,6 +1182,8 @@ try {
     } else events.get(message.method)?.(message.params, message.sessionId);
   });
   report.browser = await call("Browser.getVersion", {}, undefined);
+  if (countAdjustmentOnly)
+    report.graphics = await call("SystemInfo.getInfo", {}, null);
   const { targetInfos } = await call("Target.getTargets", {}, undefined);
   const targets = targetInfos.filter((target) => target.type === "page");
   assert.equal(targets.length, 1, "Dedicated browser must have one page");
@@ -1396,7 +1434,27 @@ try {
       );
       return row;
     }
-    if (uiSourcesOnly) {
+    if (countAdjustmentOnly) {
+      await measureProductionCountAdjustment({
+        call,
+        evaluate,
+        measure,
+        idle,
+        report,
+        schedule: functional
+          ? [{ label: "functional", index: 0, warmup: false }]
+          : [
+              { label: "warmup", index: 0, warmup: true },
+              ...(diagnostic || mode !== "latency"
+                ? [{ label: "A", index: 1, warmup: false }]
+                : requestedCohorts),
+            ],
+        functional,
+        observeLayout: requireForeground && mode === "latency",
+        backdropControl: countBackdropControl,
+        initialLayout: countInitialLayout,
+      });
+    } else if (uiSourcesOnly) {
       report.operationScope =
         "Public H1-H4 chooser load/settle observations; not S0 comparison cohorts";
       await measureProductionUiSources({ evaluate, idle, report });
@@ -1664,6 +1722,7 @@ try {
   if (cohortStart !== 1 || cohortEnd !== 40) report.acceptanceEligible = false;
   if (uiSelectionOnly) report.acceptanceEligible = false;
   if (uiSourcesOnly) report.acceptanceEligible = false;
+  if (countAdjustmentOnly) report.acceptanceEligible = false;
   report.status = "completed";
 } catch (error) {
   if (session && socket?.readyState === WebSocket.OPEN) {

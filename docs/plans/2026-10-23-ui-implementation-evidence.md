@@ -186,3 +186,10 @@ Reviewers executed no application code, tests, network requests or attacks; the 
 The parent rechecked all 33 follow-up file hashes against the frozen candidate before writing the final documentation: none had changed.
 Only the plan, this evidence record, the manual packet's handoff link and the new final handoff are updated after review.
 The passed full suite and browser/foreground receipts are therefore reused for unchanged application, runtime and qualification-tool bytes; final documentation receives its own formatting and lint checks.
+
+## Subsequent programme closeout
+
+The owner then authorized the recommended closeout actions.
+The [closeout record](2026-10-23-programme-closeout.md) identifies the separate viewport correction, accessibility rerun, focused count collector, final W4/W5 foreground observations and retained failed attempts.
+It supersedes the earlier viewport limitation and lack of observed initial-layout movement, while preserving unrun actual-platform checks, slow initial layout and unqualified performance budgets.
+Application JavaScript, dependencies and runtime declarations remain unchanged; the closeout's HTML and qualification-tool deltas receive their own checks and narrow review.

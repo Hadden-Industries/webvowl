@@ -171,12 +171,6 @@ try {
   await audit("compact editor");
   receipt.dispositions = [
     {
-      rule: "meta-viewport",
-      target: 'meta[name="viewport"]',
-      status:
-        "known pre-existing limitation; out of UI scope, manual release disposition required",
-    },
-    {
       rule: "scrollable-region-focusable",
       target: "#ontology-suggestions",
       status:

@@ -106,14 +106,14 @@ AT reading order and announcement quality need this actual-platform check.
 3. Pan and pinch the graph, tap a node/property, dismiss a preview using a separate blank-canvas tap, and exercise editor controls.
    A drag-ending tap must not accidentally clear selection; essential actions must have a non-drag alternative.
 4. Verify pinch zoom/text enlargement supported by the browser's accessibility settings.
-   Record the pre-existing viewport restriction separately from any new surface failure.
+   Confirm that the corrected viewport declaration permits the browser's zoom controls; report any remaining behavior with exact browser/device versions.
 
 **Pass:** focused controls stay visible, the software keyboard does not cover the active choice/action, dialogs scroll internally, controls have usable touch targets, and graph gestures remain distinct from dismissal.
 Automation covers 320 CSS pixel reflow, 568-by-320 landscape, text spacing, target rules, pan-versus-click and viewport geometry.
 These are not real browser zoom, touch hardware or a mobile software keyboard.
 
-The existing `user-scalable=no` / `maximum-scale=1` viewport policy is a known accessibility limitation outside this UI scope.
-It needs an explicit release disposition; it is not a pass and has not been silently changed.
+The owner-approved closeout removes `user-scalable=no` and `maximum-scale=1`; the accessibility qualifier now checks the viewport without that exemption.
+The [closeout record](2026-10-23-programme-closeout.md) identifies the automated proof and preserves real zoom/pinch as an actual-platform check.
 
 ## M5 — Motion and spatial continuity on actual devices
 

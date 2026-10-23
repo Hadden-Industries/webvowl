@@ -13,7 +13,8 @@ The final signed UI delivery is the feature-branch commit containing this handof
 Final reviews inspected the independent, clean review snapshot `c6eeb3eeceed762eb35deed2374a94333ff232a3`, tree `21b0123e7fe88427f75704e7836d7e30aef69849`, relative to the performance commit.
 The recorded source digest is `1197cb7658808d9a03a13cc20cb0117581edeaca9445e333076d7831feb909bf`.
 That disposable snapshot has independent Git storage and is retained as review evidence, not incorporated into development history.
-The final documentation records review outcomes; application, runtime configuration and qualification-tool bytes remain those of the reviewed and tested candidate.
+The original final documentation records review outcomes without changing that candidate's application, runtime configuration or qualification-tool bytes.
+The later [programme closeout](2026-10-23-programme-closeout.md) separately records the viewport correction, focused measurement-tool changes and PR #85.
 
 ## Resulting behavior
 
@@ -54,7 +55,8 @@ Final production Chrome observations used the retained production manifest and i
 | Compositing and overall frames          | Accelerated transform/opacity layers observed; aggregate frame p95 91.7 ms                                      | Aggregate frames include graph/selection work and do not establish smooth rendering or its causal bottleneck                              |
 | Curated source loading                  | H1–H4 ready and settled through the actual chooser without foreground loss                                      | Single network observations against mutable latest aliases, not comparative performance cohorts                                           |
 
-The resumed-layout probe used an already settled drawing and recorded no geometry changes; active-layout timing remains unqualified.
+The original resumed-layout probe used an already settled drawing and recorded no geometry changes.
+The later closeout observes actual initial active-layout movement and settled count changes on W4-connected and W5-all; it records slow initial cadence and does not waive the inherited performance budgets.
 The broader inherited performance limits remain in the [performance handoff](2026-10-23-performance-final-handoff.md).
 The [detailed evidence](2026-10-23-ui-implementation-evidence.md) preserves failed attempts, repairs, exact receipts and measurement definitions.
 
@@ -91,6 +93,6 @@ Use the [single manual-validation packet](2026-10-23-ui-manual-validation.md) fo
 Record the exact delivered commit, browser/OS/AT versions and results once per required combination.
 Automated evidence is already identified alongside each scenario; only failures and affected follow-ups need additional testing.
 
-The existing viewport meta restriction on zoom remains an explicit accessibility release limitation outside the accepted UI scope.
-Unrun required combinations, active-layout timing and any manual findings need an owner disposition before claiming full platform acceptance.
-No merge or deployment is authorized or performed by this handoff.
+The closeout removes the viewport meta restriction and its accessibility-rule exemption.
+Unrun required combinations, the measured initial-layout and remaining performance limits, and any manual findings need an owner disposition before claiming full platform acceptance.
+PR #85 remains draft; no merge or deployment has been performed.
