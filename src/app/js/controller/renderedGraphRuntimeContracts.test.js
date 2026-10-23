@@ -238,6 +238,7 @@ function createDetachedSvgRootFixture(marker = "detached-root") {
 describe("rendered graph runtime interface", () => {
   test("declares the exact application-facing runtime method vocabulary", () => {
     expect(CANONICAL_RENDERED_GRAPH_RUNTIME_METHOD_NAMES).toEqual([
+      "layoutInitialTree",
       "replaceCanonicalDrawing",
       "applyCanonicalDrawingRevision",
       "readCanonicalDrawingState",
@@ -859,6 +860,31 @@ describe("rendered SVG snapshots", () => {
 });
 
 describe("rendered graph requests and results", () => {
+  test("initial fit is private to replacement and cannot override explicit camera coordinates", () => {
+    const request = canonicalRuntimeRequestFixture(1);
+    expect(
+      createCanonicalDrawingRequest({ ...request, fitInitialDrawing: true })
+        .fitInitialDrawing,
+    ).toBe(true);
+    expect(() =>
+      createCanonicalDrawingRequest({ ...request, fitInitialDrawing: "yes" }),
+    ).toThrow(/boolean/);
+    expect(() =>
+      createCanonicalDrawingRequest({
+        ...request,
+        fitInitialDrawing: true,
+        initialVisualization: { view: { zoomScale: 0.5 } },
+      }),
+    ).toThrow(/explicit camera/);
+    const revision = { ...request };
+    delete revision.layout;
+    expect(() =>
+      createCanonicalDrawingRequest(
+        { ...revision, baseRevision: 0, fitInitialDrawing: true },
+        { revision: true },
+      ),
+    ).toThrow(/invalid field set/);
+  });
   test("validates and owns initial visualization choices before replacement", () => {
     const initialVisualization = {
       view: {

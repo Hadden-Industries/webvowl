@@ -86,6 +86,7 @@ export async function measureProductionSearchCues({
     const warmup = generation === 0;
     report.activeCohort = { index: generation, label: cohort, warmup };
     await measure("B2-load", "__webvowlMeasurement.load()", cohort, warmup);
+    await evaluate("__webvowlMeasurement.waitForNodeOrdering()");
     if (fixtureName.startsWith("W4")) {
       await evaluate("__webvowlMeasurement.view({nodesShown:{mode:'auto'}})");
       report.cueProbe.view =

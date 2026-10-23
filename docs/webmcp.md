@@ -47,6 +47,13 @@ Retry after the load finishes.
 `get_visualization_state` remains available and reports the loading status; application resizing, diagnostics and editor preferences also remain available.
 Human editing retains its separate `EDIT_REJECTED` response while a load is pending.
 
+Fresh ontology loads can become ready with the first drawing visible while node-count ordering continues in the same worker.
+`nodeCountStatus.orderingStatus` reports `preparing`, then `ready`; the field is absent on paths that complete ordering during loading, including saved VOWL views.
+During preparation, count changes and reset return retryable `NODE_ORDERING_PENDING`; read/search/selection and unrelated view controls remain usable.
+Wait for ordering readiness before retrying a count change.
+Completion preserves the visible nodes and enables the human count controls.
+If preparation fails, the graph stays visible, the status becomes `failed`, and count commands return `NODE_ORDERING_UNAVAILABLE`; reload the ontology to retry preparation.
+
 Cancelling a view request stops the caller's wait while retaining standing choices that have already been applied.
 The published state reports those applied choices.
 A superseded operation cannot publish a result, restore an old scene or resume a newer document's layout.

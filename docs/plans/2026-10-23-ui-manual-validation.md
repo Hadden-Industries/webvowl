@@ -145,6 +145,10 @@ That proxy does not prove every Windows theme or AT/browser combination.
 
 ## Record findings and release disposition
 
+The whole-load follow-up adds one check to the same pending platform batch: load a large ontology with the automatic 50-node view and open Filters while count preparation is pending.
+Confirm that the graph is already usable, count controls are disabled with an understandable preparation status, and they become available without moving focus or replacing the visible nodes when preparation finishes.
+Use the same screen-reader/browser and touch/keyboard combinations above; automated status, disabled-control and stable-node checks do not establish actual spoken output.
+
 For each failure, record scenario/step, exact versions and candidate, expected versus actual behavior, and a screenshot or short spoken-output transcript where useful.
 Fix demonstrated defects, then repeat only the affected scenarios against the new candidate.
 Unrun required combinations remain unqualified until the release owner records a decision; source delivery, merge, deployment and complete browser/AT acceptance are separate outcomes.

@@ -9,7 +9,7 @@ import {
   inspectModel,
   editModel,
   captureModel,
-  readModelRankingIdentity,
+  readModelDisplayOrderKeys,
   checkpointModel,
   readmitModel,
   readModelSource,
@@ -28,11 +28,11 @@ const modelOperations = new Set(MODEL_OPERATION_NAMES);
 // One model must remain usable across opening, editing, recovery and export;
 // explicit limits still win, and parser bytes/RDF/canonicalization caps stay native.
 
-async function rankingIdentity(model, limits) {
+async function displayOrderKeys(model, limits) {
   const start = performance.now();
   let result;
   try {
-    result = await readModelRankingIdentity(model, { limits });
+    result = await readModelDisplayOrderKeys(model, { limits });
   } catch (error) {
     if (error instanceof VowlError) {
       throw new VowlError(error.code, error.message, {
@@ -45,7 +45,7 @@ async function rankingIdentity(model, limits) {
   performance.measure("webvowl.node-ranking-identity", {
     start,
     end: performance.now(),
-    detail: { revision: model.revision },
+    detail: { revision: model.revision, purpose: result.purpose },
   });
   return result;
 }
@@ -91,12 +91,21 @@ export async function runCanonicalVowlOperation(
         start: startedAt,
         end: performance.now(),
       });
-      return {
+      const result = {
         visualization: null,
         inspection,
         checkpoint,
-        rankingIdentity: await rankingIdentity(opened.model, limits),
         correspondence: opened.correspondence,
+      };
+      if (context?.publishPreview) {
+        await context.publishPreview(result);
+        return {
+          displayOrderKeys: await displayOrderKeys(opened.model, limits),
+        };
+      }
+      return {
+        ...result,
+        displayOrderKeys: await displayOrderKeys(opened.model, limits),
       };
     }
     case "open-canonical-model": {
@@ -124,7 +133,7 @@ export async function runCanonicalVowlOperation(
       );
       return {
         inspection: inspectModel(recovered.model),
-        rankingIdentity: await rankingIdentity(recovered.model, limits),
+        displayOrderKeys: await displayOrderKeys(recovered.model, limits),
         checkpoint: await checkpointModel(recovered.model, { limits }),
         correspondence: recovered.correspondence,
       };
@@ -140,7 +149,7 @@ export async function runCanonicalVowlOperation(
       });
       return {
         inspection: inspectModel(result.model),
-        rankingIdentity: await rankingIdentity(result.model, limits),
+        displayOrderKeys: await displayOrderKeys(result.model, limits),
         checkpoint: await checkpointModel(result.model, { limits }),
         correspondence: result.correspondence,
         created: result.created,
@@ -256,7 +265,7 @@ async function openAdmittedDocument(document, limits) {
   return {
     visualization,
     inspection: inspectModel(opened.model),
-    rankingIdentity: await rankingIdentity(opened.model, limits),
+    displayOrderKeys: await displayOrderKeys(opened.model, limits),
     checkpoint: await checkpointModel(opened.model, { limits }),
     correspondence: opened.correspondence,
   };

@@ -27,6 +27,9 @@ export function createNodesShownControl({
         : status.shownNodeCount;
   }
   function submit(intent, coalesce = false) {
+    if (["preparing", "failed"].includes(status.orderingStatus)) {
+      return;
+    }
     requestedIntent = intent;
     const revision = ++requestRevision;
     Promise.resolve().then(() => {
@@ -201,6 +204,13 @@ export function createNodesShownControl({
         return;
       }
       status = next;
+      const orderingUnavailable = ["preparing", "failed"].includes(
+        status.orderingStatus,
+      );
+      if (orderingUnavailable) {
+        draft = false;
+        requestRevision += 1;
+      }
       requestedIntent = adjustment?.requestedNodesShown;
       controls.range.max = String(status.eligibleNodeCount);
       controls.exact.max = controls.range.max;
@@ -216,6 +226,11 @@ export function createNodesShownControl({
       controls.fifty.hidden = status.eligibleNodeCount <= 50;
       controls.fifty.disabled =
         controls.fifty.hidden || requestedCount() === 50;
+      if (orderingUnavailable) {
+        for (const name of ["range", "exact", "minus", "plus", "fifty"]) {
+          controls[name].disabled = true;
+        }
+      }
       if (!controls.fifty.hidden) {
         controls.markers.style.setProperty(
           "--nodes-shown-fifty-position",
@@ -232,8 +247,16 @@ export function createNodesShownControl({
           ? "No nodes are available with the current filters."
           : `${intent.mode === "auto" && status.shownNodeCount < status.eligibleNodeCount ? "Automatically showing" : "Showing"} ${status.shownNodeCount} of ${status.eligibleNodeCount} available nodes.${shortfall}`;
       controls.range.setAttribute("aria-valuetext", text);
-      controls.status.hidden = adjustment === null;
-      if (adjustment) {
+      controls.status.hidden = adjustment === null && !orderingUnavailable;
+      if (orderingUnavailable) {
+        const message =
+          status.orderingStatus === "preparing"
+            ? "Preparing node count controls…"
+            : "Node count controls are unavailable. Reload the ontology to retry.";
+        if (controls.status.textContent !== message) {
+          controls.status.textContent = message;
+        }
+      } else if (adjustment) {
         const message =
           adjustment.status === "applying"
             ? "Applying node count…"

@@ -1,6 +1,6 @@
 # Bounded initial-layout improvement plan
 
-> **Status:** Draft revision 2, 23 October 2026; planning authorized, implementation and proposed numerical targets await PERF-DEC-013.
+> **Status:** Approved revision 4, 23 October 2026; the owner accepted PERF-DEC-013 option A and the numerical targets, then selected a real extended universal ontology as the primary experiment fixture.
 > **Baseline:** signed closeout `302fb27516ae60553bc8b4bd4cde1c34b2cf9c3b`, tree `67e137c8fbd3951e50da3334ca96607fa89f3db8`.
 > **Delivery:** continue on `feat/architecture-performance-ui` in [draft PR #85](https://github.com/Hadden-Industries/webvowl/pull/85).
 > **Route:** bounded R2 follow-up to the accepted architecture/performance/UI programme; reuse its invariants and verification route.
@@ -11,8 +11,9 @@
 
 The owner selected “Keep PR draft; plan a bounded initial-layout improvement” after reviewing the [closeout](2026-10-23-programme-closeout.md).
 The owner also selected “Keep manual acceptance pending until the batch is validated.”
-These decisions authorize this plan and preserve both acceptance holds.
-They do not approve a new force algorithm, configuration change, implementation proposal, merge or deployment.
+Those closeout decisions authorized planning and preserved both acceptance holds.
+The owner subsequently approved option A and the numerical targets after reviewing revision 2, authorizing its bounded implementation.
+No new force algorithm, configuration change, merge or deployment is approved.
 The [manual packet](2026-10-23-ui-manual-validation.md) remains the single actual-platform batch.
 
 PERF-DEC-012 reserves broader renderer/physics work for a concrete decision.
@@ -21,20 +22,20 @@ The owner's subsequent proposal is to compute inexpensive approximate positions 
 This revision makes that the first bounded experiment, keeping force equations and scheduling unchanged.
 The relative frequency of source and saved-layout loading is a product assumption supplied by the owner, not measured telemetry.
 
-### PERF-DEC-013 — Proposed implementation envelope
+### PERF-DEC-013 — Approved implementation envelope
 
-| Option                                                                        | Result and trade-off                                                                                                                                                                                                                                                                                      | Disposition                       |
-| ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
-| **A. Better initial placement before changing the force loop**                | Compare a cheap topology-aware seed with the existing spiral and a spacing-only control. Integrate the simplest successful seed for fresh unsaved loads, with bounded initial framing. Preserve the existing solver, scheduling and later interactions. Initial and final unsaved coordinates may change. | **Recommended; approval pending** |
-| B. Diagnostics only, then another implementation decision                     | Establish attribution and geometry costs without implementing a replacement seed. Requires another decision before integrating an improvement.                                                                                                                                                            | Available alternative             |
-| C. Change force scheduling, use a multilevel solver/worker or replace SVG now | These may address a residual bottleneck, but would mix mechanisms before the cheaper placement hypothesis is tested. Each requires its own evidence and bounded design.                                                                                                                                   | Deferred, not authorized by A     |
+| Option                                                                        | Result and trade-off                                                                                                                                                                                                                                                                                      | Disposition                   |
+| ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| **A. Better initial placement before changing the force loop**                | Compare a cheap topology-aware seed with the existing spiral and a spacing-only control. Integrate the simplest successful seed for fresh unsaved loads, with bounded initial framing. Preserve the existing solver, scheduling and later interactions. Initial and final unsaved coordinates may change. | **Approved 23 October 2026**  |
+| B. Diagnostics only, then another implementation decision                     | Establish attribution and geometry costs without implementing a replacement seed. Requires another decision before integrating an improvement.                                                                                                                                                            | Available alternative         |
+| C. Change force scheduling, use a multilevel solver/worker or replace SVG now | These may address a residual bottleneck, but would mix mechanisms before the cheaper placement hypothesis is tested. Each requires its own evidence and bounded design.                                                                                                                                   | Deferred, not authorized by A |
 
 Option A permits one production initialization strategy plus its required framing, correctness and lifetime integration.
 The three seed strategies are diagnostic alternatives, not permanent user settings or runtime experiment infrastructure.
 If spacing alone gives the same benefit, prefer it over topology preprocessing.
 If neither improves the real initial-load/count experience, retain the evidence and return with the next causal proposal; do not quietly expand A to force scheduling or cosmetic changes.
 
-Approval of A also selects the proposed acceptance targets in section 6.
+Approval of A also selects the acceptance targets in section 6.
 If attribution requires a mechanism outside this envelope, or those targets cannot be met without a different contract, return with the measured result and a narrower decision.
 Do not silently lower a target or substitute a different workload.
 
@@ -110,8 +111,19 @@ No blanket containment, hidden-graph prewarming or animation-layer promotion is 
 
 ### Included
 
-Fresh W4-connected/disconnected and W5 source loads, using ordinary automatic node count first and explicit all-node stress cases separately; direct count changes while the drawing is still relaxing; established running, settled and manually paused controls.
+Fresh ontology source loads, using ordinary automatic node count first and explicit all-node stress cases separately; direct count changes while the drawing is still relaxing; established running, settled and manually paused controls.
 The production change is an inexpensive initial-position policy before the first complete usable frame.
+
+The owner's 23 October fixture amendment makes **W6-extended**, the real universal extended ontology `dist/universal/extended/20260912-full`, the primary case for selecting an initializer.
+Its source is 3,023,054 bytes with SHA-256 `d7eb7980436600ab50c8a5df35401a4a345fe4362d111f2d8e6f90217505b077`.
+Actual source admission produces 953 node occurrences (807 class nodes and 146 datatype nodes), 1,204 edge occurrences and 1,174 labels; these counts include occurrences subsequently hidden by default filters or node selection.
+The existing real **W5-core** ontology remains an independent comparison.
+**W4-connected/disconnected** remain synthetic worst-case guards, not representative product workloads or the sole basis for choosing the initializer.
+In particular, W4-connected is a 2,000-node chain: a tree-shaped seed that succeeds only on that chain is insufficient evidence for the ontology use case.
+Run the three-way diagnostic on W6 first, then corroborate on W5 and check W4 and the small shape guards.
+Keep fixture identities, automatic/all-node modes and source admission timings separate; do not pool them or relabel earlier W4/W5 results.
+Apply the approved 50 ms preparation, one-second usable-frame/count, active-frame and settlement targets to W6 as well; the original W4/W5 obligations remain unwaived.
+Retain only fixture hashes, aggregate structure and measurement results in public evidence; read the owner's local source files without copying their contents into the repository or external review inputs.
 
 ### Bounded seed experiment
 
@@ -197,7 +209,7 @@ REQ-105: retain small-input behavior, browser compatibility and bounded resource
 REQ-106: deliver attributable evidence with truthful acceptance and release status.
 REQ-107: prioritize source-file loading with bounded, deterministic initialization; preserve explicit layouts as a compatibility branch.
 
-The following new numerical targets are proposed for owner acceptance, not represented as existing measurements or standards.
+The owner approved the following numerical targets; they are acceptance requirements, not existing measurements or standards.
 Apply them to the documented qualified Windows/browser/viewport cohort, retaining the owner's CPU exception; they are not guarantees for every device.
 
 | Acceptance ID | Falsifiable criterion                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
@@ -320,3 +332,83 @@ The responsible observer is the implementing coordinator, reporting to the owner
 Publication requires a final evidence summary covering scope, fixed source, before/after preconditions, remaining performance limits, rejected hypotheses, affected browser checks and resource status.
 Stop/replan on altered physics/scheduling, placement outside the fresh-load envelope, failure to preserve exact-step projection for identical inputs, excessive seed preparation, misleading initial framing, increased retained ownership, a new trust boundary, unsupported browser behavior or failure of the proposed budgets.
 Manual actual-platform acceptance remains the owner's pending batch; no new benchmark result can waive it.
+
+## 10. Implementation observations — in progress
+
+The owner-selected W6 source is now admitted by the existing production harness as separately hashed automatic/all-node cases.
+The first pure comparison used the actual admitted occurrence graph, native pre-draw glyph geometry, unchanged legacy force and derived-label recentering.
+It did not measure browser paint, font layout or foreground latency.
+
+| Fixture / full graph   | Existing spiral: overlap pairs / median travel | Spacing-only: overlap pairs / median travel | Radial forest: overlap pairs / median travel |
+| ---------------------- | ---------------------------------------------- | ------------------------------------------- | -------------------------------------------- |
+| W6 extended, 953 nodes | 37,143 / 6,455 world units                     | 6 / 5,095 world units                       | 4,565 / 3,978 world units                    |
+| W5 core, 664 nodes     | 23,869 / 5,268 world units                     | 6 / 3,976 world units                       | 776 / 2,561 world units                      |
+
+The radial forest's complete preparation p95 was 11.69 ms for W6 and 9.53 ms for W5 across 20 balanced preparations each.
+Fixed-step travel is a deterministic model diagnostic, not a speedup percentage or a promise of a final arrangement.
+The automatic 50-node case is separate: topology reduced W6 median travel, but increased W5 median travel slightly relative to the old seed.
+The candidate must therefore still pass ordinary automatic loading and full-graph browser checks.
+W4 exposed a poor deep-chain radial shape; the candidate uses the already-compared spacing-only seed for a component whose breadth-first depth exceeds the square root of its node count, before constructing a D3 hierarchy.
+This retains a bounded extent and avoids deep-chain hierarchy preparation; it adds no solver or persistent graph owner.
+
+The current uncommitted candidate applies the initializer only to fresh unsupplied scenes, retains the previous edit/partial-supplied path, and fits an eligible initial drawing once without a camera animation.
+Saved visualizations, explicit initial camera requests and supplied positions suppress automatic framing.
+The session records separate seed and admitted-data-to-usable-drawing durations; the latter includes defensive ownership, preparation, installation and observed paint.
+Nine focused suites passed 252 tests, including the existing fixed-step force oracle; the first independent glyph-spacing regression failed against the old 18.10-unit separation before the repair.
+The latest full product-candidate check passed all 10,050 JavaScript tests across 187 suites, Python and integration checks, lint, formatting, production build and generated JSON validation.
+The first two full runs exposed an application-layer dependency violation, a fixture that read the session before load acceptance and an omitted runtime method declaration; all three were repaired without relaxing either architecture oracle.
+The application owns the temporary spanning forest and final placements; the renderer interface supplies only the pure tree-coordinate calculation.
+Rendererless scenes retain the spacing fallback.
+The production build and changed source files at that checkpoint are bound by `initial-layout-production-manifest-4.json` and its source-input record.
+The owner subsequently waived AGY review and additional HISEW bookkeeping runs; real checks for changed source remain required.
+
+The initial instrumented W6 automatic-load run is incomplete: its first frame-interval calculation mixed callback-entry time with a frame timestamp.
+The collector now establishes a frame-timestamp baseline, retains raw observations before summary validation, and counts only actual node-container glyphs rather than editor helper nodes.
+Earlier receipts remain unchanged.
+Clone-size estimation adds substantial overhead in counter mode; those durations are not clean latency evidence and are not subtracted to manufacture an accepted time.
+An explicitly headless, uninstrumented initial-layout diagnostic mode is available for the next causal check; it remains ineligible for foreground acceptance.
+
+Raw comparisons, frozen prototype `initial-layout-seed-prototype-v1.mjs`, source/build identities and browser records are retained in the existing operator evidence root.
+Private fixture contents and private browser page text stay outside repository documents and external review inputs.
+This progress record selects no new mechanism, waives no target and does not mark the follow-up complete.
+
+The first uninstrumented headless W6 full-graph run observed all 953 actual node glyphs, 10.2 ms seed preparation, 789 ms admitted-data-to-usable drawing, 10.40 seconds to settlement and per-run frame intervals of 37.6 ms p95 / 54.4 ms maximum.
+The ordinary automatic case observed 50 glyphs, 9.4 ms preparation, 318 ms admitted-data-to-usable drawing and natural early settlement at 1.57 seconds; its headless frame cadence was approximately 4.2 ms and must not be presented as an ordinary 60 Hz foreground result.
+Complete source-to-frame time was 12.75 and 12.21 seconds respectively, including source admission and ranking outside the one-second rendering target.
+The screenshot check confirms real graph geometry, including the source ontology's dense self-loops; a single initial fit does not continuously refit later force motion.
+Raw early bounds also record 15 full-graph nodes and one automatic-case node outside the viewport after the observed load boundary; no nodes or links are culled to obtain the timing.
+
+The W6 fresh-running count diagnostic now reloads before each operation and verifies that operation's load generation, rather than the earlier setup generation.
+Its earlier generation-assertion failure remains retained as a collector defect.
+After correction, quiet-period application-to-paint was 195.5 ms (the intentional wait was 1,009.6 ms); Filters dismissal application-to-paint was 159.3 ms.
+Both used native inputs, applied only the final count and preserved running intent without an extra pre-measurement Resume/reheat.
+These are individual headless observations, not accepted foreground percentiles or a before/after comparison.
+
+A two-times spacing diagnostic reduced full-graph travel further but worsened the W6 automatic-case median travel from approximately 1,050 to 1,893 world units and made its initial extent much larger.
+That alternative is not integrated; the current candidate keeps the first topology spacing and its bounded deep-chain fallback.
+
+The subsequent W6 lifetime run passed two positive-control checks and ten equal-live-size load/edit/capture cycles, with zero retired owners and zero workers after each cycle and disposal.
+An earlier run retained a one-worker observation after its third capture; the browser-target collector now records immediate and bounded teardown observations instead of one instantaneous inventory assertion.
+The successful run observed zero workers on every first read, so it does not prove the earlier worker was merely delayed in disappearing from the browser inventory.
+Those collector changes passed ten focused tests across three suites and remain subject to the final consolidated full check.
+
+Four same-candidate W6 all-node foreground observations retained actual visibility/focus and all 953 glyphs.
+Seed preparation was 5.8–6.8 ms, admitted-data-to-usable drawing 773–846 ms, natural settlement 10.97–11.26 seconds, and each run's frame-interval p95 37.6–41.7 ms.
+Complete already-acquired-source-to-frame time remained 12.797–12.992 seconds.
+Four loads are insufficient for the accepted twenty-sample p95 gate, and these are not before/after comparisons.
+
+The owner rejected that whole-load delay as a satisfactory user experience and requested deep profiling before further qualification.
+The [whole-load profile and optimization proposal](2026-10-23-whole-load-profile-and-optimization-proposal.md) identifies stable ranking, repeated preparation and RDF query materialization as the next concerns.
+The owner approved PERF-DEC-014 Option A and subsequently PERF-DEC-015's bounded display-order experiment with conditional adoption.
+The OWLAPI read improvements landed on remote `main` through PR #85 before WebVOWL adopted the exact tested source commit.
+The next foreground cohorts use the consolidated optimized candidate after full checks; existing targets and manual acceptance remain unchanged.
+
+The owner then authorized cheap initial selection and drawing before final count ordering, with count controls disabled during preparation.
+The implemented [first-image extension](2026-10-23-display-ranking-identity-decision.md#approved-first-image-extension-and-implementation) preserves visible nodes when the final ordering completes.
+Validation/path/snapshot and native text-shortening optimizations are consolidated with it; focused evidence is recorded in the whole-load proposal.
+The owner subsequently waived AGY review and required full checks only at the final commit, superseding SLICE-012's external-review instruction for this follow-up.
+Foreground qualification follows the optimized consolidated build; manual acceptance and the draft-PR disposition remain unchanged.
+
+The consolidated full check passed 10,119 tests and the complete check pipeline; the later narrow allocation repair passed 98 affected tests and ten native lifetime cycles through disposal.
+The foreground attempt failed Chrome admission before any accepted timing sample.
+The [whole-load proposal](2026-10-23-whole-load-profile-and-optimization-proposal.md#final-verification-and-retained-limits) separates those results and the remaining acceptance requirements.

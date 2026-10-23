@@ -165,7 +165,7 @@ export async function qualifyLiveRecovery() {
     check(
       edited.inspection.revision === 1 &&
         edited.inspection.occurrences.length === 0 &&
-        edited.rankingIdentity.revision === 1,
+        edited.displayOrderKeys.revision === 1,
       "separate-worker-edit-with-current-ranking",
     );
     const recovered = await client.run(
@@ -177,7 +177,7 @@ export async function qualifyLiveRecovery() {
     );
     check(
       recovered.inspection.revision === 1 &&
-        recovered.rankingIdentity.revision === 1,
+        recovered.displayOrderKeys.revision === 1,
       "native-checkpoint-clone-and-recovery",
     );
     let stale = false;

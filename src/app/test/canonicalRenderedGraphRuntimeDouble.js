@@ -15,6 +15,7 @@ import {
   createRenderedArrangement,
   resolveRenderedArrangementChanges,
 } from "../js/controller/renderedArrangementContracts.js";
+import { layoutInitialTree } from "../../webvowl/js/runtime/initialTreeLayout.js";
 
 export function deferred() {
   let resolve, reject;
@@ -175,6 +176,10 @@ export function createCanonicalRenderedGraphRuntimeDouble({
     });
   }
   const runtime = Object.freeze({
+    layoutInitialTree(root, radius) {
+      assertLive();
+      return layoutInitialTree(root, radius);
+    },
     async replaceCanonicalDrawing(request, { signal } = {}) {
       const candidate = createCanonicalDrawingRequest(request);
       signal?.throwIfAborted();

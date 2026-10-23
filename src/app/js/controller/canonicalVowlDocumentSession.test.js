@@ -143,6 +143,82 @@ test("fresh loads show exactly 50, explicit zero wins and saved visibility reope
   }
 });
 
+test.each(["fresh", "explicit-camera", "supplied", "saved"])(
+  "initial framing respects the %s placement and camera authority",
+  async (kind) => {
+    const { session } = setup();
+    const source = {
+      operation: "open-owl-model",
+      documentIri: "urn:initial",
+      mediaType: "text/owl-functional",
+      bytes: new TextEncoder().encode(
+        "Ontology(<urn:initial> Declaration(Class(<urn:A>)) Declaration(Class(<urn:B>)) SubClassOf(<urn:A> <urn:B>))",
+      ),
+    };
+    let mounted;
+    const camera = { center: { x: 712, y: 345 }, zoom: 0.25 };
+    const runtime = {
+      readVisualizationView: () => ({
+        focus: [],
+        modes: {},
+        forceDistances: {},
+      }),
+      async replaceCanonicalDrawing(candidate) {
+        mounted = candidate;
+      },
+      readCanonicalDrawingState: () => ({
+        loadGeneration: mounted.loadGeneration,
+        documentRevision: 0,
+        placements: [...mounted.drawing.nodes, ...mounted.drawing.labels].map(
+          (row) => ({
+            occurrence: row.occurrence,
+            position: row.position,
+            pinned: row.pinned,
+          }),
+        ),
+        camera,
+      }),
+    };
+    try {
+      let input = source;
+      const options = { renderedGraphRuntime: runtime };
+      if (kind === "explicit-camera") {
+        options.initialVisualization = {
+          view: { zoomScale: 0.7, translation: { xPx: 11, yPx: 22 } },
+        };
+      }
+      if (kind === "saved" || kind === "supplied") {
+        const { session: preparation } = setup();
+        await preparation.load(source);
+        if (kind === "saved") {
+          input = {
+            operation: "open-canonical-model",
+            bytes: await preparation.capture(),
+          };
+        } else {
+          options.suppliedPositions = new Map([
+            [
+              preparation.scene().snapshot().placements[0].occurrence,
+              { x: 10, y: 20 },
+            ],
+          ]);
+        }
+        preparation.dispose();
+      }
+      await session.load(input, options);
+      expect(mounted.fitInitialDrawing === true).toBe(kind === "fresh");
+      if (kind === "fresh") {
+        expect(session.scene().snapshot().camera).toEqual(camera);
+        const captured = await session.capture();
+        const restored = await decode(captured);
+        expect(restored.visualization.camera).toEqual(camera);
+      }
+    } finally {
+      session.dispose();
+    }
+  },
+);
+
 test.each([
   "benchmark",
   "foaf",
@@ -534,6 +610,145 @@ function setup() {
     control,
   };
 }
+
+const previewRequest = () => ({
+  operation: "open-owl-model",
+  documentIri: "urn:preview",
+  mediaType: "text/owl-functional",
+  bytes: new TextEncoder().encode(
+    "Ontology(<urn:preview> Declaration(Class(<urn:A>)) Declaration(Class(<urn:B>)) SubClassOf(<urn:A> <urn:B>))",
+  ),
+});
+
+function deferOrdering(control, gate, start = jest.fn()) {
+  let keys;
+  control.after = (result, request) => {
+    if (request.operation !== "open-owl-model") {
+      return result;
+    }
+    keys = result.displayOrderKeys;
+    return {
+      ...result,
+      displayOrderKeys: undefined,
+      nodeOrdering: { ready: gate.promise, start },
+    };
+  };
+  return () => keys;
+}
+
+test("an admitted preview loads before ordering completes, without a second drawing on completion", async () => {
+  const { session, control } = setup();
+  const gate = deferred();
+  const start = jest.fn(() =>
+    expect(session.identity().loadGeneration).toBe(1),
+  );
+  const keys = deferOrdering(control, gate, start);
+  const onNodeOrdering = jest.fn();
+  const accepted = await session.load(previewRequest(), { onNodeOrdering });
+  expect(accepted.nodeCountStatus.orderingStatus).toBe("preparing");
+  expect(start).toHaveBeenCalledTimes(1);
+  expect(() => session.assertNodeOrderingReady()).toThrow(
+    expect.objectContaining({
+      code: "NODE_ORDERING_PENDING",
+      isRetryable: true,
+    }),
+  );
+  const before = session.scene().snapshot();
+  gate.resolve({ displayOrderKeys: keys() });
+  await gate.promise;
+  expect(session.nodeCountStatus().orderingStatus).toBe("ready");
+  expect(() => session.assertNodeOrderingReady()).not.toThrow();
+  expect(session.scene().snapshot()).toEqual(before);
+  expect(onNodeOrdering).toHaveBeenCalledWith(
+    expect.objectContaining({
+      loadGeneration: 1,
+      documentRevision: 0,
+      nodeCountStatus: expect.objectContaining({ orderingStatus: "ready" }),
+    }),
+  );
+  session.dispose();
+});
+
+test.each(["failure", "wrong-revision", "wrong-purpose", "missing-keys"])(
+  "%s after preview retains the drawing and refuses count changes",
+  async (kind) => {
+    const { session, control } = setup();
+    const gate = deferred();
+    const keys = deferOrdering(control, gate);
+    await session.load(previewRequest());
+    const before = session.scene().snapshot();
+    gate.resolve(
+      kind === "failure"
+        ? { error: new Error("worker failed") }
+        : {
+            displayOrderKeys: {
+              ...keys(),
+              ...(kind === "wrong-revision"
+                ? { revision: 5 }
+                : kind === "wrong-purpose"
+                  ? { purpose: "artifact" }
+                  : { correspondence: [] }),
+            },
+          },
+    );
+    await gate.promise;
+    expect(session.scene().snapshot()).toEqual(before);
+    expect(session.nodeCountStatus().orderingStatus).toBe("failed");
+    expect(() => session.assertNodeOrderingReady()).toThrow(
+      expect.objectContaining({
+        code: "NODE_ORDERING_UNAVAILABLE",
+        isRetryable: false,
+      }),
+    );
+    session.dispose();
+  },
+);
+
+test.each(["load", "edit", "dispose"])(
+  "%s retires pending ordering and ignores its late completion",
+  async (action) => {
+    const { session, control, calls } = setup();
+    const gate = deferred();
+    const keys = deferOrdering(control, gate);
+    const onNodeOrdering = jest.fn();
+    const accepted = await session.load(previewRequest(), { onNodeOrdering });
+    const oldKeys = keys();
+    control.after = (value) => value;
+    if (action === "load") {
+      await session.load(request());
+    } else if (action === "edit") {
+      await session.edit(rename(accepted.inspection));
+    } else {
+      session.dispose();
+    }
+    const current = action === "dispose" ? null : session.snapshot();
+    expect(calls[0].context.signal.aborted).toBe(true);
+    gate.resolve({ displayOrderKeys: oldKeys });
+    await gate.promise;
+    expect(onNodeOrdering).not.toHaveBeenCalled();
+    if (current) {
+      expect(session.snapshot()).toEqual(current);
+    }
+    if (action !== "dispose") {
+      session.dispose();
+    }
+  },
+);
+
+test("failed preview preparation cancels its retained worker", async () => {
+  const { session, control, calls } = setup();
+  const gate = deferred();
+  deferOrdering(control, gate);
+  await expect(
+    session.load(previewRequest(), {
+      prepareProjection() {
+        throw new Error("presentation failed");
+      },
+    }),
+  ).rejects.toThrow("presentation failed");
+  expect(calls[0].context.signal.aborted).toBe(true);
+  session.dispose();
+});
 
 test("presentation changes are atomic, retain semantic revisions and survive capture", async () => {
   const { session } = setup();
@@ -1597,7 +1812,7 @@ test("cancelled merge choices leave both live model and placements unchanged", a
   });
 });
 
-test.each(["inspection", "rankingIdentity"])(
+test.each(["inspection", "displayOrderKeys"])(
   "mismatched worker %s revisions are rejected before scene mutation",
   async (field) => {
     const { session, control } = setup();
@@ -1615,6 +1830,50 @@ test.each(["inspection", "rankingIdentity"])(
     expect(session.snapshot()).toEqual(initial);
   },
 );
+
+test("an incorrect display-key purpose is rejected before replacing the accepted scene", async () => {
+  const { session, control } = setup();
+  await session.load(request());
+  const initial = session.snapshot();
+  control.after = (result) => ({
+    ...result,
+    displayOrderKeys: { ...result.displayOrderKeys, purpose: "artifact-v1" },
+  });
+  await expect(session.edit(rename(initial.inspection))).rejects.toMatchObject({
+    code: "DOCUMENT_WORKER_RESULT_INVALID",
+  });
+  expect(session.snapshot()).toEqual(initial);
+});
+
+test("accepted display keys remain owned when the transport result is mutated", async () => {
+  const { session, control } = setup();
+  let transportResult;
+  control.after = (result) => {
+    transportResult = {
+      ...result,
+      displayOrderKeys: structuredClone(result.displayOrderKeys),
+    };
+    return transportResult;
+  };
+  await session.load(request());
+  const filters = {
+    datatypes: "show",
+    objectProperties: "show",
+    subclasses: "show",
+    disjointness: "show",
+    setOperators: "show",
+  };
+  const before = session.selectNodes(filters, {
+    mode: "all",
+  }).rankedNodeOccurrenceIds;
+  transportResult.displayOrderKeys.correspondence.length = 0;
+  // Force a new eligibility signature so the selector must read its keys again.
+  session.selectNodes({ ...filters, subclasses: "hide" }, { mode: "all" });
+  expect(
+    session.selectNodes(filters, { mode: "all" }).rankedNodeOccurrenceIds,
+  ).toEqual(before);
+  session.dispose();
+});
 
 test("bounded resource rejection during edit preserves the accepted checkpoint and scene", async () => {
   const { session } = setup();

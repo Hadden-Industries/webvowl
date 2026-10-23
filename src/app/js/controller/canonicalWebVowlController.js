@@ -680,6 +680,9 @@ export function createCanonicalWebVowlController({
       signal,
       request: validated,
     });
+    if (validated.nodesShown !== undefined) {
+      session.assertNodeOrderingReady?.();
+    }
     const restored = ticket.prepareScene();
     const {
       filters: changes,
@@ -895,6 +898,19 @@ export function createCanonicalWebVowlController({
                 imports?.resolveImport ?? acquisition.resolveImport,
               renderedGraphRuntime: runtime,
               useAutomaticNodesShown,
+              onNodeOrdering: ({
+                loadGeneration,
+                documentRevision,
+                nodeCountStatus,
+              }) => {
+                if (
+                  !disposed &&
+                  state.loadGeneration === loadGeneration &&
+                  state.documentRevision === documentRevision
+                ) {
+                  publish({ nodeCountStatus });
+                }
+              },
               ...(viewportSize
                 ? {
                     center: {
@@ -974,6 +990,9 @@ export function createCanonicalWebVowlController({
           const cancelled = combined.aborted || cause?.name === "AbortError";
           publish({
             ...previous,
+            ...(previous.nodeCountStatus && session.nodeCountStatus
+              ? { nodeCountStatus: session.nodeCountStatus() }
+              : {}),
             status: cancelled ? previous.status : "error",
             error: cancelled
               ? previous.error
@@ -1350,6 +1369,7 @@ export function createCanonicalWebVowlController({
     /** Stage human input; accepted scene ownership transfers only on flush. */
     stageNodeCountAdjustment(request) {
       current("stageNodeCountAdjustment");
+      session.assertNodeOrderingReady?.();
       return countAdjustment.stage(request);
     },
     async flushNodeCountAdjustment() {
@@ -1432,6 +1452,7 @@ export function createCanonicalWebVowlController({
     },
     async resetVisualization({ signal } = {}) {
       const ticket = lifecycle.prepare("resetVisualization", { signal });
+      session.assertNodeOrderingReady?.();
       countAdjustment.cancel();
       ticket.prepareScene();
       const resetNodesShown = { mode: "auto" };

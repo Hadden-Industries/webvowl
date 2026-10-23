@@ -1,7 +1,35 @@
-export const NODE_RANKING_POLICY_VERSION = "connected-sqrt-v1";
+export const NODE_RANKING_POLICY_VERSION = "connected-sqrt-display-v1";
+export const PREVIEW_NODE_RANKING_POLICY_VERSION = "connected-sqrt-preview-v1";
 const compareKey = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 export const isCountedOccurrence = ({ kind }) =>
   kind === "class-node" || kind === "datatype-node";
+
+/** Cheap, revision-local ties for the first drawing; never artifact identity. */
+export function previewNodeOrderingKeys(inspection) {
+  const records = new Map(
+    ["subjects", "roles", "expressions"].flatMap((name) =>
+      inspection.records[name].map((record) => [record.id, record]),
+    ),
+  );
+  return {
+    correspondence: inspection.occurrences
+      .filter(isCountedOccurrence)
+      .map((node) => {
+        const anchors = (node.targets ?? [node.target])
+          .map((id) => {
+            const record = records.get(id);
+            return `${record.kind}:${records.get(record.subject)?.iri ?? id}`;
+          })
+          .sort();
+        return {
+          previous: node.id,
+          // Node kind, sorted anchors and the local handle order display ties;
+          // they do not issue persistent or semantic identity.
+          current: JSON.stringify([node.kind, anchors, node.id]),
+        };
+      }),
+  };
+}
 
 // Indexed frontier: priority changes touch only neighbors of the emitted node.
 // The same bounded queue merges component heads; no stale heap entries accrue.

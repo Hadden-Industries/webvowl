@@ -1,4 +1,7 @@
+import { createTextTools } from "./textTools.js";
+
 const activeBatches = new WeakMap();
+const textTools = createTextTools();
 
 /**
  * Complete one synchronous SVG draw before publishing it. Font reads precede
@@ -10,10 +13,15 @@ export function withTextLayoutBatch(documentObject, draw) {
   if (activeBatches.has(documentObject)) {
     return draw();
   }
-  const batch = { lines: new Map(), blocks: new Set() };
+  const batch = { texts: [], lines: new Map(), blocks: new Set() };
   activeBatches.set(documentObject, batch);
   try {
     const result = draw();
+    const texts = textTools.truncateBatch(
+      batch.texts.map(({ request }) => request),
+      documentObject,
+    );
+    batch.texts.forEach(({ apply }, index) => apply(texts[index]));
     const lines = Array.from(batch.lines, ([span, placement]) => ({
       span,
       attribute: placement.attribute,
@@ -34,8 +42,27 @@ export function withTextLayoutBatch(documentObject, draw) {
     // A rejected preparation must not keep detached elements or leak work into
     // the recovery draw. No queued placement is published if draw() throws.
     activeBatches.delete(documentObject);
+    batch.texts.length = 0;
     batch.lines.clear();
     batch.blocks.clear();
+  }
+}
+
+/** Defer shortening only inside a synchronous draw; ordinary edits remain immediate. */
+export function truncateTextLine(span, request, apply) {
+  const batch = activeBatches.get(span.ownerDocument);
+  if (batch) {
+    batch.texts.push({ request, apply });
+  } else {
+    apply(
+      textTools.truncate(
+        request.text,
+        request.maxWidth,
+        request.textStyle,
+        request.additionalTextSpace,
+        span.ownerDocument,
+      ),
+    );
   }
 }
 

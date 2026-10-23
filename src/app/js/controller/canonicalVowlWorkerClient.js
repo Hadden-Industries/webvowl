@@ -237,7 +237,13 @@ export function createCanonicalVowlWorkerClient({
   return Object.freeze({
     async run(
       request,
-      { loadGeneration, baseRevision, signal, resolveImport } = {},
+      {
+        loadGeneration,
+        baseRevision,
+        signal,
+        resolveImport,
+        deferNodeOrdering = false,
+      } = {},
     ) {
       if (disposed) {
         throw failure("CANONICAL_CLIENT_DISPOSED");
@@ -340,6 +346,10 @@ export function createCanonicalVowlWorkerClient({
         const importIds = new Set();
         let finished = false;
         let resultTimer;
+        let previewTimer;
+        let previewDelivered = false;
+        let orderingStarted = false;
+        let finishOrdering;
         const timer = setTimeout(
           () =>
             settle(
@@ -357,11 +367,14 @@ export function createCanonicalVowlWorkerClient({
           finished = true;
           clearTimeout(timer);
           clearTimeout(resultTimer);
+          clearTimeout(previewTimer);
           signal?.removeEventListener("abort", abort);
           acquisition.abort();
           worker.terminate();
           pending.delete(abort);
-          if (error) {
+          if (previewDelivered) {
+            finishOrdering(error ? { error } : result);
+          } else if (error) {
             reject(error);
           } else {
             resolve({ ...context, ...result });
@@ -388,7 +401,55 @@ export function createCanonicalVowlWorkerClient({
           ) {
             return;
           }
-          if (data.type === "result") {
+          if (data.type === "preview") {
+            if (
+              !deferNodeOrdering ||
+              request.operation !== "open-owl-model" ||
+              previewTimer !== undefined ||
+              previewDelivered
+            ) {
+              settle(failure("CANONICAL_WORKER_FAILED"));
+              return;
+            }
+            const ready = new Promise((done) => {
+              finishOrdering = done;
+            });
+            previewTimer = setTimeout(() => {
+              previewTimer = undefined;
+              if (finished) {
+                return;
+              }
+              previewDelivered = true;
+              resolve({
+                ...context,
+                ...data.result,
+                nodeOrdering: {
+                  ready,
+                  start() {
+                    if (finished || orderingStarted) {
+                      return;
+                    }
+                    orderingStarted = true;
+                    try {
+                      worker.postMessage({
+                        type: "continue-ordering",
+                        ...context,
+                      });
+                    } catch {
+                      settle(failure("CANONICAL_WORKER_FAILED"));
+                    }
+                  },
+                },
+              });
+            }, 0);
+          } else if (data.type === "result") {
+            if (
+              previewTimer !== undefined ||
+              (previewDelivered && !orderingStarted)
+            ) {
+              settle(failure("CANONICAL_WORKER_FAILED"));
+              return;
+            }
             // Receiving a large structured clone already uses the main thread.
             // Start consumer processing in another task so input/cancellation
             // can run before scene construction or the next request snapshot.
@@ -463,7 +524,12 @@ export function createCanonicalVowlWorkerClient({
         }
         try {
           worker.postMessage(
-            { type: "run", ...context, request: payload },
+            {
+              type: "run",
+              ...context,
+              request: payload,
+              ...(deferNodeOrdering ? { deferNodeOrdering: true } : {}),
+            },
             bytes ? [payload.bytes.buffer] : [],
           );
         } catch {

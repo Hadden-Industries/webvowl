@@ -4,7 +4,12 @@ import { categories } from "./profiles.js";
 /** Validate I-JSON's Unicode domain and count exact UTF-8 bytes without allocating an encoding. */
 export function checkString(value, pointer, budget, charge = true) {
   let bytes = 0;
+  let nextCheck = 1024;
   for (let index = 0; index < value.length; index++) {
+    if (index >= nextCheck) {
+      budget.check();
+      nextCheck = index + 1024;
+    }
     const scalar = value.codePointAt(index);
     if (
       (scalar >= 0xd800 && scalar <= 0xdfff) ||
@@ -30,12 +35,13 @@ export function checkString(value, pointer, budget, charge = true) {
 
 /** Copy all values synchronously using descriptors; sharing is copied by value, cycles rejected. */
 export function snapshotSource(source, budget, primaryAt = () => false) {
+  budget.check();
   if (source === null || typeof source !== "object" || Array.isArray(source)) {
     fail("INPUT_TYPE", "");
   }
   const ancestors = new Set();
   function copy(value, pointer, depth, primary = false) {
-    budget.check();
+    budget.poll();
     if (typeof value === "string") {
       checkString(value, pointer, budget);
       return value;
@@ -71,11 +77,12 @@ export function snapshotSource(source, budget, primaryAt = () => false) {
     if (keys.some((key) => typeof key !== "string")) {
       fail("SOURCE_UNSAFE_VALUE", pointer);
     }
-    const descriptors = new Map(
-      keys.map((key) => [key, Object.getOwnPropertyDescriptor(value, key)]),
-    );
+    const descriptors = Object.create(null);
+    for (const key of keys) {
+      descriptors[key] = Object.getOwnPropertyDescriptor(value, key);
+    }
     if (array) {
-      const length = descriptors.get("length").value;
+      const length = descriptors.length.value;
       if (
         keys.length !== length + 1 ||
         keys.some(
@@ -94,22 +101,23 @@ export function snapshotSource(source, budget, primaryAt = () => false) {
           .filter((key) => key !== "length")
           .sort((a, b) => Number(a) - Number(b))
       : keys.sort();
+    const primaryChild =
+      array &&
+      Object.keys(categories).some(
+        (category) => pointer === `/structural/${category}`,
+      );
     for (const key of ordered) {
-      const descriptor = descriptors.get(key);
+      const descriptor = descriptors[key];
+      const childPointer = at(pointer, key);
       if (!("value" in descriptor) || !descriptor.enumerable) {
-        fail("SOURCE_UNSAFE_VALUE", at(pointer, key));
+        fail("SOURCE_UNSAFE_VALUE", childPointer);
       }
       if (!array) {
-        checkString(key, at(pointer, key), budget);
+        checkString(key, childPointer, budget);
       }
-      const primaryChild =
-        array &&
-        Object.keys(categories).some(
-          (category) => pointer === `/structural/${category}`,
-        );
       result[key] = copy(
         descriptor.value,
-        at(pointer, key),
+        childPointer,
         depth + 1,
         primaryChild,
       );
@@ -117,7 +125,9 @@ export function snapshotSource(source, budget, primaryAt = () => false) {
     ancestors.delete(value);
     return result;
   }
-  return copy(source, "", 1);
+  const result = copy(source, "", 1);
+  budget.check();
+  return result;
 }
 
 /** Own the byte input before any asynchronous suspension; shared/detached buffers are unsafe. */

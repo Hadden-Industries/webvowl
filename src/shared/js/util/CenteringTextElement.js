@@ -3,6 +3,7 @@ import { createTextTools as textToolsFactory } from "./textTools.js";
 import {
   centerTextBlock,
   positionCenteredTextLine,
+  truncateTextLine,
 } from "./textLayoutBatch.js";
 const textTools = textToolsFactory();
 
@@ -70,19 +71,19 @@ CenteringTextElement.prototype.addTextline = function (
   prefix,
   postfix,
 ) {
-  const truncatedText = textTools.truncate(
-    text,
-    this._textBlock().datum().textWidth(),
-    style,
-  );
+  const maxWidth = this._textBlock().datum().textWidth();
   this.saveFullTextLine(text);
   this.saveStyle(style);
   const tspan = this._textBlock()
     .append("tspan")
     .classed(this.CSS_CLASSES.default, true)
     .classed(style, true)
-    .text(this._applyPreAndPostFix(truncatedText, prefix, postfix))
     .attr("x", 0);
+  truncateTextLine(
+    tspan.node(),
+    { text, maxWidth, textStyle: style },
+    (value) => tspan.text(this._applyPreAndPostFix(value, prefix, postfix)),
+  );
   this._repositionTextLine(tspan);
   this.saveCorrespondingSpan(tspan);
 

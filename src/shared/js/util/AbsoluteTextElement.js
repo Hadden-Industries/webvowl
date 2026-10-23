@@ -1,7 +1,8 @@
 import { AbstractTextElement } from "./AbstractTextElement.js";
-import { createTextTools as textToolsFactory } from "./textTools.js";
-import { positionAbsoluteTextLine } from "./textLayoutBatch.js";
-const textTools = textToolsFactory();
+import {
+  positionAbsoluteTextLine,
+  truncateTextLine,
+} from "./textLayoutBatch.js";
 
 export { AbsoluteTextElement };
 function AbsoluteTextElement(container, backgroundColor) {
@@ -54,18 +55,18 @@ AbsoluteTextElement.prototype.addTextline = function (
   prefix,
   postfix,
 ) {
-  const truncatedText = textTools.truncate(
-    text,
-    this._textBlock().datum().textWidth(yShift),
-    style,
-  );
+  const maxWidth = this._textBlock().datum().textWidth(yShift);
 
   const tspan = this._textBlock()
     .append("tspan")
     .classed(this.CSS_CLASSES.default, true)
     .classed(style, true)
-    .text(this._applyPreAndPostFix(truncatedText, prefix, postfix))
     .attr("x", 0);
+  truncateTextLine(
+    tspan.node(),
+    { text, maxWidth, textStyle: style },
+    (value) => tspan.text(this._applyPreAndPostFix(value, prefix, postfix)),
+  );
   this._repositionTextLine(tspan, yShift);
 };
 

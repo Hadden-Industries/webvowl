@@ -109,3 +109,16 @@ No failed receipt is converted into a pass.
 Raw private W5 data, traces and labels remain external and must not enter Git, public issues or external review prompts.
 The native inventory records retained review inputs; it does not establish cleanup or final verification.
 The uncached baseline and all required failure evidence remain available through final review and acceptance.
+
+## Whole-load follow-up: shortening rounds
+
+The later approved whole-load work exposed native probes for shortened prefixes after SVG writes, outside the full-label hints above.
+`truncateBatch` now advances the same truncation algorithm in rounds, appending every missing probe before reading widths, then removing probes before the next round.
+SVG line contents are published together before the existing font/line/block placement stages.
+The enclosing width cache covers the complete synchronous text-layout flush; no value survives the draw.
+Unbatched edits retain immediate shortening and placement.
+
+Ten affected suites passed 157 tests, including cleanup, exact text results, native measurement order, renderer editing, adapter and SVG export.
+The manifest-4 baseline and manifest-5 candidate had **zero exact differences** across eleven native W1 geometry scenarios and SVG capture, including language, widths, editing, loaded fonts and replacement.
+The full W6 traced drawing phase fell from 1,283.8 ms to 644 ms; this is focused headless attribution, not foreground latency acceptance.
+Evidence resides in operator group `16557566c924469fb5e117f2cfbe6e03`, particularly `whole-load-text-geometry-comparison.json` and `whole-load-W6-text-all-attribution-1.json`.

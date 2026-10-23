@@ -154,6 +154,89 @@ describe("native width batches", () => {
     documentObject.factor = 8;
     expect(tools.measureTextWidth("Alpha", "text", documentObject)).toBe(40);
   });
+
+  test("shortens mixed styles in measurement rounds with unchanged text results", () => {
+    const tools = textToolsFactory();
+    const { documentObject, events, probes } = measurementDocument();
+    const requests = [
+      {
+        text: "abcdefghij",
+        textStyle: "text",
+        maxWidth: 29,
+        additionalTextSpace: 0,
+      },
+      {
+        text: "ABCDEFGHIJ",
+        textStyle: "subtext",
+        maxWidth: 19,
+        additionalTextSpace: 0,
+      },
+      {
+        text: "abcdefghij",
+        textStyle: "text",
+        maxWidth: 29,
+        additionalTextSpace: 0,
+      },
+      { text: "保持原文", maxWidth: 0 },
+      { text: "", maxWidth: 20 },
+    ];
+    expect(tools.truncateBatch(requests, documentObject)).toEqual([
+      "ab...",
+      "ABCD...",
+      "ab...",
+      "保持原文",
+      "",
+    ]);
+    expect(events).toEqual([
+      "append:abcdefghij",
+      "append:ABCDEFGHIJ",
+      "append:",
+      "read:abcdefghij",
+      "read:ABCDEFGHIJ",
+      "read:",
+      "remove:abcdefghij",
+      "remove:ABCDEFGHIJ",
+      "remove:",
+      "append:abcde",
+      "append:ABCDEFG",
+      "read:abcde",
+      "read:ABCDEFG",
+      "remove:abcde",
+      "remove:ABCDEFG",
+    ]);
+    expect(probes.size).toBe(0);
+  });
+
+  test("shortening reuses the enclosing draw widths but releases them after failure and font changes", () => {
+    const tools = textToolsFactory();
+    const { documentObject, events, probes } = measurementDocument();
+    const requests = [
+      { text: "abcdefghij", maxWidth: 29, additionalTextSpace: 0 },
+    ];
+    tools.withMeasurementBatch(
+      requests,
+      () => {
+        expect(tools.truncateBatch(requests, documentObject)).toEqual([
+          "ab...",
+        ]);
+        expect(
+          events.filter((event) => event === "read:abcdefghij"),
+        ).toHaveLength(1);
+      },
+      documentObject,
+    );
+    documentObject.fail = true;
+    expect(() => tools.truncateBatch(requests, documentObject)).toThrow(
+      "measurement failed",
+    );
+    expect(probes.size).toBe(0);
+    documentObject.fail = false;
+    documentObject.factor = 2;
+    expect(tools.truncateBatch(requests, documentObject)).toEqual([
+      "abcdefghij",
+    ]);
+    expect(probes.size).toBe(0);
+  });
 });
 
 describe("Truncating of text", () => {

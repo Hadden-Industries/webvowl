@@ -1,5 +1,27 @@
 import assert from "node:assert/strict";
 
+/** Observe browser target teardown separately from application completion. */
+export async function observeWorkerRetirement(call) {
+  const start = performance.now();
+  const deadlineMs = 1000;
+  const observations = [];
+  let targets;
+  do {
+    const { targetInfos } = await call("Target.getTargets", {}, null);
+    targets = targetInfos.filter((target) => target.type === "worker");
+    observations.push({
+      elapsedMs: performance.now() - start,
+      targetIds: targets.map(({ targetId }) => targetId),
+    });
+    if (!targets.length || performance.now() - start >= deadlineMs) break;
+    await new Promise((resolve) => setTimeout(resolve, 25));
+  } while (targets.length);
+  return {
+    workers: targets.length,
+    workerRetirement: { deadlineMs, observations },
+  };
+}
+
 // Capture the real session at construction without changing its methods. Restore
 // native freeze immediately; all later observations use weak references only.
 export function installProductionLifetimeProbe() {
@@ -144,14 +166,14 @@ export async function measureProductionLifetime({
     await call("HeapProfiler.collectGarbage");
     const heap = await call("Runtime.getHeapUsage");
     const dom = await call("Memory.getDOMCounters");
-    const { targetInfos } = await call("Target.getTargets", {}, null);
-    const workers = targetInfos.filter(
-      (target) => target.type === "worker",
-    ).length;
+    // terminate() precedes the result promise in the worker client; Chrome's
+    // target inventory is a separate asynchronous teardown observation. Retain
+    // its first state and bounded convergence rather than hiding a retry.
+    const retirement = await observeWorkerRetirement(call);
     const ownership = await evaluate(
       `__webvowlLifetimeProbe.status(${disposed})`,
     );
-    return { heap, dom, workers, ownership };
+    return { heap, dom, ...retirement, ownership };
   }
   for (let index = 0; index < 2; index++) {
     report.activeCohort = {
@@ -165,6 +187,7 @@ export async function measureProductionLifetime({
       `retained-control-${index}`,
       true,
     );
+    await evaluate("__webvowlMeasurement.waitForNodeOrdering()");
     await evaluate("__webvowlLifetimeProbe.observe(true)");
   }
   report.lifetime.positiveControl = await collect();
@@ -187,6 +210,7 @@ export async function measureProductionLifetime({
     const cohort = `lifetime-${cycle}`;
     report.activeCohort = { index: cycle, label: cohort, warmup: false };
     await measure("B2-load", "__webvowlMeasurement.load()", cohort);
+    await evaluate("__webvowlMeasurement.waitForNodeOrdering()");
     await evaluate("__webvowlLifetimeProbe.observe()");
     await evaluate("__webvowlMeasurement.prepareEdits()");
     await measure("B6-edit", "__webvowlMeasurement.edit(0)", cohort);

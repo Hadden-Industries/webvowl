@@ -1,5 +1,6 @@
 import { createRenderedGraphConfiguration } from "./renderedGraphConfiguration.js";
 import { createRenderedGraphInternals } from "./renderedGraphInternals.js";
+import { layoutInitialTree } from "./initialTreeLayout.js";
 import {
   createOntologyEditorOptionsRequest,
   createVisualizationViewportSize,
@@ -881,6 +882,10 @@ export function createD3RenderedGraphAdapter(dependencies) {
   }
 
   const renderedGraphRuntime = Object.freeze({
+    layoutInitialTree(root, radius) {
+      assertNotDisposed();
+      return layoutInitialTree(root, radius);
+    },
     setRenderingDiagnosticsEnabled(isEnabled) {
       assertNotDisposed();
       if (typeof isEnabled !== "boolean") {
@@ -1004,8 +1009,29 @@ export function createD3RenderedGraphAdapter(dependencies) {
             focus: initial.view.focus,
           };
         }
+        const initialViewport = candidate.fitInitialDrawing
+          ? {
+              scale: renderedGraphInternals.scaleFactor(),
+              translation: [...renderedGraphInternals.translation()],
+            }
+          : undefined;
         while (!renderedGraphInternals.isReadyForPaint()) {
           await awaitObservedPaint(candidate.loadGeneration, operationSignal);
+        }
+        if (
+          initialViewport &&
+          renderedGraphInternals.scaleFactor() === initialViewport.scale &&
+          renderedGraphInternals
+            .translation()
+            .every(
+              (value, index) => value === initialViewport.translation[index],
+            )
+        ) {
+          operationSignal.throwIfAborted();
+          renderedGraphInternals.zoomAndCenterGraph(false, {
+            signal: operationSignal,
+            animate: false,
+          });
         }
         await awaitObservedPaint(candidate.loadGeneration, operationSignal);
         operationSignal.throwIfAborted();

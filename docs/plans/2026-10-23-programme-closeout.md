@@ -100,8 +100,32 @@ No failed receipt is rewritten, no native completion is claimed, and no unchange
 
 On 23 October 2026 the owner selected “Keep PR draft; plan a bounded initial-layout improvement” and “Keep manual acceptance pending until the batch is validated.”
 The performance limits and unrun platform combinations are therefore not waived.
-The [initial-layout improvement plan](2026-10-23-initial-layout-improvement-plan.md) records the bounded follow-up and pending PERF-DEC-013 implementation decision.
+The [initial-layout improvement plan](2026-10-23-initial-layout-improvement-plan.md) records the bounded follow-up; the owner subsequently approved PERF-DEC-013 option A and its numerical targets on 23 October 2026.
 Following the owner's suggestion, its recommended first experiment compares better spacing with inexpensive topology-aware initial positions for newly loaded ontology sources, keeping the force solver and scheduling unchanged.
 Saved layouts remain a compatibility constraint; there is no usage telemetry establishing their relative frequency.
 It also distinguishes this collector's paused-load/reheat preconditions from an ordinary automatically running load: the 127.17-second settling phase followed a deliberate reheat, rather than measuring ordinary load duration.
 The retained observations remain unchanged.
+
+The approved initial-placement follow-up now has a tested production candidate and four real W6 all-node foreground observations, but its final qualification, review and delivery remain incomplete.
+The owner considers the remaining 12.797–12.992-second source-to-frame delay unacceptable and requested deeper attribution.
+The [whole-load profile and optimization proposal](2026-10-23-whole-load-profile-and-optimization-proposal.md) records the measured worker bottlenecks, bounded optimization options and a proposed separate whole-load budget.
+The owner approved PERF-DEC-014 Option A plus a separate design for cheaper display-ranking identity, including the five-second W6 whole-load p95 target.
+Bounded exact-semantics optimizations are authorized; changed ranking semantics, exact dependency/configuration changes and acceptance waivers remain separate decisions.
+
+The owner subsequently approved PERF-DEC-015's bounded display-order experiment with conditional adoption.
+OWLAPI PR #85 passed remote qualification and merged normally before WebVOWL pinned the tested signed commit.
+The combined candidate is undergoing application qualification; this does not waive the whole-load targets or the outstanding manual acceptance batch.
+The owner waived AGY review and extra runs solely for HISEW bookkeeping for this follow-up.
+
+The owner subsequently authorized a cheap connected first selection, graph drawing before final ordering, and disabled count controls until preparation completes.
+This is implemented with continuation in the same worker and no replacement of the visible prefix.
+One headless automatic W6 load reached its first fifty nodes in 4.071 seconds while ordering was still preparing; the final whole-load foreground percentile remains unqualified.
+The other bounded validation, snapshot, path-formatting and label-shortening candidates are implemented with focused correctness and geometry evidence in the whole-load proposal.
+The final full check is reserved for this consolidated commit, as requested; neither these diagnostics nor earlier full-suite results close manual platform acceptance.
+
+That full check passed 10,119 tests across 190 suites and the complete repository check pipeline.
+A subsequent heap-backed retention finding was repaired with a narrow allocation change, then passed 98 affected tests and ten native W6 load/edit/capture cycles plus disposal with zero retained old owners or workers.
+The full suite was not repeated solely to relabel that focused repair as a fresh broad receipt.
+The optimized foreground attempt failed admission before collecting samples; foreground p95 and the existing W4/W5 performance requirements remain pending.
+The manual packet now also includes announcement/focus behavior while count preparation transitions from disabled to available.
+This follow-up is source delivery to the existing draft PR, with no merge, deployment or complete programme acceptance claim.

@@ -259,6 +259,9 @@ export function createCanonicalDrawingRequest(
       ...(!revision && request.initialVisualization !== undefined
         ? ["initialVisualization"]
         : []),
+      ...(!revision && request.fitInitialDrawing !== undefined
+        ? ["fitInitialDrawing"]
+        : []),
     ],
     "Canonical drawing request",
   );
@@ -280,6 +283,19 @@ export function createCanonicalDrawingRequest(
     );
   }
   assertPlainRecord(request.drawing, "canonical drawing");
+  if (
+    request.fitInitialDrawing !== undefined &&
+    typeof request.fitInitialDrawing !== "boolean"
+  ) {
+    throw new TypeError("Initial drawing framing must be a boolean.");
+  }
+  if (
+    request.fitInitialDrawing &&
+    (request.initialVisualization?.view?.zoomScale !== undefined ||
+      request.initialVisualization?.view?.translation !== undefined)
+  ) {
+    throw new TypeError("Initial framing cannot replace an explicit camera.");
+  }
   return Object.freeze({
     ...request,
     drawing: deepFreezePlainData(structuredClone(request.drawing)),

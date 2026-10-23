@@ -6,7 +6,10 @@ import {
   appendFileSync,
   existsSync,
   mkdirSync,
+  openSync,
+  closeSync,
   readFileSync,
+  writeSync,
   writeFileSync,
 } from "node:fs";
 import { arch, release, platform, cpus } from "node:os";
@@ -45,6 +48,7 @@ import { measureProductionRendererReuse } from "./productionRendererReuse.mjs";
 import { measureProductionUiPreview } from "./productionUiPreview.mjs";
 import { measureProductionUiSources } from "./productionUiSources.mjs";
 import { measureProductionCountAdjustment } from "./productionCountAdjustment.mjs";
+import { measureProductionInitialLayout } from "./productionInitialLayout.mjs";
 
 // A companion to qualify-canonical-browser.mjs: actual production HTML/CSS,
 // headed isolated Chrome, and separately labelled latency/diagnostic passes.
@@ -52,7 +56,7 @@ const [chromePath, buildPath, manifestPath, outputPath, ...options] =
   process.argv.slice(2);
 assert(
   chromePath && buildPath && manifestPath && outputPath,
-  "Usage: node util/measure-production-performance.mjs <chrome> <production-directory> <manifest> <new-evidence-directory> [--mode=latency|counters|trace|cues|lifetime|layout|reuse|functional|navigation] [--fixture=W1] [--diagnostic] [--private-fixture=path] [--allow-busy-host --admission-reference=path] [--headless-diagnostics --diagnostic-admission-reference=path] [--cohort-start=1 --cohort-end=40] [--renderer-reuse-reference] [--ui-selection-only [--ui-preview-diagnostics] | --ui-sources-only | --count-adjustment-only [--count-initial-layout=settled|fresh-paused] [--count-backdrop-control]]",
+  "Usage: node util/measure-production-performance.mjs <chrome> <production-directory> <manifest> <new-evidence-directory> [--mode=latency|counters|trace|cues|lifetime|layout|reuse|functional|navigation|initial-layout] [--fixture=W1|W2|W3|W4-connected|W4-disconnected|W5-auto|W5-all|W6-auto|W6-all] [--diagnostic] [--private-fixture=path] [--allow-busy-host --admission-reference=path] [--headless-diagnostics --diagnostic-admission-reference=path] [--cohort-start=1 --cohort-end=40] [--renderer-reuse-reference] [--initial-layout-only | --ui-selection-only [--ui-preview-diagnostics] | --ui-sources-only | --count-adjustment-only [--count-initial-layout=settled|fresh-paused|fresh-running] [--count-backdrop-control]]",
 );
 const option = (name, fallback) =>
   options
@@ -62,13 +66,26 @@ const mode = option("mode", "latency");
 const uiSelectionOnly = options.includes("--ui-selection-only");
 const uiSourcesOnly = options.includes("--ui-sources-only");
 const countAdjustmentOnly = options.includes("--count-adjustment-only");
+const initialLayoutOnly =
+  (mode === "initial-layout" && !countAdjustmentOnly) ||
+  options.includes("--initial-layout-only");
+assert(
+  !initialLayoutOnly ||
+    (!countAdjustmentOnly &&
+      !uiSelectionOnly &&
+      !uiSourcesOnly &&
+      ["latency", "trace", "counters", "initial-layout"].includes(mode)),
+  "Initial layout requires its own latency or diagnostic pass",
+);
 const countInitialLayout = option("count-initial-layout", "settled");
-assert(["settled", "fresh-paused"].includes(countInitialLayout));
+assert(
+  ["settled", "fresh-paused", "fresh-running"].includes(countInitialLayout),
+);
 assert(
   !countAdjustmentOnly ||
     (!uiSelectionOnly &&
       !uiSourcesOnly &&
-      ["latency", "trace", "functional"].includes(mode)),
+      ["latency", "trace", "functional", "initial-layout"].includes(mode)),
   "Count adjustment requires its own latency, trace or functional pass",
 );
 assert(
@@ -102,6 +119,7 @@ assert(
     "reuse",
     "functional",
     "navigation",
+    "initial-layout",
   ].includes(mode),
 );
 const functional = mode === "functional";
@@ -112,17 +130,23 @@ const diagnosticAdmissionReference = option(
 );
 assert(
   !headlessDiagnostics ||
-    (["counters", "trace", "cues", "lifetime", "layout", "reuse"].includes(
-      mode,
-    ) &&
+    ([
+      "counters",
+      "trace",
+      "cues",
+      "lifetime",
+      "layout",
+      "reuse",
+      "initial-layout",
+    ].includes(mode) &&
       diagnosticAdmissionReference &&
       existsSync(diagnosticAdmissionReference)),
-  "Headless diagnostics require counters/trace/cues/lifetime/layout mode and their owner decision; they cannot supply foreground latency",
+  "Headless diagnostics require a diagnostic mode and their owner decision; they cannot supply foreground latency",
 );
 assert(
-  !["cues", "lifetime", "layout", "reuse"].includes(mode) ||
+  !["cues", "lifetime", "layout", "reuse", "initial-layout"].includes(mode) ||
     headlessDiagnostics,
-  "Cue, lifetime and layout probes are headless diagnostics only",
+  "Cue, lifetime, reuse and initial-layout diagnostic modes require headless observation",
 );
 const requireForeground = !functional && !headlessDiagnostics;
 const countBackdropControl = options.includes("--count-backdrop-control");
@@ -161,6 +185,8 @@ assert(
     "W4-disconnected",
     "W5-auto",
     "W5-all",
+    "W6-auto",
+    "W6-all",
   ].includes(fixtureName),
   "Unknown benchmark workload",
 );
@@ -824,10 +850,12 @@ function installMeasurement(
         nativeWrapperCount: originals.length,
       };
     },
-    load() {
+    load({ running = false } = {}) {
       editTarget = undefined;
       const source =
-        fixture.startsWith("W4") || fixture.startsWith("W5")
+        fixture.startsWith("W4") ||
+        fixture.startsWith("W5") ||
+        fixture.startsWith("W6")
           ? {
               kind: "ontology-bytes",
               bytes,
@@ -844,7 +872,7 @@ function installMeasurement(
           {
             initialVisualization: {
               view: {
-                layout: "pause",
+                ...(running ? {} : { layout: "pause" }),
                 nodesShown: { mode: all ? "all" : "auto" },
               },
             },
@@ -854,6 +882,24 @@ function installMeasurement(
       );
     },
     state: stateSummary,
+    async waitForNodeOrdering() {
+      // Count-operation preparation is outside its timing window and outside
+      // time-to-first-image. Fresh loads intentionally return before ordering.
+      const start = performance.now();
+      while (
+        controller.getState().nodeCountStatus?.orderingStatus === "preparing"
+      ) {
+        if (performance.now() - start > 30000) {
+          throw new Error(
+            "Node ordering did not complete before count preparation",
+          );
+        }
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      }
+      if (controller.getState().nodeCountStatus?.orderingStatus === "failed") {
+        throw new Error("Node ordering failed before count preparation");
+      }
+    },
     editor: () =>
       controller.getOntologyEditorView(
         editTarget ?? controller.getState().selectedDocumentRecord,
@@ -1065,6 +1111,7 @@ try {
     resolve("util/productionUiPreview.mjs"),
     resolve("util/productionUiSources.mjs"),
     resolve("util/productionCountAdjustment.mjs"),
+    resolve("util/productionInitialLayout.mjs"),
   ].map((path) => ({ path, sha256: sha256(readFileSync(path)) }));
   report.environment = {
     platform: platform(),
@@ -1089,11 +1136,11 @@ try {
     name: fixtureName,
     byteLength: fixtureBytes.length,
     sha256: sha256(fixtureBytes),
-    private: fixtureName.startsWith("W5"),
+    private: fixtureName.startsWith("W5") || fixtureName.startsWith("W6"),
     initialNodesShown: allNodes ? "all" : "auto",
     documentIri: fixtureName.startsWith("W4")
       ? "urn:resource"
-      : fixtureName.startsWith("W5")
+      : fixtureName.startsWith("W5") || fixtureName.startsWith("W6")
         ? pathToFileURL(resolve(option("private-fixture", ""))).href
         : undefined,
   };
@@ -1102,6 +1149,12 @@ try {
       report.workload.sha256,
       "85214ddc93194fccf5c0fc4bbbc8f34ab54e54f4abb352f0543411fd56b1c3f6",
       "Private workload must match the approved W5 bytes",
+    );
+  if (fixtureName.startsWith("W6"))
+    assert.equal(
+      report.workload.sha256,
+      "d7eb7980436600ab50c8a5df35401a4a345fe4362d111f2d8e6f90217505b077",
+      "Private workload must match the approved W6 extended ontology bytes",
     );
   const assetBytes = new Map(
     manifest.files.map((file) => [
@@ -1434,7 +1487,31 @@ try {
       );
       return row;
     }
-    if (countAdjustmentOnly) {
+    if (initialLayoutOnly) {
+      await measureProductionInitialLayout({
+        evaluate,
+        measure,
+        report,
+        requireForeground,
+        capture: diagnostic
+          ? async () => {
+              const { data } = await call("Page.captureScreenshot", {
+                format: "png",
+              });
+              const name = `initial-layout-${report.initialLayout.runs.length}.png`;
+              writeFileSync(resolve(output, name), Buffer.from(data, "base64"));
+              return name;
+            }
+          : undefined,
+        schedule:
+          diagnostic || mode !== "latency"
+            ? [{ label: "diagnostic", index: 0, warmup: false }]
+            : [
+                { label: "warmup", index: 0, warmup: true },
+                ...requestedCohorts,
+              ],
+      });
+    } else if (countAdjustmentOnly) {
       await measureProductionCountAdjustment({
         call,
         evaluate,
@@ -1443,12 +1520,14 @@ try {
         report,
         schedule: functional
           ? [{ label: "functional", index: 0, warmup: false }]
-          : [
-              { label: "warmup", index: 0, warmup: true },
-              ...(diagnostic || mode !== "latency"
-                ? [{ label: "A", index: 1, warmup: false }]
-                : requestedCohorts),
-            ],
+          : mode === "initial-layout"
+            ? [{ label: "diagnostic", index: 0, warmup: false }]
+            : [
+                { label: "warmup", index: 0, warmup: true },
+                ...(diagnostic || mode !== "latency"
+                  ? [{ label: "A", index: 1, warmup: false }]
+                  : requestedCohorts),
+              ],
         functional,
         observeLayout: requireForeground && mode === "latency",
         backdropControl: countBackdropControl,
@@ -1548,6 +1627,7 @@ try {
         const startSample = report.samples.length;
         report.activeCohort = { index, label: cohort, warmup };
         await measure("B2-load", "__webvowlMeasurement.load()", cohort, warmup);
+        await evaluate("__webvowlMeasurement.waitForNodeOrdering()");
         const before = await evaluate("__webvowlMeasurement.state()");
         const count = before.nodeCountStatus.shownNodeCount;
         await measure(
@@ -1726,6 +1806,41 @@ try {
   report.status = "completed";
 } catch (error) {
   if (session && socket?.readyState === WebSocket.OPEN) {
+    if (
+      mode === "lifetime" &&
+      error.message.includes("retired inspection/projection/read model")
+    ) {
+      // Preserve the actual retaining path on a failed owner check, before the
+      // browser is closed. A bounded diagnostic file is never public output.
+      const name = "retired-owner.heapsnapshot";
+      const descriptor = openSync(resolve(output, name), "wx");
+      let byteLength = 0;
+      let truncated = false;
+      events.set("HeapProfiler.addHeapSnapshotChunk", ({ chunk }, sender) => {
+        if (sender !== session || truncated) return;
+        const bytes = Buffer.from(chunk);
+        if (byteLength + bytes.byteLength > 256 * 1024 * 1024) {
+          truncated = true;
+          return;
+        }
+        writeSync(descriptor, bytes);
+        byteLength += bytes.byteLength;
+      });
+      try {
+        await call("HeapProfiler.takeHeapSnapshot", { reportProgress: false });
+        report.retiredOwnerSnapshot = { name, byteLength, truncated };
+      } catch (snapshotError) {
+        report.retiredOwnerSnapshot = {
+          name,
+          byteLength,
+          truncated,
+          error: snapshotError.message,
+        };
+      } finally {
+        events.delete("HeapProfiler.addHeapSnapshotChunk");
+        closeSync(descriptor);
+      }
+    }
     try {
       report.failurePage = await evaluate(
         "({state:globalThis.__webvowlMeasuredApplication?.getWebVowlController()?.getState(),body:document.body.innerText.slice(0,3000),url:location.href,visibility:document.visibilityState,focus:document.hasFocus()})",

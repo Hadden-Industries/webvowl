@@ -3,12 +3,25 @@ import {
   centerTextBlock,
   positionAbsoluteTextLine,
   positionCenteredTextLine,
+  truncateTextLine,
   withTextLayoutBatch,
 } from "./textLayoutBatch.js";
 
 function layoutFixture() {
   const events = [];
   const documentObject = {
+    body: { appendChild() {} },
+    createElement() {
+      return {
+        textContent: "",
+        setAttribute() {},
+        remove() {},
+        get offsetWidth() {
+          events.push(`width:${this.textContent}`);
+          return this.textContent.length * 5;
+        },
+      };
+    },
     defaultView: {
       getComputedStyle(node) {
         events.push(`font:${node.name}`);
@@ -90,6 +103,13 @@ describe("synchronous SVG text layout", () => {
     const abandoned = element("abandoned", 12);
     expect(() =>
       withTextLayoutBatch(documentObject, () => {
+        truncateTextLine(
+          abandoned,
+          { text: "Abandoned", maxWidth: 100 },
+          () => {
+            events.push("abandoned text");
+          },
+        );
         positionCenteredTextLine(abandoned, 0);
         centerTextBlock(abandoned);
         throw new Error("drawing failed");
@@ -101,6 +121,36 @@ describe("synchronous SVG text layout", () => {
     centerTextBlock(next);
     expect(next.attributes).toEqual({ dy: "19px", y: "-11px" });
     expect(abandoned.attributes).toEqual({});
+  });
+
+  test("finishes shortened text before font and box reads; ordinary edits remain immediate", () => {
+    const { documentObject, element, events } = layoutFixture();
+    const label = element("label", 12);
+    const request = {
+      text: "abcdefghij",
+      maxWidth: 29,
+      additionalTextSpace: 0,
+    };
+    withTextLayoutBatch(documentObject, () => {
+      truncateTextLine(label, request, (value) => events.push(`text:${value}`));
+      positionCenteredTextLine(label, 0);
+      centerTextBlock(label);
+      expect(events).toEqual([]);
+    });
+    expect(events).toEqual([
+      "width:abcdefghij",
+      "width:abcde",
+      "text:ab...",
+      "font:label",
+      "dy:label",
+      "box:label",
+      "y:label",
+    ]);
+    events.length = 0;
+    truncateTextLine(label, { text: "Edit", maxWidth: 100 }, (value) =>
+      events.push(`text:${value}`),
+    );
+    expect(events).toEqual(["width:Edit", "text:Edit"]);
   });
 
   test("fresh styles are measured on every draw, including an ordinary unbatched edit", () => {

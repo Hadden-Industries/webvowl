@@ -1,6 +1,7 @@
 // Canonical application/renderer seam. DTO validation stays with its owning
 // contracts; this declaration carries no renderer or application dependency.
 export const CANONICAL_RENDERED_GRAPH_RUNTIME_METHOD_NAMES = Object.freeze([
+  "layoutInitialTree",
   "replaceCanonicalDrawing",
   "applyCanonicalDrawingRevision",
   "readCanonicalDrawingState",

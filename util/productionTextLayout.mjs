@@ -128,6 +128,7 @@ export async function qualifyProductionTextLayoutControls({
     "Native precision controls use the public FOAF workload",
   );
   await evaluate("__webvowlMeasurement.load()");
+  await evaluate("__webvowlMeasurement.waitForNodeOrdering()");
   await evaluate("__webvowlMeasurement.view({nodesShown:{mode:'all'}})");
   const precision = await evaluate(
     `(${nativeTextPrecisionControl.toString()})()`,
@@ -217,6 +218,7 @@ export async function measureProductionTextLayout({
   }
   report.activeCohort = { index: 0, label: "warmup", warmup: true };
   await measure("B2-load", "__webvowlMeasurement.load()", "warmup", true);
+  await evaluate("__webvowlMeasurement.waitForNodeOrdering()");
   const before = await evaluate("__webvowlMeasurement.state()");
   const count = before.nodeCountStatus.shownNodeCount;
   assert(count > 3);

@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, jest, test } from "@jest/globals";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { SourceTextModule, SyntheticModule } from "node:vm";
-import { color } from "d3";
+import { color, hierarchy, tree } from "d3";
 import { namespaces } from "vowl";
 import { canonicalRuntimeRequestFixture } from "../../../app/test/canonicalRuntimeRequestFixture.js";
 
@@ -51,8 +51,10 @@ async function loadRepositoryModule(moduleUrl) {
       });
     }
     if (specifier === "d3") {
-      return new SyntheticModule(["color"], function () {
+      return new SyntheticModule(["color", "hierarchy", "tree"], function () {
         this.setExport("color", color);
+        this.setExport("hierarchy", hierarchy);
+        this.setExport("tree", tree);
       });
     }
     if (specifier === "vowl") {
@@ -778,6 +780,87 @@ describe("D3 rendered graph adapter", () => {
   });
 
   const replacementRequest = canonicalRuntimeRequestFixture;
+
+  test("fits a fresh drawing once before its accepted paint without starting a camera animation", async () => {
+    const harness = createAdapterHarness();
+    const renderer = harness.renderedGraphInternalsFixture;
+    const fitted = [];
+    renderer.zoomAndCenterGraph = (dynamic, options) => {
+      fitted.push({ dynamic, options });
+      renderer.setViewportTransform(0.25, [200, 150]);
+    };
+    let accepted = false;
+    const mounting = harness.renderedGraphRuntime
+      .replaceCanonicalDrawing({
+        ...replacementRequest(1),
+        fitInitialDrawing: true,
+      })
+      .then(() => {
+        accepted = true;
+      });
+    expect(fitted).toHaveLength(1);
+    expect(fitted[0].options.animate).toBe(false);
+    expect(fitted[0].options.signal.aborted).toBe(false);
+    expect(accepted).toBe(false);
+    harness.renderedGraphTestHarness.completeInitialPaint(1);
+    await mounting;
+    expect(renderer.viewportTransforms.at(-1)).toEqual({
+      scale: 0.25,
+      translation: [200, 150],
+    });
+    const drawing = replacementRequest(1).drawing;
+    harness.renderedGraphRuntime.applyCanonicalDrawingRevision({
+      loadGeneration: 1,
+      baseRevision: 0,
+      documentRevision: 0,
+      drawing,
+    });
+    expect(fitted).toHaveLength(1);
+  });
+
+  test("a retired drawing waiting for geometry cannot perform its initial fit", async () => {
+    const harness = createAdapterHarness();
+    const renderer = harness.renderedGraphInternalsFixture;
+    renderer.isReadyForPaint = () => false;
+    const fit = jest.fn();
+    renderer.zoomAndCenterGraph = fit;
+    const mounting = harness.renderedGraphRuntime.replaceCanonicalDrawing({
+      ...replacementRequest(1),
+      fitInitialDrawing: true,
+    });
+    const outcome = mounting.catch((error) => error.name);
+    harness.renderedGraphRuntime.clearRenderedGraph();
+    expect(await outcome).toBe("AbortError");
+    expect(fit).not.toHaveBeenCalled();
+  });
+
+  test("a reader's camera change while the first geometry is pending wins over automatic fitting", async () => {
+    const harness = createAdapterHarness();
+    const renderer = harness.renderedGraphInternalsFixture;
+    let ready = false;
+    renderer.isReadyForPaint = () => ready;
+    const fit = jest.fn();
+    renderer.zoomAndCenterGraph = fit;
+    const mounting = harness.renderedGraphRuntime.replaceCanonicalDrawing({
+      ...replacementRequest(1),
+      fitInitialDrawing: true,
+    });
+    renderer.setViewportTransform(0.7, [123, 456]);
+    renderer.scaleFactor = () => 0.7;
+    renderer.translation = () => [123, 456];
+    ready = true;
+    harness.renderedGraphTestHarness.completeInitialPaint(1);
+    for (let turn = 0; turn < 6; turn++) {
+      await Promise.resolve();
+    }
+    harness.renderedGraphTestHarness.completeInitialPaint(1);
+    await mounting;
+    expect(fit).not.toHaveBeenCalled();
+    expect(renderer.viewportTransforms.at(-1)).toEqual({
+      scale: 0.7,
+      translation: [123, 456],
+    });
+  });
 
   async function loadGeneration(adapterHarness, generation) {
     const replacementPromise =

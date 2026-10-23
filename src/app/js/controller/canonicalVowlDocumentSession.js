@@ -7,7 +7,13 @@ import {
   createCanonicalVowlInspectionProjection,
   createCanonicalSemanticReferences,
 } from "./canonicalVowlInspectionProjector.js";
-import { profiles, compatibleArtifactProfile } from "vowl";
+import {
+  profiles,
+  compatibleArtifactProfile,
+  DISPLAY_ORDER_KEY_PURPOSE,
+} from "vowl";
+import { deepFreezePlainData } from "./controllerDataContracts.js";
+import { WebVowlOperationError } from "./webVowlControllerContracts.js";
 import { createCanonicalVowlEditorView } from "./canonicalVowlEditorView.js";
 import { createInitialVisualizationRequest } from "./renderedGraphRuntimeContracts.js";
 import {
@@ -33,11 +39,13 @@ function semanticRecords(inspection) {
   return EDITABLE_COLLECTIONS.flatMap((name) => inspection.records[name]);
 }
 
-function readResult(result, revision) {
+function readResult(result, revision, preview = false) {
   if (
     result.inspection?.revision !== revision ||
     result.checkpoint?.revision !== revision ||
-    result.rankingIdentity?.revision !== revision
+    (!preview &&
+      (result.displayOrderKeys?.revision !== revision ||
+        result.displayOrderKeys.purpose !== DISPLAY_ORDER_KEY_PURPOSE))
   ) {
     throw rejected("DOCUMENT_WORKER_RESULT_INVALID");
   }
@@ -47,7 +55,10 @@ function readResult(result, revision) {
     checkpoint: structuredClone(result.checkpoint),
     selectNodes: createCanonicalNodeSelector(
       inspection,
-      result.rankingIdentity,
+      preview
+        ? undefined
+        : deepFreezePlainData(structuredClone(result.displayOrderKeys)),
+      { preview },
     ),
   };
 }
@@ -279,6 +290,25 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
     selectNodes(filters, nodesShown, hidden, options) {
       return loaded().selectNodes(filters, nodesShown, hidden, options);
     },
+    nodeCountStatus() {
+      return loaded().selectNodes.status();
+    },
+    assertNodeOrderingReady() {
+      const status = loaded().selectNodes.status().orderingStatus;
+      if (status === "preparing" || status === "failed") {
+        throw new WebVowlOperationError({
+          code:
+            status === "preparing"
+              ? "NODE_ORDERING_PENDING"
+              : "NODE_ORDERING_UNAVAILABLE",
+          message:
+            status === "preparing"
+              ? "Wait for node count preparation to finish."
+              : "Node count preparation failed. Reload the ontology to retry.",
+          isRetryable: status === "preparing",
+        });
+      }
+    },
     inspectRecords() {
       return structuredClone(loaded().inspection);
     },
@@ -306,11 +336,14 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
      */
     snapshot() {
       const accepted = loaded();
-      const result = {
+      // A literal allocation site's cached shape can retain one of the lazy
+      // getters below, including its old inspection. Use an ordinary object
+      // without that allocation-site feedback; lazy ownership is unchanged.
+      const result = Object.assign(Object.create(Object.prototype), {
         loadGeneration: accepted.generation,
         documentRevision: accepted.revision,
         visualization: accepted.scene.snapshot(),
-      };
+      });
       defineOwnedDocumentField(result, "inspection", accepted.inspection);
       defineOwnedDocumentField(result, "checkpoint", accepted.checkpoint);
       return result;
@@ -518,6 +551,7 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
         renderedGraphRuntime,
         initialVisualization,
         useAutomaticNodesShown = false,
+        onNodeOrdering,
       } = {},
     ) {
       checkOpen();
@@ -533,12 +567,15 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
       const operation = makeOperation(signal);
       loading = operation;
       const loadGeneration = ++generation;
+      let ordering;
+      let installed = false;
       try {
         const result = await workerClient.run(request, {
           loadGeneration,
           baseRevision: 0,
           signal: operation.signal,
           resolveImport,
+          deferNodeOrdering: request.operation === "open-owl-model",
         });
         if (
           disposed ||
@@ -549,7 +586,18 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
         ) {
           throw rejected("LOAD_ABORTED");
         }
-        const candidate = readResult(result, 0);
+        const initialPlacementStarted = performance.now();
+        ordering = result.nodeOrdering;
+        if (
+          ordering &&
+          (request.operation !== "open-owl-model" ||
+            typeof ordering.start !== "function" ||
+            typeof ordering.ready?.then !== "function")
+        ) {
+          throw rejected("DOCUMENT_WORKER_RESULT_INVALID");
+        }
+        const candidate = readResult(result, 0, Boolean(ordering));
+        const seedStarted = performance.now();
         const scene = createCanonicalVowlScene(
           candidate.inspection.occurrences,
           {
@@ -557,8 +605,16 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
             visualization: result.visualization ?? undefined,
             center,
             suppliedPositions,
+            forceDistances: initial.forceDistances,
+            layoutInitialTree: renderedGraphRuntime?.layoutInitialTree,
           },
         );
+        const seedDuration = performance.now() - seedStarted;
+        const fitInitialDrawing =
+          !result.visualization &&
+          !suppliedPositions?.size &&
+          initial.view?.zoomScale === undefined &&
+          initial.view?.translation === undefined;
         const retainedHidden = scene.snapshot().hidden;
         const {
           filters,
@@ -689,6 +745,7 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
                   documentRevision: 0,
                   drawing: projection,
                   layout: initialLayout,
+                  ...(fitInitialDrawing ? { fitInitialDrawing: true } : {}),
                   ...(Object.keys(nativeInitial).length
                     ? { initialVisualization: nativeInitial }
                     : {}),
@@ -696,7 +753,7 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
                 { signal: operation.signal },
               );
               checkCurrent();
-              if (Object.keys(nativeInitial).length) {
+              if (fitInitialDrawing || Object.keys(nativeInitial).length) {
                 const observed =
                   renderedGraphRuntime.readCanonicalDrawingState();
                 scene.arrange(
@@ -711,6 +768,22 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
                 );
                 projection.camera = structuredClone(observed.camera);
               }
+              performance.clearMeasures("webvowl.initial-placement");
+              performance.measure("webvowl.initial-placement", {
+                start: seedStarted,
+                duration: seedDuration,
+                detail: { loadGeneration },
+              });
+              performance.clearMeasures("webvowl.initial-usable-drawing");
+              performance.measure("webvowl.initial-usable-drawing", {
+                start: initialPlacementStarted,
+                end: performance.now(),
+                detail: {
+                  loadGeneration,
+                  layout: initialLayout,
+                  fitInitialDrawing,
+                },
+              });
             } catch (error) {
               try {
                 if (previous && !disposed) {
@@ -741,6 +814,7 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
             }
           }
           checkCurrent();
+          current?.orderingOperation?.abort.abort();
           current = {
             ...candidate,
             generation: loadGeneration,
@@ -749,7 +823,44 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
             records,
             nextRecordToken: records.size,
             ontologyInspection,
+            ...(ordering ? { orderingOperation: operation } : {}),
           };
+          installed = true;
+          if (ordering) {
+            const owner = current;
+            const finish = (outcome) => {
+              if (disposed || current !== owner) {
+                return;
+              }
+              let nodeCountStatus;
+              try {
+                if (outcome.error) {
+                  throw outcome.error;
+                }
+                const keys = outcome.displayOrderKeys;
+                if (
+                  keys?.revision !== owner.revision ||
+                  keys?.purpose !== DISPLAY_ORDER_KEY_PURPOSE
+                ) {
+                  throw rejected("DOCUMENT_WORKER_RESULT_INVALID");
+                }
+                nodeCountStatus = owner.selectNodes.completeOrdering(
+                  deepFreezePlainData(structuredClone(keys)),
+                );
+              } catch {
+                nodeCountStatus = owner.selectNodes.failOrdering();
+              }
+              owner.orderingOperation = undefined;
+              owner.readModel = undefined;
+              onNodeOrdering?.({
+                loadGeneration,
+                documentRevision: owner.revision,
+                nodeCountStatus,
+              });
+            };
+            void ordering.ready.then(finish, (error) => finish({ error }));
+            ordering.start();
+          }
           return Object.assign(this.snapshot(), {
             projection,
             initialLayout,
@@ -771,6 +882,9 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
         );
         return await acceptance;
       } finally {
+        if (!installed) {
+          operation.abort.abort();
+        }
         if (loading === operation) {
           loading = undefined;
         }
@@ -964,6 +1078,7 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
         } finally {
           presenting = false;
         }
+        base.orderingOperation?.abort.abort();
         current = {
           ...base,
           ...candidate,
@@ -973,6 +1088,7 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
           ontologyInspection,
           readModel: undefined,
           ordinaryScene: undefined,
+          orderingOperation: undefined,
         };
         return Object.assign(this.snapshot(), {
           projection,
@@ -1086,6 +1202,7 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
       checkNotPresenting();
       disposed = true;
       loading?.abort.abort();
+      current?.orderingOperation?.abort.abort();
       mutation?.abort.abort();
       for (const capture of captures) {
         capture.abort.abort();

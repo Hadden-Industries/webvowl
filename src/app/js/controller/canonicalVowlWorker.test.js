@@ -58,36 +58,38 @@ test("desktop defaults preserve rejection of malformed caller limit records", as
   expect(getter).not.toHaveBeenCalled();
 });
 
-test("ordinary large named-class ontologies rank by default while explicit smaller budgets still reject", async () => {
+test("display ordering admits large named-class ontologies within the former failing string budget", async () => {
   const request = {
     operation: "open-owl-model",
     documentIri: "urn:ranking-resource-regression",
     mediaType: "text/owl-functional",
-    limits: { deadlineMs: 60000 },
+    limits: { deadlineMs: 60000, totalStringBytes: 16777216 },
     bytes: text.encode(
       `Ontology(<urn:ranking-resource-regression> ${Array.from({ length: 8250 }, (_, i) => `Declaration(Class(<urn:class:${i}>))`).join("\n")})`,
     ),
   };
-  await expect(
-    runCanonicalVowlOperation({
-      ...request,
-      limits: { ...request.limits, totalStringBytes: 16777216 },
-    }),
-  ).rejects.toMatchObject({
-    code: "RDF_RESOURCE_LIMIT",
-    details: {
-      stage: "node-ranking",
-      resource: "totalStringBytes",
-      maximum: 16777216,
-    },
-  });
   const opened = await runCanonicalVowlOperation(request);
   expect(opened.inspection.occurrences).toHaveLength(8250);
-  expect(opened.rankingIdentity.correspondence).toHaveLength(8250);
+  expect(opened.displayOrderKeys.correspondence).toHaveLength(8250);
   expect(
-    new Set(opened.rankingIdentity.correspondence.map(({ current }) => current))
-      .size,
+    new Set(
+      opened.displayOrderKeys.correspondence.map(({ current }) => current),
+    ).size,
   ).toBe(8250);
+  await expect(
+    runCanonicalVowlOperation(
+      {
+        operation: "recover-model",
+        checkpoint: opened.checkpoint,
+        limits: { ...request.limits, rdfQuads: 1 },
+      },
+      undefined,
+      { baseRevision: 0 },
+    ),
+  ).rejects.toMatchObject({
+    code: "RDF_RESOURCE_LIMIT",
+    details: { stage: "node-ranking", resource: "rdfQuads", maximum: 1 },
+  });
 }, 60000);
 
 test("extensionless and misleading acquisition names open RDF/XML through the real worker operation", async () => {
@@ -222,7 +224,11 @@ test("per-operation workers recover live checkpoints and produce separate rankin
     undefined,
     { baseRevision: 0 },
   );
-  expect(changed.rankingIdentity).toEqual({ revision: 1, correspondence: [] });
+  expect(changed.displayOrderKeys).toEqual({
+    purpose: "display-order-v1",
+    revision: 1,
+    correspondence: [],
+  });
   expect(changed.inspection.revision).toBe(1);
   expect(changed.inspection.records.roles).toEqual([]);
   expect(checkpoint).toEqual(opened.checkpoint);
@@ -368,6 +374,155 @@ function harness() {
   });
   return { workers, client };
 }
+
+test("preview delivery keeps one worker alive until the drawing starts background ordering", async () => {
+  const { client, workers } = harness();
+  const pending = client.run(
+    { ...owlRequest, operation: "open-owl-model" },
+    { ...context, deferNodeOrdering: true },
+  );
+  const worker = workers[0];
+  const sent = worker.messages[0];
+  expect(sent.deferNodeOrdering).toBe(true);
+  await worker.onmessage({
+    data: { ...sent, type: "preview", result: { inspection: { revision: 0 } } },
+  });
+  const preview = await pending;
+  expect(preview.inspection.revision).toBe(0);
+  expect(worker.terminate).not.toHaveBeenCalled();
+  expect(worker.messages).toHaveLength(1);
+  preview.nodeOrdering.start();
+  preview.nodeOrdering.start();
+  expect(worker.messages).toHaveLength(2);
+  expect(worker.messages[1]).toMatchObject({
+    ...context,
+    type: "continue-ordering",
+    requestId: sent.requestId,
+  });
+  const keys = { revision: 0, correspondence: [] };
+  await worker.onmessage({
+    data: {
+      ...sent,
+      loadGeneration: 999,
+      type: "result",
+      result: { displayOrderKeys: keys },
+    },
+  });
+  expect(worker.terminate).not.toHaveBeenCalled();
+  await worker.onmessage({
+    data: { ...sent, type: "result", result: { displayOrderKeys: keys } },
+  });
+  expect(await preview.nodeOrdering.ready).toEqual({ displayOrderKeys: keys });
+  expect(worker.terminate).toHaveBeenCalledTimes(1);
+  client.dispose();
+});
+
+test.each(["abort", "dispose", "failure", "duplicate-preview"])(
+  "a %s after preview retires its worker and resolves the background failure",
+  async (kind) => {
+    const { client, workers } = harness();
+    const abort = new AbortController();
+    const pending = client.run(
+      { ...owlRequest, operation: "open-owl-model" },
+      { ...context, signal: abort.signal, deferNodeOrdering: true },
+    );
+    const worker = workers[0];
+    const sent = worker.messages[0];
+    await worker.onmessage({ data: { ...sent, type: "preview", result: {} } });
+    const preview = await pending;
+    if (kind === "abort") {
+      abort.abort();
+    } else if (kind === "dispose") {
+      client.dispose();
+    } else {
+      await worker.onmessage({
+        data: {
+          ...sent,
+          type: kind === "failure" ? "failure" : "preview",
+          failure: { code: "RDF_RESOURCE_LIMIT" },
+        },
+      });
+    }
+    expect(await preview.nodeOrdering.ready).toMatchObject({
+      error: {
+        code:
+          kind === "failure"
+            ? "RDF_RESOURCE_LIMIT"
+            : kind === "duplicate-preview"
+              ? "CANONICAL_WORKER_FAILED"
+              : "LOAD_ABORTED",
+      },
+    });
+    preview.nodeOrdering.start();
+    expect(worker.messages).toHaveLength(1);
+    expect(worker.terminate).toHaveBeenCalledTimes(1);
+    client.dispose();
+  },
+);
+
+test("an unsolicited preview cannot turn a one-result operation into a retained worker", async () => {
+  const { client, workers } = harness();
+  const pending = client.run(owlRequest, context);
+  await workers[0].onmessage({
+    data: { ...workers[0].messages[0], type: "preview", result: {} },
+  });
+  await expect(pending).rejects.toMatchObject({
+    code: "CANONICAL_WORKER_FAILED",
+  });
+  expect(workers[0].terminate).toHaveBeenCalledTimes(1);
+  client.dispose();
+});
+
+test("the worker sends admitted preview data once and waits for the drawing before computing keys", async () => {
+  const originalPost = globalThis.postMessage;
+  const originalHandler = globalThis.onmessage;
+  const messages = [];
+  let previewReady;
+  const preview = new Promise((resolve) => {
+    previewReady = resolve;
+  });
+  globalThis.postMessage = (message) => {
+    messages.push(message);
+    if (message.type === "preview") {
+      previewReady(message);
+    }
+  };
+  try {
+    const { handleCanonicalVowlWorkerMessage } =
+      await import("./canonicalVowlWorker.js");
+    const jobContext = { requestId: 1, loadGeneration: 1, baseRevision: 0 };
+    const run = handleCanonicalVowlWorkerMessage({
+      data: {
+        type: "run",
+        ...jobContext,
+        deferNodeOrdering: true,
+        request: { ...owlRequest, operation: "open-owl-model" },
+      },
+    });
+    const early = await preview;
+    expect(early.result.inspection.revision).toBe(0);
+    expect(early.result.checkpoint.revision).toBe(0);
+    expect(early.result.displayOrderKeys).toBeUndefined();
+    await handleCanonicalVowlWorkerMessage({
+      data: { type: "continue-ordering", ...jobContext, loadGeneration: 2 },
+    });
+    expect(messages).toHaveLength(1);
+    await handleCanonicalVowlWorkerMessage({
+      data: { type: "continue-ordering", ...jobContext },
+    });
+    await run;
+    expect(messages.map(({ type }) => type)).toEqual(["preview", "result"]);
+    expect(messages[1].result.displayOrderKeys).toMatchObject({
+      revision: 0,
+      purpose: "display-order-v1",
+    });
+    expect(messages[1].result.inspection).toBeUndefined();
+    expect(messages[1].result.checkpoint).toBeUndefined();
+  } finally {
+    globalThis.postMessage = originalPost;
+    globalThis.onmessage = originalHandler;
+  }
+});
 
 test("checkpoint transport serializes once and cancellation leaves the accepted recovery state intact", async () => {
   const { client, workers } = harness();
@@ -727,31 +882,19 @@ test.each([
   }
 });
 
-test("the desktop profile admits an ordinary hierarchy without overriding a tighter work limit", async () => {
+test("display ordering admits an ordinary hierarchy within the former failing work limit", async () => {
   const request = {
     operation: "open-owl-model",
     documentIri: "urn:hierarchy-resource-regression",
     mediaType: "text/owl-functional",
+    limits: { embeddedValues: 1500000 },
     bytes: text.encode(
       `Ontology(<urn:hierarchy-resource-regression> ${Array.from({ length: 5000 }, (_, i) => `Declaration(Class(<urn:hierarchy:C${i}>))${i ? ` SubClassOf(<urn:hierarchy:C${i}> <urn:hierarchy:C${i - 1}>)` : ""}`).join("\n")})`,
     ),
   };
-  await expect(
-    runCanonicalVowlOperation({
-      ...request,
-      limits: { embeddedValues: 1500000 },
-    }),
-  ).rejects.toMatchObject({
-    code: "RDF_RESOURCE_LIMIT",
-    details: {
-      stage: "node-ranking",
-      resource: "embeddedValues",
-      maximum: 1500000,
-    },
-  });
   const opened = await runCanonicalVowlOperation(request);
   expect(opened.inspection.records.roles).toHaveLength(5000);
-  expect(opened.rankingIdentity.correspondence).toHaveLength(14998);
+  expect(opened.displayOrderKeys.correspondence).toHaveLength(5000);
 }, 60000);
 
 test("whole-job deadline terminates an unresponsive worker", async () => {

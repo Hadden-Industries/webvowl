@@ -133,6 +133,38 @@ async function flush() {
   }
 }
 
+test.each(["preparing", "failed"])(
+  "%s ordering disables count inputs with an accessible status",
+  async (orderingStatus) => {
+    const { controls, onChange, control } = setup();
+    try {
+      control.renderNodeCountStatus(
+        { shownNodeCount: 50, eligibleNodeCount: 109, orderingStatus },
+        { mode: "auto" },
+      );
+      for (const name of ["range", "exact", "minus", "plus", "fifty"]) {
+        expect(controls[name].disabled).toBe(true);
+      }
+      expect(controls.status.hidden).toBe(false);
+      expect(controls.status.textContent).toMatch(
+        orderingStatus === "preparing" ? /Preparing/ : /Reload/,
+      );
+      controls.plus.dispatchEvent(new Event("click"));
+      await flush();
+      expect(onChange).not.toHaveBeenCalled();
+      control.renderNodeCountStatus(
+        { shownNodeCount: 50, eligibleNodeCount: 109, orderingStatus: "ready" },
+        { mode: "auto" },
+      );
+      expect(controls.range.disabled).toBe(false);
+      expect(controls.exact.disabled).toBe(false);
+      expect(controls.status.hidden).toBe(true);
+    } finally {
+      control.dispose();
+    }
+  },
+);
+
 test("a range burst spanning animation frames does not apply intermediate counts", async () => {
   const { controls, onChange, control, advance } = setup();
   try {

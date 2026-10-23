@@ -245,6 +245,7 @@ export async function measureProductionRendererReuse({
   const c = "__webvowlMeasuredApplication.getWebVowlController()";
   const probe = "__webvowlReuseProbe";
   await evaluate("__webvowlMeasurement.load()");
+  await evaluate("__webvowlMeasurement.waitForNodeOrdering()");
   await evaluate(`${c}.setGraphLayoutPaused({isPaused:true})`);
   await evaluate(`${c}.setVisualizationView({nodesShown:{mode:'all'}})`);
   await evaluate("document.fonts.ready.then(() => true)");

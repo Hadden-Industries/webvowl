@@ -12,6 +12,10 @@ import { validateGraph, validateMeaning } from "./validateGraph.js";
 import { validateProjection, validateArtifact } from "./projection.js";
 import { issueIds } from "./internalRdf.js";
 import { refineDataset } from "./refinedRdf.js";
+import {
+  DISPLAY_ORDER_KEY_PURPOSE,
+  prepareDisplayOrderKeys,
+} from "./displayOrderKeys.js";
 import { compareBytes, jsonBytes, orderSets } from "./canonicalJson.js";
 import { parseBytes } from "./lexicalJson.js";
 import { takeOperationBudget } from "./operationBudget.js";
@@ -46,16 +50,18 @@ export {
 } from "./profiles.js";
 export { dataRangeKinds } from "./modelContract.js";
 export { operationLimitPolicy } from "./resourceBudget.js";
+export { DISPLAY_ORDER_KEY_PURPOSE };
 const admitted = new WeakMap();
 const admittedModels = new WeakSet();
 
-function rememberModel(result) {
+function rememberModel(result, budget) {
+  budget.check();
   admittedModels.add(result.model);
   return result;
 }
 
 registerOwlAdmission(inspectModel, (source, archive, documentIri, budget) =>
-  rememberModel(openOwlState(source, archive, documentIri, budget)),
+  rememberModel(openOwlState(source, archive, documentIri, budget), budget),
 );
 
 function requireModel(model) {
@@ -261,6 +267,7 @@ export async function openCanonical(document, options) {
   try {
     return rememberModel(
       await openCanonicalState(document, encode(document), budget),
+      budget,
     );
   } finally {
     budget.dispose();
@@ -278,7 +285,7 @@ export async function editModel(model, changes, options) {
   const budget = new ResourceBudget(opts, performance.now());
   try {
     requireModel(model);
-    return rememberModel(editLiveModel(model, changes, budget));
+    return rememberModel(editLiveModel(model, changes, budget), budget);
   } finally {
     budget.dispose();
   }
@@ -351,13 +358,37 @@ export async function readModelRankingIdentity(model, options) {
     // producer's qualified refinement to bound symmetric RDF work, without
     // admitting an artifact or including appearance and qualifications in keys.
     const issued = await issueIds(source, budget, { refine: refineDataset });
-    return deepFreeze({
+    const result = deepFreeze({
       revision: model.revision,
       correspondence: state.structural.occurrences.map(({ id }) => ({
         previous: id,
         current: issued.get(id),
       })),
     });
+    budget.check();
+    return result;
+  } finally {
+    budget.dispose();
+  }
+}
+
+/** Purpose-specific display ordering; never semantic, renderer or export identity. */
+export async function readModelDisplayOrderKeys(model, options) {
+  const opts = optionRecord(options, ["limits", "signal"]);
+  const budget = new ResourceBudget(opts, performance.now());
+  try {
+    const state = requireModel(model);
+    const correspondence = await prepareDisplayOrderKeys(
+      state.structural,
+      budget,
+    );
+    const result = deepFreeze({
+      purpose: DISPLAY_ORDER_KEY_PURPOSE,
+      revision: model.revision,
+      correspondence,
+    });
+    budget.check();
+    return result;
   } finally {
     budget.dispose();
   }
@@ -368,7 +399,9 @@ export async function checkpointModel(model, options) {
   const budget = new ResourceBudget(opts, performance.now());
   try {
     requireModel(model);
-    return checkpointLiveModel(model, budget);
+    const result = checkpointLiveModel(model, budget);
+    budget.check();
+    return result;
   } finally {
     budget.dispose();
   }
@@ -390,7 +423,7 @@ export async function readmitModel(checkpoint, options) {
   const opts = optionRecord(options, ["limits", "signal"]);
   const budget = new ResourceBudget(opts, performance.now());
   try {
-    return rememberModel(await readmitLiveModel(checkpoint, budget));
+    return rememberModel(await readmitLiveModel(checkpoint, budget), budget);
   } finally {
     budget.dispose();
   }

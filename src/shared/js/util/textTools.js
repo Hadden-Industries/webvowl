@@ -20,42 +20,45 @@ tools.withMeasurementBatch = function (
     return draw();
   }
   const cache = new Map();
-  const probes = [];
   measurementBatches.set(documentObject, cache);
   try {
-    try {
-      for (const request of requests) {
-        const text = String(request.text ?? "");
-        const textStyle = request.textStyle || "text";
-        let widths = cache.get(textStyle);
-        if (!widths) {
-          widths = new Map();
-          cache.set(textStyle, widths);
-        }
-        if (widths.has(text)) {
-          continue;
-        }
-        widths.set(text, undefined);
-        const probe = createMeasurementProbe(text, textStyle, documentObject);
-        probes.push({ probe, widths, text });
-        documentObject.body.appendChild(probe);
-      }
-      // No writes between these reads: one native layout can serve the batch.
-      for (const { probe, widths, text } of probes) {
-        widths.set(text, probe.offsetWidth);
-      }
-    } finally {
-      for (const { probe } of probes) {
-        probe.remove();
-      }
-      probes.length = 0;
-    }
+    primeWidths(requests, cache, documentObject);
     return draw();
   } finally {
     measurementBatches.delete(documentObject);
     cache.clear();
   }
 };
+
+function primeWidths(requests, cache, documentObject) {
+  const probes = [];
+  try {
+    for (const request of requests) {
+      const text = String(request.text ?? "");
+      const textStyle = request.textStyle || "text";
+      let widths = cache.get(textStyle);
+      if (!widths) {
+        widths = new Map();
+        cache.set(textStyle, widths);
+      }
+      if (widths.has(text)) {
+        continue;
+      }
+      widths.set(text, undefined);
+      const probe = createMeasurementProbe(text, textStyle, documentObject);
+      probes.push({ probe, widths, text });
+      documentObject.body.appendChild(probe);
+    }
+    // No writes between these reads: one native layout can serve the batch.
+    for (const { probe, widths, text } of probes) {
+      widths.set(text, probe.offsetWidth);
+    }
+  } finally {
+    for (const { probe } of probes) {
+      probe.remove();
+    }
+  }
+}
 
 function createMeasurementProbe(text, textStyle, documentObject) {
   const probe = documentObject.createElement("div");
@@ -99,13 +102,7 @@ function measureTextWidth(
 
 tools.measureTextWidth = measureTextWidth;
 
-tools.truncate = function (
-  text,
-  maxWidth,
-  textStyle,
-  additionalTextSpace,
-  documentObject = globalThis.document,
-) {
+function* truncationSteps(text, maxWidth, additionalTextSpace) {
   maxWidth -= isNaN(additionalTextSpace)
     ? ADDITIONAL_TEXT_SPACE
     : additionalTextSpace;
@@ -119,7 +116,7 @@ tools.truncate = function (
     ratio;
 
   while (true) {
-    textWidth = measureTextWidth(truncatedText, textStyle, documentObject);
+    textWidth = yield truncatedText;
     if (textWidth <= maxWidth) {
       break;
     }
@@ -139,6 +136,59 @@ tools.truncate = function (
     return text.substring(0, truncatedText.length - 3) + "...";
   }
   return text;
+}
+
+tools.truncate = function (
+  text,
+  maxWidth,
+  textStyle,
+  additionalTextSpace,
+  documentObject = globalThis.document,
+) {
+  const steps = truncationSteps(text, maxWidth, additionalTextSpace);
+  let step = steps.next();
+  while (!step.done) {
+    step = steps.next(measureTextWidth(step.value, textStyle, documentObject));
+  }
+  return step.value;
+};
+
+/** Run the same shortening algorithm in native-measurement rounds before SVG text writes. */
+tools.truncateBatch = function (
+  requests,
+  documentObject = globalThis.document,
+) {
+  return tools.withMeasurementBatch(
+    [],
+    () => {
+      const cache = measurementBatches.get(documentObject);
+      const rows = requests.map(
+        ({ text, maxWidth, textStyle, additionalTextSpace }) => {
+          const steps = truncationSteps(text, maxWidth, additionalTextSpace);
+          return { steps, textStyle, step: steps.next() };
+        },
+      );
+      let pending = rows.filter(({ step }) => !step.done);
+      while (pending.length) {
+        primeWidths(
+          pending.map(({ step, textStyle }) => ({
+            text: step.value,
+            textStyle,
+          })),
+          cache,
+          documentObject,
+        );
+        for (const row of pending) {
+          row.step = row.steps.next(
+            measureTextWidth(row.step.value, row.textStyle, documentObject),
+          );
+        }
+        pending = pending.filter(({ step }) => !step.done);
+      }
+      return rows.map(({ step }) => step.value);
+    },
+    documentObject,
+  );
 };
 
 export function createTextTools() {

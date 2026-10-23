@@ -2091,9 +2091,7 @@ function createGraph(
     if (!reuse) {
       drawingPresentation = undefined;
     }
-    return withTextLayoutBatch(graphContainer.node().ownerDocument, () =>
-      drawContent(reuse),
-    );
+    return drawContent(reuse);
   }
 
   function drawContent(reuse) {
@@ -2131,7 +2129,10 @@ function createGraph(
     }
     return textTools.withMeasurementBatch(
       requests,
-      () => drawMeasuredContent(reuse),
+      () =>
+        withTextLayoutBatch(graphContainer.node().ownerDocument, () =>
+          drawMeasuredContent(reuse),
+        ),
       graphContainer.node().ownerDocument,
     );
   }
@@ -3691,7 +3692,11 @@ function createGraph(
     return [pos_intp, cx, cy];
   };
 
-  graph.zoomAndCenterGraph = function (dynamic, { signal } = {}) {
+  graph.zoomAndCenterGraph = function (
+    dynamic,
+    { signal, animate = true } = {},
+  ) {
+    signal?.throwIfAborted();
     if (!graphContainer || !graphContainer.node()) {
       return;
     }
@@ -3701,7 +3706,9 @@ function createGraph(
     halos.classed("hidden", false);
 
     // get the graph coordinates
-    const bboxOffset = 50; // default radius of a node;
+    // Preserve the interactive framing convention. The first complete drawing
+    // instead fits the actual bounds, without subtracting its outer glyphs.
+    const bboxOffset = animate ? 50 : 0;
     const topLeft = getWorldPosFromScreen(
       bbox.left,
       bbox.top,
@@ -3764,6 +3771,13 @@ function createGraph(
     }
     if (newZoomFactor < zoom.scaleExtent()[0]) {
       newZoomFactor = zoom.scaleExtent()[0];
+    }
+
+    if (!animate) {
+      return graph.setViewportTransform(newZoomFactor, [
+        cx - posX * newZoomFactor,
+        cy - posY * newZoomFactor,
+      ]);
     }
 
     // apply Zooming

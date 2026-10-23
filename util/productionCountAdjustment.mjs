@@ -123,6 +123,7 @@ export async function measureProductionCountAdjustment({
   const controller = "__webvowlMeasuredApplication.getWebVowlController()";
   if (!functional) await idle("count-workload-load");
   await evaluate("__webvowlMeasurement.load()");
+  await evaluate("__webvowlMeasurement.waitForNodeOrdering()");
   const initial = await evaluate("__webvowlMeasurement.state()");
   const total = initial.nodeCountStatus.shownNodeCount;
   assert(total > 4);
@@ -146,8 +147,13 @@ export async function measureProductionCountAdjustment({
   }
   // An established drawing is distinct from a paused load before its first ticks.
   report.countAdjustment.precondition =
-    initialLayout === "fresh-paused"
-      ? { kind: "fresh paused drawing before first force ticks" }
+    initialLayout !== "settled"
+      ? {
+          kind:
+            initialLayout === "fresh-running"
+              ? "fresh ordinary running drawing, reloaded before each count operation"
+              : "fresh paused drawing before first force ticks",
+        }
       : await evaluate(`(async () => {
     const controller = ${controller};
     const start = performance.now();
@@ -162,11 +168,32 @@ export async function measureProductionCountAdjustment({
   })()`);
   for (const { label: cohort, index, warmup } of schedule) {
     report.activeCohort = { index, label: cohort, warmup };
-    for (const paused of [false, true]) {
+    for (const paused of initialLayout === "fresh-running"
+      ? [false]
+      : [false, true]) {
       for (const finish of ["quiet", "dismiss"]) {
-        await evaluate(
-          `${controller}.setGraphLayoutPaused({isPaused:${paused}})`,
-        );
+        let operationInitial = initial;
+        if (initialLayout === "fresh-running") {
+          await measure(
+            "B3-fresh-running-load",
+            "__webvowlMeasurement.load({running:true})",
+            cohort,
+            warmup,
+          );
+          await evaluate("__webvowlMeasurement.waitForNodeOrdering()");
+          const state = await evaluate("__webvowlMeasurement.state()");
+          operationInitial = state;
+          assert.equal(
+            state.layout.status,
+            "relaxing",
+            "Fresh count proof must begin before natural settlement",
+          );
+        }
+        if (initialLayout !== "fresh-running") {
+          await evaluate(
+            `${controller}.setGraphLayoutPaused({isPaused:${paused}})`,
+          );
+        }
         const current = await evaluate("__webvowlMeasurement.prepareSlider()");
         const target = current === total ? total - 1 : total;
         const direction = target < current ? -1 : 1;
@@ -222,8 +249,11 @@ export async function measureProductionCountAdjustment({
         assert.equal(row.state.nodeCountStatus.shownNodeCount, target);
         assert.equal(row.state.nodeCountAdjustment, null);
         assert.equal(row.state.layout.status, paused ? "paused" : "relaxing");
-        assert.equal(row.state.loadGeneration, initial.loadGeneration);
-        assert.equal(row.state.documentRevision, initial.documentRevision);
+        assert.equal(row.state.loadGeneration, operationInitial.loadGeneration);
+        assert.equal(
+          row.state.documentRevision,
+          operationInitial.documentRevision,
+        );
         report.countAdjustment.samples.push({
           cohort,
           index,

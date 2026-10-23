@@ -5,6 +5,8 @@ import { createCanonicalVowlDocumentSession } from "./canonicalVowlDocumentSessi
 import { runCanonicalVowlOperation } from "./canonicalVowlWorkerOperations.js";
 import { createCanonicalVowlSourceAcquisition } from "./canonicalVowlSourceAcquisition.js";
 import { createVisualizationViewApplicationRequest } from "./renderedGraphRuntimeContracts.js";
+import { WebVowlOperationError } from "./webVowlControllerContracts.js";
+import { createWebMcpToolDispatch } from "../webmcp/webMcpToolContracts.js";
 
 function deferred() {
   let resolve, reject;
@@ -41,7 +43,7 @@ function setup() {
         nodeCountStatus: {
           eligibleNodeCount: 0,
           shownNodeCount: 0,
-          nodeRankingPolicyVersion: "connected-sqrt-v1",
+          nodeRankingPolicyVersion: "connected-sqrt-display-v1",
         },
       };
       return accepted;
@@ -51,7 +53,7 @@ function setup() {
       nodeCountStatus: {
         eligibleNodeCount: 0,
         shownNodeCount: 0,
-        nodeRankingPolicyVersion: "connected-sqrt-v1",
+        nodeRankingPolicyVersion: "connected-sqrt-display-v1",
       },
     }),
     snapshot: () => accepted,
@@ -86,6 +88,73 @@ function setup() {
     emit: (event) => listener(event),
   };
 }
+
+test("background ordering updates only its current document and count commands share the readiness guard", async () => {
+  const { controller, session, load } = setup();
+  await load("urn:first");
+  const callback = session.load.mock.calls[0][1].onNodeOrdering;
+  const status = {
+    ...controller.getState().nodeCountStatus,
+    orderingStatus: "preparing",
+  };
+  callback({ loadGeneration: 1, documentRevision: 0, nodeCountStatus: status });
+  expect(controller.getState().nodeCountStatus.orderingStatus).toBe(
+    "preparing",
+  );
+  session.assertNodeOrderingReady = () => {
+    throw new WebVowlOperationError({
+      code: "NODE_ORDERING_PENDING",
+      message: "Wait for node count preparation to finish.",
+      isRetryable: true,
+    });
+  };
+  expect(() =>
+    controller.stageNodeCountAdjustment({ mode: "exact", requestedCount: 51 }),
+  ).toThrow(expect.objectContaining({ code: "NODE_ORDERING_PENDING" }));
+  await expect(
+    controller.setVisualizationView({ nodesShown: { mode: "all" } }),
+  ).rejects.toMatchObject({ code: "NODE_ORDERING_PENDING" });
+  const dispatch = createWebMcpToolDispatch({ webVowlController: controller });
+  expect(
+    await dispatch.callWebMcpTool("get_visualization_state", {}),
+  ).toMatchObject({
+    isSuccess: true,
+    toolResult: { nodeCountStatus: { orderingStatus: "preparing" } },
+  });
+  expect(
+    await dispatch.callWebMcpTool("set_visualization_view", {
+      nodesShown: { mode: "all" },
+    }),
+  ).toMatchObject({
+    isSuccess: false,
+    error: { code: "NODE_ORDERING_PENDING", isRetryable: true },
+  });
+  session.assertNodeOrderingReady = () => {
+    throw new WebVowlOperationError({
+      code: "NODE_ORDERING_UNAVAILABLE",
+      message: "Node count preparation failed. Reload the ontology to retry.",
+    });
+  };
+  expect(
+    await dispatch.callWebMcpTool("set_visualization_view", {
+      nodesShown: { mode: "all" },
+    }),
+  ).toMatchObject({
+    isSuccess: false,
+    error: { code: "NODE_ORDERING_UNAVAILABLE", isRetryable: false },
+  });
+  callback({
+    loadGeneration: 1,
+    documentRevision: 0,
+    nodeCountStatus: { ...status, orderingStatus: "ready" },
+  });
+  expect(controller.getState().nodeCountStatus.orderingStatus).toBe("ready");
+  await load("urn:second");
+  callback({ loadGeneration: 1, documentRevision: 0, nodeCountStatus: status });
+  expect(controller.getState().loadGeneration).toBe(2);
+  expect(controller.getState().nodeCountStatus.orderingStatus).toBeUndefined();
+  controller.dispose();
+});
 
 test("visualization mode events preserve node-count intent for UI subscribers", async () => {
   const { controller, load, emit } = setup();
@@ -266,12 +335,17 @@ test("the candidate controller preserves selection through rename and focuses ne
     drawing = request;
   };
   runtime.readCanonicalDrawingState = () => {
-    const snapshot = session.snapshot();
     return {
-      loadGeneration: snapshot.loadGeneration,
-      documentRevision: snapshot.documentRevision,
-      placements: snapshot.visualization.placements,
-      camera: snapshot.visualization.camera,
+      loadGeneration: drawing.loadGeneration,
+      documentRevision: drawing.documentRevision,
+      placements: [...drawing.drawing.nodes, ...drawing.drawing.labels].map(
+        ({ occurrence, position, pinned }) => ({
+          occurrence,
+          position,
+          pinned,
+        }),
+      ),
+      camera: drawing.drawing.camera,
     };
   };
   runtime.readVisibleRenderedGraphSnapshot = () => ({

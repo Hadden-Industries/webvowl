@@ -9,8 +9,9 @@ export function semanticKey(
   budget,
   normalizeSets = false,
 ) {
+  budget?.check();
   function key(item, shape) {
-    budget?.check();
+    budget?.poll();
     const resolved = descriptorFor(item, shape, "");
     if (resolved?.reference) {
       return reference(item);
@@ -45,5 +46,7 @@ export function semanticKey(
     }
     return item;
   }
-  return jsonKey(key(value, descriptor));
+  const result = jsonKey(key(value, descriptor));
+  budget?.check();
+  return result;
 }

@@ -1,8 +1,47 @@
 import { runInNewContext } from "node:vm";
+import { jest } from "@jest/globals";
 import {
   installProductionLifetimeProbe,
   measureProductionLifetime,
+  observeWorkerRetirement,
 } from "./productionLifetime.mjs";
+
+test("worker retirement retains a delayed browser observation and its convergence", async () => {
+  jest.useFakeTimers();
+  try {
+    let reads = 0;
+    const pending = observeWorkerRetirement(async () => ({
+      targetInfos: reads++ ? [] : [{ type: "worker", targetId: "retiring" }],
+    }));
+    await jest.runAllTimersAsync();
+    const result = await pending;
+    expect(result.workers).toBe(0);
+    expect(result.workerRetirement.observations).toEqual([
+      { elapsedMs: 0, targetIds: ["retiring"] },
+      { elapsedMs: 25, targetIds: [] },
+    ]);
+  } finally {
+    jest.useRealTimers();
+  }
+});
+
+test("a worker surviving the bounded teardown observation remains a failure", async () => {
+  jest.useFakeTimers();
+  try {
+    const pending = observeWorkerRetirement(async () => ({
+      targetInfos: [{ type: "worker", targetId: "leaked" }],
+    }));
+    await jest.runAllTimersAsync();
+    const result = await pending;
+    expect(result.workers).toBe(1);
+    expect(result.workerRetirement.observations.at(-1)).toEqual({
+      elapsedMs: 1000,
+      targetIds: ["leaked"],
+    });
+  } finally {
+    jest.useRealTimers();
+  }
+});
 
 test("lifetime probe restores freeze and holds unread results only for its positive control", () => {
   const result = runInNewContext(`

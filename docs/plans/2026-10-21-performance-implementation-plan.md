@@ -1,6 +1,6 @@
 # WebVOWL performance implementation plan
 
-> **Status:** Approved delivery plan; revision 16 records the owner's bounded initial-layout planning follow-up after final performance/UI source delivery on 23 October 2026.
+> **Status:** Approved delivery plan; revision 17 records the owner's bounded initial-layout implementation approval after final performance/UI source delivery on 23 October 2026.
 > The final repaired source passed 9,930 tests in 172 suites and the full repository check.
 > Substantive external/security review of the delivered implementation is complete with no unresolved source finding; numerical foreground acceptance remains unqualified, and native HISEW evidence-admission limits remain explicitly recorded.
 > The owner accepted PERF-DEC-012 revision 2, option A: implement batched count adjustment and bounded renderer reuse now.
@@ -15,7 +15,7 @@
 
 After the [programme closeout](2026-10-23-programme-closeout.md), the owner chose to keep PR #85 in draft and plan a bounded initial-layout improvement, with manual platform acceptance still pending.
 The [follow-up plan](2026-10-23-initial-layout-improvement-plan.md) proposes SLICE-010–012 and PERF-DEC-013 against closeout source `302fb27516ae60553bc8b4bd4cde1c34b2cf9c3b`.
-Planning is authorized; its implementation envelope and proposed targets are not yet approved.
+The owner approved PERF-DEC-013 option A and its numerical targets: compare initial spacing/topology seeds, integrate the simplest successful strategy and frame eligible fresh loads once, preserving the solver and scheduling.
 Original B3/B4/B5 and small-input guards remain binding, and retained measurements are not relabeled as complete acceptance.
 
 On 21 October 2026, the owner accepted all recommendations in the decision walkthrough and approved the performance plan.
