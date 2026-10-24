@@ -9,7 +9,6 @@ import {
   fixtureBundle,
   storageFormat,
 } from "../conformance/storage.mjs";
-import { verifyCorpusStorage } from "../scripts/verify-corpus-storage.mjs";
 
 const member =
   "supplemental/field-contract/negative/storage-control/source.json";
@@ -40,14 +39,6 @@ function writeBundle(artifacts) {
   writeFileSync(path, JSON.stringify({ format: storageFormat, artifacts }));
   return createCorpusReader(pathToFileURL(directory + sep));
 }
-
-test("the complete relocated corpus retains its inventory and has no loose duplicates", () => {
-  expect(verifyCorpusStorage()).toEqual({
-    artifacts: 7227,
-    bundles: 64,
-    looseCopies: 0,
-  });
-});
 
 test.each([
   [

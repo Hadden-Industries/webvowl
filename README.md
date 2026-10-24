@@ -142,22 +142,29 @@ The engine remains an isolated development tool.
 The shared package owns the generated acquisition bootstrap, isolated export guard and installed-payload checks.
 Update the bootstrap through `jsonQualityAcquisitionBootstrap()` rather than editing parallel consumer implementations.
 The consumer test also rejects bootstrap drift.
-`npm run check:json:inventory` reports scope and resolved contracts without validating document contents.
+`npm run inspect:json -- --json` runs complete checks and streams their inventory and outcomes.
 `npm run check:json` checks bytes, strict syntax, duplicate and meaningful keys, numeric and Unicode interoperability, all-string NFC and presentation.
-`-- --json` requests schema-version-4 machine results; capacity flags such as `-- --max-files 100000` and `-- --no-capacity-limits` override shared capacity controls without weakening semantic checks.
-Policy and object API overrides use `capacityLimits`; explicit `false` disables every shared capacity check, and individual numeric overrides cannot be combined with that bypass.
+`-- --json` requests cohort-2 newline-delimited events; only the final `execution-terminal` closes repository obligations.
+Capacity flags such as `-- --max-files 100000` and `-- --no-capacity-limits` override admission controls without weakening semantic checks.
+Policy and object API admission overrides use `capacityLimits`; explicit `false` removes those admission ceilings, while finite `runtimeControls` still govern managed memory, scratch, depth, elapsed time and concurrency.
 The generated acquisition bootstrap accepts `JSON_QUALITY_CAPACITY_LIMITS` and separate `JSON_QUALITY_CLEANUP` retry options.
 
-`npm run format:json:check` delegates to `format --check`; the existing `check:json:producers` npm script delegates to `check --scope protected`.
-The object API uses `runJsonQuality("format", { check: true })` and `runJsonQuality("check", { scope: "protected" })` respectively.
-Literal file selection follows `--`; JSON-encoded selection is `--files '["path.json"]'`, corresponding to API `files` for every operation.
-Normalization requires a nonempty file selection.
-Supplied-document formatting uses `format --request - --json` or `formatJsonDocument(request, options)`; `--check` / `check: true` verifies without changing the supplied bytes.
-Retired JSON API operations `check-format` / `check-protected`, `sourcePaths`, JSON CLI `--files-json` / `--stdin-request` / `--no-limits`, and export `processJsonDocument` have no compatibility aliases.
+`npm run format:json:check` delegates to complete `check`; protected inputs receive their presentation checks in the same run.
+The repository adapter exposes `openRepositoryJsonSession()`; consume its `events()` and close it in `finally`.
+Literal writer selection follows `--`.
+Checking always covers the complete owned repository scope.
+Normalization requires a nonempty writable file selection.
+Supplied bytes use `openJsonSourceSession()` with a trusted source opener and source contract.
+Finite pure transformations use `formatJsonSource(text)` or `normalizeJsonSource(text)`; file replacement remains a separate guarded repository operation.
+Aggregate results, request/response envelopes and protected-scope/check-only formatting flags have been retired without compatibility aliases.
 Markdown-tool CLI names remain governed by its own installed package.
 
 All owned physical JSON is checked by default, including untracked and ignored generated files.
-The adapter independently verifies corpus storage and adds every inventory-declared bundled JSON member; JSONL is checked per record.
+The adapter streams all 5,851 inventory-declared bundled JSON members from captured containers; JSONL is checked per record.
+Native linked-source admission verifies exact selected payload identities and applies the same JSON rules.
+`npm run check:corpus-storage` separately verifies all 7,227 corpus members, 64 bundles, JSON locators and absence of obsolete loose copies.
+The JSON adapter does not decode N-Quads, repeat that audit or require sorted arrays.
+Both JSON quality and corpus storage are required CI jobs, including application-evidence reuse and documentation-only runs.
 `npm run check:json -- --require-generated` additionally requires current Vite JSON outputs.
 The [policy](.json-quality.json) lists only explicit exceptions, each with an owner and reason.
 External installations and named local state are scope boundaries; `.mcp.json` remains checked.

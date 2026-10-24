@@ -59,6 +59,7 @@ function needs(full = "true") {
     tooling: { result: full === "true" ? "success" : "skipped" },
     documentation: { result: "success" },
     json: { result: "success" },
+    corpus: { result: "success" },
   };
 }
 
@@ -105,6 +106,15 @@ test.each(["true", "false"])(
       jobs.json.result = result;
       expect(() => requireChecks(jobs)).toThrow(/JSON/);
     }
+  },
+);
+
+test.each(["failure", "cancelled", "skipped", undefined])(
+  "corpus storage cannot be omitted or replaced by application proof: %s",
+  (result) => {
+    const jobs = needs("false");
+    jobs.corpus.result = result;
+    expect(() => requireChecks(jobs)).toThrow(/corpus storage/);
   },
 );
 
@@ -219,6 +229,7 @@ function proofFixture(full = true, now = Date.parse("2026-10-09T12:10:00Z")) {
     ["Markdown checks", "success"],
     ["JSON quality (ubuntu-24.04)", "success"],
     ["JSON quality (windows-2025)", "success"],
+    ["Corpus storage", "success"],
     ["WebVOWL application", "success"],
   ].map(([name, conclusion]) => ({
     name,
@@ -506,6 +517,7 @@ test.each(["application", "tooling", "documentation"])(
       tooling: { result: "skipped" },
       documentation: { result: "skipped" },
       json: { result: "success" },
+      corpus: { result: "success" },
     };
     checks[job].result = "success";
     expect(() => requireChecks(checks)).toThrow(`Unexpected ${job} result`);

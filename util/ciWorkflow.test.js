@@ -121,6 +121,7 @@ function runGate(overrides = {}, command = gate.run) {
             result: overrides.DOCUMENTATION_RESULT ?? "success",
           },
           json: { result: overrides.JSON_RESULT ?? "success" },
+          corpus: { result: overrides.CORPUS_RESULT ?? "success" },
         }),
       },
       encoding: "utf8",
@@ -165,6 +166,23 @@ test("JSON checking executes on both platforms even for documentation-only or re
   expect(commands).toContain("npm run install:json");
   expect(commands).toContain("npm run build:bundle");
   expect(commands).toContain("npm run check:json -- --require-generated");
+});
+
+test.each(["failure", "cancelled", "skipped", ""])(
+  "the required gate rejects a %s corpus storage job",
+  (result) => {
+    expect(runGate({ CORPUS_RESULT: result })).not.toBe(0);
+  },
+);
+
+test("corpus storage executes independently of JSON and application scope reuse", () => {
+  const corpus = workflow.jobs.corpus;
+  expect(corpus.if).toBeUndefined();
+  expect(workflow.jobs.required.needs).toContain("corpus");
+  expect(corpus.steps.map((step) => step.run).filter(Boolean)).toEqual([
+    "node --test util/corpusStorage.probes.mjs",
+    "node packages/vowl/scripts/verify-corpus-storage.mjs",
+  ]);
 });
 
 test.each(["failure", "cancelled", "skipped", ""])(

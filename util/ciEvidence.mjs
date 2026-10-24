@@ -13,6 +13,7 @@ const checkNames = (full) => ({
     : ["Python tooling (${{ matrix.os }})"],
   documentation: ["Markdown checks"],
   json: ["JSON quality (ubuntu-24.04)", "JSON quality (windows-2025)"],
+  corpus: ["Corpus storage"],
   required: ["WebVOWL application"],
 });
 const sha = (value) =>
@@ -53,6 +54,7 @@ function expectedResults(full) {
     tooling: full ? "success" : "skipped",
     documentation: "success",
     json: "success",
+    corpus: "success",
     required: "success",
   };
 }
@@ -73,6 +75,10 @@ export function requireChecks(needs) {
   requireFact(
     needs.json?.result === "success",
     "Fresh JSON checks did not succeed",
+  );
+  requireFact(
+    needs.corpus?.result === "success",
+    "Fresh corpus storage checks did not succeed",
   );
   if (reused) {
     requireFact(
