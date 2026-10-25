@@ -1,9 +1,9 @@
 # Architecture, performance and UI closeout
 
 Date: 23 October 2026.
-The ordered implementation is published on `feat/architecture-performance-ui` and consolidated in [draft PR #85](https://github.com/Hadden-Industries/webvowl/pull/85).
+The ordered implementation is published on `feat/architecture-performance-ui` and consolidated in [PR #85](https://github.com/Hadden-Industries/webvowl/pull/85).
 Architecture, performance and UI source delivery are complete at their recorded checkpoints; this follow-up removes the viewport zoom restriction and makes the remaining acceptance limits explicit.
-The PR remains draft pending the owner's acceptance disposition.
+On 25 October 2026 the owner authorized repairing CI and normally merging the PR after the required checks pass; the actual-platform acceptance batch remains unrun.
 No deployment or change to the legacy force algorithm is included.
 
 ## Zoom and automated accessibility
@@ -133,3 +133,20 @@ W6 replacement of a running graph remains slower at 5.487 seconds p95; W4's 200-
 These distinct outcomes update the evidence without completing programme acceptance.
 The manual packet now also includes announcement/focus behavior while count preparation transitions from disabled to available.
 This follow-up is source delivery to the existing draft PR, with no merge, deployment or complete programme acceptance claim.
+
+## CI repair and merge authorization, 25 October 2026
+
+The owner authorized fixing the failing CI and a normal merge of PR #85 when those checks pass.
+This supersedes the earlier draft-only delivery instruction, while preserving the manual packet's unrun status and the accepted active-frame cadence limitation documented in the [rendering follow-up](2026-10-24-active-graph-performance-follow-up.md).
+It does not authorize deployment or establish device and assistive-technology results.
+
+At head `9510bbebc1a97f3d85fcc0929ce9d68c6120ec69`, Ubuntu's application and JSON jobs failed during JSON Quality installation because the pinned Git dependency's lock integrity did not identify an available npm cache archive.
+Windows installation succeeded, but its complete corpus test exhausted the default 120-second aggregate check deadline.
+The original failures remain recorded in [CI run 40173928213](https://github.com/Hadden-Industries/webvowl/actions/runs/40173928213).
+
+The JSON Quality registry migration was separately approved by the owner on 24 October in Codex thread `01a165ac-9451-7c30-813a-c81e5f34223e`.
+WebVOWL now selects the published `@hadden-industries/json-quality@1.0.0-rc.1` and its exact optional native platform packages through a native npm-generated lockfile.
+The producer's matching acquisition bootstrap forbids Git dependencies for this isolated JSON installation and retains installed-payload verification.
+All seven local JSON integration tests pass with this release, including the independent 5,851-document corpus census in 79.4 seconds; this local result does not establish hosted Windows timing.
+The owner approved a five-minute aggregate JSON check deadline on 25 October.
+The single `runtimeControls.maxCheckTimeMs` setting in `.json-quality.json` applies to both API tests and CLI checks; all document coverage, validation and other limits remain unchanged.

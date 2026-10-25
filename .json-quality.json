@@ -1,5 +1,8 @@
 {
   "schemaVersion": 2,
+  "runtimeControls": {
+    "maxCheckTimeMs": 300000
+  },
   "defaults": {
     "formatContract": "prettier-json",
     "allowFormatWrites": true,
