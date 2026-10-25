@@ -4,6 +4,7 @@ import { DOMImplementation, XMLSerializer } from "@xmldom/xmldom";
 import { beforeAll, expect, jest, test } from "@jest/globals";
 import { readFileSync } from "node:fs";
 import { canonicalControllerHarness } from "../../../app/test/canonicalControllerHarness.js";
+import { createCanonicalDrawingRequest } from "../../../app/js/controller/renderedGraphRuntimeContracts.js";
 
 const createdDragBehaviours = [];
 const createdSimulations = [];
@@ -57,9 +58,29 @@ function mountGraph(canonicalDrawing) {
   function enhance(element) {
     // Match DOM pre-insert's node === reference step; xmldom otherwise corrupts
     // its child list. See https://dom.spec.whatwg.org/#concept-node-pre-insert.
-    const insertBefore = element.insertBefore.bind(element);
+    const prototype = document.documentElement.constructor.prototype;
+    const insertBefore = prototype.insertBefore.bind(element);
     element.insertBefore = (node, reference) =>
       insertBefore(node, reference === node ? node.nextSibling : reference);
+    // Native clones copy markup, not expando methods bound to the source.
+    // xmldom copies those methods while walking, which can mutate its source
+    // through our insertBefore shim. Clone markup into fresh fixture elements.
+    element.cloneNode = function (deep) {
+      const clone = document.createElementNS(this.namespaceURI, this.nodeName);
+      for (const attribute of this.attributes) {
+        clone.setAttributeNS(
+          attribute.namespaceURI,
+          attribute.name,
+          attribute.value,
+        );
+      }
+      if (deep) {
+        for (const child of this.childNodes) {
+          clone.appendChild(child.cloneNode(true));
+        }
+      }
+      return clone;
+    };
     if (element.localName === "svg") {
       element.width = { baseVal: { value: 800 } };
       element.height = { baseVal: { value: 600 } };
@@ -236,6 +257,167 @@ function mountCanonicalGraph(drawing = CANONICAL_DRAWING) {
   return mountGraph(drawing);
 }
 
+test("a fresh running drawing keeps its prepared geometry until initial paint", () => {
+  const h = mountCanonicalGraph();
+  try {
+    h.graph.setRenderedGraphEventPort({ publishGraphLayoutState: jest.fn() });
+    h.graph.editorMode(false);
+    const drawing = structuredClone(CANONICAL_DRAWING);
+    drawing.nodes[0].pinned = false;
+    const completeInitialPaint = h.graph.load(1, {
+      canonicalDrawing: drawing,
+      isPaused: false,
+      prepareInitialDrawing: true,
+    });
+    const before = h.graph.readLayoutState().layoutElementPositions;
+    d3.timerFlush();
+    expect(h.graph.readLayoutState().layoutElementPositions).toEqual(before);
+    expect(h.graph.readLayoutState().isPaused).toBe(false);
+    expect(h.graph.readLayoutState().hasEnded).toBe(false);
+    completeInitialPaint();
+    d3.timerFlush();
+    expect(h.graph.readLayoutState().layoutElementPositions).not.toEqual(
+      before,
+    );
+    const resume = jest.spyOn(createdSimulations.at(-1), "resume");
+    completeInitialPaint();
+    expect(resume).not.toHaveBeenCalled();
+  } finally {
+    h.dispose();
+  }
+});
+
+test.each(["pause", "retire", "replace"])(
+  "%s before initial paint prevents the old drawing from starting layout",
+  (action) => {
+    const h = mountCanonicalGraph();
+    try {
+      h.graph.editorMode(false);
+      const drawing = structuredClone(CANONICAL_DRAWING);
+      drawing.nodes[0].pinned = false;
+      const completeInitialPaint = h.graph.load(1, {
+        canonicalDrawing: drawing,
+        isPaused: false,
+        prepareInitialDrawing: true,
+      });
+      if (action === "pause") {
+        h.graph.paused(true);
+      }
+      if (action === "retire") {
+        h.graph.retireRenderGeneration();
+      }
+      if (action === "replace") {
+        h.graph.load(2, {
+          canonicalDrawing: structuredClone(CANONICAL_DRAWING),
+          isPaused: true,
+        });
+      }
+      const resume = jest.spyOn(createdSimulations.at(-1), "resume");
+      completeInitialPaint();
+      expect(resume).not.toHaveBeenCalled();
+    } finally {
+      h.dispose();
+    }
+  },
+);
+
+test("fresh placement leaves the requested class distance outside actual glyph radii", () => {
+  const h = mountCanonicalGraph();
+  try {
+    const drawing = structuredClone(CANONICAL_DRAWING);
+    drawing.nodes[0].pinned = false;
+    drawing.nodes.push({
+      ...structuredClone(drawing.nodes[0]),
+      occurrence: "b",
+      targets: ["record:b"],
+      principal: {
+        ...drawing.nodes[0].principal,
+        record: "record:b",
+        name: "B",
+      },
+      position: { x: 130, y: 40 },
+    });
+    h.graph.setForceLayoutDistances({ classDistancePx: 200 });
+    h.graph.load(2, {
+      canonicalDrawing: drawing,
+      isPaused: true,
+      prepareInitialDrawing: true,
+    });
+    const [a, b] = h.graph.readLayoutState().layoutElementPositions;
+    expect(Math.hypot(a.x - b.x, a.y - b.y) - 50 - 50).toBeGreaterThanOrEqual(
+      200,
+    );
+  } finally {
+    h.dispose();
+  }
+});
+
+test("owned drawing admission survives runtime changes without another full copy", () => {
+  const source = reuseDrawing();
+  const admitted = createCanonicalDrawingRequest({
+    loadGeneration: 1,
+    documentRevision: 0,
+    layout: "pause",
+    drawing: source,
+  });
+  const h = mountGraph();
+  const clone = jest.spyOn(globalThis, "structuredClone");
+  const drawingCopies = () =>
+    clone.mock.calls.filter(
+      ([value]) => value?.camera && Array.isArray(value.nodes),
+    );
+  try {
+    h.graph.load(1, { canonicalDrawing: admitted.drawing, isPaused: true });
+    expect(drawingCopies()).toHaveLength(0);
+    source.nodes[0].position.x = 9999;
+    source.labels[0].name = "caller mutation";
+    expect(admitted.drawing.nodes[0].position.x).toBe(30);
+    expect(h.graph.readCanonicalDrawingState().placements).toContainEqual({
+      occurrence: "a",
+      position: { x: 30, y: 40 },
+      pinned: true,
+    });
+
+    const revision = createCanonicalDrawingRequest(
+      {
+        loadGeneration: 1,
+        documentRevision: 0,
+        baseRevision: 0,
+        drawing: withoutOccurrences(admitted.drawing, ["c"]),
+      },
+      { revision: true },
+    );
+    clone.mockClear();
+    h.graph.applyCanonicalDrawingRevision(revision.drawing, {
+      sameRevision: true,
+    });
+    expect(drawingCopies()).toHaveLength(0);
+    h.graph.applyArrangement([
+      { rendererKey: "node:a", xPx: 75, yPx: -90, isPinned: true },
+    ]);
+    expect(revision.drawing.nodes[0].position).toEqual({ x: 30, y: 40 });
+    const previous = h.graph.readCanonicalDrawingState();
+    const transform = jest
+      .spyOn(h.graph, "setViewportTransform")
+      .mockImplementationOnce(() => {
+        throw new Error("owned drawing publication failed");
+      });
+    clone.mockClear();
+    expect(() =>
+      h.graph.applyCanonicalDrawingRevision(admitted.drawing, {
+        sameRevision: true,
+      }),
+    ).toThrow("owned drawing publication failed");
+    expect(drawingCopies()).toHaveLength(1);
+    expect(h.graph.readCanonicalDrawingState()).toEqual(previous);
+    expect(revision.drawing.nodes[0].position).toEqual({ x: 30, y: 40 });
+    transform.mockRestore();
+  } finally {
+    clone.mockRestore();
+    h.dispose();
+  }
+});
+
 test("a visibility-only revision retains unaffected primitives, DOM and force references", () => {
   const drawing = {
     ...CANONICAL_DRAWING,
@@ -368,6 +550,63 @@ function rendererObservation(graph, document, simulation) {
   };
 }
 
+test.each([
+  [false, false],
+  [true, false],
+  [false, true],
+  [true, true],
+])(
+  "batched drawing preserves projection and SVG in editor mode %s with invisible labels %s",
+  (editor, invisibleLabels) => {
+    const run = (batched) => {
+      const drawing = reuseDrawing();
+      if (invisibleLabels) {
+        drawing.edges = drawing.edges
+          .filter((edge) => edge.occurrence === "bc")
+          .map((edge) => ({ ...edge, kind: "operator-edge" }));
+        drawing.labels = [];
+      }
+      const h = mountCanonicalGraph(drawing);
+      const simulation = createdSimulations.at(-1);
+      const clock = jest.spyOn(performance, "now").mockReturnValue(0);
+      let steps = 0;
+      let drawings = 0;
+      try {
+        h.graph.setRenderedGraphEventPort({ publishGraphLayoutState() {} });
+        h.graph.editorMode(editor);
+        h.graph.paused(false);
+        simulation.on("step.proof", () => steps++);
+        simulation.on("tick.proof", () => {
+          drawings++;
+          if (batched) {
+            simulation.stop();
+          }
+        });
+        if (batched) {
+          d3.timerFlush();
+        } else {
+          simulation.stop();
+          if (invisibleLabels) {
+            // Legacy drawing never projected labels without a rendered group.
+            expect(h.document.querySelectorAll(".labelGroup")).toHaveLength(0);
+            simulation.on("step", null);
+          }
+          for (let i = 0; i < 2; i++) {
+            simulation.tick();
+          }
+        }
+        expect(steps).toBe(2);
+        expect(drawings).toBe(batched ? 1 : 2);
+        return rendererObservation(h.graph, h.document, simulation);
+      } finally {
+        clock.mockRestore();
+        h.dispose();
+      }
+    };
+    expect(run(true)).toEqual(run(false));
+  },
+);
+
 test.each(["paused", "running", "settled"])(
   "%s visibility changes agree with full rebuilding, including parallel links, loops and force ticks",
   (mode) => {
@@ -443,14 +682,16 @@ test.each(["before", "enter", "update", "exit", "finish"])(
     try {
       const simulation = createdSimulations.at(-1);
       const expected = rendererObservation(h.graph, h.document, simulation);
-      const next = withoutOccurrences(drawing, ["c"]);
+      let next = withoutOccurrences(drawing, ["c"]);
       let spy;
       if (phase === "before") {
         next.camera.zoom = Infinity;
       }
       if (phase === "enter") {
         h.graph.applyCanonicalDrawingRevision(next, { sameRevision: true });
-        Object.assign(next, drawing);
+        // As at the adapter boundary, a later request owns a separate drawing.
+        // The accepted drawing remains unchanged while recovery is exercised.
+        next = structuredClone(drawing);
         const create = h.document.createElementNS;
         spy = jest
           .spyOn(h.document, "createElementNS")
@@ -610,6 +851,239 @@ test("drawing installs one hover binding per node, then refreshes retained nodes
     expect(bindings(first)).toBe(3);
     expect(bindings(h.document.querySelector("#c"))).toBe(1);
   } finally {
+    h.dispose();
+  }
+});
+
+test("visibility reuse retains subclass stacking without moving already ordered labels", () => {
+  const drawing = reuseDrawing();
+  drawing.edges[0].kind = "subclass-edge";
+  drawing.edges[2].kind = "subclass-edge";
+  const h = mountCanonicalGraph(drawing);
+  try {
+    const container = h.document.querySelector(".labelContainer");
+    const groups = () => Array.from(container.childNodes);
+    const order = () =>
+      groups().map((group) => d3.select(group).datum().property().id());
+    expect(order()).toEqual([
+      "label:loop",
+      "label:ab",
+      "label:parallel",
+      "label:bc",
+    ]);
+    const retained = groups().slice(0, 3);
+    const insert = jest.spyOn(container, "insertBefore");
+    h.graph.applyCanonicalDrawingRevision(withoutOccurrences(drawing, ["c"]), {
+      sameRevision: true,
+    });
+    expect(order()).toEqual(["label:loop", "label:ab", "label:parallel"]);
+    groups().forEach((group, index) => expect(group).toBe(retained[index]));
+    expect(insert).not.toHaveBeenCalled();
+
+    // Hover may foreground a label. The next revision must restore the same
+    // subclass-below-property order, including a newly visible property.
+    container.appendChild(retained[1]);
+    h.graph.applyCanonicalDrawingRevision(drawing, { sameRevision: true });
+    expect(order()).toEqual([
+      "label:loop",
+      "label:ab",
+      "label:parallel",
+      "label:bc",
+    ]);
+    groups()
+      .slice(0, 3)
+      .forEach((group, index) => expect(group).toBe(retained[index]));
+  } finally {
+    h.dispose();
+  }
+});
+
+test.each([0.25, 1, 2])(
+  "click jitter does not move or reheat a node at zoom %s",
+  (zoom) => {
+    const h = mountCanonicalGraph();
+    try {
+      h.graph.setViewportTransform(zoom, [0, 0]);
+      const node = h.graph.getUnfilteredData().nodes[0];
+      const element = h.graph.graphNodeElements().node();
+      const simulation = createdSimulations.at(-1);
+      const resume = jest.spyOn(simulation, "resume");
+      const original = [node.x, node.y, node.px, node.py, node.fx, node.fy];
+      const event = (phase, dx = 0, dy = 0) => ({
+        identifier: "mouse",
+        x: original[0] + dx / zoom,
+        y: original[1] + dy / zoom,
+        sourceEvent: {
+          type: phase,
+          clientX: 100 + dx,
+          clientY: 100 + dy,
+          view: h.document.defaultView,
+          stopPropagation() {},
+        },
+      });
+      h.drag.on("start").call(element, event("mousedown"), node);
+      expect(node.locked()).toBe(false);
+      for (const [dx, dy] of [
+        [1, 0],
+        [4, 3],
+        [6, 0],
+      ]) {
+        h.drag.on("drag").call(element, event("mousemove", dx, dy), node);
+        expect([node.x, node.y, node.px, node.py, node.fx, node.fy]).toEqual(
+          original,
+        );
+      }
+      h.drag.on("end").call(element, event("mouseup", 6), node);
+      expect(node.focused()).toBe(true);
+      expect(resume).not.toHaveBeenCalled();
+    } finally {
+      h.dispose();
+    }
+  },
+);
+
+test("native drag subject preserves the node-to-pointer offset", () => {
+  const h = mountCanonicalGraph();
+  try {
+    const node = h.graph.getUnfilteredData().nodes[0];
+    expect(h.drag.subject()({ x: 300, y: 200 }, node)).toBe(node);
+  } finally {
+    h.dispose();
+  }
+});
+
+test.each([0.25, 2])(
+  "deliberate drag stays active after returning inside the threshold at zoom %s",
+  (zoom) => {
+    const h = mountCanonicalGraph();
+    try {
+      h.graph.setViewportTransform(zoom, [0, 0]);
+      const node = h.graph.getUnfilteredData().nodes[0];
+      const element = h.graph.graphNodeElements().node();
+      const original = [node.x, node.y];
+      const event = (type, dx) => ({
+        identifier: "mouse",
+        x: original[0] + dx / zoom,
+        y: original[1],
+        sourceEvent: {
+          type,
+          clientX: 100 + dx,
+          clientY: 100,
+          view: h.document.defaultView,
+          stopPropagation() {},
+        },
+      });
+      h.drag.on("start").call(element, event("mousedown", 0), node);
+      h.drag.on("drag").call(element, event("mousemove", 7), node);
+      expect([node.x, node.y]).toEqual([original[0] + 7 / zoom, original[1]]);
+      expect(node.locked()).toBe(true);
+      h.drag.on("drag").call(element, event("mousemove", 2), node);
+      expect([node.x, node.y]).toEqual([original[0] + 2 / zoom, original[1]]);
+      h.drag.on("end").call(element, event("mouseup", 2), node);
+      expect(node.focused()).toBe(false);
+      expect(node.locked()).toBe(false);
+    } finally {
+      h.dispose();
+    }
+  },
+);
+
+test("cancelled touch below the threshold neither selects nor moves", () => {
+  const h = mountCanonicalGraph();
+  try {
+    const node = h.graph.getUnfilteredData().nodes[0];
+    const element = h.graph.graphNodeElements().node();
+    const original = [node.x, node.y];
+    const event = (type, x) => ({
+      identifier: 7,
+      x: original[0] + x - 100,
+      y: original[1],
+      sourceEvent: {
+        type,
+        changedTouches: [
+          { identifier: 8, clientX: 500, clientY: 500 },
+          { identifier: 7, clientX: x, clientY: 100 },
+        ],
+        stopPropagation() {},
+      },
+    });
+    h.drag.on("start").call(element, event("touchstart", 100), node);
+    h.drag.on("drag").call(element, event("touchmove", 102), node);
+    h.drag.on("end").call(element, event("touchcancel", 102), node);
+    expect([node.x, node.y]).toEqual(original);
+    expect(node.focused()).toBe(false);
+    expect(node.locked()).toBe(false);
+  } finally {
+    h.dispose();
+  }
+});
+
+test("drag scheduling follows overlapping pointers, cancellation and revision ownership", () => {
+  const h = mountCanonicalGraph(reuseDrawing());
+  const now = jest.spyOn(performance, "now").mockReturnValue(0);
+  try {
+    h.graph.setRenderedGraphEventPort({ publishGraphLayoutState() {} });
+    const simulation = createdSimulations.at(-1);
+    const node = h.graph.getUnfilteredData().nodes[0];
+    const dom = h.document.querySelector("#a");
+    const drag = h.drag;
+    let steps = 0;
+    simulation.on("step.proof", () => steps++);
+    function frameSteps() {
+      steps = 0;
+      simulation.resume();
+      d3.timerFlush();
+      simulation.stop();
+      return steps;
+    }
+    function gesture(behaviour, phase, identifier, type) {
+      const clientX = phase === "drag" ? 108 : 100;
+      behaviour.on(phase).call(
+        dom,
+        {
+          identifier,
+          x: node.x + (phase === "drag" ? 8 : 0),
+          y: node.y,
+          sourceEvent: {
+            type,
+            clientX,
+            clientY: 100,
+            ...(typeof identifier === "number"
+              ? { changedTouches: [{ identifier, clientX, clientY: 100 }] }
+              : {}),
+            view: h.document.defaultView,
+            stopPropagation() {},
+          },
+        },
+        node,
+      );
+    }
+    expect(frameSteps()).toBe(2);
+    gesture(drag, "start", "mouse", "mousedown");
+    expect(frameSteps()).toBe(2);
+    gesture(drag, "drag", "mouse", "mousemove");
+    expect(frameSteps()).toBe(1);
+    gesture(drag, "start", 7, "touchstart");
+    gesture(drag, "drag", 7, "touchmove");
+    gesture(drag, "end", "mouse", "mouseup");
+    expect(frameSteps()).toBe(1);
+    gesture(drag, "end", 7, "touchcancel");
+    expect(frameSteps()).toBe(2);
+    gesture(drag, "start", 8, "touchstart");
+    gesture(drag, "drag", 8, "touchmove");
+    h.graph.applyCanonicalDrawingRevision(reuseDrawing(), {
+      sameRevision: true,
+    });
+    expect(frameSteps()).toBe(2);
+    const currentDrag = createdDragBehaviours.at(-1);
+    gesture(currentDrag, "start", 8, "touchstart");
+    gesture(currentDrag, "drag", 8, "touchmove");
+    gesture(drag, "end", 8, "touchend");
+    expect(frameSteps()).toBe(1);
+    h.graph.retireRenderGeneration();
+    expect(frameSteps()).toBe(2);
+  } finally {
+    now.mockRestore();
     h.dispose();
   }
 });
@@ -1124,10 +1598,22 @@ test("keeps both editor circles attached while dragging a paused class", () => {
     const initialTransforms = [add, remove].map((element) =>
       element.getAttribute("transform"),
     );
-    drag
-      .on("start")
-      .call(nodeElement, { sourceEvent: { stopPropagation: jest.fn() } }, node);
-    drag.on("drag").call(nodeElement, { x: 130, y: 240 }, node);
+    drag.on("start").call(
+      nodeElement,
+      {
+        sourceEvent: { clientX: 100, clientY: 100, stopPropagation: jest.fn() },
+      },
+      node,
+    );
+    drag.on("drag").call(
+      nodeElement,
+      {
+        x: 130,
+        y: 240,
+        sourceEvent: { clientX: 200, clientY: 300, stopPropagation: jest.fn() },
+      },
+      node,
+    );
     expect(node.x).toBe(130);
     expect(node.y).toBe(240);
     for (const [index, element] of [add, remove].entries()) {

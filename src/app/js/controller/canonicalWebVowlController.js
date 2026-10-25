@@ -788,6 +788,20 @@ export function createCanonicalWebVowlController({
       });
       ticket.assertCurrent();
       session.synchronizeDrawing(runtime.readCanonicalDrawingState());
+      if (nativeView.layout !== undefined) {
+        // Pausing stops the ticks that normally publish layout status. Read
+        // the actual state after paint, including any newer explicit choice.
+        const layout = runtime.readGraphLayoutSnapshot();
+        publish({
+          layout: layoutState(
+            layout.isPaused
+              ? "paused"
+              : layout.hasEnded
+                ? "settled"
+                : "relaxing",
+          ),
+        });
+      }
       if (requestedNodesShown !== undefined) {
         performance.clearMeasures("webvowl.node-count-interaction");
         performance.measure("webvowl.node-count-interaction", {

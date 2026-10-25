@@ -985,11 +985,17 @@ export function createD3RenderedGraphAdapter(dependencies) {
             initial.forceDistances,
           );
         }
-        renderedGraphInternals.load(candidate.loadGeneration, {
-          canonicalDrawing: candidate.drawing,
-          isPaused: candidate.layout === "pause",
-          centerViewport: false,
-        });
+        const completeInitialPaint = renderedGraphInternals.load(
+          candidate.loadGeneration,
+          {
+            canonicalDrawing: candidate.drawing,
+            isPaused: candidate.layout === "pause",
+            centerViewport: false,
+            ...(candidate.fitInitialDrawing
+              ? { prepareInitialDrawing: true }
+              : {}),
+          },
+        );
         installCanonicalBindings(bindings);
         if (
           initial.view?.zoomScale !== undefined ||
@@ -1044,6 +1050,7 @@ export function createD3RenderedGraphAdapter(dependencies) {
         installCanonicalBindings(bindings);
         canonicalDisplay = candidate.drawing.display ?? null;
         canonicalLabelSelection = candidate.drawing.labelSelection ?? null;
+        completeInitialPaint?.();
         return Object.freeze({
           loadGeneration: candidate.loadGeneration,
           documentRevision: candidate.documentRevision,
@@ -1506,11 +1513,15 @@ export function createD3RenderedGraphAdapter(dependencies) {
       // The reader comes from the document the graph is drawn in, so the
       // export resolves the styles that document actually applies.
       const liveWindowObject = liveSvgRoot.ownerDocument?.defaultView;
-      const detachedSvgRoot = createRenderedSvgExportClone(
-        liveSvgRoot,
-        liveWindowObject?.getComputedStyle?.bind(liveWindowObject),
-        viewportDimensions,
-      );
+      const cloneLiveDrawing = () =>
+        createRenderedSvgExportClone(
+          liveSvgRoot,
+          liveWindowObject?.getComputedStyle?.bind(liveWindowObject),
+          viewportDimensions,
+        );
+      const detachedSvgRoot = renderedGraphInternals.withLiveSvgDrawing
+        ? renderedGraphInternals.withLiveSvgDrawing(cloneLiveDrawing)
+        : cloneLiveDrawing();
 
       return createRenderedSvgSnapshot({
         loadGeneration: snapshotRequest.loadGeneration,

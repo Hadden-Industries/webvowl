@@ -57,6 +57,7 @@ function validateStructure(structural, budget) {
   );
   const context = validateMeaning(source, graph, budget);
   validateProjection(source, context, budget);
+  return context.support;
 }
 
 function identity(structural, budget) {
@@ -95,15 +96,15 @@ function relabel(structural, budget) {
 
 function admit(state, budget, archive) {
   state = snapshotSource(state, budget);
-  validateStructure(state.structural, budget);
-  return publishValidatedState(state, budget, archive);
+  const assertionSupport = validateStructure(state.structural, budget);
+  return publishValidatedState(state, budget, archive, assertionSupport);
 }
 
 /**
  * Publish privately owned state only after its structure has been validated.
  * This local control-flow invariant cannot be supplied by a checkpoint/caller.
  */
-function publishValidatedState(state, budget, archive) {
+function publishValidatedState(state, budget, archive, assertionSupport) {
   budget.check();
   if (state.qualifications) {
     validateQualifications(state, budget);
@@ -112,7 +113,7 @@ function publishValidatedState(state, budget, archive) {
   deepFreeze(state);
   budget.check();
   models.set(model, state);
-  inspections.set(model, inspection(state, archive, budget));
+  inspections.set(model, inspection(state, archive, budget, assertionSupport));
   if (archive) {
     archives.set(model, archive);
   }
@@ -243,17 +244,22 @@ export function openOwlState(source, archive, documentIri, budget) {
   });
 }
 
-function inspection(state, archive, budget) {
+function inspection(state, archive, budget, assertionSupport) {
   budget.check();
   const { occurrences, ...records } = state.structural;
   const index = new Map(
     allRecords(state.structural).map((record) => [record.id, record]),
   );
-  const { support } = createAssertionSupportLookup(
-    state.structural,
-    (id) => index.get(id),
-    budget,
-  );
+  // Admission just derived this lookup from this exact owned structural tree.
+  // Reuse it only within that publication; checkpoint recovery builds its own
+  // lookup after its final snapshot, so no lookup outlives or crosses ownership.
+  const support =
+    assertionSupport ??
+    createAssertionSupportLookup(
+      state.structural,
+      (id) => index.get(id),
+      budget,
+    ).support;
   const signature = new Map(
     records.roles.map((role) => [
       // json-identity-contract: ordered-tuple; owner: VOWL live role index; reason: Validated subject IRI and role-kind scalars form the same ordered lookup tuple.

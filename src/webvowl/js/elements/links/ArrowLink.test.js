@@ -82,4 +82,68 @@ describe("arrow links", () => {
     expect(inversePath.attr("class")).toContain("white");
     expect(inversePath.attr("d")).toBe("M0,0L12,-8L12,8Z");
   });
+
+  test("repeated arrows initialize fixed geometry once but own separate marker state", () => {
+    const document = new DOMImplementation().createDocument(
+      SVG_NAMESPACE,
+      "svg",
+      null,
+    );
+    const svg = d3.select(document.documentElement);
+    const defs = svg.append("defs");
+    const geometryWrites = [];
+    const prototype = document.documentElement.constructor.prototype;
+    const set = prototype.setAttribute;
+    const spy = jest
+      .spyOn(prototype, "setAttribute")
+      .mockImplementation(function (name, value) {
+        if (name === "viewBox") {
+          geometryWrites.push(value);
+        }
+        return set.call(this, name, value);
+      });
+    try {
+      const first = createProperty();
+      const second = createProperty({
+        markerId: () => "marker-property-2",
+        markerType: () => "white",
+      });
+      for (const property of [first, second]) {
+        const link = new ArrowLink(
+          createNode("domain"),
+          createNode("range"),
+          property,
+        );
+        link.draw(svg.append("g"), defs);
+      }
+      const [a, b] = Array.from(defs.node().getElementsByTagName("marker"));
+      expect(a).not.toBe(b);
+      expect(a.firstChild).not.toBe(b.firstChild);
+      expect(a.__data__).toBe(first);
+      expect(a.firstChild.__data__).toBe(first);
+      expect(b.__data__).toBe(second);
+      expect(b.firstChild.__data__).toBe(second);
+      a.firstChild.setAttribute("class", "filled hovered");
+      a.setAttribute("refX", "99");
+      expect(b.firstChild.getAttribute("class")).toBe("white");
+      expect(b.getAttribute("refX")).toBe("0");
+      expect(first.markerElement.mock.calls[0][0].node()).toBe(a);
+      expect(second.markerElement.mock.calls[0][0].node()).toBe(b);
+      const third = createProperty({ markerId: () => "marker-property-3" });
+      new ArrowLink(createNode("domain"), createNode("range"), third).draw(
+        svg.append("g"),
+        defs,
+      );
+      const c = defs.node().lastChild;
+      expect(c.getAttribute("refX")).toBe("0");
+      expect(c.firstChild.getAttribute("class")).toBe("filled");
+      expect(c.firstChild.__data__).toBe(third);
+      expect(geometryWrites).toEqual(["-14 -10 28 20"]);
+      expect(
+        drawLink(createProperty()).defs.node().firstChild.ownerDocument,
+      ).not.toBe(document);
+    } finally {
+      spy.mockRestore();
+    }
+  });
 });

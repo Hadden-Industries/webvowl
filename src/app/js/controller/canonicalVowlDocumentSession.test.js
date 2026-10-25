@@ -798,6 +798,36 @@ test("presentation changes are atomic, retain semantic revisions and survive cap
   );
 });
 
+test("view results reuse their owned preview while isolating the committed scene and drawing", async () => {
+  const { session } = setup();
+  await session.load(request());
+  const clone = jest.spyOn(globalThis, "structuredClone");
+  try {
+    const result = session.updateView({ display: { compactNotation: true } });
+    const sceneCopies = clone.mock.calls.filter(
+      ([value]) => value?.placements && value?.camera && value?.hidden,
+    );
+    // Only the caller-owned preview copies the full scene. Private staging
+    // retains unchanged values and the result does not copy again after commit.
+    expect(sceneCopies).toHaveLength(1);
+    const committed = session.scene().snapshot();
+    expect(result.visualization).toEqual(committed);
+    result.visualization.placements[0].position.x = 999;
+    result.visualization.camera.center.x = 999;
+    result.visualization.hidden.push("not-a-scene-occurrence");
+    result.visualization.display.compactNotation = false;
+    expect(result.projection.camera).toEqual(committed.camera);
+    expect(result.projection.display.compactNotation).toBe(true);
+    expect(result.projection.nodes[0].position).toEqual(
+      committed.placements[0].position,
+    );
+    expect(session.scene().snapshot()).toEqual(committed);
+  } finally {
+    clone.mockRestore();
+    session.dispose();
+  }
+});
+
 test("prefix changes preserve semantic bytes and retain lexical IRI identity", async () => {
   const { session } = setup();
   await session.load(request());

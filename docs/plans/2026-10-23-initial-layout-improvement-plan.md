@@ -1,6 +1,8 @@
 # Bounded initial-layout improvement plan
 
-> **Status:** Approved revision 4, 23 October 2026; the owner accepted PERF-DEC-013 option A and the numerical targets, then selected a real extended universal ontology as the primary experiment fixture.
+> **Status:** Approved revision 6, 24 October 2026; PERF-DEC-013 option A remains selected, with the real extended universal ontology as the primary experiment fixture.
+> The owner accepts the documented AC-104 cadence limitation below.
+> Manifest 56 verifies first-paint admission and actual-glyph spacing, including foreground W6 imagery; manual platform acceptance remains pending.
 > **Baseline:** signed closeout `302fb27516ae60553bc8b4bd4cde1c34b2cf9c3b`, tree `67e137c8fbd3951e50da3334ca96607fa89f3db8`.
 > **Delivery:** continue on `feat/architecture-performance-ui` in [draft PR #85](https://github.com/Hadden-Industries/webvowl/pull/85).
 > **Route:** bounded R2 follow-up to the accepted architecture/performance/UI programme; reuse its invariants and verification route.
@@ -209,7 +211,7 @@ REQ-105: retain small-input behavior, browser compatibility and bounded resource
 REQ-106: deliver attributable evidence with truthful acceptance and release status.
 REQ-107: prioritize source-file loading with bounded, deterministic initialization; preserve explicit layouts as a compatibility branch.
 
-The owner approved the following numerical targets; they are acceptance requirements, not existing measurements or standards.
+The owner approved the following numerical targets; they are acceptance requirements, not existing measurements or standards, subject to the explicit AC-104 owner disposition below.
 Apply them to the documented qualified Windows/browser/viewport cohort, retaining the owner's CPU exception; they are not guarantees for every device.
 
 | Acceptance ID | Falsifiable criterion                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
@@ -244,6 +246,41 @@ If noise prevents a conclusion, report an unqualified result; the CPU exception 
 | QA-108 | Repeat equal-live-size load/update/capture/dispose cycles; retained old-owner positive control is detectable and the real candidate retires its resources.                                                  |
 | QA-109 | Load chains, stars, cycles, dense and disconnected graphs, self/parallel edges, repeated IRIs and operator/datatype cases; seeds are finite, deterministic and bounded, with all actual incidence retained. |
 | QA-110 | Reload a saved layout, supply partial positions or an explicit camera, edit a graph and reveal hidden nodes; only eligible fresh loads use the new initializer and one-time framing.                        |
+
+### AC-104 owner disposition — 24 October 2026
+
+The owner selected **“Accept the documented cadence limitation”** after reviewing the [final foreground observations](2026-10-24-active-graph-performance-follow-up.md#foreground-cache-qualification-and-deep-path-placement--manifests-5051).
+For this delivery, further work to reach the 50-ms active-frame target is no longer an acceptance blocker.
+This is acceptance of a measured limitation, not a numerical pass or a replacement frame-time guarantee.
+
+- W4, manifest 51: two foreground observations have per-load frame p95 of 62.5 and 70.8 ms.
+  These bounded stress observations do not qualify a population percentile.
+- W6, manifest 50: forty independent loads yield A/B distributions of per-load frame p95 of 50.1 and 49.9 ms; four individual loads exceed 50 ms, and the largest per-load p95 is 54.2 ms.
+  Manifest 51 preserves W6's initial coordinates; the retained qualification is not relabeled as a fresh manifest-51 cohort.
+
+The exception applies only to the documented cadence limitation of this candidate.
+The original 50-ms target and all raw results remain visible for future assessment; this decision creates no universal 70.8-ms allowance.
+AC-104's 200-ms maximum-interval, actual-movement and twelve-second settlement conditions remain unchanged, as do the other acceptance criteria.
+The [subsequent first-paint repair](2026-10-24-active-graph-performance-follow-up.md#initial-paint-and-glyph-clearance--manifest-56) separately establishes initial node containment and clearance on W6-all, W6-auto and W4 through native headless geometry and screencast observations.
+The subsequent foreground W6 observation also confirms the prepared image.
+Changed initial positions are not covered by the earlier population timing cohorts.
+The actual-device and assistive-technology [manual batch](2026-10-23-ui-manual-validation.md) remains pending, with no unrun combination waived.
+This disposition does not authorize a commit, push, PR change, merge or deployment.
+Retained failed checks and the earlier final-verification receipt remain unchanged.
+
+### Initial spacing correction — 24 October 2026
+
+The owner rejected the prepared image because class circles still touched despite the 200-unit Class distance.
+The coarse seed had reserved only half the requested distance between centers, without accounting for actual glyph sizes.
+The fresh-drawing boundary now adds the current Class/Datatype clear gap outside measured glyph footprints before fitting the viewport.
+At the defaults, two ordinary 100-unit-diameter class circles therefore start at least 300 graph units apart center to center, leaving a 200-unit clear gap.
+These are graph units; initial fit scales them on screen.
+The native force retains its spring-distance semantics afterward, so this does not promise a permanent collision floor during relaxation.
+
+The change applies only to eligible fresh loads, after native text sizing; saved/supplied views, ordinary revisions and explicit cameras retain their compatibility paths.
+The existing first-paint boundary releases the initial force timer only while its drawing is still current and the user's running intent remains active.
+Subsequent force steps, cooling, notation and interaction behavior remain unchanged.
+Actual property-label readability, later moving-graph bounds and the outstanding platform packet are not waived by node-clearance evidence.
 
 ## 7. Ordered implementation slices
 

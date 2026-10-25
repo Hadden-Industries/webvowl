@@ -92,8 +92,37 @@ export function createCanonicalVowlInitialPositions(
       }
     }
     const depth = pending.at(-1).depth;
+    const deep = depth > Math.sqrt(members.length);
+    const endpoints = deep
+      ? members.filter((member) => neighbors[member].size === 1)
+      : [];
     let points;
-    if (!layoutInitialTree || depth > Math.sqrt(members.length)) {
+    if (
+      endpoints.length === 2 &&
+      members.every((member) => neighbors[member].size <= 2)
+    ) {
+      // Fold a simple path into rows. Incidence, rather than inventory order,
+      // determines consecutive positions, so every edge starts short without
+      // collapsing a deep chain into one line or expanding its radius by depth.
+      const columns = Math.ceil(Math.sqrt(members.length));
+      points = [];
+      let previous;
+      let current = Math.min(...endpoints);
+      while (current !== undefined) {
+        const row = Math.floor(points.length / columns);
+        const column = points.length % columns;
+        points.push({
+          index: current,
+          x: (row % 2 ? columns - 1 - column : column) * spacing,
+          y: row * spacing,
+        });
+        const next = [...neighbors[current]].find(
+          (neighbor) => neighbor !== previous,
+        );
+        previous = current;
+        current = next;
+      }
+    } else if (!layoutInitialTree || deep) {
       // A long thin tree is a poor radial approximation. Avoid both compressed
       // neighbors and hierarchy's ancestor-height work on a very deep chain.
       const angle = Math.PI * (3 - Math.sqrt(5));

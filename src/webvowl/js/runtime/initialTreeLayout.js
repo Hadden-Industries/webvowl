@@ -1,16 +1,21 @@
 import { hierarchy, tree } from "d3";
 
 /** Keep nearby tree seeds when there is room; spread only crowded points. */
-function spreadCrowdedPoints(points, cellSize) {
+function spreadCrowdedPoints(points, cellSize, gap = () => 0) {
   const cells = new Map();
   const searchedRings = new Map();
-  function available(x, y, radius) {
+  const blockedFootprints = new Map();
+  function available(x, y, point) {
     const column = Math.floor(x / cellSize);
     const row = Math.floor(y / cellSize);
     for (let dx = -1; dx <= 1; dx++) {
+      const columnCells = cells.get(column + dx);
+      if (!columnCells) {
+        continue;
+      }
       for (let dy = -1; dy <= 1; dy++) {
-        for (const other of cells.get(`${column + dx},${row + dy}`) ?? []) {
-          const clearance = radius + other.radius;
+        for (const other of columnCells.get(row + dy) ?? []) {
+          const clearance = point.radius + other.radius + gap(point, other);
           if ((x - other.x) ** 2 + (y - other.y) ** 2 < clearance ** 2) {
             return false;
           }
@@ -20,20 +25,40 @@ function spreadCrowdedPoints(points, cellSize) {
     return true;
   }
   for (const point of points) {
-    if (!available(point.x, point.y, point.radius)) {
+    if (!available(point.x, point.y, point)) {
       const column = Math.round(point.x / cellSize);
       const row = Math.round(point.y / cellSize);
-      const searchKey = `${column},${row},${point.radius}`;
+      const searchKey = `${column},${row},${point.radius},${point.datatype ?? false}`;
+      const footprintKey = `${point.radius},${point.datatype ?? false}`;
+      let blockedColumns = blockedFootprints.get(footprintKey);
+      if (!blockedColumns) {
+        blockedColumns = new Map();
+        blockedFootprints.set(footprintKey, blockedColumns);
+      }
       let nearest;
       function consider(dx, dy) {
-        const x = (column + dx) * cellSize;
-        const y = (row + dy) * cellSize;
+        const candidateColumn = column + dx;
+        const candidateRow = row + dy;
+        const x = candidateColumn * cellSize;
+        const y = candidateRow * cellSize;
         const distance = (x - point.x) ** 2 + (y - point.y) ** 2;
-        if (
-          (!nearest || distance < nearest.distance) &&
-          available(x, y, point.radius)
-        ) {
+        if (nearest && distance >= nearest.distance) {
+          return;
+        }
+        let blockedRows = blockedColumns.get(candidateColumn);
+        if (blockedRows?.has(candidateRow)) {
+          return;
+        }
+        if (available(x, y, point)) {
           nearest = { x, y, distance };
+        } else {
+          // Occupancy only grows: a rejected grid position stays blocked for
+          // this footprint, including searches from a neighboring seed cell.
+          if (!blockedRows) {
+            blockedRows = new Set();
+            blockedColumns.set(candidateColumn, blockedRows);
+          }
+          blockedRows.add(candidateRow);
         }
       }
       // Occupancy only grows. For the same cell and clearance, an exhausted
@@ -54,12 +79,39 @@ function spreadCrowdedPoints(points, cellSize) {
       point.x = nearest.x;
       point.y = nearest.y;
     }
-    const key = `${Math.floor(point.x / cellSize)},${Math.floor(point.y / cellSize)}`;
-    if (!cells.has(key)) {
-      cells.set(key, []);
+    const column = Math.floor(point.x / cellSize);
+    const row = Math.floor(point.y / cellSize);
+    let columnCells = cells.get(column);
+    if (!columnCells) {
+      columnCells = new Map();
+      cells.set(column, columnCells);
     }
-    cells.get(key).push(point);
+    let cell = columnCells.get(row);
+    if (!cell) {
+      cell = [];
+      columnCells.set(row, cell);
+    }
+    cell.push(point);
   }
+}
+
+/** Finish fresh placement with actual glyph bounds and the requested clear gap. */
+export function spaceInitialNodeFootprints(points, distances) {
+  const largestRadius = points.reduce(
+    (largest, point) => Math.max(largest, point.radius),
+    0,
+  );
+  const cellSize =
+    2 * largestRadius +
+    Math.max(distances.classDistancePx, distances.datatypeDistancePx);
+  if (cellSize > 0) {
+    spreadCrowdedPoints(points, cellSize, (a, b) =>
+      a.datatype || b.datatype
+        ? distances.datatypeDistancePx
+        : distances.classDistancePx,
+    );
+  }
+  return points;
 }
 
 /** Pure coordinates for an application-owned, temporary spanning tree. */
@@ -78,9 +130,9 @@ export function layoutInitialTree(root, radius) {
       index: node.data.index,
       x: node.y * Math.cos(node.x),
       y: node.y * Math.sin(node.x),
-      // Reserve half the requested spacing across a node, matching the scale
-      // of the existing spacing-only initializer. This is a seed, not a second
-      // force-distance or glyph-size authority.
+      // This coarse forest precedes native glyph sizing. It cannot establish
+      // visible clearance; the fresh native drawing applies the full requested
+      // gap around actual glyph footprints before fitting and painting.
       radius: (node.data.spacing ?? defaultSpacing) / 4,
     };
   });

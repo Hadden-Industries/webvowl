@@ -244,7 +244,11 @@ export function createRenderedSvgSnapshot(snapshot) {
   });
 }
 
-/** Drawing DTOs carry no encoder authority; semantics remain application-owned. */
+/**
+ * Own and deeply freeze drawing data at the public adapter boundary. Private
+ * renderer preparation may retain this drawing without another ownership copy.
+ * Drawing DTOs carry no encoder authority; semantics remain application-owned.
+ */
 export function createCanonicalDrawingRequest(
   request,
   { revision = false } = {},

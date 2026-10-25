@@ -818,6 +818,34 @@ describe("D3 rendered graph adapter", () => {
     expect(fitted).toHaveLength(1);
   });
 
+  test.each([false, true])(
+    "fresh layout starts after paint only while its mount is current (retired: %s)",
+    async (retired) => {
+      const harness = createAdapterHarness();
+      const renderer = harness.renderedGraphInternalsFixture;
+      const load = renderer.load.bind(renderer);
+      const completeInitialPaint = jest.fn();
+      renderer.load = (...args) => {
+        load(...args);
+        return completeInitialPaint;
+      };
+      const mounting = harness.renderedGraphRuntime.replaceCanonicalDrawing({
+        ...replacementRequest(1),
+        fitInitialDrawing: true,
+      });
+      const outcome = mounting.catch((error) => error.name);
+      expect(renderer.loadChoices.prepareInitialDrawing).toBe(true);
+      expect(renderer.loadChoices.isPaused).toBe(false);
+      expect(completeInitialPaint).not.toHaveBeenCalled();
+      if (retired) {
+        harness.renderedGraphRuntime.clearRenderedGraph();
+      }
+      harness.renderedGraphTestHarness.completeInitialPaint(1);
+      await outcome;
+      expect(completeInitialPaint).toHaveBeenCalledTimes(retired ? 0 : 1);
+    },
+  );
+
   test("a retired drawing waiting for geometry cannot perform its initial fit", async () => {
     const harness = createAdapterHarness();
     const renderer = harness.renderedGraphInternalsFixture;
@@ -1776,6 +1804,34 @@ describe("D3 rendered graph adapter", () => {
     expect(liveSvgRoot.getAttribute("viewBox")).toBeNull();
   });
 
+  test("captures SVG through the renderer's temporary live-drawing boundary", async () => {
+    const harness = createAdapterHarness();
+    await loadGeneration(harness, 1);
+    let captures = 0;
+    harness.renderedGraphInternalsFixture.withLiveSvgDrawing = (capture) => {
+      captures++;
+      const svg = harness.graphContainerElement.querySelector("svg");
+      svg.setAttribute("data-live-export", "visible");
+      try {
+        return capture();
+      } finally {
+        svg.setAttribute("data-live-export", "restored");
+      }
+    };
+    const snapshot = harness.renderedGraphRuntime.createRenderedSvgSnapshot({
+      loadGeneration: 1,
+    });
+    expect(captures).toBe(1);
+    expect(snapshot.detachedSvgRoot.getAttribute("data-live-export")).toBe(
+      "visible",
+    );
+    expect(
+      harness.graphContainerElement
+        .querySelector("svg")
+        .getAttribute("data-live-export"),
+    ).toBe("restored");
+  });
+
   test("asks the renderer to return the visualization to its defaults", async () => {
     const adapterHarness = createAdapterHarness();
     await loadGeneration(adapterHarness, 1);
@@ -2107,6 +2163,10 @@ describe("D3 rendered graph adapter", () => {
         isPaused: true,
       }),
     );
+    const mountedDrawing = native.load.mock.calls.at(-1)[1].canonicalDrawing;
+    expect(Object.isFrozen(mountedDrawing)).toBe(true);
+    expect(Object.isFrozen(mountedDrawing.nodes)).toBe(true);
+    expect(Object.isFrozen(mountedDrawing.camera.center)).toBe(true);
     expect(runtime.readCanonicalDrawingState()).toMatchObject({
       loadGeneration: 2,
       documentRevision: 0,
@@ -2141,6 +2201,11 @@ describe("D3 rendered graph adapter", () => {
       documentRevision: 1,
       drawing,
     });
+    const revisedDrawing =
+      native.applyCanonicalDrawingRevision.mock.calls.at(-1)[0];
+    expect(revisedDrawing).not.toBe(drawing);
+    expect(Object.isFrozen(revisedDrawing.nodes)).toBe(true);
+    expect(Object.isFrozen(revisedDrawing.camera.center)).toBe(true);
     expect(runtime.readCanonicalDrawingState().documentRevision).toBe(1);
     expect(runtime.readVisualizationView().language).toBe("IRI-based");
     native.applyCanonicalDrawingRevision.mockImplementationOnce(() => {

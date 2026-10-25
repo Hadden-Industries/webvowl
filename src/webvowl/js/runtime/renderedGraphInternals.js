@@ -1,7 +1,9 @@
 import { namespaces } from "vowl";
 import { createBackgroundSelectionGesture } from "./backgroundSelectionGesture.js";
+import { createRenderedGraphPanCache } from "./renderedGraphPanCache.js";
 import * as d3 from "d3";
 import { createLegacyForceSimulation } from "./legacyForceSimulation.js";
+import { spaceInitialNodeFootprints } from "./initialTreeLayout.js";
 import { createLinkCreator as createLinkCreatorModule } from "../parsing/linkCreator.js";
 import { createElementTools as createElementToolsModule } from "../../../shared/js/util/elementTools.js";
 import { createNodeMap as createNodePrototypeMapModule } from "../elements/nodes/nodeMap.js";
@@ -41,6 +43,7 @@ const math = createMathModule();
 const linkCreator = createLinkCreatorModule();
 const elementTools = createElementToolsModule();
 const textTools = createTextTools();
+const DRAG_ACTIVATION_DISTANCE_PX = 6;
 // add some maps for nodes and properties -- used for object generation
 const nodePrototypeMap = createNodePrototypeMapModule();
 const propertyPrototypeMap = createPropertyPrototypeMapModule();
@@ -138,7 +141,28 @@ const svgRenderingGuard = Object.freeze({
       return false;
     }
 
-    element.setAttribute("transform", "translate(" + x + "," + y + ")");
+    const transforms = element.transform?.baseVal;
+    if (
+      transforms?.numberOfItems === 1 &&
+      Number.isFinite(Math.fround(x)) &&
+      Number.isFinite(Math.fround(y))
+    ) {
+      // Read the live item: replacement drawing or attribute writes can detach
+      // an earlier item. The native API takes finite single-precision values.
+      const transform = transforms.getItem(0);
+      if (
+        transform.type !== transform.SVG_TRANSFORM_TRANSLATE ||
+        transform.matrix.e !== Math.fround(x) ||
+        transform.matrix.f !== Math.fround(y)
+      ) {
+        transform.setTranslate(x, y);
+      }
+    } else {
+      const value = "translate(" + x + "," + y + ")";
+      if (element.getAttribute("transform") !== value) {
+        element.setAttribute("transform", value);
+      }
+    }
     return true;
   },
   setCurvePath(element, points, tension) {
@@ -147,7 +171,11 @@ const svgRenderingGuard = Object.freeze({
       return false;
     }
 
-    element.setAttribute("d", path);
+    // A paused drag changes only its incident geometry. Rewriting equal paths
+    // invalidates the entire SVG drawing even when the other links stay still.
+    if (element.getAttribute("d") !== path) {
+      element.setAttribute("d", path);
+    }
     return true;
   },
 });
@@ -260,6 +288,7 @@ function createGraph(
   let paused = false;
   // Container for visual elements
   let graphContainer;
+  let panCache;
   let nodeContainer;
   let labelContainer;
   let cardinalityContainer;
@@ -277,6 +306,7 @@ function createGraph(
   // Internal data
   let classNodes;
   let labelNodes;
+  let invalidProjectedLabels;
   let links;
   let properties;
   let unfilteredData;
@@ -294,6 +324,8 @@ function createGraph(
   let hasActiveRenderInteractions = true;
   let activeMouseDrag;
   let activeMousePan;
+  const activeDragIdentifiers = new Set();
+  const dragIntents = new Map();
   let zoomFactor = 1.0;
   let centerGraphViewOnLoad = false;
   let transformAnimation = false;
@@ -503,6 +535,7 @@ function createGraph(
       continuousZoomFrame = requestAnimationFrame(advanceContinuousZoom);
     } else {
       continuousZoomDirection = 0;
+      panCache?.refresh();
     }
   }
 
@@ -527,6 +560,7 @@ function createGraph(
     }
     continuousZoomDirection = 0;
     continuousZoomPreviousFrameTime = undefined;
+    panCache?.refresh();
   };
 
   // D3 owns transition completion, including interruption by another gesture.
@@ -802,13 +836,18 @@ function createGraph(
   };
 
   graph.retireRenderGeneration = function () {
+    panCache?.dispose();
+    panCache = undefined;
     hasActiveRenderInteractions = false;
     renderInteractionEpoch++;
+    activeDragIdentifiers.clear();
+    dragIntents.clear();
     releaseOwnedMouseGesture(activeMouseDrag);
     releaseOwnedMouseGesture(activeMousePan);
     activeMouseDrag = undefined;
     activeMousePan = undefined;
     force.on("tick.runtimeLayout", null).on("end.runtimeLayout", null).stop();
+    invalidProjectedLabels = undefined;
     graph.stopContinuousZoom();
     const svgRoot = graphContainer?.node()?.parentNode;
     if (svgRoot) {
@@ -833,6 +872,7 @@ function createGraph(
     unfilteredData = { nodes: [], properties: [] };
     classNodes = [];
     labelNodes = [];
+    invalidProjectedLabels = undefined;
     properties = [];
     links = [];
     force.nodes([]);
@@ -988,7 +1028,8 @@ function createGraph(
   }
 
   function createInteractionBehaviours(viewportZoom = d3.zoom()) {
-    let moved = false;
+    activeDragIdentifiers.clear();
+    dragIntents.clear();
     const interactionEpoch = renderInteractionEpoch;
     const isCurrentInteraction = (element) =>
       hasActiveRenderInteractions &&
@@ -1001,6 +1042,7 @@ function createGraph(
 
     dragBehaviour = d3
       .drag()
+      .clickDistance(DRAG_ACTIVATION_DISTANCE_PX)
       .filter(function (event, datum) {
         const element = datum?.property ? datum.property() : datum;
         const positionable =
@@ -1014,7 +1056,7 @@ function createGraph(
           !event.button
         );
       })
-      .subject(function (d) {
+      .subject(function (_event, d) {
         return d;
       })
       .on("start", function (event, d) {
@@ -1025,226 +1067,266 @@ function createGraph(
         if (isSolitaryLabel(d)) {
           return;
         }
-        clearAllHover();
-        event.sourceEvent.stopPropagation(); // Prevent panning
-        graph.ignoreOtherHoverEvents(true);
-        if (d.type && d.type() === "Class_dragger") {
-          classDragger.mouseButtonPressed = true;
-          clearTimeout(delayedHider);
-          classDragger.selectedViaTouch(true);
-          d.parentNode().locked(true);
-          draggingStarted = true;
-        } else if (d.type && d.type() === "Range_dragger") {
-          graph.ignoreOtherHoverEvents(true);
-          clearTimeout(delayedHider);
-          frozenDomainForPropertyDragger = shadowClone.parentNode().domain();
-          frozenRangeForPropertyDragger = shadowClone.parentNode().range();
-          shadowClone.setInitialPosition();
-          shadowClone.hideClone(false);
-          shadowClone.hideParentProperty(true);
-          shadowClone.updateElement();
-          deleteGroupElement.classed("hidden", true);
-          addDataPropertyGroupElement.classed("hidden", true);
-          frozenDomainForPropertyDragger.frozen(true);
-          frozenDomainForPropertyDragger.locked(true);
-          frozenRangeForPropertyDragger.frozen(true);
-          frozenRangeForPropertyDragger.locked(true);
-          domainDragger.updateElement();
-          domainDragger.mouseButtonPressed = true;
-          rangeDragger.updateElement();
-          rangeDragger.mouseButtonPressed = true;
-          //  shadowClone.setPosition(d.x, d.y);
-        } else if (d.type && d.type() === "Domain_dragger") {
-          graph.ignoreOtherHoverEvents(true);
-          clearTimeout(delayedHider);
-          frozenDomainForPropertyDragger = shadowClone.parentNode().domain();
-          frozenRangeForPropertyDragger = shadowClone.parentNode().range();
-          shadowClone.setInitialPosition();
-          shadowClone.hideClone(false);
-          shadowClone.hideParentProperty(true);
-          shadowClone.updateElement();
-          deleteGroupElement.classed("hidden", true);
-          addDataPropertyGroupElement.classed("hidden", true);
-
-          frozenDomainForPropertyDragger.frozen(true);
-          frozenDomainForPropertyDragger.locked(true);
-          frozenRangeForPropertyDragger.frozen(true);
-          frozenRangeForPropertyDragger.locked(true);
-          domainDragger.updateElement();
-          domainDragger.mouseButtonPressed = true;
-          rangeDragger.updateElement();
-          rangeDragger.mouseButtonPressed = true;
-        } else {
-          d.locked(true);
-          moved = false;
+        const pointer = dragClientPoint(event);
+        if (pointer) {
+          dragIntents.set(event.identifier, { pointer, moved: false });
         }
       })
       .on("drag", function (event, d) {
-        if (!isCurrentInteraction(this)) {
+        if (!isCurrentInteraction(this) || isSolitaryLabel(d)) {
           return;
         }
-        if (isSolitaryLabel(d)) {
+        const intent = dragIntents.get(event.identifier);
+        if (!intent) {
           return;
         }
-
-        if (d.type && d.type() === "Class_dragger") {
-          clearTimeout(delayedHider);
-          classDragger.setPosition(event.x, event.y);
-        } else if (d.type && d.type() === "Range_dragger") {
-          clearTimeout(delayedHider);
-          rangeDragger.setPosition(event.x, event.y);
-          shadowClone.setPosition(event.x, event.y);
-          domainDragger.updateElementViaRangeDragger(event.x, event.y);
-        } else if (d.type && d.type() === "Domain_dragger") {
-          clearTimeout(delayedHider);
-          domainDragger.setPosition(event.x, event.y);
-          shadowClone.setPositionDomain(event.x, event.y);
-          rangeDragger.updateElementViaDomainDragger(event.x, event.y);
-        } else {
-          d.px = event.x;
-          d.py = event.y;
-          d.x = event.x;
-          d.y = event.y;
-          d.fx = event.x;
-          d.fy = event.y;
-          if (graph.paused() === false) {
-            force.resume();
-          } else {
-            recalculatePositions();
+        if (!intent.moved) {
+          const pointer = dragClientPoint(event);
+          if (
+            !pointer ||
+            Math.hypot(
+              pointer.x - intent.pointer.x,
+              pointer.y - intent.pointer.y,
+            ) <= DRAG_ACTIVATION_DISTANCE_PX
+          ) {
+            return;
           }
-          updateHaloRadius();
-          moved = true;
-          if (d.renderType && d.renderType() === "round") {
-            classDragger.setParentNode(d);
-            setDeleteHoverElementPosition(d);
-            setAddDataPropertyHoverElementPosition(d);
-          }
+          intent.moved = true;
+          activateDrag(event, d);
         }
+        moveDrag(event, d);
       })
       .on("end", function (event, d) {
         if (!isCurrentInteraction(this)) {
           return;
         }
+        const intent = dragIntents.get(event.identifier);
+        dragIntents.delete(event.identifier);
+        activeDragIdentifiers.delete(event.identifier);
+        panCache?.refresh();
         if (event.sourceEvent?.type === "mouseup") {
           activeMouseDrag = undefined;
         }
-        if (isSolitaryLabel(d)) {
-          graph.ignoreOtherHoverEvents(false);
+        if (!intent?.moved) {
+          if (intent && event.sourceEvent?.type !== "touchcancel" && d.id) {
+            executeModules(d, event, true);
+          }
           return;
         }
-        graph.ignoreOtherHoverEvents(false);
-        if (moved === true) {
-          clearAllHover();
+        finishDrag(event, d);
+      });
+
+    function dragClientPoint(event) {
+      const source = event.sourceEvent;
+      const pointer = source?.changedTouches
+        ? Array.from(source.changedTouches).find(
+            (touch) => touch.identifier === event.identifier,
+          )
+        : source;
+      return Number.isFinite(pointer?.clientX) &&
+        Number.isFinite(pointer?.clientY)
+        ? { x: pointer.clientX, y: pointer.clientY }
+        : undefined;
+    }
+
+    function activateDrag(event, d) {
+      activeDragIdentifiers.add(event.identifier);
+      panCache?.invalidate();
+      clearAllHover();
+      event.sourceEvent.stopPropagation(); // Prevent panning
+      graph.ignoreOtherHoverEvents(true);
+      if (d.type && d.type() === "Class_dragger") {
+        classDragger.mouseButtonPressed = true;
+        clearTimeout(delayedHider);
+        classDragger.selectedViaTouch(true);
+        d.parentNode().locked(true);
+        draggingStarted = true;
+      } else if (d.type && d.type() === "Range_dragger") {
+        graph.ignoreOtherHoverEvents(true);
+        clearTimeout(delayedHider);
+        frozenDomainForPropertyDragger = shadowClone.parentNode().domain();
+        frozenRangeForPropertyDragger = shadowClone.parentNode().range();
+        shadowClone.setInitialPosition();
+        shadowClone.hideClone(false);
+        shadowClone.hideParentProperty(true);
+        shadowClone.updateElement();
+        deleteGroupElement.classed("hidden", true);
+        addDataPropertyGroupElement.classed("hidden", true);
+        frozenDomainForPropertyDragger.frozen(true);
+        frozenDomainForPropertyDragger.locked(true);
+        frozenRangeForPropertyDragger.frozen(true);
+        frozenRangeForPropertyDragger.locked(true);
+        domainDragger.updateElement();
+        domainDragger.mouseButtonPressed = true;
+        rangeDragger.updateElement();
+        rangeDragger.mouseButtonPressed = true;
+        //  shadowClone.setPosition(d.x, d.y);
+      } else if (d.type && d.type() === "Domain_dragger") {
+        graph.ignoreOtherHoverEvents(true);
+        clearTimeout(delayedHider);
+        frozenDomainForPropertyDragger = shadowClone.parentNode().domain();
+        frozenRangeForPropertyDragger = shadowClone.parentNode().range();
+        shadowClone.setInitialPosition();
+        shadowClone.hideClone(false);
+        shadowClone.hideParentProperty(true);
+        shadowClone.updateElement();
+        deleteGroupElement.classed("hidden", true);
+        addDataPropertyGroupElement.classed("hidden", true);
+
+        frozenDomainForPropertyDragger.frozen(true);
+        frozenDomainForPropertyDragger.locked(true);
+        frozenRangeForPropertyDragger.frozen(true);
+        frozenRangeForPropertyDragger.locked(true);
+        domainDragger.updateElement();
+        domainDragger.mouseButtonPressed = true;
+        rangeDragger.updateElement();
+        rangeDragger.mouseButtonPressed = true;
+      } else {
+        d.locked(true);
+      }
+    }
+
+    function moveDrag(event, d) {
+      if (d.type && d.type() === "Class_dragger") {
+        clearTimeout(delayedHider);
+        classDragger.setPosition(event.x, event.y);
+      } else if (d.type && d.type() === "Range_dragger") {
+        clearTimeout(delayedHider);
+        rangeDragger.setPosition(event.x, event.y);
+        shadowClone.setPosition(event.x, event.y);
+        domainDragger.updateElementViaRangeDragger(event.x, event.y);
+      } else if (d.type && d.type() === "Domain_dragger") {
+        clearTimeout(delayedHider);
+        domainDragger.setPosition(event.x, event.y);
+        shadowClone.setPositionDomain(event.x, event.y);
+        rangeDragger.updateElementViaDomainDragger(event.x, event.y);
+      } else {
+        d.px = event.x;
+        d.py = event.y;
+        d.x = event.x;
+        d.y = event.y;
+        d.fx = event.x;
+        d.fy = event.y;
+        if (graph.paused() === false) {
+          force.resume();
+        } else {
+          recalculatePositions();
         }
-        if (d.type && d.type() === "Class_dragger") {
-          const nX = classDragger.x;
-          const nY = classDragger.y;
-          clearTimeout(delayedHider);
-          classDragger.mouseButtonPressed = false;
-          classDragger.selectedViaTouch(false);
-          d.setParentNode(d.parentNode());
+        updateHaloRadius();
+        if (d.renderType && d.renderType() === "round") {
+          classDragger.setParentNode(d);
+          setDeleteHoverElementPosition(d);
+          setAddDataPropertyHoverElementPosition(d);
+        }
+      }
+    }
 
-          const draggerEndPos = [nX, nY];
-          const targetNode = graph.getTargetNode(draggerEndPos);
-          if (targetNode) {
-            createNewObjectProperty(d.parentNode(), targetNode, draggerEndPos);
-          }
-          if (touchDevice === false) {
-            editElementHoverOut();
-          }
-          draggingStarted = false;
-        } else if (d.type && d.type() === "Range_dragger") {
-          graph.ignoreOtherHoverEvents(false);
-          frozenDomainForPropertyDragger.frozen(false);
-          frozenDomainForPropertyDragger.locked(false);
-          frozenRangeForPropertyDragger.frozen(false);
-          frozenRangeForPropertyDragger.locked(false);
-          rangeDragger.mouseButtonPressed = false;
-          domainDragger.mouseButtonPressed = false;
-          domainDragger.updateElement();
-          rangeDragger.updateElement();
-          shadowClone.hideClone(true);
-          const rX = rangeDragger.x;
-          const rY = rangeDragger.y;
-          const rangeDraggerEndPos = [rX, rY];
-          let targetRangeNode = graph.getTargetNode(rangeDraggerEndPos);
-          if (elementTools.isDatatype(targetRangeNode) === true) {
-            targetRangeNode = null;
-            console.warn(
-              "---------------TARGET NODE IS A DATATYPE/ LITERAL ------------",
-            );
-          }
+    function finishDrag(event, d) {
+      graph.ignoreOtherHoverEvents(false);
+      clearAllHover();
+      if (d.type && d.type() === "Class_dragger") {
+        const nX = classDragger.x;
+        const nY = classDragger.y;
+        clearTimeout(delayedHider);
+        classDragger.mouseButtonPressed = false;
+        classDragger.selectedViaTouch(false);
+        d.setParentNode(d.parentNode());
 
-          if (targetRangeNode === null) {
-            d.reDrawEverthing();
-            shadowClone.hideParentProperty(false);
-          } else {
-            d.updateRange(targetRangeNode);
-            graph.update();
-            shadowClone.hideParentProperty(false);
-          }
-        } else if (d.type && d.type() === "Domain_dragger") {
-          graph.ignoreOtherHoverEvents(false);
-          frozenDomainForPropertyDragger.frozen(false);
-          frozenDomainForPropertyDragger.locked(false);
-          frozenRangeForPropertyDragger.frozen(false);
-          frozenRangeForPropertyDragger.locked(false);
-          rangeDragger.mouseButtonPressed = false;
-          domainDragger.mouseButtonPressed = false;
-          domainDragger.updateElement();
-          rangeDragger.updateElement();
-          shadowClone.hideClone(true);
+        const draggerEndPos = [nX, nY];
+        const targetNode = graph.getTargetNode(draggerEndPos);
+        if (targetNode) {
+          createNewObjectProperty(d.parentNode(), targetNode, draggerEndPos);
+        }
+        if (touchDevice === false) {
+          editElementHoverOut();
+        }
+        draggingStarted = false;
+      } else if (d.type && d.type() === "Range_dragger") {
+        graph.ignoreOtherHoverEvents(false);
+        frozenDomainForPropertyDragger.frozen(false);
+        frozenDomainForPropertyDragger.locked(false);
+        frozenRangeForPropertyDragger.frozen(false);
+        frozenRangeForPropertyDragger.locked(false);
+        rangeDragger.mouseButtonPressed = false;
+        domainDragger.mouseButtonPressed = false;
+        domainDragger.updateElement();
+        rangeDragger.updateElement();
+        shadowClone.hideClone(true);
+        const rX = rangeDragger.x;
+        const rY = rangeDragger.y;
+        const rangeDraggerEndPos = [rX, rY];
+        let targetRangeNode = graph.getTargetNode(rangeDraggerEndPos);
+        if (elementTools.isDatatype(targetRangeNode) === true) {
+          targetRangeNode = null;
+          console.warn(
+            "---------------TARGET NODE IS A DATATYPE/ LITERAL ------------",
+          );
+        }
 
-          const dX = domainDragger.x;
-          const dY = domainDragger.y;
-          const domainDraggerEndPos = [dX, dY];
-          let targetDomainNode = graph.getTargetNode(domainDraggerEndPos);
-          if (elementTools.isDatatype(targetDomainNode) === true) {
-            targetDomainNode = null;
-            console.warn(
-              "---------------TARGET NODE IS A DATATYPE/ LITERAL ------------",
-            );
+        if (targetRangeNode === null) {
+          d.reDrawEverthing();
+          shadowClone.hideParentProperty(false);
+        } else {
+          d.updateRange(targetRangeNode);
+          graph.update();
+          shadowClone.hideParentProperty(false);
+        }
+      } else if (d.type && d.type() === "Domain_dragger") {
+        graph.ignoreOtherHoverEvents(false);
+        frozenDomainForPropertyDragger.frozen(false);
+        frozenDomainForPropertyDragger.locked(false);
+        frozenRangeForPropertyDragger.frozen(false);
+        frozenRangeForPropertyDragger.locked(false);
+        rangeDragger.mouseButtonPressed = false;
+        domainDragger.mouseButtonPressed = false;
+        domainDragger.updateElement();
+        rangeDragger.updateElement();
+        shadowClone.hideClone(true);
+
+        const dX = domainDragger.x;
+        const dY = domainDragger.y;
+        const domainDraggerEndPos = [dX, dY];
+        let targetDomainNode = graph.getTargetNode(domainDraggerEndPos);
+        if (elementTools.isDatatype(targetDomainNode) === true) {
+          targetDomainNode = null;
+          console.warn(
+            "---------------TARGET NODE IS A DATATYPE/ LITERAL ------------",
+          );
+        }
+        shadowClone.hideClone(true);
+        if (targetDomainNode === null) {
+          d.reDrawEverthing();
+          shadowClone.hideParentProperty(false);
+        } else {
+          d.updateDomain(targetDomainNode);
+          graph.update();
+          shadowClone.hideParentProperty(false);
+        }
+      } else {
+        d.locked(false);
+        const pnp = renderedGraphSettings.pickAndPinModule();
+        if (pnp.enabled() === true) {
+          if (d.id) {
+            // node
+            pnp.handle(event, d, true);
           }
-          shadowClone.hideClone(true);
-          if (targetDomainNode === null) {
-            d.reDrawEverthing();
-            shadowClone.hideParentProperty(false);
-          } else {
-            d.updateDomain(targetDomainNode);
-            graph.update();
-            shadowClone.hideParentProperty(false);
+          if (d.property) {
+            pnp.handle(event, d.property(), true);
           }
         } else {
-          d.locked(false);
-          const pnp = renderedGraphSettings.pickAndPinModule();
-          if (moved === true) {
-            if (pnp.enabled() === true) {
-              if (d.id) {
-                // node
-                pnp.handle(event, d, true);
-              }
-              if (d.property) {
-                pnp.handle(event, d.property(), true);
-              }
-            } else {
-              d.fx = null;
-              d.fy = null;
-              if (d.property) {
-                d.property().fx = null;
-                d.property().fy = null;
-                if (d.property().inverse()) {
-                  d.property().inverse().fx = null;
-                  d.property().inverse().fy = null;
-                }
-              }
-            }
-          } else if (moved === false) {
-            if (d.id) {
-              executeModules(d, event, true);
+          d.fx = null;
+          d.fy = null;
+          if (d.property) {
+            d.property().fx = null;
+            d.property().fy = null;
+            if (d.property().inverse()) {
+              d.property().inverse().fx = null;
+              d.property().inverse().fy = null;
             }
           }
         }
-      });
+      }
+    }
 
     // Apply the zooming factor.
     zoom = viewportZoom
@@ -1265,6 +1347,9 @@ function createGraph(
         }
         activeMousePan = captureMouseGesture(event, "zoom") ?? activeMousePan;
         clearAllHover();
+        if (event.sourceEvent) {
+          panCache?.beginPan();
+        }
       })
       .on("zoom", function (event) {
         if (isCurrentInteraction(this)) {
@@ -1272,6 +1357,9 @@ function createGraph(
         }
       })
       .on("end", function (event) {
+        if (isCurrentInteraction(this)) {
+          panCache?.endPan();
+        }
         if (
           isCurrentInteraction(this) &&
           event.sourceEvent?.type === "mouseup"
@@ -1284,10 +1372,14 @@ function createGraph(
   // Initializes the graph and its first set of native interaction behaviours.
   function initializeGraph() {
     renderedGraphSettings.graphContainerElement(graphContainerElement);
-    force = createLegacyForceSimulation().on(
-      "tick",
-      hiddenRecalculatePositions,
-    );
+    force = createLegacyForceSimulation({
+      maxStepsPerFrame: 2,
+      frameBudgetMs: 32,
+      // Leave time for drawing and the next pointer event during a drag.
+      shouldBatchSteps: () => activeDragIdentifiers.size === 0,
+    })
+      .on("step", projectLayoutStep)
+      .on("tick", hiddenRecalculatePositions);
     createInteractionBehaviours();
     draggerObjectsArray.push(classDragger);
     draggerObjectsArray.push(rangeDragger);
@@ -1385,10 +1477,10 @@ function createGraph(
       );
     }
   };
-  function recalculatePositionsWithFPS() {
+  function recalculatePositionsWithFPS(event) {
     // compute the fps
 
-    recalculatePositions();
+    recalculatePositions(event);
     now = Date.now();
     const diff = now - then;
     const fps = diff > 0 ? Number((1000 / diff).toFixed(2)) : 0;
@@ -1400,8 +1492,58 @@ function createGraph(
     then = Date.now();
   }
 
-  function recalculatePositions() {
+  /** Center constrained labels before the next solver step, without SVG writes. */
+  function recenterSolitaryLabel(label) {
+    const link = label.link();
+    if (
+      !svgRenderingGuard.isFinitePoint(link.domain()) ||
+      !svgRenderingGuard.isFinitePoint(link.range())
+    ) {
+      return false;
+    }
+    const domain = math.calculateIntersection(link.range(), link.domain(), 0);
+    const range = math.calculateIntersection(link.domain(), link.range(), 0);
+    const position = math.calculateCenter(domain, range);
+    if (
+      !svgRenderingGuard.isFinitePoint(domain) ||
+      !svgRenderingGuard.isFinitePoint(range) ||
+      !svgRenderingGuard.isFinitePoint(position)
+    ) {
+      return false;
+    }
+    label.x = position.x;
+    label.y = position.y;
+    if (editMode) {
+      label.linkDomainIntersection = domain;
+      label.linkRangeIntersection = range;
+    }
+    return true;
+  }
+
+  function projectLayoutStep() {
+    invalidProjectedLabels = undefined;
+    if (!updateRenderingDuringSimulation) {
+      return;
+    }
+    // Preserve the renderer's exact projection set: invisible set-operator
+    // labels participate in the solver but have never been recentered here.
+    labelGroupElements.each((label) => {
+      if (isSolitaryLabel(label) && !recenterSolitaryLabel(label)) {
+        (invalidProjectedLabels ??= new Set()).add(label);
+      }
+    });
+  }
+
+  function recalculatePositions(event) {
+    panCache?.invalidate();
     let skippedUpdates = 0;
+    // A force tick follows its numerical projection synchronously. Direct
+    // arrangement/drag/redraw calls still need to project their changed points.
+    const wasProjected = event?.type === "tick";
+    const validLabelPosition = (label) =>
+      wasProjected
+        ? !invalidProjectedLabels?.has(label)
+        : recenterSolitaryLabel(label);
 
     // Set node positions
 
@@ -1415,38 +1557,10 @@ function createGraph(
 
       // Set label group positions
       labelGroupElements.each(function (label) {
-        let position;
-
         // force centered positions on single-layered links
-        const link = label.link();
-        if (isSolitaryLabel(label)) {
-          if (
-            !svgRenderingGuard.isFinitePoint(link.domain()) ||
-            !svgRenderingGuard.isFinitePoint(link.range())
-          ) {
-            skippedUpdates++;
-            return;
-          }
-          const linkDomainIntersection = math.calculateIntersection(
-            link.range(),
-            link.domain(),
-            0,
-          );
-          const linkRangeIntersection = math.calculateIntersection(
-            link.domain(),
-            link.range(),
-            0,
-          );
-          position = math.calculateCenter(
-            linkDomainIntersection,
-            linkRangeIntersection,
-          );
-          if (!svgRenderingGuard.isFinitePoint(position)) {
-            skippedUpdates++;
-            return;
-          }
-          label.x = position.x;
-          label.y = position.y;
+        if (isSolitaryLabel(label) && !validLabelPosition(label)) {
+          skippedUpdates++;
+          return;
         }
         if (!svgRenderingGuard.setTransform(this, label)) {
           skippedUpdates++;
@@ -1539,44 +1653,13 @@ function createGraph(
 
     // Set label group positions
     labelGroupElements.each(function (label) {
-      let position;
-
       // force centered positions on single-layered links
       const link = label.link();
       if (isSolitaryLabel(label)) {
-        if (
-          !svgRenderingGuard.isFinitePoint(link.domain()) ||
-          !svgRenderingGuard.isFinitePoint(link.range())
-        ) {
+        if (!validLabelPosition(label)) {
           skippedUpdates++;
           return;
         }
-        const linkDomainIntersection = math.calculateIntersection(
-          link.range(),
-          link.domain(),
-          0,
-        );
-        const linkRangeIntersection = math.calculateIntersection(
-          link.domain(),
-          link.range(),
-          0,
-        );
-        position = math.calculateCenter(
-          linkDomainIntersection,
-          linkRangeIntersection,
-        );
-        if (
-          !svgRenderingGuard.isFinitePoint(linkDomainIntersection) ||
-          !svgRenderingGuard.isFinitePoint(linkRangeIntersection) ||
-          !svgRenderingGuard.isFinitePoint(position)
-        ) {
-          skippedUpdates++;
-          return;
-        }
-        label.x = position.x;
-        label.y = position.y;
-        label.linkRangeIntersection = linkRangeIntersection;
-        label.linkDomainIntersection = linkDomainIntersection;
       } else {
         if (
           !svgRenderingGuard.isFinitePoint(label) ||
@@ -1879,6 +1962,7 @@ function createGraph(
       }
       graphContainer.attr("transform", viewportTransformString());
       updateHaloRadius();
+      panCache?.viewportChanged();
       reportViewportChanged();
       return;
     }
@@ -1932,6 +2016,7 @@ function createGraph(
       })
       .on("end interrupt cancel", function () {
         transformAnimation = false;
+        panCache?.refresh();
       })
       .attr("transform", viewportTransformString())
       .ease(d3.easeLinear)
@@ -1949,6 +2034,28 @@ function createGraph(
       .attr("height", renderedGraphSettings.height())
       .append("g");
     bindViewportInteractions();
+    const scene = graphContainer.node();
+    panCache = createRenderedGraphPanCache({
+      svg: scene.parentNode,
+      scene,
+      isStable: () => {
+        const layout = readLayoutStatus();
+        return (
+          hasActiveRenderInteractions &&
+          !editMode &&
+          activeDragIdentifiers.size === 0 &&
+          !transformAnimation &&
+          !continuousZoomDirection &&
+          !graphContainer.classed("is-render-pending") &&
+          (layout.isPaused || layout.hasEnded)
+        );
+      },
+      readViewport: () => ({
+        x: graphTranslation[0],
+        y: graphTranslation[1],
+        k: zoomFactor,
+      }),
+    });
   }
 
   function bindViewportInteractions() {
@@ -2235,11 +2342,6 @@ function createGraph(
     });
     generateEditElements();
 
-    // Add an extra container for all markers
-    if (!reuse) {
-      markerContainer = linkContainer.append("defs");
-    }
-
     // Draw nodes
 
     if (classNodes === undefined) {
@@ -2271,11 +2373,23 @@ function createGraph(
       labelNodes = [];
     }
 
-    // Draw label groups (property + inverse)
+    // Compute the final stacking order before joining. Prepending subclasses
+    // after a canonical-order join would move every retained subclass twice.
+    const subclassLabels = [];
+    const otherLabels = [];
+    for (const label of labelNodes) {
+      if (label.property().labelVisible()) {
+        (elementTools.isRdfsSubClassOf(label.property())
+          ? subclassLabels
+          : otherLabels
+        ).push(label);
+      }
+    }
+    // Preserve the existing reverse subclass order below all other labels.
     labelGroupElements = bindPrimitiveGroups(
       labelContainer,
       ".labelGroup",
-      labelNodes.filter((label) => label.property().labelVisible()),
+      [...subclassLabels.reverse(), ...otherLabels],
       (label) => primitiveKey(label.property()),
       "labelGroup",
     ).call(dragBehaviour);
@@ -2296,18 +2410,6 @@ function createGraph(
       // Remove empty groups without a label.
       if (!success) {
         d3.select(this).remove();
-      }
-    });
-    // Place subclass label groups on the bottom of all labels
-    labelGroupElements.each(function (label) {
-      // the label might be hidden e.g. in compact notation
-      if (!this.parentNode) {
-        return;
-      }
-
-      if (elementTools.isRdfsSubClassOf(label.property())) {
-        const parentNode = this.parentNode;
-        parentNode.insertBefore(this, parentNode.firstChild);
       }
     });
     if (properties === undefined) {
@@ -2379,6 +2481,8 @@ function createGraph(
   }
 
   function remove() {
+    panCache?.dispose();
+    panCache = undefined;
     if (graphContainer) {
       // Select the parent element because the graph container is a group (e.g. for zooming)
       d3.select(graphContainer.node().parentNode).remove();
@@ -2463,6 +2567,7 @@ function createGraph(
   };
 
   graph.updateStyle = function () {
+    panCache?.invalidate();
     refreshGraphStyle();
     if (
       renderedGraphEventPort.isOntologyRenderable() === false ||
@@ -2472,8 +2577,15 @@ function createGraph(
     } else {
       force.start();
     }
+    panCache?.refresh();
   };
 
+  graph.withLiveSvgDrawing = (callback) =>
+    panCache ? panCache.withLiveDrawing(callback) : callback();
+
+  // The adapter transfers its owned, deeply frozen drawing. Recovery transfers
+  // a private reconstructed copy. Neither caller mutates that drawing later;
+  // live positions and editing state belong to the materialized primitives.
   function prepareCanonicalDrawing(drawing, sameRevision = false) {
     const { center, zoom: scale } = drawing.camera;
     const translation = [
@@ -2511,7 +2623,7 @@ function createGraph(
         drawing,
         reuse ? canonicalElements : undefined,
       ),
-      drawing: structuredClone(drawing),
+      drawing,
       presentation,
       reuse,
       scale,
@@ -2526,9 +2638,54 @@ function createGraph(
       .enabled(display.externalColoring);
   }
 
+  function spaceFreshDrawing() {
+    const points = spaceInitialNodeFootprints(
+      classNodes.map((node, index) => ({
+        index,
+        x: node.x,
+        y: node.y,
+        // Rectangular labels are sized by the native text pass before this
+        // boundary; their enclosing disk also protects diagonal clearances.
+        radius:
+          node.renderType() === "rect"
+            ? Math.hypot(node.width() / 2, node.height() / 2)
+            : node.actualRadius(),
+        datatype: elementTools.isDatatype(node),
+      })),
+      {
+        classDistancePx: renderedGraphSettings.classDistance(),
+        datatypeDistancePx: renderedGraphSettings.datatypeDistance(),
+      },
+    );
+    const movements = new Map();
+    for (const point of points) {
+      const node = classNodes[point.index];
+      const dx = point.x - node.x;
+      const dy = point.y - node.y;
+      movements.set(node, { x: dx, y: dy });
+      node.x = point.x;
+      node.y = point.y;
+      node.px += dx;
+      node.py += dy;
+    }
+    // Carry each label with its endpoints, preserving loop/parallel offsets.
+    for (const label of labelNodes) {
+      const a = movements.get(label.link().domain());
+      const b = movements.get(label.link().range());
+      const dx = (a.x + b.x) / 2;
+      const dy = (a.y + b.y) / 2;
+      label.x += dx;
+      label.y += dy;
+      label.px += dx;
+      label.py += dy;
+    }
+    recalculatePositions();
+  }
+
+  /** Mount an owned drawing; the caller must not mutate it after transfer. */
   graph.load = function (
     loadGeneration,
-    { isPaused = true, canonicalDrawing } = {},
+    { isPaused = true, canonicalDrawing, prepareInitialDrawing = false } = {},
   ) {
     // Validate and materialize the canonical drawing before retiring mounted data.
     const candidate = prepareCanonicalDrawing(canonicalDrawing);
@@ -2541,11 +2698,13 @@ function createGraph(
     hasActiveRenderInteractions = true;
     createInteractionBehaviours();
     redrawGraph();
-    const publishLayoutState = () =>
+    const publishLayoutState = () => {
       renderedGraphEventPort.publishGraphLayoutState(
         loadGeneration,
         readLayoutStatus(),
       );
+      panCache?.refresh();
+    };
     force
       .on("tick.runtimeLayout", publishLayoutState)
       .on("end.runtimeLayout", publishLayoutState);
@@ -2563,6 +2722,9 @@ function createGraph(
       }
     }
     graph.update();
+    if (prepareInitialDrawing) {
+      spaceFreshDrawing();
+    }
     {
       // Canonical drawings already have complete placements. Present them
       // immediately even when layout is running; throttled simulation ticks
@@ -2583,8 +2745,33 @@ function createGraph(
     }
     graph.setViewportTransform(candidate.scale, candidate.translation);
     drawingPresentation = candidate.presentation;
+    panCache?.refresh();
+    if (prepareInitialDrawing && !paused) {
+      // Keep the complete seed available for the adapter's first-paint barrier.
+      // Stopping the timer preserves alpha, positions and the user's run intent.
+      force.stop();
+      const initialAlpha = force.alpha();
+      const epoch = renderInteractionEpoch;
+      let pending = true;
+      return () => {
+        if (!pending) {
+          return;
+        }
+        pending = false;
+        if (
+          hasActiveRenderInteractions &&
+          renderInteractionEpoch === epoch &&
+          acceptedDrawing === candidate.drawing &&
+          !paused &&
+          force.alpha() === initialAlpha
+        ) {
+          force.resume();
+        }
+      };
+    }
   };
 
+  /** Revise from an owned drawing, retaining it unchanged for reuse/recovery. */
   graph.applyCanonicalDrawingRevision = function (
     drawing,
     { sameRevision = false } = {},
@@ -2594,6 +2781,7 @@ function createGraph(
     }
     // Validate and materialize before invalidating the current interactions.
     const candidate = prepareCanonicalDrawing(drawing, sameRevision);
+    panCache?.invalidate();
     const previous = {
       drawing: acceptedDrawing,
       state: graph.readCanonicalDrawingState(),
@@ -3881,6 +4069,7 @@ function createGraph(
     }
 
     editMode = Boolean(val);
+    panCache?.invalidate();
     renderedGraphEventPort.publishEditorModeChange(editMode);
     ontologyEditingState.setEditorModeForDefaultObject(editMode);
     if (editMode === false) {

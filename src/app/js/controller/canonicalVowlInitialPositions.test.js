@@ -121,6 +121,33 @@ test("rendererless placement uses the bounded spacing fallback", () => {
   expect(Math.hypot(a.x - b.x, a.y - b.y)).toBeGreaterThan(100);
 });
 
+test("a deep path starts with short links even when inventory order differs from connectivity", () => {
+  const occurrences = Array.from({ length: 101 }, (_, i) =>
+    node(`n${(i * 17) % 101}`),
+  );
+  for (let i = 1; i < 101; i++) {
+    occurrences.push(edge(`n${i - 1}`, `n${i}`));
+  }
+  const positions = createCanonicalVowlInitialPositions(occurrences, center, {
+    classDistancePx: 300,
+  });
+  for (let i = 1; i < 101; i++) {
+    const a = positions.get(`n${i - 1}`);
+    const b = positions.get(`n${i}`);
+    expect(Math.hypot(a.x - b.x, a.y - b.y)).toBeCloseTo(300);
+  }
+  const points = [...positions.values()];
+  expect(new Set(points.map(({ x, y }) => `${x},${y}`)).size).toBe(101);
+  expect(
+    Math.max(...points.map(({ x }) => x)) -
+      Math.min(...points.map(({ x }) => x)),
+  ).toBeLessThanOrEqual(3000);
+  expect(
+    Math.max(...points.map(({ y }) => y)) -
+      Math.min(...points.map(({ y }) => y)),
+  ).toBeLessThanOrEqual(3000);
+});
+
 test("a broad connected cluster leaves room for ordinary class glyphs", () => {
   const occurrences = [node("hub")];
   for (let i = 0; i < 64; i++) {

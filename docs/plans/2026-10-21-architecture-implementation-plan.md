@@ -1,7 +1,8 @@
 # WebVOWL architecture implementation plan
 
-> **Status:** Approved plan; revision 4 records the implemented architecture candidate, accepted DEC-010 and focused/browser evidence.
-> Final configured verification, independent review and branch delivery are tracked in the retained HISEW handoff.
+> **Status:** Revision 5, 24 October 2026: PR-A through PR-E were source-delivered in `16e67c902e3438543f3ab520a40b45b2d9e2910a` and accepted by the owner before performance implementation.
+> The exact source passed 9,826 tests.
+> The owner accepted the retained external review with its native qualification limitation and authorized the separate `completed-elsewhere` execution closure; that closure does not establish normal HISEW completion or resource disposal.
 > **Sequence:** Plan 1 of 3: architecture → performance → UI.
 > **Basis:** [Architecture assessment](../reviews/20261020-architecture-assessment.md), especially sections 10, 11 and 18.
 > **Method:** HISEW implementation planning, with the accepted change dossier, R2 risk classification, quality scenarios and decisions kept in this document.
@@ -347,6 +348,10 @@ Keep permanent `vowl/migrate` ingress and the documented canonical editor-gestur
 **Recovery:** qualify source reversal only before downstream adoption; retain the prior deployable artifact for an independently authorized release rollback.
 
 ## 6. Traceability and slice dispositions
+
+The following table preserves revision 4's pre-handoff checkpoint.
+Its "final assurance pending" cells are historical: the accepted source delivery and qualified review disposition are recorded in this document's current status above.
+Architecture source work is complete; later performance/UI work must retain these contracts and does not restart PR-A through PR-E.
 
 | Slice            | Requirements / acceptance / quality / decisions             | Proof                                                              | Release and cleanup implication                                  | Implementation status                             |
 | ---------------- | ----------------------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------- | ------------------------------------------------- |

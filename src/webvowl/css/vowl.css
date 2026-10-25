@@ -351,3 +351,33 @@ circle.focused {
 .is-dragging {
   cursor: grabbing;
 }
+
+.vowl-pan-cache-host {
+  position: relative;
+}
+
+.vowl-pan-cache {
+  pointer-events: none;
+
+  position: absolute;
+  z-index: 1;
+  top: var(--vowl-pan-top);
+  left: var(--vowl-pan-left);
+  transform: translate(var(--vowl-pan-x, 0), var(--vowl-pan-y, 0));
+
+  width: var(--vowl-pan-width);
+  height: var(--vowl-pan-height);
+}
+
+/* Keep SVG semantics and geometry while its image is shown. A viewport-based
+   empty clip also avoids rebuilding layers for the transparent SVG contents. */
+.vowlGraph .vowl-pan-cache-active {
+  opacity: 0 !important;
+  clip-path: inset(50%) view-box;
+}
+
+/* The viewport already owns this pan; freeze transient hover until release. */
+.vowlGraph .vowl-pan-cache-active,
+.vowlGraph .vowl-pan-cache-active * {
+  pointer-events: none !important;
+}

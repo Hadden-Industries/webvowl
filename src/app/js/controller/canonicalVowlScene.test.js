@@ -1,6 +1,7 @@
 import { fromOwl } from "vowl/owl";
 import { edit, canonicalize, profiles } from "vowl";
 import { createCanonicalVowlScene } from "./canonicalVowlScene.js";
+import { jest } from "@jest/globals";
 
 async function classes() {
   return (
@@ -35,6 +36,62 @@ async function merge(document) {
   ]);
   return { ...result, occurrences: result.document.structural.occurrences };
 }
+
+test("arrangement owns changed positions without copying the complete scene and remains atomic", () => {
+  const scene = createCanonicalVowlScene(
+    [
+      { id: "a", kind: "class-node" },
+      { id: "b", kind: "class-node" },
+    ],
+    { loadGeneration: 1 },
+  );
+  const before = scene.snapshot();
+  const proposal = scene.prepareView({ display: { compactNotation: true } });
+  const clone = jest.spyOn(globalThis, "structuredClone");
+  try {
+    scene.arrange(
+      before.placements.map(({ occurrence, position, pinned }) => ({
+        reference: scene.reference(occurrence),
+        position,
+        pinned,
+      })),
+      { camera: before.camera },
+    );
+    expect(clone).not.toHaveBeenCalled();
+    expect(() => proposal.commit()).toThrow("scene preview expired");
+    const position = { x: -0, y: 47 };
+    const camera = { center: { x: 23, y: -0 }, zoom: 2 };
+    scene.arrange(
+      [{ reference: scene.reference("a"), position, pinned: true }],
+      { camera },
+    );
+    expect(clone).not.toHaveBeenCalled();
+    position.y = 999;
+    camera.center.x = 999;
+    const accepted = scene.snapshot();
+    expect(accepted.placements[0]).toEqual({
+      occurrence: "a",
+      position: { x: -0, y: 47 },
+      pinned: true,
+    });
+    expect(accepted.placements[1]).toEqual(before.placements[1]);
+    expect(accepted.camera).toEqual({ center: { x: 23, y: -0 }, zoom: 2 });
+    expect(() =>
+      scene.arrange(
+        [
+          { reference: scene.reference("a"), position: { x: 200, y: 300 } },
+          { reference: scene.reference("b"), position: { x: Infinity, y: 0 } },
+        ],
+        { camera: before.camera },
+      ),
+    ).toThrow("scene position invalid");
+    expect(scene.snapshot()).toEqual(accepted);
+    accepted.placements[1].position.x = 999;
+    expect(scene.snapshot().placements[1]).toEqual(before.placements[1]);
+  } finally {
+    clone.mockRestore();
+  }
+});
 
 test("fresh nodes have distinct deterministic positions translated around the camera center", () => {
   const occurrences = Array.from({ length: 700 }, (_, index) => ({

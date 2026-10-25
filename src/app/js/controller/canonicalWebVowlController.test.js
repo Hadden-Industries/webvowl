@@ -906,6 +906,36 @@ test("explicit layout intent is forwarded with the accepted generation", async (
   expect(controller.getState().layout.status).toBe("paused");
 });
 
+test("view layout commands report the actual pause state without waiting for a force tick", async () => {
+  const { controller, runtime, session, load } = setup();
+  let isPaused = true;
+  runtime.readGraphLayoutSnapshot = () => ({ isPaused, hasEnded: false });
+  runtime.applyVisualizationView = jest.fn(async ({ layout }) => {
+    isPaused = layout === "pause";
+  });
+  runtime.readCanonicalDrawingState = () => ({});
+  session.synchronizeDrawing = jest.fn();
+  await load("urn:first");
+  await controller.setVisualizationView({ layout: "resume" });
+  expect(controller.getState().layout.status).toBe("relaxing");
+  await controller.setVisualizationView({ layout: "pause" });
+  expect(controller.getState().layout.status).toBe("paused");
+
+  // A later explicit choice can arrive while the older view awaits paint.
+  const paint = deferred();
+  runtime.applyVisualizationView.mockImplementationOnce(() => paint.promise);
+  const view = controller.setVisualizationView({ layout: "pause" });
+  const obsolete = expect(view).rejects.toMatchObject({ name: "AbortError" });
+  runtime.setGraphLayoutPaused = ({ isPaused: requested }) => {
+    isPaused = requested;
+    return { layoutStatus: requested ? "paused" : "relaxing" };
+  };
+  controller.setGraphLayoutPaused({ isPaused: false });
+  paint.resolve();
+  await obsolete;
+  expect(controller.getState().layout.status).toBe("relaxing");
+});
+
 test("cancelled source-format selection restores the accepted document without an error", async () => {
   const { controller, load, acquisition, session } = setup();
   await load("urn:first");

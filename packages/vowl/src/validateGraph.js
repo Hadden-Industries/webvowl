@@ -448,5 +448,5 @@ export function validateMeaning(source, context, budget) {
     }
   }
   budget.check();
-  return { ...context, roleMap, endpoints };
+  return { ...context, roleMap, endpoints, support };
 }

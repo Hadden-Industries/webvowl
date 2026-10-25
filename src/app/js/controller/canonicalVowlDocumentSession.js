@@ -89,6 +89,20 @@ function defineOwnedDocumentField(result, name, source) {
   });
 }
 
+function documentSnapshot(accepted, visualization = accepted.scene.snapshot()) {
+  // A literal allocation site's cached shape can retain one of the lazy
+  // getters below, including its old inspection. Use an ordinary object
+  // without that allocation-site feedback; lazy ownership is unchanged.
+  const result = Object.assign(Object.create(Object.prototype), {
+    loadGeneration: accepted.generation,
+    documentRevision: accepted.revision,
+    visualization,
+  });
+  defineOwnedDocumentField(result, "inspection", accepted.inspection);
+  defineOwnedDocumentField(result, "checkpoint", accepted.checkpoint);
+  return result;
+}
+
 function projectInspection(inspection, visualization, generation, records) {
   return createCanonicalVowlInspectionProjection(inspection, {
     loadGeneration: generation,
@@ -335,18 +349,7 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
      * Extend this result in place: object spread would eagerly read them.
      */
     snapshot() {
-      const accepted = loaded();
-      // A literal allocation site's cached shape can retain one of the lazy
-      // getters below, including its old inspection. Use an ordinary object
-      // without that allocation-site feedback; lazy ownership is unchanged.
-      const result = Object.assign(Object.create(Object.prototype), {
-        loadGeneration: accepted.generation,
-        documentRevision: accepted.revision,
-        visualization: accepted.scene.snapshot(),
-      });
-      defineOwnedDocumentField(result, "inspection", accepted.inspection);
-      defineOwnedDocumentField(result, "checkpoint", accepted.checkpoint);
-      return result;
+      return documentSnapshot(loaded());
     },
     scene() {
       return loaded().scene;
@@ -515,7 +518,11 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
       ) {
         base.readModel = undefined;
       }
-      return Object.assign(this.snapshot(), { projection });
+      // The preview already owns the exact scene just committed. Projection
+      // construction does not mutate or lend it to the renderer.
+      return Object.assign(documentSnapshot(base, visualization), {
+        projection,
+      });
     },
     synchronizeDrawing({
       loadGeneration,
