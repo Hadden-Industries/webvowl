@@ -57,21 +57,26 @@ function validateStructure(structural, budget) {
   );
   const context = validateMeaning(source, graph, budget);
   validateProjection(source, context, budget);
+  return context.support;
 }
 
 function identity(structural, budget) {
-  return allRecords(structural).map(({ id }) => {
-    budget.check();
+  budget.check();
+  const result = allRecords(structural).map(({ id }) => {
+    budget.poll();
     return { previous: id, current: id };
   });
+  budget.check();
+  return result;
 }
 
 /** Local handles have no portable identity meaning; every transfer returns a map. */
 function relabel(structural, budget) {
+  budget.check();
   const replacements = new Map();
   for (const [collection, prefix] of Object.entries(categories)) {
     structural[collection].forEach(({ id }, index) => {
-      budget.check();
+      budget.poll();
       replacements.set(id, `live:${prefix}:${index}`);
     });
   }
@@ -79,18 +84,28 @@ function relabel(structural, budget) {
     { structural },
     envelope(profiles.structuralContent),
     (value, shape, _pointer, parent, field) => {
-      budget.check();
+      budget.poll();
       if (shape?.reference || shape?.id) {
         parent[field] = replacements.get(value);
       }
     },
   );
+  budget.check();
   return replacements;
 }
 
 function admit(state, budget, archive) {
   state = snapshotSource(state, budget);
-  validateStructure(state.structural, budget);
+  const assertionSupport = validateStructure(state.structural, budget);
+  return publishValidatedState(state, budget, archive, assertionSupport);
+}
+
+/**
+ * Publish privately owned state only after its structure has been validated.
+ * This local control-flow invariant cannot be supplied by a checkpoint/caller.
+ */
+function publishValidatedState(state, budget, archive, assertionSupport) {
+  budget.check();
   if (state.qualifications) {
     validateQualifications(state, budget);
   }
@@ -98,7 +113,7 @@ function admit(state, budget, archive) {
   deepFreeze(state);
   budget.check();
   models.set(model, state);
-  inspections.set(model, inspection(state, archive, budget));
+  inspections.set(model, inspection(state, archive, budget, assertionSupport));
   if (archive) {
     archives.set(model, archive);
   }
@@ -229,16 +244,22 @@ export function openOwlState(source, archive, documentIri, budget) {
   });
 }
 
-function inspection(state, archive, budget) {
+function inspection(state, archive, budget, assertionSupport) {
+  budget.check();
   const { occurrences, ...records } = state.structural;
   const index = new Map(
     allRecords(state.structural).map((record) => [record.id, record]),
   );
-  const { support } = createAssertionSupportLookup(
-    state.structural,
-    (id) => index.get(id),
-    budget,
-  );
+  // Admission just derived this lookup from this exact owned structural tree.
+  // Reuse it only within that publication; checkpoint recovery builds its own
+  // lookup after its final snapshot, so no lookup outlives or crosses ownership.
+  const support =
+    assertionSupport ??
+    createAssertionSupportLookup(
+      state.structural,
+      (id) => index.get(id),
+      budget,
+    ).support;
   const signature = new Map(
     records.roles.map((role) => [
       // json-identity-contract: ordered-tuple; owner: VOWL live role index; reason: Validated subject IRI and role-kind scalars form the same ordered lookup tuple.
@@ -249,7 +270,7 @@ function inspection(state, archive, budget) {
   function references(value, type) {
     const required = new Set();
     walkTyped(value, type, (item, shape) => {
-      budget.check();
+      budget.poll();
       if (shape?.reference) {
         required.add(item);
       }
@@ -297,7 +318,7 @@ function inspection(state, archive, budget) {
     }),
   );
   // All values are recursively frozen, owned plain data, never dependency objects.
-  return deepFreeze({
+  const result = deepFreeze({
     revision: state.revision,
     origin: state.origin,
     records,
@@ -324,6 +345,8 @@ function inspection(state, archive, budget) {
       ? inspectPortableQualifications(state.qualifications)
       : {}),
   });
+  budget.check();
+  return result;
 }
 
 export function captureQualifications(model, budget) {
@@ -488,7 +511,11 @@ function fields(value, names) {
   }
 }
 
-/** Checkpoint bytes convey structure, never local admission or provenance authority. */
+/**
+ * Checkpoint bytes convey structure, never local admission or provenance authority.
+ * Validate an owned snapshot before asynchronous archive recovery; publish only
+ * that validated representation, retaining the final snapshot's resource charges.
+ */
 export async function readmitLiveModel(input, budget) {
   let source;
   let hasSource = false;
@@ -602,7 +629,7 @@ export async function readmitLiveModel(input, budget) {
   ) {
     fail("CHECKPOINT_INVALID");
   }
-  const model = admit(
+  const state = snapshotSource(
     {
       revision: checkpoint.revision,
       origin,
@@ -613,8 +640,8 @@ export async function readmitLiveModel(input, budget) {
         : {}),
     },
     budget,
-    archive,
   );
+  const model = publishValidatedState(state, budget, archive);
   return deepFreeze({
     model,
     correspondence: identity(checkpoint.structural, budget),

@@ -1,4 +1,5 @@
-import { expect, test } from "@jest/globals";
+import { expect, jest, test } from "@jest/globals";
+import { timerFlush } from "d3";
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { runInNewContext } from "node:vm";
@@ -81,6 +82,131 @@ function state(graph) {
     Boolean(n.fixed),
   ]);
 }
+
+test.each([
+  ["step cap", () => 0, 4],
+  ["time budget", (call) => call * 5, 2],
+])(
+  "batched frames preserve every legacy step and respect the %s",
+  (_, clock, steps) => {
+    const expected = fixture({ labels: true });
+    const actual = fixture({ labels: true });
+    const reference = configure(referenceForce(), expected);
+    const candidate = createLegacyForceSimulation({
+      random: seededRandom(),
+      maxStepsPerFrame: 4,
+      frameBudgetMs: 8,
+    });
+    let calls = 0;
+    const now = jest
+      .spyOn(performance, "now")
+      .mockImplementation(() => clock(calls++));
+    let observedSteps = 0;
+    let drawings = 0;
+    try {
+      candidate.on("step.proof", () => {
+        reference.tick();
+        observedSteps++;
+        expect(state(actual)).toEqual(state(expected));
+      });
+      candidate.on("tick.proof", () => {
+        drawings++;
+        expect(observedSteps).toBe(steps);
+        candidate.stop();
+      });
+      configure(candidate, actual);
+      timerFlush();
+      expect(observedSteps).toBe(steps);
+      expect(drawings).toBe(1);
+      timerFlush();
+      expect(observedSteps).toBe(steps);
+    } finally {
+      candidate.stop();
+      reference.stop();
+      now.mockRestore();
+    }
+  },
+);
+
+test("interactive frames publish one unchanged step and restore batching on release", () => {
+  let interacting = false;
+  const expected = fixture({ labels: true });
+  const actual = fixture({ labels: true });
+  const reference = configure(referenceForce(), expected);
+  const candidate = createLegacyForceSimulation({
+    random: seededRandom(),
+    maxStepsPerFrame: 2,
+    frameBudgetMs: 32,
+    shouldBatchSteps: () => !interacting,
+  });
+  const now = jest.spyOn(performance, "now").mockReturnValue(0);
+  let steps = 0;
+  const drawings = [];
+  try {
+    candidate.on("step.proof", () => {
+      reference.tick();
+      steps++;
+      expect(state(actual)).toEqual(state(expected));
+    });
+    candidate.on("tick.proof", () => drawings.push(steps));
+    configure(candidate, actual);
+    timerFlush();
+    interacting = true;
+    timerFlush();
+    timerFlush();
+    interacting = false;
+    timerFlush();
+    expect(drawings).toEqual([2, 3, 4, 6]);
+  } finally {
+    candidate.stop();
+    reference.stop();
+    now.mockRestore();
+  }
+});
+
+test("stopping within a numerical step cancels the rest of its frame", () => {
+  const force = createLegacyForceSimulation({ maxStepsPerFrame: 4 });
+  let steps = 0;
+  const draw = jest.fn();
+  try {
+    force
+      .on("step.stop", () => {
+        steps++;
+        force.stop();
+      })
+      .on("tick.proof", draw);
+    configure(force, fixture());
+    timerFlush();
+    timerFlush();
+    expect(steps).toBe(1);
+    expect(draw).not.toHaveBeenCalled();
+  } finally {
+    force.stop();
+  }
+});
+
+test("a batched frame publishes its last moving state before ending once", () => {
+  const force = createLegacyForceSimulation({ maxStepsPerFrame: 4 });
+  const events = [];
+  const now = jest.spyOn(performance, "now").mockReturnValue(0);
+  try {
+    force.on("tick.proof", () => events.push(["tick", force.alpha()]));
+    force.on("end.proof", () => events.push(["end", force.alpha()]));
+    configure(force, fixture());
+    force.alpha(0.0051);
+    timerFlush();
+    expect(events).toEqual([["tick", 0.0051 * 0.99]]);
+    timerFlush();
+    timerFlush();
+    expect(events).toEqual([
+      ["tick", 0.0051 * 0.99],
+      ["end", 0],
+    ]);
+  } finally {
+    force.stop();
+    now.mockRestore();
+  }
+});
 
 test("reference distribution has its retained immutable identity", () => {
   expect(createHash("sha256").update(referenceSource).digest("hex")).toBe(

@@ -8,8 +8,21 @@ import {
 let activeRequest;
 let nextImportId = 0;
 const imports = new Map();
+let continueOrdering;
 
 export async function handleCanonicalVowlWorkerMessage({ data }) {
+  if (data?.type === "continue-ordering") {
+    if (
+      activeRequest &&
+      Object.keys(activeRequest).every(
+        (key) => data[key] === activeRequest[key],
+      )
+    ) {
+      continueOrdering?.();
+      continueOrdering = undefined;
+    }
+    return;
+  }
   if (data?.type === "import-result") {
     if (
       !activeRequest ||
@@ -52,7 +65,23 @@ export async function handleCanonicalVowlWorkerMessage({ data }) {
             importingDocumentIri,
           });
         }),
-      context,
+      {
+        ...context,
+        ...(data.deferNodeOrdering &&
+        data.request.operation === "open-owl-model"
+          ? {
+              publishPreview: (result) =>
+                new Promise((resolve) => {
+                  continueOrdering = resolve;
+                  globalThis.postMessage({
+                    type: "preview",
+                    ...context,
+                    result,
+                  });
+                }),
+            }
+          : {}),
+      },
     );
     globalThis.postMessage(
       { type: "result", ...context, result },

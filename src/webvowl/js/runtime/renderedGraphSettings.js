@@ -10,8 +10,7 @@ export function createRenderedGraphSettings() {
 
   // Settings-level warnings travel through a caller-supplied channel; the
   // settings object holds no presentation module of its own.
-  let data,
-    graphContainerElement,
+  let graphContainerElement,
     classDistance = defaults.classDistance,
     datatypeDistance = defaults.datatypeDistance,
     loopDistance = defaults.loopDistance,
@@ -184,13 +183,6 @@ export function createRenderedGraphSettings() {
       return compactNotation;
     }
     compactNotation = p;
-    return renderedGraphSettings;
-  };
-  renderedGraphSettings.data = function (p) {
-    if (!arguments.length) {
-      return data;
-    }
-    data = p;
     return renderedGraphSettings;
   };
   renderedGraphSettings.datatypeDistance = function (p) {

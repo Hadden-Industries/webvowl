@@ -1,47 +1,23 @@
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { SourceTextModule } from "node:vm";
+import { createOntologyMenu } from "./ontologyMenu.js";
+import {
+  normalizeOntologyUrl,
+  ONTOLOGY_URL_HINT,
+} from "../ui/ontologySourceSubmission.js";
 
 // Explicit application connections used by the ontology input.
 let loadingModule;
-import {
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  jest,
-  test,
-} from "@jest/globals";
-
-let createOntologyMenu;
-let normalizeOntologyUrl;
-
-const ONTOLOGY_MENU_MODULE_URL = new URL("./ontologyMenu.js", import.meta.url);
-
-beforeAll(async () => {
-  const ontologyMenuModule = new SourceTextModule(
-    readFileSync(fileURLToPath(ONTOLOGY_MENU_MODULE_URL), "utf8"),
-    { identifier: ONTOLOGY_MENU_MODULE_URL.href },
-  );
-  await ontologyMenuModule.link((specifier) => {
-    if (specifier === "../ui/visualizationControlAction.js") {
-      const moduleUrl = new URL(specifier, ONTOLOGY_MENU_MODULE_URL);
-      return new SourceTextModule(
-        readFileSync(fileURLToPath(moduleUrl), "utf8"),
-        {
-          identifier: moduleUrl.href,
-        },
-      );
-    }
-    throw new Error(`Unexpected ontology menu dependency: ${specifier}`);
-  });
-  await ontologyMenuModule.evaluate();
-  ({ createOntologyMenu, normalizeOntologyUrl } = ontologyMenuModule.namespace);
-});
+import { beforeEach, describe, expect, jest, test } from "@jest/globals";
 
 class MockSelection {
   constructor(node = {}) {
     this.element = node;
+    this.element.value = "";
+    this.element.children = [];
+    this.element.appendChild = (child) => this.element.children.push(child);
+    this.element.replaceChildren = () => {
+      this.element.children = [];
+    };
+    this.element.focus = jest.fn();
     this.handlers = {};
     this.classes = new Set();
     this.attributes = {};
@@ -227,10 +203,13 @@ describe("ontology menu actions", () => {
     global.location = { hash: "#file=foaf.rdf.json" };
     global.window = {
       addEventListener: jest.fn(),
+      setTimeout,
+      clearTimeout,
       history: { pushState: jest.fn() },
     };
     global.document = {
       getElementById: (id) => selectionFor("#" + id).element,
+      createElement: () => new MockSelection().element,
     };
     global.d3 = {
       select: selectionFor,
@@ -344,7 +323,7 @@ describe("ontology menu actions", () => {
 
     expect(iriInput.element.value).toBe("https://example.org/ontology.owl");
     expect(iriInput.attributes["aria-invalid"]).toBeUndefined();
-    expect(iriHint.element.textContent).toBe("Enter an ontology URL");
+    expect(iriHint.element.textContent).toBe(ONTOLOGY_URL_HINT);
   });
 
   test("normalizes before native validation when Enter is pressed", () => {
@@ -371,7 +350,7 @@ describe("ontology menu actions", () => {
     const event = { preventDefault: jest.fn() };
     iriInput.element.value = "not a URL";
 
-    expect(iriForm.handlers.submit(event)).toBe(false);
+    iriForm.handlers.submit(event);
 
     expect(event.preventDefault).toHaveBeenCalledTimes(1);
     expect(iriInput.attributes["aria-invalid"]).toBe("true");
@@ -390,25 +369,28 @@ describe("ontology menu actions", () => {
     expect(global.location.hash).toBe(
       "url=" + "https://example.org/ontology.json?download=1#latest",
     );
-    expect(iriInput.element.value).toBe("");
-    expect(iriButton.element.disabled).toBe(true);
+    // DEC-007 retains the submitted address, including after a failed load.
+    expect(iriInput.element.value).toBe(
+      "https://example.org/ontology.json?download=1#latest",
+    );
+    expect(iriButton.element.disabled).toBe(false);
   });
 
   test("revalidates URLs submitted through the programmatic menu API", () => {
-    ontologyMenu.setIriText("not a URL");
+    ontologyMenu.submitOntologySource("not a URL");
     expect(global.location.hash).toBe("#file=foaf.rdf.json");
 
-    ontologyMenu.setIriText("example.org/ontology.owl");
+    ontologyMenu.submitOntologySource("example.org/ontology.owl");
     expect(global.location.hash).toBe("iri=https://example.org/ontology.owl");
   });
 
   test("keeps the custom ontology address readable and preserves existing URL escapes", () => {
     const identity =
       "https://haddenindustries.com/ontology/universal/reference-data/latest";
-    ontologyMenu.setIriText(identity);
+    ontologyMenu.submitOntologySource(identity);
     expect(global.location.hash).toBe(`iri=${identity}`);
     const escaped = "https://example.org/a%2Fb?value=%23&other=one%20two#part";
-    ontologyMenu.setIriText(escaped);
+    ontologyMenu.submitOntologySource(escaped);
     expect(global.location.hash).toContain(
       "iri=https://example.org/a%252Fb?value=%2523&other=one%2520two#part",
     );

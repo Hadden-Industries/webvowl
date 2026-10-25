@@ -8,7 +8,8 @@ const REPOSITORY_ROOT_PATH = fileURLToPath(new URL("..", import.meta.url));
 const D3_RENDERED_GRAPH_ADAPTER_PATH =
   "src/webvowl/js/runtime/d3RenderedGraphAdapter.js";
 const RENDERED_GRAPH_RUNTIME_IMPLEMENTATION_SUBTREE = "src/webvowl/js/runtime";
-const IN_MEMORY_ADAPTER_PATH = "src/app/test/inMemoryRenderedGraphAdapter.js";
+const CANONICAL_DOUBLE_PATH =
+  "src/app/test/canonicalRenderedGraphRuntimeDouble.js";
 
 const APPLICATION_SOURCE_DIRECTORIES = Object.freeze([
   "src/app/js",
@@ -312,12 +313,14 @@ describe("rendered graph decoupling", () => {
     expect(violations).toEqual([]);
   });
 
-  test("imports the in-memory rendered graph adapter from no production module", () => {
+  test("imports the canonical rendered graph double from no production module", () => {
     const violations = [
       ...applicationModulePaths(),
       ...rendererModulePaths(),
     ].filter((modulePath) =>
-      readModuleSource(modulePath).includes("inMemoryRenderedGraphAdapter"),
+      readModuleSource(modulePath).includes(
+        "canonicalRenderedGraphRuntimeDouble",
+      ),
     );
 
     expect(violations).toEqual([]);
@@ -327,7 +330,7 @@ describe("rendered graph decoupling", () => {
     const runtimeImplementationPaths = rendererModulePaths().filter(
       (modulePath) =>
         readModuleSource(modulePath).includes("createRenderedSvgSnapshot") &&
-        readModuleSource(modulePath).includes("replaceVowlModel"),
+        readModuleSource(modulePath).includes("replaceCanonicalDrawing"),
     );
 
     expect(runtimeImplementationPaths).toEqual([
@@ -369,9 +372,9 @@ describe("rendered graph decoupling", () => {
     expect(survivingRoutes).toEqual([]);
   });
 
-  test("keeps the in-memory adapter available only to tests", () => {
-    expect(() => readModuleSource(IN_MEMORY_ADAPTER_PATH)).not.toThrow();
-    expect(IN_MEMORY_ADAPTER_PATH.startsWith("src/app/test/")).toBe(true);
+  test("keeps the canonical double available only to tests", () => {
+    expect(() => readModuleSource(CANONICAL_DOUBLE_PATH)).not.toThrow();
+    expect(CANONICAL_DOUBLE_PATH.startsWith("src/app/test/")).toBe(true);
   });
 
   test("builds the renderer-local selection modules inside the renderer", () => {
@@ -493,7 +496,7 @@ describe("rendered graph decoupling", () => {
     // nothing.
     const runtimeImplementationSources = [
       D3_RENDERED_GRAPH_ADAPTER_PATH,
-      IN_MEMORY_ADAPTER_PATH,
+      CANONICAL_DOUBLE_PATH,
     ].map((modulePath) => readModuleSource(modulePath));
     const contractSource = readModuleSource(
       "src/app/js/controller/renderedGraphRuntimeContracts.js",

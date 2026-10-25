@@ -7,13 +7,10 @@ export function createSearchMenu({
   documentObject = globalThis.document,
   onOntologyIriEntered,
   webVowlController,
-  windowObject = globalThis.window,
 } = {}) {
   const searchMenu = {};
   let focusableElementCountsBySearchEntry = [];
   let hasVisualizationFocus = false;
-  let hasTemporaryNeighborhood = false;
-  let neighborhoodSequence = 0;
   let dictionary = [];
   let entryNames = [];
   let searchLineEdit;
@@ -23,7 +20,6 @@ export function createSearchMenu({
   let inputText;
   let menuEnabled = true;
   let locateAvailable = false;
-  let visualViewportAnimationFrame;
 
   let results = [];
   let resultID = [];
@@ -115,40 +111,6 @@ export function createSearchMenu({
     documentObject
       .getElementById("scrollRightButton")
       .classList.remove("hidden-by-search");
-  }
-
-  function updateVisualViewportMetrics() {
-    if (
-      !windowObject.visualViewport ||
-      !documentObject.documentElement ||
-      !documentObject.documentElement.style
-    ) {
-      return;
-    }
-
-    const updateMetrics = function () {
-      visualViewportAnimationFrame = undefined;
-      documentObject.documentElement.style.setProperty(
-        "--visual-viewport-height",
-        windowObject.visualViewport.height + "px",
-      );
-      documentObject.documentElement.style.setProperty(
-        "--visual-viewport-offset-top",
-        windowObject.visualViewport.offsetTop + "px",
-      );
-    };
-
-    if (
-      visualViewportAnimationFrame !== undefined &&
-      typeof cancelAnimationFrame === "function"
-    ) {
-      cancelAnimationFrame(visualViewportAnimationFrame);
-    }
-    if (typeof requestAnimationFrame === "function") {
-      visualViewportAnimationFrame = requestAnimationFrame(updateMetrics);
-    } else {
-      updateMetrics();
-    }
   }
 
   function portalSearchResults() {
@@ -266,25 +228,6 @@ export function createSearchMenu({
           }
         }
       });
-    }
-
-    if (windowObject.visualViewport) {
-      const handleVisualViewportChange = function () {
-        updateVisualViewportMetrics();
-        if (listbox && !listbox.classList.contains("hidden")) {
-          searchMenu.showSearchEntries();
-        }
-      };
-
-      updateVisualViewportMetrics();
-      windowObject.visualViewport.addEventListener(
-        "resize",
-        handleVisualViewportChange,
-      );
-      windowObject.visualViewport.addEventListener(
-        "scroll",
-        handleVisualViewportChange,
-      );
     }
   };
 
@@ -656,14 +599,31 @@ export function createSearchMenu({
     updateClearButtonVisibility();
   };
 
+  searchMenu.renderTemporaryPresentation = function (temporaryPresentation) {
+    const status = documentObject.getElementById("visualizationActionStatus");
+    if (!status) {
+      return;
+    }
+    if (temporaryPresentation?.kind === "neighborhood") {
+      status.textContent = `Temporary neighbourhood: ${temporaryPresentation.counts.nodes} nodes. Clear search to restore the ordinary view.`;
+      status.dataset.presentationKind = "neighborhood";
+      status.hidden = false;
+    } else if (status.dataset.presentationKind === "neighborhood") {
+      delete status.dataset.presentationKind;
+      status.textContent = "";
+      status.hidden = true;
+    }
+  };
+
   // Clearing highlights is a controller action; presenting its resulting state
   // does not issue another request or change the detail selection.
   searchMenu.clearVisualizationFocus = function () {
-    neighborhoodSequence++;
-    if (!hasVisualizationFocus && !hasTemporaryNeighborhood) {
+    if (
+      !hasVisualizationFocus &&
+      !webVowlController?.getState?.()?.temporaryPresentation
+    ) {
       return undefined;
     }
-    hasTemporaryNeighborhood = false;
     hasVisualizationFocus = false;
     setLocateButtonState(false);
     updateClearButtonVisibility();
@@ -725,27 +685,22 @@ export function createSearchMenu({
         webVowlController.getOntologyNeighborhoodRevealPlan?.(correspondingIds)
           ?.canReveal
       ) {
-        const sequence = ++neighborhoodSequence;
-        hasTemporaryNeighborhood = true;
         runVisualizationControlAction(async () => {
           const result = await webVowlController.revealOntologyNeighborhood({
             ontologyElementReferences: correspondingIds,
           });
-          if (sequence !== neighborhoodSequence) {
+          if (result.status === "revealed") {
             return;
           }
-          hasTemporaryNeighborhood = result.status === "revealed";
           const status = documentObject.getElementById(
             "visualizationActionStatus",
           );
           if (status) {
-            status.textContent =
-              result.status === "revealed"
-                ? `Temporary neighbourhood: ${result.counts.nodes} nodes. Clear search to restore the ordinary view.`
-                : describeUnavailableSearchResults(
-                    result.reason,
-                    correspondingIds,
-                  );
+            delete status.dataset.presentationKind;
+            status.textContent = describeUnavailableSearchResults(
+              result.reason,
+              correspondingIds,
+            );
             status.hidden = false;
           }
         }, documentObject);

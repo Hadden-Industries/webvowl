@@ -21,12 +21,18 @@ test("Python provisioning preserves the repository selector and isolated locked 
     "astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884",
   );
   expect(provisioning.with).toEqual({
-    version: "0.13.0",
+    version: "${{ steps.runtimes.outputs.uv }}",
     "activate-environment": true,
     "venv-path": "${{ runner.temp }}/python",
     "no-project": true,
     "enable-cache": false,
   });
+  const runtimeIndex = steps.findIndex((step) => step.id === "runtimes");
+  expect(runtimeIndex).toBeGreaterThanOrEqual(0);
+  expect(runtimeIndex).toBeLessThan(steps.indexOf(provisioning));
+  expect(steps[runtimeIndex].run).toBe(
+    "node util/runtimeTargets.mjs --github-output",
+  );
   // With no Python override, uv discovers the repository's sole version file.
   expect(
     readFileSync(new URL("../.python-version", import.meta.url), "utf8").trim(),
@@ -115,6 +121,7 @@ function runGate(overrides = {}, command = gate.run) {
             result: overrides.DOCUMENTATION_RESULT ?? "success",
           },
           json: { result: overrides.JSON_RESULT ?? "success" },
+          corpus: { result: overrides.CORPUS_RESULT ?? "success" },
         }),
       },
       encoding: "utf8",
@@ -159,6 +166,23 @@ test("JSON checking executes on both platforms even for documentation-only or re
   expect(commands).toContain("npm run install:json");
   expect(commands).toContain("npm run build:bundle");
   expect(commands).toContain("npm run check:json -- --require-generated");
+});
+
+test.each(["failure", "cancelled", "skipped", ""])(
+  "the required gate rejects a %s corpus storage job",
+  (result) => {
+    expect(runGate({ CORPUS_RESULT: result })).not.toBe(0);
+  },
+);
+
+test("corpus storage executes independently of JSON and application scope reuse", () => {
+  const corpus = workflow.jobs.corpus;
+  expect(corpus.if).toBeUndefined();
+  expect(workflow.jobs.required.needs).toContain("corpus");
+  expect(corpus.steps.map((step) => step.run).filter(Boolean)).toEqual([
+    "node --test util/corpusStorage.probes.mjs",
+    "node packages/vowl/scripts/verify-corpus-storage.mjs",
+  ]);
 });
 
 test.each(["failure", "cancelled", "skipped", ""])(

@@ -8,7 +8,7 @@ function withManifest(packageManager, inspect) {
   try {
     writeFileSync(
       join(repositoryRoot, "package.json"),
-      JSON.stringify({ packageManager }),
+      JSON.stringify({ devEngines: { packageManager } }),
     );
     inspect(repositoryRoot);
   } finally {
@@ -19,7 +19,7 @@ function withManifest(packageManager, inspect) {
 test.each(["win32", "linux"])(
   "%s installs the manifest selection with the existing flags",
   (platform) => {
-    withManifest("npm@99.2.3", (repositoryRoot) => {
+    withManifest({ name: "npm", version: ">=99.2.3" }, (repositoryRoot) => {
       let invocation;
       const status = installSelectedNpm({
         repositoryRoot,
@@ -46,11 +46,13 @@ test.each(["win32", "linux"])(
 
 test.each([
   undefined,
-  "pnpm@12.2.0",
-  "npm@latest",
-  "npm@12.2.0 & echo injected",
+  { name: "pnpm", version: ">=99.2.3" },
+  { name: "npm", version: "latest" },
+  { name: "npm", version: ">=99.2.3 & echo injected" },
+  { name: "npm", version: ">=99.2.3 <100" },
+  { name: "npm", version: ">=99.2.3-beta.1" },
 ])(
-  "rejects a non-exact npm selector %s before starting a command",
+  "rejects an invalid npm minimum %j before starting a command",
   (selection) => {
     withManifest(selection, (repositoryRoot) => {
       let invoked = false;
@@ -61,7 +63,7 @@ test.each([
             invoked = true;
           },
         }),
-      ).toThrow("exact npm version");
+      ).toThrow("package.json.devEngines.packageManager");
       expect(invoked).toBe(false);
     });
   },

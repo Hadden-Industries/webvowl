@@ -8,6 +8,7 @@ import { applyCanonicalEditorCommand } from "./canonicalVowlEditorCommands.js";
 import { createVisualizationArtifactService } from "./visualizationArtifactService.js";
 import { webcrypto } from "node:crypto";
 import { canonicalExampleSource } from "../canonicalExamples.js";
+import { createCanonicalVowlRenderProjection } from "./canonicalVowlRenderProjection.js";
 
 const bytes = new Uint8Array(
   readFileSync(
@@ -142,6 +143,82 @@ test("fresh loads show exactly 50, explicit zero wins and saved visibility reope
   }
 });
 
+test.each(["fresh", "explicit-camera", "supplied", "saved"])(
+  "initial framing respects the %s placement and camera authority",
+  async (kind) => {
+    const { session } = setup();
+    const source = {
+      operation: "open-owl-model",
+      documentIri: "urn:initial",
+      mediaType: "text/owl-functional",
+      bytes: new TextEncoder().encode(
+        "Ontology(<urn:initial> Declaration(Class(<urn:A>)) Declaration(Class(<urn:B>)) SubClassOf(<urn:A> <urn:B>))",
+      ),
+    };
+    let mounted;
+    const camera = { center: { x: 712, y: 345 }, zoom: 0.25 };
+    const runtime = {
+      readVisualizationView: () => ({
+        focus: [],
+        modes: {},
+        forceDistances: {},
+      }),
+      async replaceCanonicalDrawing(candidate) {
+        mounted = candidate;
+      },
+      readCanonicalDrawingState: () => ({
+        loadGeneration: mounted.loadGeneration,
+        documentRevision: 0,
+        placements: [...mounted.drawing.nodes, ...mounted.drawing.labels].map(
+          (row) => ({
+            occurrence: row.occurrence,
+            position: row.position,
+            pinned: row.pinned,
+          }),
+        ),
+        camera,
+      }),
+    };
+    try {
+      let input = source;
+      const options = { renderedGraphRuntime: runtime };
+      if (kind === "explicit-camera") {
+        options.initialVisualization = {
+          view: { zoomScale: 0.7, translation: { xPx: 11, yPx: 22 } },
+        };
+      }
+      if (kind === "saved" || kind === "supplied") {
+        const { session: preparation } = setup();
+        await preparation.load(source);
+        if (kind === "saved") {
+          input = {
+            operation: "open-canonical-model",
+            bytes: await preparation.capture(),
+          };
+        } else {
+          options.suppliedPositions = new Map([
+            [
+              preparation.scene().snapshot().placements[0].occurrence,
+              { x: 10, y: 20 },
+            ],
+          ]);
+        }
+        preparation.dispose();
+      }
+      await session.load(input, options);
+      expect(mounted.fitInitialDrawing === true).toBe(kind === "fresh");
+      if (kind === "fresh") {
+        expect(session.scene().snapshot().camera).toEqual(camera);
+        const captured = await session.capture();
+        const restored = await decode(captured);
+        expect(restored.visualization.camera).toEqual(camera);
+      }
+    } finally {
+      session.dispose();
+    }
+  },
+);
+
 test.each([
   "benchmark",
   "foaf",
@@ -188,6 +265,7 @@ test("identity and source availability queries never clone a checkpoint", async 
   const { session } = setup();
   await session.load(request());
   const expected = session.snapshot();
+  const expectedDocuments = expected.inspection.documents.map(({ id }) => id);
   const clone = jest.spyOn(globalThis, "structuredClone");
   try {
     expect(session.identity()).toEqual({
@@ -196,7 +274,7 @@ test("identity and source availability queries never clone a checkpoint", async 
     });
     const sources = session.originalSources();
     expect(sources.map(({ documentId }) => documentId)).toEqual(
-      expected.inspection.documents.map(({ id }) => id),
+      expectedDocuments,
     );
     expect(Object.isFrozen(sources)).toBe(true);
     expect(clone).not.toHaveBeenCalled();
@@ -533,6 +611,145 @@ function setup() {
   };
 }
 
+const previewRequest = () => ({
+  operation: "open-owl-model",
+  documentIri: "urn:preview",
+  mediaType: "text/owl-functional",
+  bytes: new TextEncoder().encode(
+    "Ontology(<urn:preview> Declaration(Class(<urn:A>)) Declaration(Class(<urn:B>)) SubClassOf(<urn:A> <urn:B>))",
+  ),
+});
+
+function deferOrdering(control, gate, start = jest.fn()) {
+  let keys;
+  control.after = (result, request) => {
+    if (request.operation !== "open-owl-model") {
+      return result;
+    }
+    keys = result.displayOrderKeys;
+    return {
+      ...result,
+      displayOrderKeys: undefined,
+      nodeOrdering: { ready: gate.promise, start },
+    };
+  };
+  return () => keys;
+}
+
+test("an admitted preview loads before ordering completes, without a second drawing on completion", async () => {
+  const { session, control } = setup();
+  const gate = deferred();
+  const start = jest.fn(() =>
+    expect(session.identity().loadGeneration).toBe(1),
+  );
+  const keys = deferOrdering(control, gate, start);
+  const onNodeOrdering = jest.fn();
+  const accepted = await session.load(previewRequest(), { onNodeOrdering });
+  expect(accepted.nodeCountStatus.orderingStatus).toBe("preparing");
+  expect(start).toHaveBeenCalledTimes(1);
+  expect(() => session.assertNodeOrderingReady()).toThrow(
+    expect.objectContaining({
+      code: "NODE_ORDERING_PENDING",
+      isRetryable: true,
+    }),
+  );
+  const before = session.scene().snapshot();
+  gate.resolve({ displayOrderKeys: keys() });
+  await gate.promise;
+  expect(session.nodeCountStatus().orderingStatus).toBe("ready");
+  expect(() => session.assertNodeOrderingReady()).not.toThrow();
+  expect(session.scene().snapshot()).toEqual(before);
+  expect(onNodeOrdering).toHaveBeenCalledWith(
+    expect.objectContaining({
+      loadGeneration: 1,
+      documentRevision: 0,
+      nodeCountStatus: expect.objectContaining({ orderingStatus: "ready" }),
+    }),
+  );
+  session.dispose();
+});
+
+test.each(["failure", "wrong-revision", "wrong-purpose", "missing-keys"])(
+  "%s after preview retains the drawing and refuses count changes",
+  async (kind) => {
+    const { session, control } = setup();
+    const gate = deferred();
+    const keys = deferOrdering(control, gate);
+    await session.load(previewRequest());
+    const before = session.scene().snapshot();
+    gate.resolve(
+      kind === "failure"
+        ? { error: new Error("worker failed") }
+        : {
+            displayOrderKeys: {
+              ...keys(),
+              ...(kind === "wrong-revision"
+                ? { revision: 5 }
+                : kind === "wrong-purpose"
+                  ? { purpose: "artifact" }
+                  : { correspondence: [] }),
+            },
+          },
+    );
+    await gate.promise;
+    expect(session.scene().snapshot()).toEqual(before);
+    expect(session.nodeCountStatus().orderingStatus).toBe("failed");
+    expect(() => session.assertNodeOrderingReady()).toThrow(
+      expect.objectContaining({
+        code: "NODE_ORDERING_UNAVAILABLE",
+        isRetryable: false,
+      }),
+    );
+    session.dispose();
+  },
+);
+
+test.each(["load", "edit", "dispose"])(
+  "%s retires pending ordering and ignores its late completion",
+  async (action) => {
+    const { session, control, calls } = setup();
+    const gate = deferred();
+    const keys = deferOrdering(control, gate);
+    const onNodeOrdering = jest.fn();
+    const accepted = await session.load(previewRequest(), { onNodeOrdering });
+    const oldKeys = keys();
+    control.after = (value) => value;
+    if (action === "load") {
+      await session.load(request());
+    } else if (action === "edit") {
+      await session.edit(rename(accepted.inspection));
+    } else {
+      session.dispose();
+    }
+    const current = action === "dispose" ? null : session.snapshot();
+    expect(calls[0].context.signal.aborted).toBe(true);
+    gate.resolve({ displayOrderKeys: oldKeys });
+    await gate.promise;
+    expect(onNodeOrdering).not.toHaveBeenCalled();
+    if (current) {
+      expect(session.snapshot()).toEqual(current);
+    }
+    if (action !== "dispose") {
+      session.dispose();
+    }
+  },
+);
+
+test("failed preview preparation cancels its retained worker", async () => {
+  const { session, control, calls } = setup();
+  const gate = deferred();
+  deferOrdering(control, gate);
+  await expect(
+    session.load(previewRequest(), {
+      prepareProjection() {
+        throw new Error("presentation failed");
+      },
+    }),
+  ).rejects.toThrow("presentation failed");
+  expect(calls[0].context.signal.aborted).toBe(true);
+  session.dispose();
+});
+
 test("presentation changes are atomic, retain semantic revisions and survive capture", async () => {
   const { session } = setup();
   await session.load(request());
@@ -579,6 +796,36 @@ test("presentation changes are atomic, retain semantic revisions and survive cap
   expect(artifact.visualization.hidden).toHaveLength(
     result.visualization.hidden.length,
   );
+});
+
+test("view results reuse their owned preview while isolating the committed scene and drawing", async () => {
+  const { session } = setup();
+  await session.load(request());
+  const clone = jest.spyOn(globalThis, "structuredClone");
+  try {
+    const result = session.updateView({ display: { compactNotation: true } });
+    const sceneCopies = clone.mock.calls.filter(
+      ([value]) => value?.placements && value?.camera && value?.hidden,
+    );
+    // Only the caller-owned preview copies the full scene. Private staging
+    // retains unchanged values and the result does not copy again after commit.
+    expect(sceneCopies).toHaveLength(1);
+    const committed = session.scene().snapshot();
+    expect(result.visualization).toEqual(committed);
+    result.visualization.placements[0].position.x = 999;
+    result.visualization.camera.center.x = 999;
+    result.visualization.hidden.push("not-a-scene-occurrence");
+    result.visualization.display.compactNotation = false;
+    expect(result.projection.camera).toEqual(committed.camera);
+    expect(result.projection.display.compactNotation).toBe(true);
+    expect(result.projection.nodes[0].position).toEqual(
+      committed.placements[0].position,
+    );
+    expect(session.scene().snapshot()).toEqual(committed);
+  } finally {
+    clone.mockRestore();
+    session.dispose();
+  }
 });
 
 test("prefix changes preserve semantic bytes and retain lexical IRI identity", async () => {
@@ -1010,6 +1257,226 @@ function rename(inspection, iri = "urn:renamed") {
   );
   return [{ kind: "replace", id: subject.id, record: { id: subject.id, iri } }];
 }
+
+test("discarded session snapshots do not copy inspection or checkpoint", async () => {
+  const { session } = setup();
+  await session.load(request());
+  const clone = jest.spyOn(globalThis, "structuredClone");
+  try {
+    const isDocument = ([value]) =>
+      value?.records !== undefined || value?.structural !== undefined;
+    session.inspectRecords();
+    expect(clone.mock.calls.filter(isDocument)).toHaveLength(1);
+    clone.mockClear();
+    const snapshot = session.snapshot();
+    expect(snapshot.documentRevision).toBe(0);
+    expect(snapshot.visualization.placements).toHaveLength(2);
+    expect(clone.mock.calls.filter(isDocument)).toHaveLength(0);
+  } finally {
+    clone.mockRestore();
+    session.dispose();
+  }
+});
+
+test("session acceptance owns one frozen inspection and isolates a retaining worker result", async () => {
+  const { session, control } = setup();
+  const clone = jest.spyOn(globalThis, "structuredClone");
+  let raw;
+  let prepared;
+  control.after = (result) => {
+    raw = {
+      ...result,
+      inspection: Object.freeze(plain(result.inspection)),
+      // A real receiving worker message has mutable deserialized checkpoint data.
+      checkpoint: structuredClone(result.checkpoint),
+    };
+    clone.mockClear();
+    return raw;
+  };
+  try {
+    await session.load(request(), {
+      prepareProjection(inspection, visualization) {
+        prepared = inspection;
+        return createCanonicalVowlRenderProjection(inspection, visualization);
+      },
+    });
+    const copies = clone.mock.calls.filter(
+      ([value]) => value?.records && value?.occurrences,
+    );
+    expect(copies).toHaveLength(1);
+    const borrowed = session.readOntologyInspection();
+    expect(borrowed.retainedFacts).toBe(prepared);
+    expect(Object.isFrozen(prepared.records.subjects[0])).toBe(true);
+    raw.inspection.records.subjects[0].iri = "urn:worker-corruption";
+    raw.checkpoint.revision = 999;
+    expect(
+      session.inspectRecords().records.subjects.map(({ iri }) => iri),
+    ).toEqual(["https://example.org/o#A", "https://example.org/o#B"]);
+    expect(session.snapshot().checkpoint.revision).toBe(0);
+    session.updateView({ labelSelection: { mode: "language", range: "en" } });
+    expect(session.readOntologyInspection().retainedFacts).toBe(prepared);
+  } finally {
+    clone.mockRestore();
+    session.dispose();
+  }
+});
+
+test.each(["prepareProjection", "prepareVisibility", "suppliedPositions"])(
+  "%s borrows immutable inspection data without letting retained input corrupt the session",
+  async (callback) => {
+    const { session } = setup();
+    await session.load(request());
+    let retained;
+    let mutationRejected = false;
+    const result = await session.edit(rename(session.inspectRecords()), {
+      [callback](inspection, visualization) {
+        retained = inspection;
+        try {
+          inspection.records.subjects[0].iri = "urn:callback-corruption";
+        } catch (error) {
+          mutationRejected = error.name === "TypeError";
+        }
+        return callback === "prepareProjection"
+          ? createCanonicalVowlRenderProjection(inspection, visualization)
+          : callback === "prepareVisibility"
+            ? []
+            : new Map();
+      },
+    });
+    try {
+      expect(mutationRejected).toBe(true);
+      expect(retained).toBe(session.readOntologyInspection().retainedFacts);
+      expect(result.inspection.records.subjects).toContainEqual(
+        expect.objectContaining({ iri: "urn:renamed" }),
+      );
+      expect(() => {
+        retained.records.subjects.length = 0;
+      }).toThrow(expect.objectContaining({ name: "TypeError" }));
+    } finally {
+      session.dispose();
+    }
+  },
+);
+
+test.each(["load", "edit", "view", "snapshot"])(
+  "%s result copies each document field only on its first read",
+  async (operation) => {
+    const { session } = setup();
+    const loaded = await session.load(request());
+    const result =
+      operation === "load"
+        ? loaded
+        : operation === "edit"
+          ? await session.edit(rename(loaded.inspection))
+          : operation === "view"
+            ? session.updateView({ display: { compactNotation: true } })
+            : session.snapshot();
+    const clone = jest.spyOn(globalThis, "structuredClone");
+    try {
+      const inspection = result.inspection;
+      expect(inspection.occurrences).toHaveLength(2);
+      expect(clone).toHaveBeenCalledTimes(1);
+      expect(result.inspection).toBe(inspection);
+      expect(clone).toHaveBeenCalledTimes(1);
+      const checkpoint = result.checkpoint;
+      expect(checkpoint.revision).toBe(operation === "edit" ? 1 : 0);
+      expect(clone).toHaveBeenCalledTimes(2);
+      expect(result.checkpoint).toBe(checkpoint);
+      expect(clone).toHaveBeenCalledTimes(2);
+      expect(Object.keys(result)).toEqual(
+        expect.arrayContaining(["inspection", "checkpoint", "visualization"]),
+      );
+      inspection.records.subjects.length = 0;
+      checkpoint.revision = 999;
+      expect(session.inspectRecords().records.subjects.length).toBeGreaterThan(
+        0,
+      );
+      expect(session.snapshot().checkpoint.revision).toBe(
+        operation === "edit" ? 1 : 0,
+      );
+    } finally {
+      clone.mockRestore();
+      session.dispose();
+    }
+  },
+);
+
+test("unread results retain their originating revision and scene after edit, load and disposal", async () => {
+  const { session } = setup();
+  const loaded = await session.load(request());
+  const initialScene = session.scene().snapshot();
+  const changed = await session.edit(rename(session.inspectRecords()));
+  const view = session.updateView({
+    display: { compactNotation: !initialScene.display.compactNotation },
+  });
+  await session.load(request());
+  session.dispose();
+  expect(loaded.documentRevision).toBe(0);
+  expect(
+    loaded.inspection.records.subjects.some(({ iri }) => iri === "urn:renamed"),
+  ).toBe(false);
+  expect(loaded.checkpoint.revision).toBe(0);
+  expect(loaded.visualization).toEqual(initialScene);
+  expect(changed.documentRevision).toBe(1);
+  expect(changed.inspection.records.subjects).toContainEqual(
+    expect.objectContaining({ iri: "urn:renamed" }),
+  );
+  expect(changed.checkpoint.revision).toBe(1);
+  expect(changed.visualization.display.compactNotation).toBe(
+    initialScene.display.compactNotation,
+  );
+  expect(view.visualization.display.compactNotation).toBe(
+    !initialScene.display.compactNotation,
+  );
+  expect(view.inspection).toEqual(changed.inspection);
+  expect(view.inspection).not.toBe(changed.inspection);
+});
+
+test("unread result fields can be assigned and deleted without materializing copies", async () => {
+  const { session } = setup();
+  await session.load(request());
+  const result = session.snapshot();
+  const clone = jest.spyOn(globalThis, "structuredClone");
+  try {
+    result.inspection = { owned: true };
+    delete result.checkpoint;
+    expect(result.inspection).toEqual({ owned: true });
+    expect(Object.hasOwn(result, "checkpoint")).toBe(false);
+    expect(clone).not.toHaveBeenCalled();
+    expect(session.inspectRecords().records.subjects.length).toBeGreaterThan(0);
+  } finally {
+    clone.mockRestore();
+    session.dispose();
+  }
+});
+
+test("editor insertion forwards lazy document fields alongside its selected target", async () => {
+  const { session } = setup();
+  await session.load(request());
+  const result = await applyCanonicalEditorCommand(session, {
+    kind: "insert",
+    documentRevision: 0,
+    roleKind: "class",
+    iri: "urn:Created",
+    text: "Created",
+  });
+  const clone = jest.spyOn(globalThis, "structuredClone");
+  try {
+    const selected = session.resolveTarget(result.selectedTarget);
+    expect(result.inspection.records.subjects).toContainEqual(
+      expect.objectContaining({ iri: "urn:Created" }),
+    );
+    expect(
+      result.inspection.records.roles.some(({ id }) => id === selected),
+    ).toBe(true);
+    expect(clone).toHaveBeenCalledTimes(1);
+    expect(result.checkpoint.revision).toBe(1);
+    expect(clone).toHaveBeenCalledTimes(2);
+  } finally {
+    clone.mockRestore();
+    session.dispose();
+  }
+});
 function deferred() {
   let resolve;
   const promise = new Promise((done) => {
@@ -1375,7 +1842,7 @@ test("cancelled merge choices leave both live model and placements unchanged", a
   });
 });
 
-test.each(["inspection", "rankingIdentity"])(
+test.each(["inspection", "displayOrderKeys"])(
   "mismatched worker %s revisions are rejected before scene mutation",
   async (field) => {
     const { session, control } = setup();
@@ -1393,6 +1860,50 @@ test.each(["inspection", "rankingIdentity"])(
     expect(session.snapshot()).toEqual(initial);
   },
 );
+
+test("an incorrect display-key purpose is rejected before replacing the accepted scene", async () => {
+  const { session, control } = setup();
+  await session.load(request());
+  const initial = session.snapshot();
+  control.after = (result) => ({
+    ...result,
+    displayOrderKeys: { ...result.displayOrderKeys, purpose: "artifact-v1" },
+  });
+  await expect(session.edit(rename(initial.inspection))).rejects.toMatchObject({
+    code: "DOCUMENT_WORKER_RESULT_INVALID",
+  });
+  expect(session.snapshot()).toEqual(initial);
+});
+
+test("accepted display keys remain owned when the transport result is mutated", async () => {
+  const { session, control } = setup();
+  let transportResult;
+  control.after = (result) => {
+    transportResult = {
+      ...result,
+      displayOrderKeys: structuredClone(result.displayOrderKeys),
+    };
+    return transportResult;
+  };
+  await session.load(request());
+  const filters = {
+    datatypes: "show",
+    objectProperties: "show",
+    subclasses: "show",
+    disjointness: "show",
+    setOperators: "show",
+  };
+  const before = session.selectNodes(filters, {
+    mode: "all",
+  }).rankedNodeOccurrenceIds;
+  transportResult.displayOrderKeys.correspondence.length = 0;
+  // Force a new eligibility signature so the selector must read its keys again.
+  session.selectNodes({ ...filters, subclasses: "hide" }, { mode: "all" });
+  expect(
+    session.selectNodes(filters, { mode: "all" }).rankedNodeOccurrenceIds,
+  ).toEqual(before);
+  session.dispose();
+});
 
 test("bounded resource rejection during edit preserves the accepted checkpoint and scene", async () => {
   const { session } = setup();

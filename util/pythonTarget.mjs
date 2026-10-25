@@ -2,15 +2,12 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { runtimeTarget } from "./runtimeTargets.mjs";
 
 const repositoryRoot = fileURLToPath(new URL("../", import.meta.url));
 
 export function pythonTarget(root = repositoryRoot) {
-  const version = readFileSync(join(root, ".python-version"), "utf8").trim();
-  if (!/^[1-9]\d*\.\d+\.\d+$/u.test(version))
-    throw new Error(
-      ".python-version must contain a stable major.minor.patch version.",
-    );
+  const version = runtimeTarget("python", root);
   const [major, minor] = version.split(".");
   return { version, ruff: `py${major}${minor}` };
 }

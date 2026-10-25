@@ -26,6 +26,7 @@ class MockElement {
     this.ownerDocument = global.document;
     this.nodeType = 1;
     this.attributes = {};
+    this.dataset = {};
     this.children = [];
     this.scrollLeft = 0;
     this.value = "";
@@ -490,51 +491,6 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
     expect(cSearch.children).not.toContain(listbox);
   });
 
-  test("publishes visual viewport metrics for keyboard-safe result positioning", () => {
-    const listeners = {};
-    global.window.visualViewport = {
-      height: 420,
-      offsetTop: 12,
-      addEventListener: (type, callback) => {
-        listeners[type] = callback;
-      },
-    };
-
-    const searchMenu = searchMenuFactory({
-      documentObject: global.document,
-      windowObject: global.window,
-      locationObject: global.location,
-      webVowlController: sharedSearchController,
-    });
-    searchMenu.setup();
-
-    expect(
-      mockDoc.documentElement.style.getPropertyValue(
-        "--visual-viewport-height",
-      ),
-    ).toBe("420px");
-    expect(
-      mockDoc.documentElement.style.getPropertyValue(
-        "--visual-viewport-offset-top",
-      ),
-    ).toBe("12px");
-
-    global.window.visualViewport.height = 360;
-    global.window.visualViewport.offsetTop = 20;
-    listeners.resize();
-
-    expect(
-      mockDoc.documentElement.style.getPropertyValue(
-        "--visual-viewport-height",
-      ),
-    ).toBe("360px");
-    expect(
-      mockDoc.documentElement.style.getPropertyValue(
-        "--visual-viewport-offset-top",
-      ),
-    ).toBe("20px");
-  });
-
   test("disables search and locate controls when no rendered ontology is available", () => {
     const searchMenu = searchMenuFactory({
       documentObject: global.document,
@@ -890,7 +846,22 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
       sharedSearchController.getOntologyNeighborhoodRevealPlan = () => ({
         canReveal: true,
       });
-      sharedSearchController.revealOntologyNeighborhood = () => pending;
+      let temporaryPresentation = null;
+      sharedSearchController.revealOntologyNeighborhood = () => {
+        temporaryPresentation = {
+          kind: "neighborhood",
+          loadGeneration: 1,
+          documentRevision: 0,
+          counts: { nodes: 3, edges: 2, labels: 2 },
+        };
+        return pending;
+      };
+      sharedSearchController.getState = () => ({ temporaryPresentation });
+      const setView = sharedSearchController.setVisualizationView;
+      sharedSearchController.setVisualizationView = (request) => {
+        temporaryPresentation = null;
+        return setView(request);
+      };
       const menu = searchMenuFactory({
         documentObject: mockDoc,
         windowObject: global.window,

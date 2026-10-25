@@ -1,6 +1,6 @@
 import { beforeAll } from "@jest/globals";
 import { openOwl } from "vowl/owl";
-import { inspectModel, readModelRankingIdentity } from "vowl";
+import { inspectModel, readModelDisplayOrderKeys } from "vowl";
 import { closeVowlVisibility } from "./canonicalVowlScene.js";
 import {
   prepareCanonicalVisibility,
@@ -10,7 +10,82 @@ import {
 } from "./canonicalVowlViewControls.js";
 
 let inspection;
-let rankingIdentity;
+let displayOrderKeys;
+
+test("background ordering preserves the preview prefix and only orders the remaining nodes", () => {
+  const rows = Array.from({ length: 80 }, (_, i) => i);
+  const source = {
+    records: {
+      subjects: rows.map((i) => ({ id: `s${i}`, iri: `urn:class:${i}` })),
+      roles: rows.map((i) => ({
+        id: `r${i}`,
+        subject: `s${i}`,
+        kind: "class",
+      })),
+      expressions: [],
+      constructs: [],
+    },
+    occurrences: rows.map((i) => ({
+      id: `n${i}`,
+      kind: "class-node",
+      targets: [`r${i}`],
+    })),
+  };
+  const select = createCanonicalNodeSelector(source, undefined, {
+    preview: true,
+  });
+  const first = select(CANONICAL_VISIBLE_FILTERS, { mode: "auto" });
+  const prefix = first.rankedNodeOccurrenceIds.slice(0, 50);
+  expect(first.nodeCountStatus.orderingStatus).toBe("preparing");
+  const keys = {
+    correspondence: rows.map((i) => ({
+      previous: `n${i}`,
+      current: String(80 - i).padStart(3, "0"),
+    })),
+  };
+  select.completeOrdering(keys);
+  const same = select(CANONICAL_VISIBLE_FILTERS, { mode: "auto" });
+  expect(same.hidden).toEqual(first.hidden);
+  expect(same.rankedNodeOccurrenceIds.slice(0, 50)).toEqual(prefix);
+  expect(same.nodeCountStatus).toMatchObject({
+    orderingStatus: "ready",
+    nodeRankingPolicyVersion: "connected-sqrt-preview-v1",
+  });
+  const expanded = select(CANONICAL_VISIBLE_FILTERS, {
+    mode: "exact",
+    requestedCount: 51,
+  });
+  expect(expanded.rankedNodeOccurrenceIds.slice(0, 50)).toEqual(prefix);
+  expect(expanded.hidden).toHaveLength(29);
+  const final = createCanonicalNodeSelector(source, keys)(
+    CANONICAL_VISIBLE_FILTERS,
+    { mode: "all" },
+  );
+  expect(same.rankedNodeOccurrenceIds.slice(50)).toEqual(
+    final.rankedNodeOccurrenceIds.filter((id) => !prefix.includes(id)),
+  );
+  expect(new Set(same.rankedNodeOccurrenceIds).size).toBe(80);
+});
+
+test("a rejected background key set cannot alter preview visibility", () => {
+  const select = createCanonicalNodeSelector(inspection, undefined, {
+    preview: true,
+  });
+  const first = select(CANONICAL_VISIBLE_FILTERS, {
+    mode: "exact",
+    requestedCount: 2,
+  });
+  expect(() => select.completeOrdering({ correspondence: [] })).toThrow(
+    TypeError,
+  );
+  select.failOrdering();
+  const failed = select(CANONICAL_VISIBLE_FILTERS, {
+    mode: "exact",
+    requestedCount: 2,
+  });
+  expect(failed.hidden).toEqual(first.hidden);
+  expect(failed.nodeCountStatus.orderingStatus).toBe("failed");
+});
 beforeAll(async () => {
   const { model } = await openOwl(
     new TextEncoder().encode(`Ontology(<urn:view>
@@ -24,7 +99,7 @@ beforeAll(async () => {
     { documentIri: "urn:view", mediaType: "text/owl-functional" },
   );
   inspection = inspectModel(model);
-  rankingIdentity = await readModelRankingIdentity(model);
+  displayOrderKeys = await readModelDisplayOrderKeys(model);
 });
 
 test.each([
@@ -87,7 +162,7 @@ test("obsolete degree options are rejected even beside valid filters", () => {
 });
 
 test("ranking cache compares filter data independently of member order", () => {
-  const select = createCanonicalNodeSelector(inspection, rankingIdentity);
+  const select = createCanonicalNodeSelector(inspection, displayOrderKeys);
   const filters = { ...CANONICAL_VISIBLE_FILTERS };
   select(filters, { mode: "all" });
   const reversed = Object.fromEntries(Object.entries(filters).reverse());
@@ -116,7 +191,7 @@ test("count deltas preserve full incidence closure with labels, disjoint edges a
       filters,
       retained,
     ).hidden;
-    const select = createCanonicalNodeSelector(inspection, rankingIdentity);
+    const select = createCanonicalNodeSelector(inspection, displayOrderKeys);
     const all = select(filters, { mode: "all" }, retained);
     const count = all.rankedNodeOccurrenceIds.length;
     const sequence = [
@@ -142,7 +217,7 @@ test("count deltas preserve full incidence closure with labels, disjoint edges a
 });
 
 test("All grows with eligibility while an exact former maximum stays fixed", () => {
-  const select = createCanonicalNodeSelector(inspection, rankingIdentity);
+  const select = createCanonicalNodeSelector(inspection, displayOrderKeys);
   const filtered = { ...CANONICAL_VISIBLE_FILTERS, datatypes: "hide" };
   const formerMaximum = select(filtered, { mode: "all" }).nodeCountStatus
     .eligibleNodeCount;

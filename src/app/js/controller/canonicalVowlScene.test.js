@@ -1,6 +1,7 @@
 import { fromOwl } from "vowl/owl";
 import { edit, canonicalize, profiles } from "vowl";
 import { createCanonicalVowlScene } from "./canonicalVowlScene.js";
+import { jest } from "@jest/globals";
 
 async function classes() {
   return (
@@ -36,6 +37,62 @@ async function merge(document) {
   return { ...result, occurrences: result.document.structural.occurrences };
 }
 
+test("arrangement owns changed positions without copying the complete scene and remains atomic", () => {
+  const scene = createCanonicalVowlScene(
+    [
+      { id: "a", kind: "class-node" },
+      { id: "b", kind: "class-node" },
+    ],
+    { loadGeneration: 1 },
+  );
+  const before = scene.snapshot();
+  const proposal = scene.prepareView({ display: { compactNotation: true } });
+  const clone = jest.spyOn(globalThis, "structuredClone");
+  try {
+    scene.arrange(
+      before.placements.map(({ occurrence, position, pinned }) => ({
+        reference: scene.reference(occurrence),
+        position,
+        pinned,
+      })),
+      { camera: before.camera },
+    );
+    expect(clone).not.toHaveBeenCalled();
+    expect(() => proposal.commit()).toThrow("scene preview expired");
+    const position = { x: -0, y: 47 };
+    const camera = { center: { x: 23, y: -0 }, zoom: 2 };
+    scene.arrange(
+      [{ reference: scene.reference("a"), position, pinned: true }],
+      { camera },
+    );
+    expect(clone).not.toHaveBeenCalled();
+    position.y = 999;
+    camera.center.x = 999;
+    const accepted = scene.snapshot();
+    expect(accepted.placements[0]).toEqual({
+      occurrence: "a",
+      position: { x: -0, y: 47 },
+      pinned: true,
+    });
+    expect(accepted.placements[1]).toEqual(before.placements[1]);
+    expect(accepted.camera).toEqual({ center: { x: 23, y: -0 }, zoom: 2 });
+    expect(() =>
+      scene.arrange(
+        [
+          { reference: scene.reference("a"), position: { x: 200, y: 300 } },
+          { reference: scene.reference("b"), position: { x: Infinity, y: 0 } },
+        ],
+        { camera: before.camera },
+      ),
+    ).toThrow("scene position invalid");
+    expect(scene.snapshot()).toEqual(accepted);
+    accepted.placements[1].position.x = 999;
+    expect(scene.snapshot().placements[1]).toEqual(before.placements[1]);
+  } finally {
+    clone.mockRestore();
+  }
+});
+
 test("fresh nodes have distinct deterministic positions translated around the camera center", () => {
   const occurrences = Array.from({ length: 700 }, (_, index) => ({
     id: `node-${index}`,
@@ -58,8 +115,24 @@ test("fresh nodes have distinct deterministic positions translated around the ca
     expect(position.x).toBeCloseTo(placements[index].position.x + 40);
     expect(position.y).toBeCloseTo(placements[index].position.y - 20);
     expect(pinned).toBe(false);
-    expect(Math.hypot(position.x - 40, position.y + 20)).toBeLessThan(300);
+    expect(Math.hypot(position.x - 40, position.y + 20)).toBeLessThan(6000);
   });
+});
+
+test("fresh connected classes begin with room for their ordinary glyphs", () => {
+  const occurrences = [
+    { id: "a", kind: "class-node" },
+    { id: "b", kind: "class-node" },
+    { id: "edge", kind: "subclass-edge", from: "a", to: "b" },
+  ];
+  const [a, b] = createCanonicalVowlScene(occurrences, {
+    loadGeneration: 1,
+  }).snapshot().placements;
+  // An ordinary class glyph is 100 world units across. This is a geometry
+  // regression, not a browser latency assertion or the initializer formula.
+  expect(
+    Math.hypot(a.position.x - b.position.x, a.position.y - b.position.y),
+  ).toBeGreaterThanOrEqual(100);
 });
 
 test("labels and operators retain incidence-based placement among distributed nodes", () => {

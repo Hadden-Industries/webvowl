@@ -1,6 +1,8 @@
 import { AbstractTextElement } from "./AbstractTextElement.js";
-import { createTextTools as textToolsFactory } from "./textTools.js";
-const textTools = textToolsFactory();
+import {
+  positionAbsoluteTextLine,
+  truncateTextLine,
+} from "./textLayoutBatch.js";
 
 export { AbsoluteTextElement };
 function AbsoluteTextElement(container, backgroundColor) {
@@ -53,29 +55,18 @@ AbsoluteTextElement.prototype.addTextline = function (
   prefix,
   postfix,
 ) {
-  const truncatedText = textTools.truncate(
-    text,
-    this._textBlock().datum().textWidth(yShift),
-    style,
-  );
+  const maxWidth = this._textBlock().datum().textWidth(yShift);
 
-  const tspan = this._textBlock()
-    .append("tspan")
-    .classed(this.CSS_CLASSES.default, true)
-    .classed(style, true)
-    .text(this._applyPreAndPostFix(truncatedText, prefix, postfix))
-    .attr("x", 0);
+  const tspan = this._appendTextSpan(style);
+  truncateTextLine(
+    tspan.node(),
+    { text, maxWidth, textStyle: style },
+    (value) => tspan.text(this._applyPreAndPostFix(value, prefix, postfix)),
+  );
   this._repositionTextLine(tspan, yShift);
 };
 
 AbsoluteTextElement.prototype._repositionTextLine = function (tspan, yShift) {
-  const fontSizeProperty = window
-    .getComputedStyle(tspan.node())
-    .getPropertyValue("font-size");
-  const fontSize = parseFloat(fontSizeProperty);
-
   /* BBox height is not supported in Firefox for tspans and dominant-baseline doesn't work in some SVG editors */
-  const approximatedShiftForVerticalCentering = (1 / 3) * fontSize;
-
-  tspan.attr("y", approximatedShiftForVerticalCentering + (yShift || 0) + "px");
+  positionAbsoluteTextLine(tspan.node(), yShift || 0);
 };

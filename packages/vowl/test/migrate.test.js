@@ -149,6 +149,9 @@ test("multiple grammar defects obey required-field-before-unknown-field preceden
 test("grammar rejects the first invalid scalar without collecting errors for its suffix", () => {
   let remaining = 64;
   const budget = {
+    poll() {
+      this.check();
+    },
     check() {
       if (--remaining === 0) {
         throw new Error("The invalid suffix exhausted the operation budget");
@@ -180,6 +183,9 @@ test("localized annotation summaries use bounded shared redundancy lookups", () 
   );
   const reader = annotationReader({
     budget: {
+      poll() {
+        this.check();
+      },
       check() {
         if (--remaining === 0) {
           throw new Error("Repeated annotation scans exhausted the budget");

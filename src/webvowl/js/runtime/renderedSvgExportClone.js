@@ -8,7 +8,7 @@
 // The live SVG is never touched. Everything here happens on the clone.
 import { namespaces } from "vowl";
 
-const EXPORTED_VISUAL_PROPERTIES = [
+export const EXPORTED_VISUAL_PROPERTIES = [
   "fill",
   "fill-opacity",
   "stroke",
@@ -26,6 +26,19 @@ const EXPORTED_VISUAL_PROPERTIES = [
   "dominant-baseline",
   "visibility",
 ];
+
+// Snapshot consumers may replace inline appearance with deduplicated resolved
+// rules. Keep detached SVG presentation writes at this existing style boundary.
+export function clearDetachedSvgPresentationStyle(element, properties) {
+  if (element.isConnected) {
+    throw new TypeError(
+      "Resolved presentation can only be replaced on detached SVG.",
+    );
+  }
+  for (const property of properties) {
+    element.style.removeProperty(property);
+  }
+}
 
 // Content the file has no use for: one exists only to catch a pointer, the
 // other is marked as not for export. Written as literal selectors so the

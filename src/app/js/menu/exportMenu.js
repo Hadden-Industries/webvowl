@@ -200,14 +200,26 @@ function createExportMenu({
     }, 2000);
   }
 
-  exportMenu.exportAsUrl = function () {
+  let shareRequest = 0;
+  exportMenu.exportAsUrl = async function () {
+    const request = ++shareRequest;
     const urlInput = documentObject.querySelector("#exportedUrl");
     const copyButton = documentObject.querySelector("#copyBt");
     const errorMessage = documentObject.querySelector("#exportUrlError");
     if (!urlInput) {
       return;
     }
+    // A previously displayed URL must not be copyable while a newer count is
+    // still being applied. The controller's synchronous read stays a read.
+    urlInput.value = "";
+    if (copyButton) {
+      copyButton.disabled = true;
+    }
     try {
+      await webVowlController.flushNodeCountAdjustment();
+      if (request !== shareRequest) {
+        return;
+      }
       urlInput.value = webVowlController.getVisualizationShareLink({
         presentation: readShareLinkPresentation(),
       }).url;
@@ -220,6 +232,9 @@ function createExportMenu({
         errorMessage.classList.toggle("hidden", true);
       }
     } catch (error) {
+      if (request !== shareRequest) {
+        return;
+      }
       urlInput.value = "";
       urlInput.title = "";
       if (copyButton) {

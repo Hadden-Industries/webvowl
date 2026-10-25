@@ -23,5 +23,11 @@ export function fail(code, pointer, details) {
 
 /** Append a field/index to a JSON Pointer without changing its spelling. */
 export function at(pointer, key) {
-  return `${pointer}/${String(key).replaceAll("~", "~0").replaceAll("/", "~1")}`;
+  const value = String(key);
+  // Grammar fields and array indexes normally need no JSON Pointer escaping.
+  const escaped =
+    value.includes("~") || value.includes("/")
+      ? value.replaceAll("~", "~0").replaceAll("/", "~1")
+      : value;
+  return `${pointer}/${escaped}`;
 }

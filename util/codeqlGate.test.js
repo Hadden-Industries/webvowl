@@ -383,7 +383,7 @@ test("analysis pagination is bounded to four pages and never silently truncated"
 });
 test("the shared deadline includes time spent reading response bodies", async () => {
   const reader = proofReader(proofFixture());
-  const original = performance.now;
+  const original = Object.getOwnPropertyDescriptor(performance, "now");
   let elapsed = 0;
   Object.defineProperty(performance, "now", {
     configurable: true,
@@ -400,10 +400,11 @@ test("the shared deadline includes time spent reading response bodies", async ()
       ),
     ).rejects.toThrow(/deadline/);
   } finally {
-    Object.defineProperty(performance, "now", {
-      configurable: true,
-      value: original,
-    });
+    if (original) {
+      Object.defineProperty(performance, "now", original);
+    } else {
+      delete performance.now;
+    }
   }
 });
 test("neutral requires explicit opt-in; a real external failure never uses alternative proof", async () => {

@@ -32,9 +32,15 @@
 import { dispatch, timer as createTimer } from "d3";
 import { createLegacyQuadtree } from "./legacyForceQuadtree.js";
 
-export function createLegacyForceSimulation({ random = Math.random } = {}) {
+/** Run unchanged legacy steps; a frame may publish several steps as one drawing. */
+export function createLegacyForceSimulation({
+  random = Math.random,
+  maxStepsPerFrame = 1,
+  frameBudgetMs = 8,
+  shouldBatchSteps = () => true,
+} = {}) {
   const force = {},
-    event = dispatch("tick", "end");
+    event = dispatch("step", "tick", "end");
   let timer,
     size = [1, 1],
     alpha = 0,
@@ -50,31 +56,41 @@ export function createLegacyForceSimulation({ random = Math.random } = {}) {
     distances,
     strengths,
     charges;
-  function repulse(node) {
-    return function (quad, x1, _, x2) {
+  function repulse(node, quadtree) {
+    // Repulsion changes only previous positions. Current coordinates stay
+    // fixed throughout this tree visit, including for property-backed labels.
+    const nodeX = node.x;
+    const nodeY = node.y;
+    // Keep the ordered Verlet updates local to this synchronous visit. No
+    // other point reads these previous coordinates until the visit completes.
+    let previousX = node.px;
+    let previousY = node.py;
+    quadtree.visit(function (quad, x1, _, x2) {
       if (quad.point !== node) {
-        const dx = quad.cx - node.x,
-          dy = quad.cy - node.y,
+        const dx = quad.cx - nodeX,
+          dy = quad.cy - nodeY,
           dw = x2 - x1,
           dn = dx * dx + dy * dy;
         if ((dw * dw) / theta2 < dn) {
           if (dn < chargeDistance2) {
             const k = quad.charge / dn;
-            node.px -= dx * k;
-            node.py -= dy * k;
+            previousX -= dx * k;
+            previousY -= dy * k;
           }
           return true;
         }
         if (quad.point && dn && dn < chargeDistance2) {
           const k = quad.pointCharge / dn;
-          node.px -= dx * k;
-          node.py -= dy * k;
+          previousX -= dx * k;
+          previousY -= dy * k;
         }
       }
       return !quad.charge;
-    };
+    });
+    node.px = previousX;
+    node.py = previousY;
   }
-  force.tick = function () {
+  function step() {
     if ((alpha *= 0.99) < 0.005) {
       timer?.stop();
       timer = null;
@@ -127,7 +143,7 @@ export function createLegacyForceSimulation({ random = Math.random } = {}) {
       i = -1;
       while (++i < n) {
         if (!(o = nodes[i]).fixed) {
-          q.visit(repulse(o));
+          repulse(o, q);
         }
       }
     }
@@ -149,11 +165,45 @@ export function createLegacyForceSimulation({ random = Math.random } = {}) {
         o.y -= (o.py - (o.py = o.y)) * friction;
       }
     }
+    // Projection can affect the next numerical step (notably solitary labels).
+    // It therefore runs even when this intermediate state is not drawn.
+    event.call("step", force, {
+      type: "step",
+      alpha: alpha,
+    });
+  }
+  function publishTick() {
     event.call("tick", force, {
       type: "tick",
       alpha: alpha,
     });
+  }
+  force.tick = function () {
+    if (step()) {
+      return true;
+    }
+    publishTick();
   };
+  function advanceFrame() {
+    const owner = timer;
+    const startedAt = performance.now();
+    let steps = 0;
+    do {
+      if (step() || timer !== owner) {
+        return;
+      }
+      steps++;
+      // Publish the last moving state before the next step emits `end`.
+      if (alpha * 0.99 < 0.005) {
+        break;
+      }
+    } while (
+      steps < maxStepsPerFrame &&
+      shouldBatchSteps() &&
+      performance.now() - startedAt < frameBudgetMs
+    );
+    publishTick();
+  }
   force.nodes = function (x) {
     if (!arguments.length) {
       return nodes;
@@ -330,7 +380,7 @@ export function createLegacyForceSimulation({ random = Math.random } = {}) {
     if (timer) {
       timer.stop();
     }
-    timer = createTimer(() => force.tick());
+    timer = createTimer(advanceFrame);
     return force;
   };
   force.stop = function () {

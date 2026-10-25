@@ -1,5 +1,5 @@
 import { DOMImplementation } from "@xmldom/xmldom";
-import { beforeAll } from "@jest/globals";
+import { beforeAll, jest } from "@jest/globals";
 
 const graphModule = {};
 
@@ -63,6 +63,38 @@ describe("finite SVG rendering guard", () => {
       ]),
     ).toBe(true);
     expect(element.getAttribute("d")).toBe("M0,0 Q40,100 50,100 Q60,100 100,0");
+  });
+
+  test("does not invalidate unchanged geometry and repairs external edits", () => {
+    const node = createSvgElement("g");
+    const link = createSvgElement("path");
+    const point = { x: 10, y: 5 };
+    const points = [
+      { x: 0, y: 0 },
+      { x: 50, y: 100 },
+      { x: 100, y: 0 },
+    ];
+    svgRenderingGuard.setTransform(node, point);
+    svgRenderingGuard.setCurvePath(link, points);
+    const nodeWrite = jest.spyOn(node, "setAttribute");
+    const linkWrite = jest.spyOn(link, "setAttribute");
+
+    svgRenderingGuard.setTransform(node, point);
+    svgRenderingGuard.setCurvePath(link, points);
+    expect(nodeWrite).not.toHaveBeenCalled();
+    expect(linkWrite).not.toHaveBeenCalled();
+
+    node.setAttribute("transform", "scale(2)");
+    link.setAttribute("d", "M0,0L1,1");
+    nodeWrite.mockClear();
+    linkWrite.mockClear();
+    svgRenderingGuard.setTransform(node, point);
+    svgRenderingGuard.setCurvePath(link, points);
+    expect(nodeWrite).toHaveBeenCalledWith("transform", "translate(10,5)");
+    expect(linkWrite).toHaveBeenCalledWith(
+      "d",
+      "M0,0 Q40,100 50,100 Q60,100 100,0",
+    );
   });
 
   test.each([

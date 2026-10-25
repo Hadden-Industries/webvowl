@@ -30,6 +30,7 @@ const VISUAL_CHARACTERISTICS = new Set([
  * Prepare drawing data from an admitted inspection and its complete scene.
  * Rows are keyed by exact occurrences. This boundary does not infer endpoints,
  * merge equivalences, manufacture inverse pairs, or create semantic records.
+ * Semantic inspection stays session-owned; the renderer receives drawing rows.
  */
 export function createCanonicalVowlRenderProjection(inspection, visualization) {
   const structural = inspection.records;
@@ -240,7 +241,5 @@ export function createCanonicalVowlRenderProjection(inspection, visualization) {
     camera: structuredClone(visualization.camera),
     display: structuredClone(visualization.display),
     labelSelection: structuredClone(visualization.labelSelection),
-    // Exact retained facts remain available for partial/details-only renderings.
-    inspection: structuredClone(inspection),
   };
 }

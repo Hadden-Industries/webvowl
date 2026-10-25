@@ -1,4 +1,6 @@
 import rdf from "rdf-canonize";
+import { jest } from "@jest/globals";
+import { createHash } from "node:crypto";
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { profiles } from "../src/profiles.js";
 import { refineDataset } from "../src/refinedRdf.js";
@@ -13,6 +15,48 @@ const quad = (subject, predicate, object) => ({
   object,
   graph: { termType: "DefaultGraph", value: "" },
 });
+
+test.each([true, false])(
+  "digest hex preserves independently derived colors with native conversion available=%s",
+  async (available) => {
+    const descriptor = Object.getOwnPropertyDescriptor(
+      Uint8Array.prototype,
+      "toHex",
+    );
+    // Jest's realm may omit this browser capability; Node's Buffer gives an
+    // independent byte-to-hex oracle for the available-feature branch there.
+    const convert = jest.fn(function () {
+      return Buffer.from(this).toString("hex");
+    });
+    Object.defineProperty(Uint8Array.prototype, "toHex", {
+      configurable: true,
+      ...descriptor,
+      value: available ? convert : undefined,
+    });
+    const hash = (value) => createHash("sha256").update(value).digest("hex");
+    const term = (value) => ["term", hash(JSON.stringify(["iri", value]))];
+    const entry = JSON.stringify([["self"], term("urn:p"), term("urn:C")]);
+    const expected = hash(JSON.stringify(["", [entry]]));
+    try {
+      const result = await canonical([
+        quad(blank("a"), "urn:p", named("urn:C")),
+      ]);
+      expect(result.rounds).toBe(1);
+      expect(result.dataset[1].object.value).toBe(expected);
+      if (available) {
+        expect(convert).toHaveBeenCalledTimes(3);
+      } else {
+        expect(convert).not.toHaveBeenCalled();
+      }
+    } finally {
+      if (descriptor) {
+        Object.defineProperty(Uint8Array.prototype, "toHex", descriptor);
+      } else {
+        delete Uint8Array.prototype.toHex;
+      }
+    }
+  },
+);
 async function canonical(dataset, limits = {}) {
   const budget = new ResourceBudget({ limits }, performance.now());
   try {

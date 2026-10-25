@@ -272,13 +272,7 @@ const BaseProperty = (function () {
           .append("g")
           .datum(property)
           .classed("label", true)
-          .attr("id", property.id())
-          .on("mouseover", function (event) {
-            onMouseOver(event, property);
-          })
-          .on("mouseout", function (event) {
-            onMouseOut(event, property);
-          });
+          .attr("id", property.id());
 
         property.drawLabel(labelContainer);
         return labelContainer;
@@ -329,6 +323,8 @@ const BaseProperty = (function () {
         that.drawHalo(false);
       }
 
+      that.addMouseListeners();
+      that.inverse()?.addMouseListeners();
       return that.labelElement();
     };
 
@@ -603,8 +599,30 @@ const BaseProperty = (function () {
       });
     }
 
+    this.addMouseListeners = function () {
+      if (!that.labelVisible() || !that.labelElement()) {
+        return;
+      }
+      const epoch = graph.currentRenderInteractionEpoch?.();
+      that
+        .labelElement()
+        .on("mouseover", (event) => {
+          if (epoch === graph.currentRenderInteractionEpoch?.()) {
+            onMouseOver(event, that);
+          }
+        })
+        .on("mouseout", (event) => {
+          if (epoch === graph.currentRenderInteractionEpoch?.()) {
+            onMouseOut(event, that);
+          }
+        });
+    };
+
     function onMouseOver(event, targetProperty) {
       const prop = targetProperty || that;
+      if (graph.isRenderedOccurrenceCurrent?.(prop) === false) {
+        return;
+      }
       if (
         prop.mouseEntered() ||
         ignoreLocalHoverEvents === true ||
@@ -620,6 +638,9 @@ const BaseProperty = (function () {
 
     function onMouseOut(event, targetProperty) {
       const prop = targetProperty || that;
+      if (graph.isRenderedOccurrenceCurrent?.(prop) === false) {
+        return;
+      }
       const labelNode = prop.labelElement() ? prop.labelElement().node() : null;
       if (
         event &&
@@ -996,6 +1017,9 @@ const BaseProperty = (function () {
           }
         })
         .on("blur", function () {
+          if (labelEditEpoch !== graph.currentRenderInteractionEpoch()) {
+            return;
+          }
           if (!that.editingTextElement) {
             return;
           }

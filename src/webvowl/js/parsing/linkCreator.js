@@ -16,8 +16,11 @@ const createLinkCreator = (function () {
    * Creates links from the passed properties.
    * @param properties
    */
-  linkCreator.createLinks = function (properties) {
-    const links = groupPropertiesToLinks(properties);
+  linkCreator.createLinks = function (properties, retainedLinks = []) {
+    const retained = new Map(
+      retainedLinks.map((link) => [link.property(), link]),
+    );
+    const links = groupPropertiesToLinks(properties, retained);
 
     const pairs = new Map();
     const loopsByNode = new Map();
@@ -59,7 +62,7 @@ const createLinkCreator = (function () {
    * @param properties the properties
    * @returns {Array}
    */
-  function groupPropertiesToLinks(properties) {
+  function groupPropertiesToLinks(properties, retained) {
     const links = [];
     let property;
     const addedProperties = addedPropertiesFactory();
@@ -68,7 +71,14 @@ const createLinkCreator = (function () {
       property = properties[i];
 
       if (!addedProperties.has(property)) {
-        const link = createLink(property);
+        const previous = retained.get(property);
+        const link =
+          previous &&
+          previous.domain() === property.domain() &&
+          previous.range() === property.range() &&
+          previous.inverse() === property.inverse()
+            ? previous
+            : createLink(property);
 
         property.link(link);
         if (property.inverse()) {

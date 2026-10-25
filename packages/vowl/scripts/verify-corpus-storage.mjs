@@ -18,9 +18,12 @@ const inventory = () =>
   JSON.parse(readFileSync(resolve(root, "storage-inventory.json")));
 
 /** Verify all relocated members and containers, without generating expectations. */
-export function verifyCorpusStorage() {
-  const scope = inventory();
-  assert.equal(scope.format, "canonical-vowl-corpus-storage-inventory/1");
+export function verifyCorpusStorage({ root: corpusUrl = rootUrl } = {}) {
+  const root = fileURLToPath(corpusUrl);
+  const scope = JSON.parse(
+    readFileSync(resolve(root, "storage-inventory.json")),
+  );
+  assert.equal(scope.format, "canonical-vowl-corpus-storage-inventory/2");
   assert.equal(scope.artifacts.length, scope.artifactCount);
   assert.equal(scope.bundles.length, scope.bundleCount);
   const recorded = new Map(scope.artifacts.map((entry) => [entry.path, entry]));
@@ -32,15 +35,30 @@ export function verifyCorpusStorage() {
     assert.equal(bytes.length, pin.byteLength, pin.path);
     const bundle = JSON.parse(bytes);
     assert.equal(bundle.artifacts.length, pin.members);
-    for (const entry of bundle.artifacts) {
+    for (const [ordinal, entry] of bundle.artifacts.entries()) {
       assert(!actualMembers.has(entry.path), entry.path);
       actualMembers.add(entry.path);
       assert(recorded.has(entry.path), entry.path);
       assert.equal(recorded.get(entry.path).bundle, pin.path, entry.path);
+      if (entry.path.endsWith(".json"))
+        assert.deepEqual(
+          recorded.get(entry.path).json,
+          {
+            pointer: `/artifacts/${ordinal}/text`,
+            encoding: entry.encoding,
+          },
+          `JSON locator differs: ${entry.path}`,
+        );
+      else
+        assert.equal(
+          recorded.get(entry.path).json,
+          undefined,
+          `Non-JSON member has a JSON locator: ${entry.path}`,
+        );
     }
   }
   assert.equal(actualMembers.size, recorded.size);
-  const read = createCorpusReader(rootUrl);
+  const read = createCorpusReader(corpusUrl);
   for (const entry of scope.artifacts) {
     assert.equal(fixtureBundle(entry.path), entry.bundle, entry.path);
     assert(

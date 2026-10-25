@@ -1,4 +1,5 @@
 import { isIri } from "@hyperjump/uri";
+import { createCanonicalVowlInitialPositions } from "./canonicalVowlInitialPositions.js";
 
 const POSITIONABLE = new Set(["class-node", "datatype-node", "label"]);
 
@@ -36,17 +37,26 @@ export function closeVowlVisibility(occurrences, hidden) {
   return [...result];
 }
 
-function initializePlacements(occurrences, retained, center, supplied) {
+function initializePlacements(
+  occurrences,
+  retained,
+  center,
+  supplied,
+  freshSeeds,
+) {
   const byId = new Map(occurrences.map((record) => [record.id, record]));
   // Deterministic phyllotaxis gives fresh nodes a finite, distributed seed.
   // Explicit scene positions bypass the force engine's missing-position seed;
   // coincident seeds instead create an enormous initial repulsive impulse.
   // Index the whole node inventory once, including retained nodes, so additions
   // do not restart the sequence at positions already assigned to predecessors.
-  const seeds = new Map();
+  const seeds = freshSeeds ?? new Map();
   const angle = Math.PI * (3 - Math.sqrt(5));
   for (const occurrence of occurrences) {
-    if (["class-node", "datatype-node"].includes(occurrence.kind)) {
+    if (
+      !freshSeeds &&
+      ["class-node", "datatype-node"].includes(occurrence.kind)
+    ) {
       const index = seeds.size;
       const radius = 10 * Math.sqrt(0.5 + index);
       seeds.set(occurrence.id, {
@@ -155,6 +165,8 @@ export function createCanonicalVowlScene(
     visualization,
     center = { x: 0, y: 0 },
     suppliedPositions = new Map(),
+    forceDistances,
+    layoutInitialTree,
   },
 ) {
   if (!Number.isSafeInteger(loadGeneration) || loadGeneration < 1) {
@@ -193,6 +205,14 @@ export function createCanonicalVowlScene(
       [],
       finitePoint(center),
       suppliedPositions,
+      suppliedPositions.size === 0
+        ? createCanonicalVowlInitialPositions(
+            current,
+            center,
+            forceDistances,
+            layoutInitialTree,
+          )
+        : undefined,
     );
   }
   validatePlacements(current, state);
@@ -225,9 +245,11 @@ export function createCanonicalVowlScene(
     },
     arrange(changes, { camera } = {}) {
       checkWritable();
-      const candidate = structuredClone(state);
+      // Private scene values are never exposed or mutated in place. Copy only
+      // changed placements, retaining atomic publication if a later row fails.
+      const candidate = { ...state };
       const placementsByOccurrence = new Map(
-        candidate.placements.map((entry) => [entry.occurrence, entry]),
+        state.placements.map((entry, index) => [entry.occurrence, index]),
       );
       if (camera !== undefined) {
         if (!Number.isFinite(camera.zoom) || camera.zoom <= 0) {
@@ -245,18 +267,29 @@ export function createCanonicalVowlScene(
           throw sceneError("SCENE_PLACEMENT_INVALID");
         }
         changed.add(id);
-        const placement = placementsByOccurrence.get(id);
-        if (!placement) {
+        const index = placementsByOccurrence.get(id);
+        if (index === undefined) {
           throw sceneError("SCENE_OCCURRENCE_NOT_POSITIONABLE");
         }
-        if (change.position !== undefined) {
-          placement.position = finitePoint(change.position);
+        const placement = state.placements[index];
+        const position =
+          change.position === undefined
+            ? placement.position
+            : finitePoint(change.position);
+        const pinned =
+          change.pinned === undefined ? placement.pinned : change.pinned;
+        if (typeof pinned !== "boolean") {
+          throw sceneError("SCENE_PLACEMENT_INVALID");
         }
-        if (change.pinned !== undefined) {
-          if (typeof change.pinned !== "boolean") {
-            throw sceneError("SCENE_PLACEMENT_INVALID");
+        if (
+          !Object.is(position.x, placement.position.x) ||
+          !Object.is(position.y, placement.position.y) ||
+          pinned !== placement.pinned
+        ) {
+          if (candidate.placements === state.placements) {
+            candidate.placements = state.placements.slice();
           }
-          placement.pinned = change.pinned;
+          candidate.placements[index] = { ...placement, position, pinned };
         }
       }
       state = candidate;
@@ -290,7 +323,9 @@ export function createCanonicalVowlScene(
         throw sceneError("SCENE_VIEW_INVALID");
       }
       const baseRevision = revision;
-      const candidate = structuredClone(state);
+      // Every scene writer replaces changed values; only public snapshots and
+      // previews need a deep copy of the unchanged private placements.
+      const candidate = { ...state };
       if (changes.placements !== undefined) {
         candidate.placements = structuredClone(changes.placements);
         validatePlacements(current, candidate);

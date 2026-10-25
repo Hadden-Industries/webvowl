@@ -5,6 +5,8 @@ import { createCanonicalVowlDocumentSession } from "./canonicalVowlDocumentSessi
 import { runCanonicalVowlOperation } from "./canonicalVowlWorkerOperations.js";
 import { createCanonicalVowlSourceAcquisition } from "./canonicalVowlSourceAcquisition.js";
 import { createVisualizationViewApplicationRequest } from "./renderedGraphRuntimeContracts.js";
+import { WebVowlOperationError } from "./webVowlControllerContracts.js";
+import { createWebMcpToolDispatch } from "../webmcp/webMcpToolContracts.js";
 
 function deferred() {
   let resolve, reject;
@@ -41,7 +43,7 @@ function setup() {
         nodeCountStatus: {
           eligibleNodeCount: 0,
           shownNodeCount: 0,
-          nodeRankingPolicyVersion: "connected-sqrt-v1",
+          nodeRankingPolicyVersion: "connected-sqrt-display-v1",
         },
       };
       return accepted;
@@ -51,7 +53,7 @@ function setup() {
       nodeCountStatus: {
         eligibleNodeCount: 0,
         shownNodeCount: 0,
-        nodeRankingPolicyVersion: "connected-sqrt-v1",
+        nodeRankingPolicyVersion: "connected-sqrt-display-v1",
       },
     }),
     snapshot: () => accepted,
@@ -86,6 +88,73 @@ function setup() {
     emit: (event) => listener(event),
   };
 }
+
+test("background ordering updates only its current document and count commands share the readiness guard", async () => {
+  const { controller, session, load } = setup();
+  await load("urn:first");
+  const callback = session.load.mock.calls[0][1].onNodeOrdering;
+  const status = {
+    ...controller.getState().nodeCountStatus,
+    orderingStatus: "preparing",
+  };
+  callback({ loadGeneration: 1, documentRevision: 0, nodeCountStatus: status });
+  expect(controller.getState().nodeCountStatus.orderingStatus).toBe(
+    "preparing",
+  );
+  session.assertNodeOrderingReady = () => {
+    throw new WebVowlOperationError({
+      code: "NODE_ORDERING_PENDING",
+      message: "Wait for node count preparation to finish.",
+      isRetryable: true,
+    });
+  };
+  expect(() =>
+    controller.stageNodeCountAdjustment({ mode: "exact", requestedCount: 51 }),
+  ).toThrow(expect.objectContaining({ code: "NODE_ORDERING_PENDING" }));
+  await expect(
+    controller.setVisualizationView({ nodesShown: { mode: "all" } }),
+  ).rejects.toMatchObject({ code: "NODE_ORDERING_PENDING" });
+  const dispatch = createWebMcpToolDispatch({ webVowlController: controller });
+  expect(
+    await dispatch.callWebMcpTool("get_visualization_state", {}),
+  ).toMatchObject({
+    isSuccess: true,
+    toolResult: { nodeCountStatus: { orderingStatus: "preparing" } },
+  });
+  expect(
+    await dispatch.callWebMcpTool("set_visualization_view", {
+      nodesShown: { mode: "all" },
+    }),
+  ).toMatchObject({
+    isSuccess: false,
+    error: { code: "NODE_ORDERING_PENDING", isRetryable: true },
+  });
+  session.assertNodeOrderingReady = () => {
+    throw new WebVowlOperationError({
+      code: "NODE_ORDERING_UNAVAILABLE",
+      message: "Node count preparation failed. Reload the ontology to retry.",
+    });
+  };
+  expect(
+    await dispatch.callWebMcpTool("set_visualization_view", {
+      nodesShown: { mode: "all" },
+    }),
+  ).toMatchObject({
+    isSuccess: false,
+    error: { code: "NODE_ORDERING_UNAVAILABLE", isRetryable: false },
+  });
+  callback({
+    loadGeneration: 1,
+    documentRevision: 0,
+    nodeCountStatus: { ...status, orderingStatus: "ready" },
+  });
+  expect(controller.getState().nodeCountStatus.orderingStatus).toBe("ready");
+  await load("urn:second");
+  callback({ loadGeneration: 1, documentRevision: 0, nodeCountStatus: status });
+  expect(controller.getState().loadGeneration).toBe(2);
+  expect(controller.getState().nodeCountStatus.orderingStatus).toBeUndefined();
+  controller.dispose();
+});
 
 test("visualization mode events preserve node-count intent for UI subscribers", async () => {
   const { controller, load, emit } = setup();
@@ -153,6 +222,63 @@ test("layout ticks publish controller state only when its status changes", async
   controller.dispose();
 });
 
+test("occurrence geometry is current, isolated from state and semantic exports, and released on disposal", async () => {
+  const { controller, load, emit, runtime, session } = setup();
+  await load("https://example.test/ontology");
+  const accepted = controller.getState();
+  const value = {
+    loadGeneration: accepted.loadGeneration,
+    documentRevision: accepted.documentRevision,
+    reference: {
+      loadGeneration: accepted.loadGeneration,
+      occurrenceId: "occurrence-1",
+    },
+    coordinateSpace: "graph-viewport-css-pixels",
+    xPx: 40,
+    yPx: 50,
+    widthPx: 60,
+    heightPx: 60,
+    shape: "ellipse",
+    occurrenceCount: 2,
+  };
+  runtime.readSelectedOccurrenceObservation = () => value;
+  const observed = [];
+  const failed = jest.fn(() => {
+    throw new Error("consumer failed");
+  });
+  controller.subscribeToSelectedVisualizationOccurrence(failed);
+  const unsubscribe = controller.subscribeToSelectedVisualizationOccurrence(
+    (item) => observed.push(item),
+  );
+  const send = (observation, loadGeneration = accepted.loadGeneration) =>
+    emit({
+      kind: "selected-occurrence-geometry-changed",
+      loadGeneration,
+      payload: { observation },
+    });
+  send(value);
+  send({ ...value, documentRevision: accepted.documentRevision + 1 });
+  send(value, accepted.loadGeneration + 1);
+  send({ ...value, xPx: 41 });
+  expect(observed).toHaveLength(2);
+  expect(failed).toHaveBeenCalledTimes(1);
+  expect(controller.getState()).toBe(accepted);
+  expect(controller.getSelectedVisualizationOccurrence()).toBe(value);
+  expect(session.exportCanonicalArtifact).not.toHaveBeenCalled();
+  runtime.readSelectedOccurrenceObservation = () => ({
+    ...value,
+    documentRevision: 1,
+  });
+  expect(controller.getSelectedVisualizationOccurrence()).toBeNull();
+  unsubscribe();
+  send(null);
+  expect(observed).toHaveLength(2);
+  controller.dispose();
+  send(value);
+  expect(observed).toHaveLength(2);
+  expect(() => controller.getSelectedVisualizationOccurrence()).toThrow();
+});
+
 test("the candidate controller preserves selection through rename and focuses newly revealed elements", async () => {
   const { runtime, artifacts } = setup();
   let emit;
@@ -209,12 +335,17 @@ test("the candidate controller preserves selection through rename and focuses ne
     drawing = request;
   };
   runtime.readCanonicalDrawingState = () => {
-    const snapshot = session.snapshot();
     return {
-      loadGeneration: snapshot.loadGeneration,
-      documentRevision: snapshot.documentRevision,
-      placements: snapshot.visualization.placements,
-      camera: snapshot.visualization.camera,
+      loadGeneration: drawing.loadGeneration,
+      documentRevision: drawing.documentRevision,
+      placements: [...drawing.drawing.nodes, ...drawing.drawing.labels].map(
+        ({ occurrence, position, pinned }) => ({
+          occurrence,
+          position,
+          pinned,
+        }),
+      ),
+      camera: drawing.drawing.camera,
     };
   };
   runtime.readVisibleRenderedGraphSnapshot = () => ({
@@ -773,6 +904,36 @@ test("explicit layout intent is forwarded with the accepted generation", async (
     isPaused: true,
   });
   expect(controller.getState().layout.status).toBe("paused");
+});
+
+test("view layout commands report the actual pause state without waiting for a force tick", async () => {
+  const { controller, runtime, session, load } = setup();
+  let isPaused = true;
+  runtime.readGraphLayoutSnapshot = () => ({ isPaused, hasEnded: false });
+  runtime.applyVisualizationView = jest.fn(async ({ layout }) => {
+    isPaused = layout === "pause";
+  });
+  runtime.readCanonicalDrawingState = () => ({});
+  session.synchronizeDrawing = jest.fn();
+  await load("urn:first");
+  await controller.setVisualizationView({ layout: "resume" });
+  expect(controller.getState().layout.status).toBe("relaxing");
+  await controller.setVisualizationView({ layout: "pause" });
+  expect(controller.getState().layout.status).toBe("paused");
+
+  // A later explicit choice can arrive while the older view awaits paint.
+  const paint = deferred();
+  runtime.applyVisualizationView.mockImplementationOnce(() => paint.promise);
+  const view = controller.setVisualizationView({ layout: "pause" });
+  const obsolete = expect(view).rejects.toMatchObject({ name: "AbortError" });
+  runtime.setGraphLayoutPaused = ({ isPaused: requested }) => {
+    isPaused = requested;
+    return { layoutStatus: requested ? "paused" : "relaxing" };
+  };
+  controller.setGraphLayoutPaused({ isPaused: false });
+  paint.resolve();
+  await obsolete;
+  expect(controller.getState().layout.status).toBe("relaxing");
 });
 
 test("cancelled source-format selection restores the accepted document without an error", async () => {

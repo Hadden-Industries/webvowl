@@ -33,9 +33,11 @@ function boundedJson(value, budget) {
     const available =
       budget.limits.totalStringBytes - (budget.counts.totalStringBytes ?? 0);
     let measuredBytes = 0;
+    let nextCheck = 0;
     for (let index = 0; index < item.length; index++) {
-      if (index % 1024 === 0) {
+      if (index >= nextCheck) {
         budget.check();
+        nextCheck = index + 1024;
       }
       const code = item.codePointAt(index);
       const bytes =
@@ -82,7 +84,15 @@ async function digest(value, budget) {
   budget.check();
   const hash = await crypto.subtle.digest("SHA-256", encoder.encode(value));
   budget.check();
-  return [...new Uint8Array(hash)].map((byte) => hexBytes[byte]).join("");
+  const bytes = new Uint8Array(hash);
+  if (typeof bytes.toHex === "function") {
+    return bytes.toHex();
+  }
+  let result = "";
+  for (let index = 0; index < bytes.length; index++) {
+    result += hexBytes[bytes[index]];
+  }
+  return result;
 }
 
 /**
@@ -92,6 +102,7 @@ async function digest(value, budget) {
  * signatures; symmetric vertices remain symmetric and still require RDFC.
  */
 export async function refineDataset(dataset, budget) {
+  budget.check();
   const incidents = new Map();
   const groundKeys = new WeakMap();
   const groundDigests = new Map();
@@ -99,11 +110,12 @@ export async function refineDataset(dataset, budget) {
   let groundScratchBytes = 0;
   async function flushGround() {
     await Promise.all(pendingGround);
+    budget.check();
     pendingGround = [];
     groundScratchBytes = 0;
   }
   for (const quad of dataset) {
-    budget.check();
+    budget.poll();
     if (
       quad.graph.termType !== "DefaultGraph" ||
       quad.predicate.termType !== "NamedNode" ||
@@ -190,6 +202,7 @@ export async function refineDataset(dataset, budget) {
     let scratchBytes = 0;
     async function flush() {
       const results = await Promise.all(pending);
+      budget.check();
       for (const [id, color] of results) {
         next.set(id, color);
       }
@@ -198,7 +211,7 @@ export async function refineDataset(dataset, budget) {
       scratchBytes = 0;
     }
     for (const [id, quads] of incidents) {
-      budget.check();
+      budget.poll();
       // A quad key contains three fixed-size digest/self/color keys: at most
       // 241 ASCII characters. 2048 bytes per incident conservatively covers
       // UTF-16 entry strings, escaped signature and UTF-8 digest input together.
@@ -256,5 +269,6 @@ export async function refineDataset(dataset, budget) {
       graph: { termType: "DefaultGraph", value: "" },
     });
   }
+  budget.check();
   return { dataset: refined, rounds, classes };
 }

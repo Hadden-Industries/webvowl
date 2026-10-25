@@ -15,6 +15,7 @@ const ajv = new Ajv2020({
 });
 const validators = new WeakMap();
 const scalarValidators = new Map();
+const namedScalarValidators = new Map();
 const keywordOrder = {
   required: 0,
   additionalProperties: 1,
@@ -183,12 +184,19 @@ export function walkTyped(value, descriptor, visit, pointer = "", parent, key) {
 /** Check closed shapes and scalar domains before any reference or graph invariant. */
 export function validateFields(value, descriptor, budget, pointer = "") {
   budget.check();
+  const result = validateField(value, descriptor, budget, pointer);
+  budget.check();
+  return result;
+}
+
+function validateField(value, descriptor, budget, pointer) {
+  budget.poll();
   const resolved = descriptorFor(value, descriptor, pointer);
   if (resolved?.fields || resolved?.items) {
     shallowValidate(value, resolved, pointer);
     if (resolved.fields) {
       for (const name of Object.keys(value).sort()) {
-        value[name] = validateFields(
+        value[name] = validateField(
           value[name],
           resolved.fields[name],
           budget,
@@ -197,7 +205,7 @@ export function validateFields(value, descriptor, budget, pointer = "") {
       }
     } else {
       value.forEach((member, index) => {
-        value[index] = validateFields(
+        value[index] = validateField(
           member,
           resolved.items,
           budget,
@@ -207,9 +215,24 @@ export function validateFields(value, descriptor, budget, pointer = "") {
     }
     return value;
   }
-  // A primitive leaf uses Ajv's real scalar/enum contract too. No coercion/defaulting.
-  // Compiling one validator per scalar visit would turn large documents into a compile workload.
-  // Scalar domains get their named A7 errors, separately from JSON type/enum errors.
+  if (!scalarValidator(resolved)(value)) {
+    fail("DOCUMENT_TYPE", pointer);
+  }
+  return scalar(value, resolved, pointer);
+}
+
+/** Reuse the grammar's scalar validators without rebuilding their schemas per value. */
+function scalarValidator(resolved) {
+  // Object descriptors have the same grammar-owned lifetime as shallow validators.
+  // Named descriptors come from the finite inventory, never from document values.
+  const cache =
+    typeof resolved === "string" ? namedScalarValidators : validators;
+  const cached = cache.get(resolved);
+  if (cached) {
+    return cached;
+  }
+  // Ajv owns the scalar/enum type contract; scalar() keeps the named A7 domain
+  // errors and normalization separate. No coercion or defaults are introduced.
   const expected =
     typeof resolved === "string" && resolved !== "Prefix"
       ? {
@@ -228,8 +251,6 @@ export function validateFields(value, descriptor, budget, pointer = "") {
     validate = ajv.compile(expected);
     scalarValidators.set(leafKey, validate);
   }
-  if (!validate(value)) {
-    fail("DOCUMENT_TYPE", pointer);
-  }
-  return scalar(value, resolved, pointer);
+  cache.set(resolved, validate);
+  return validate;
 }

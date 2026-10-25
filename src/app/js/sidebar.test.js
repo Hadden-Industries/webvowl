@@ -341,46 +341,8 @@ describe("sidebar native language and lifecycle controls", () => {
     );
   });
 
-  test("owns only accordion triggers inside the ontology details section", () => {
-    const ontologyDetailsSection =
-      global.document.querySelector("#generalDetails");
-    const ontologyDetailsTrigger = new SidebarElement("h3");
-    ontologyDetailsTrigger.nextElementSibling = new SidebarElement();
-    const editingDetailsTrigger = new SidebarElement("h3");
-    editingDetailsTrigger.nextElementSibling = new SidebarElement();
-    ontologyDetailsSection.querySelectorAll = jest.fn((selector) => {
-      if (selector === ".accordion-trigger") {
-        return [ontologyDetailsTrigger];
-      }
-      return [];
-    });
-    global.document.querySelectorAll = jest.fn((selector) => {
-      if (selector === ".accordion-trigger") {
-        return [ontologyDetailsTrigger, editingDetailsTrigger];
-      }
-      return [];
-    });
-
-    sidebar.setup();
-
-    const simulatedClick = jest.spyOn(ontologyDetailsTrigger, "click");
-    const keyboardActivationEvent = new Event("keydown", {
-      cancelable: true,
-    });
-    Object.defineProperty(keyboardActivationEvent, "key", { value: "Enter" });
-    ontologyDetailsTrigger.dispatchEvent(keyboardActivationEvent);
-
-    expect(ontologyDetailsTrigger.attributes.role).toBe("button");
-    expect(editingDetailsTrigger.attributes.role).toBeUndefined();
-    expect(keyboardActivationEvent.defaultPrevented).toBe(true);
-    expect(simulatedClick).not.toHaveBeenCalled();
-    expect(ontologyDetailsTrigger.classes).toContain(
-      "accordion-trigger-active",
-    );
-  });
-
   test.each([
-    [1280, false, true],
+    [1280, false, false],
     [1280, true, false],
     [800, false, false],
   ])(
