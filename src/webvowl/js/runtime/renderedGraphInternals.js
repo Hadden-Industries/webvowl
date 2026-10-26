@@ -2244,17 +2244,18 @@ function createGraph(
     );
   }
 
-  const primitiveKey = (element) =>
-    JSON.stringify([element.type(), element.id()]);
+  // Constructor types and admitted occurrence IDs are strings. Prefix the
+  // type's UTF-16 length so delimiters inside either string cannot collide.
+  const primitiveKey = (element) => {
+    const type = element.type();
+    return type.length + ":" + type + element.id();
+  };
   function bindPrimitiveGroups(container, selector, data, key, className) {
+    const token = selector.slice(1);
     const update = container
       .selectAll(function () {
         return Array.from(this.childNodes).filter(
-          (node) =>
-            node.nodeType === 1 &&
-            (node.getAttribute("class") ?? "")
-              .split(/\s+/)
-              .includes(selector.slice(1)),
+          (node) => node.nodeType === 1 && node.classList.contains(token),
         );
       })
       .data(data, key);

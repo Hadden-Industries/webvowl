@@ -56,6 +56,27 @@ function mountGraph(canonicalDrawing) {
     });
   }
   function enhance(element) {
+    // xmldom has no DOMTokenList. Model the browser's ASCII class tokens for
+    // real D3 joins; native browser coverage owns SVG classList behavior.
+    const classTokens = () =>
+      new Set((element.getAttribute("class") ?? "").match(/[^\t\n\f\r ]+/gu));
+    element.classList = {
+      contains: (token) => classTokens().has(token),
+      add(...tokens) {
+        element.setAttribute(
+          "class",
+          [...new Set([...classTokens(), ...tokens])].join(" "),
+        );
+      },
+      remove(...tokens) {
+        element.setAttribute(
+          "class",
+          [...classTokens()]
+            .filter((token) => !tokens.includes(token))
+            .join(" "),
+        );
+      },
+    };
     // Match DOM pre-insert's node === reference step; xmldom otherwise corrupts
     // its child list. See https://dom.spec.whatwg.org/#concept-node-pre-insert.
     const prototype = document.documentElement.constructor.prototype;
@@ -517,6 +538,52 @@ function withoutOccurrences(drawing, ids) {
   }
   return next;
 }
+
+test("joins retain delimiter-rich occurrence IDs and ignore nested and non-element children", () => {
+  const drawing = reuseDrawing();
+  const names = new Map([
+    ["a", 'type:9:["quoted"]'],
+    ["b", "type:9:colon:雪"],
+    ["c", "type:09:colon:雪"],
+  ]);
+  for (const node of drawing.nodes) {
+    node.occurrence = names.get(node.occurrence);
+  }
+  for (const edge of drawing.edges) {
+    edge.from = names.get(edge.from);
+    edge.to = names.get(edge.to);
+  }
+  const h = mountCanonicalGraph(drawing);
+  try {
+    const container = h.document.querySelector(".nodeContainer");
+    const groups = Array.from(container.childNodes);
+    expect(groups).toHaveLength(3);
+    groups[0].setAttribute("class", " extra\t node\nother ");
+    const nested = h.document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "g",
+    );
+    nested.setAttribute("class", "node");
+    groups[0].appendChild(nested);
+    container.appendChild(h.document.createTextNode("ignored text"));
+    h.graph.applyCanonicalDrawingRevision(structuredClone(drawing), {
+      sameRevision: true,
+    });
+    const retained = Array.from(container.childNodes).filter(
+      (node) => node.nodeType === 1,
+    );
+    expect(retained).toHaveLength(3);
+    retained.forEach((group, index) => expect(group).toBe(groups[index]));
+    expect(nested.parentNode).toBe(groups[0]);
+    expect(retained.map((group) => d3.select(group).datum().id())).toEqual([
+      'type:9:["quoted"]',
+      "type:9:colon:雪",
+      "type:09:colon:雪",
+    ]);
+  } finally {
+    h.dispose();
+  }
+});
 function rendererObservation(graph, document, simulation) {
   const links = [...new Set(simulation.links().map((part) => part.link()))];
   const serializer = new XMLSerializer();

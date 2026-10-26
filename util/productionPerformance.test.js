@@ -77,6 +77,45 @@ describe("production measurement admission", () => {
     expect(applicationEntryBinding(source).identifier).toBe("app");
   });
 
+  test("binds every static and dynamic worker dependency, rejecting missing chunks", () => {
+    const root = mkdtempSync(join(tmpdir(), "webvowl-worker-closure-"));
+    try {
+      mkdirSync(join(root, "js"));
+      mkdirSync(join(root, "assets"));
+      writeFileSync(
+        join(root, "index.html"),
+        '<script type="module" src="./js/index.js"></script>',
+      );
+      writeFileSync(
+        join(root, "js/index.js"),
+        'new Worker(new URL("../assets/worker.js",import.meta.url),{type:"module"});window.addEventListener("load",()=>app.initialize());',
+      );
+      writeFileSync(
+        join(root, "assets/worker.js"),
+        'import "./core.js";import("./parser.js");',
+      );
+      writeFileSync(
+        join(root, "assets/core.js"),
+        'export { value } from "./shared.js";',
+      );
+      writeFileSync(join(root, "assets/parser.js"), 'import "./shared.js";');
+      writeFileSync(join(root, "assets/shared.js"), "export const value=1;");
+      expect(
+        productionManifest(root).workerClosures["assets/worker.js"],
+      ).toEqual([
+        "assets/core.js",
+        "assets/parser.js",
+        "assets/shared.js",
+        "assets/worker.js",
+      ]);
+      rmSync(join(root, "assets/parser.js"));
+      expect(() => productionManifest(root)).toThrow(/Missing worker module/u);
+    } finally {
+      expect(dirname(resolve(root))).toBe(resolve(tmpdir()));
+      rmSync(root, { recursive: true });
+    }
+  });
+
   test("uses ABBA with at least twenty independent observations per version", () => {
     const order = buildCohortOrder(20);
     expect(order.slice(0, 8)).toEqual(["A", "B", "B", "A", "A", "B", "B", "A"]);

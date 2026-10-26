@@ -3,18 +3,17 @@ import { dirname, resolve, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   existsSync,
-  mkdirSync,
   readFileSync,
   readdirSync,
   rmSync,
   statSync,
   utimesSync,
-  writeFileSync,
 } from "node:fs";
 import replace from "@rollup/plugin-replace";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import eslintPlugin from "vite-plugin-eslint2";
 import stylelint from "vite-plugin-stylelint";
+import { createGeneratedJavaScriptCleanupPlugin } from "./util/generatedJavaScriptCleanup.mjs";
 import {
   HtmlValidate,
   FileSystemConfigLoader,
@@ -56,86 +55,6 @@ const preManifestGeneratedJavaScriptFiles = [
   "js/vowlDocument.js",
   "js/warningModule.js",
 ];
-
-function webvowlGeneratedJavaScriptCleanupPlugin() {
-  let outputDirectory;
-  let emittedJavaScriptFiles = new Set();
-  let wroteBundle = false;
-
-  return {
-    name: "webvowl-generated-javascript-cleanup",
-    apply: "build",
-
-    configResolved(configuration) {
-      outputDirectory = configuration.build.outDir;
-    },
-
-    buildStart() {
-      emittedJavaScriptFiles = new Set();
-      wroteBundle = false;
-    },
-
-    generateBundle(_outputOptions, bundle, isWrite) {
-      wroteBundle ||= isWrite;
-      for (const output of Object.values(bundle)) {
-        if (output.type === "chunk" && output.fileName.endsWith(".js")) {
-          emittedJavaScriptFiles.add(output.fileName.replaceAll("\\", "/"));
-        }
-      }
-    },
-
-    closeBundle() {
-      if (!outputDirectory || !wroteBundle) return;
-
-      const manifestPath = resolve(
-        outputDirectory,
-        generatedJavaScriptManifestPath,
-      );
-      let previouslyGeneratedFiles = [];
-      if (existsSync(manifestPath)) {
-        const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
-        if (
-          manifest.schemaVersion !== 1 ||
-          !Array.isArray(manifest.files) ||
-          !manifest.files.every((fileName) => typeof fileName === "string")
-        ) {
-          throw new Error(
-            `Invalid generated JavaScript manifest: ${manifestPath}`,
-          );
-        }
-        previouslyGeneratedFiles = manifest.files;
-      }
-
-      for (const fileName of new Set([
-        ...preManifestGeneratedJavaScriptFiles,
-        ...previouslyGeneratedFiles,
-      ])) {
-        const normalizedFileName = fileName.replaceAll("\\", "/");
-        if (
-          !/^js\/[A-Za-z0-9._~-]+\.js$/u.test(normalizedFileName) ||
-          emittedJavaScriptFiles.has(normalizedFileName)
-        ) {
-          continue;
-        }
-        rmSync(resolve(outputDirectory, normalizedFileName), { force: true });
-      }
-
-      mkdirSync(dirname(manifestPath), { recursive: true });
-      writeFileSync(
-        manifestPath,
-        `${JSON.stringify(
-          {
-            schemaVersion: 1,
-            files: [...emittedJavaScriptFiles].sort(),
-          },
-          null,
-          2,
-        )}\n`,
-        "utf8",
-      );
-    },
-  };
-}
 
 /**
  * Custom Vite plugin that handles HTML template processing and post-build cleanup.
@@ -312,6 +231,9 @@ export default defineConfig(({ mode }) => {
     root: "src",
     publicDir: false,
 
+    // Native dynamic imports keep OWL parsers out of canonical-only worker jobs.
+    worker: { format: "es" },
+
     build: {
       outDir: resolve(
         configDir,
@@ -400,7 +322,10 @@ export default defineConfig(({ mode }) => {
             },
           ]
         : []),
-      webvowlGeneratedJavaScriptCleanupPlugin(),
+      createGeneratedJavaScriptCleanupPlugin({
+        manifestName: generatedJavaScriptManifestPath,
+        legacyFiles: preManifestGeneratedJavaScriptFiles,
+      }),
       mtimePreservePlugin(),
       // Replace @@WEBVOWL_VERSION placeholder in JS source files with the package version
       replace({

@@ -428,7 +428,7 @@ export function createCanonicalWebVowlController({
     let selection = selectedDocumentRecord === null ? [] : state.selection;
     if (selectionTargets !== undefined) {
       const references = createCanonicalSemanticReferences(
-        session.inspectRecords(),
+        session.readOntologyInspection().retainedFacts,
         state.loadGeneration,
         session.target,
       );
@@ -467,7 +467,7 @@ export function createCanonicalWebVowlController({
     const accepted = ticket.identity;
     ticket.prepareScene();
     const references = createCanonicalSemanticReferences(
-      session.inspectRecords(),
+      session.readOntologyInspection().retainedFacts,
       accepted.loadGeneration,
       session.target,
     );
@@ -541,7 +541,8 @@ export function createCanonicalWebVowlController({
   async function createFromGesture(payload) {
     const ticket = lifecycle.prepare("editOntologyRecord");
     const accepted = ticket.identity;
-    const inspection = session.inspectRecords();
+    // Capture this revision's frozen facts before awaiting creation input.
+    const inspection = session.readOntologyInspection().retainedFacts;
     if (payload.documentRevision !== accepted.documentRevision) {
       throw new Error("The creation gesture belongs to an earlier revision.");
     }

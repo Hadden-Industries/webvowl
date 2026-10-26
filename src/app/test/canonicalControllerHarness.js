@@ -10,6 +10,7 @@ import {
 export async function canonicalControllerHarness({
   resolver,
   nodeCountAdjustmentClock,
+  requestOntologyCreation,
   wrapRuntime = (runtime) => runtime,
 } = {}) {
   const double = createCanonicalRenderedGraphRuntimeDouble({
@@ -62,6 +63,7 @@ export async function canonicalControllerHarness({
   let fontGate;
   const controller = createCanonicalWebVowlController({
     nodeCountAdjustmentClock,
+    requestOntologyCreation,
     renderedGraphRuntime: wrapRuntime(double.runtime),
     documentSession: session,
     sourceAcquisition: createCanonicalVowlSourceAcquisition({ resolver }),

@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import {
   mkdtemp,
   mkdir,
@@ -120,13 +121,27 @@ test("a production build removes obsolete owned JavaScript without deleting unkn
       "utf8",
     ),
   );
-  expect(manifest).toEqual({
-    schemaVersion: 1,
-    files: outputNames
+  expect(manifest.schemaVersion).toBe(1);
+  expect(manifest.files.filter((file) => file.startsWith("js/"))).toEqual(
+    outputNames
       .filter((fileName) => fileName !== "unknown-user-file.js")
       .map((fileName) => `js/${fileName}`)
       .sort(),
-  });
+  );
+  const workerFiles = (await readdir(join(outputDirectory, "assets")))
+    .filter((file) => file.endsWith(".js"))
+    .map((file) => `assets/${file}`);
+  expect(workerFiles.length).toBeGreaterThan(0);
+  expect(manifest.files.filter((file) => file.startsWith("assets/"))).toEqual(
+    workerFiles.sort(),
+  );
+  for (const file of manifest.files) {
+    expect(manifest.hashes[file]).toBe(
+      createHash("sha256")
+        .update(await readFile(join(outputDirectory, file)))
+        .digest("hex"),
+    );
+  }
 });
 
 test("non-writing Vite lifecycles preserve existing generated JavaScript", async () => {

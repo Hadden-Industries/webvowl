@@ -132,6 +132,103 @@ function expectDeeplyFrozen(value, seen = new Set()) {
   }
 }
 
+test("editing borrows revision-owned facts while preserving selection and external copies", async () => {
+  const h = await canonicalControllerHarness();
+  try {
+    const initial = h.session.readOntologyInspection().retainedFacts;
+    const original = h.session.inspectRecords();
+    expect(initial).toEqual(original);
+    expectDeeplyFrozen(initial);
+    const reference = h.reference();
+    await h.controller.setVisualizationView({ focus: [reference] });
+    const record = initial.records.roles.find(({ kind }) => kind === "class");
+    const intent = {
+      ...h.session.identity(),
+      recordTarget: h.session.target(record.id),
+      changes: { iri: "urn:Renamed" },
+    };
+    const nativeClone = globalThis.structuredClone;
+    const ownedRecordReads = [];
+    const clone = jest
+      .spyOn(globalThis, "structuredClone")
+      .mockImplementation((value, ...options) => {
+        // Classify the selected copying API separately from the editor's
+        // deliberately owned draft snapshot and receiving-worker admission.
+        if (new Error().stack.includes("Object.inspectRecords")) {
+          ownedRecordReads.push(value);
+        }
+        return nativeClone(value, ...options);
+      });
+    try {
+      // Positive control distinguishes the public copy API from internal reads.
+      h.session.inspectRecords();
+      expect(ownedRecordReads).toEqual([initial]);
+      ownedRecordReads.length = 0;
+      await h.controller.editOntologyRecord(intent);
+      const edited = h.session.readOntologyInspection().retainedFacts;
+      expect(ownedRecordReads).toHaveLength(0);
+      expect(edited.revision).toBe(1);
+      expect(edited).not.toBe(initial);
+      expectDeeplyFrozen(edited);
+      expect(initial).toEqual(original);
+      expect(edited.records.subjects.map(({ iri }) => iri)).toContain(
+        "urn:Renamed",
+      );
+      expect(h.controller.getVisualizationFocus().focus).toEqual([reference]);
+      const copy = h.session.inspectRecords();
+      copy.records.subjects[0].iri = "urn:external-change";
+      expect(edited.records.subjects.map(({ iri }) => iri)).not.toContain(
+        "urn:external-change",
+      );
+    } finally {
+      clone.mockRestore();
+    }
+  } finally {
+    h.controller.dispose();
+  }
+});
+
+test("creation input borrows the captured inspection without a whole-record copy", async () => {
+  const requests = [];
+  const h = await canonicalControllerHarness({
+    requestOntologyCreation: async (request) => {
+      requests.push(request);
+      return null;
+    },
+  });
+  const inspection = h.session.readOntologyInspection().retainedFacts;
+  const clone = jest.spyOn(globalThis, "structuredClone");
+  try {
+    h.session.inspectRecords();
+    expect(clone.mock.calls.some(([value]) => value === inspection)).toBe(true);
+    clone.mockClear();
+    expect(
+      h.double.emit({
+        kind: "semantic-creation-requested",
+        loadGeneration: 1,
+        payload: {
+          type: "owl:Class",
+          position: { x: 5, y: 10 },
+          documentRevision: 0,
+          fromTarget: null,
+          toTarget: null,
+          datatype: null,
+        },
+      }),
+    ).toBe(true);
+    await Promise.resolve();
+    expect(requests).toHaveLength(1);
+    expect(requests[0]).toMatchObject({ type: "owl:Class", properties: [] });
+    expect(
+      clone.mock.calls.filter(([value]) => value === inspection),
+    ).toHaveLength(0);
+    expect(h.session.identity()).toMatchObject({ documentRevision: 0 });
+  } finally {
+    clone.mockRestore();
+    h.controller.dispose();
+  }
+});
+
 test("borrowed inspections include frozen retained facts while external copies remain independently mutable", async () => {
   const h = await canonicalControllerHarness();
   try {
