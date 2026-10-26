@@ -2,20 +2,20 @@
 
 ## 1. Status, authority and source
 
-| Field                  | Value                                                                                                                                                         |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status                 | Draft implementation plan for review; no implementation or performance claim is approved by this document                                                     |
-| Prepared               | 26 October 2026                                                                                                                                               |
-| Decision owner         | Repository owner, Maksym Shostak                                                                                                                              |
-| Integration owner      | To be appointed before implementation; one owner coordinates numerical state, label projection, scheduling and renderer publication                           |
-| Source document        | `C:\Users\maksy\Downloads\Optimising legacyForceSimulation.js for High-Performance WebVOWL Layouts.md`                                                        |
-| Source identity        | 52,885 bytes; SHA-256 `b5851a9dfa68e1092556a5afc0e5426f4a8d2008a9aef8ca7a91fc13efb700ee`                                                                      |
-| Inspected baseline     | `61ae133033e482814f47415a4e5d396e35e57244`, plus the current working-tree contents                                                                            |
-| Procedure              | HISEW `hadden-industries-plan-software-change`, installed `0.1.0-dev.29`                                                                                      |
-| Identifier scope       | All `REQ-###`, `AC-###`, `QA-###`, `DEC-###` and `SLICE-###` identifiers are local to this document; qualify cross-document references by filename            |
-| Evidence produced here | Source synthesis, repository inspection and primary-reference checks; no new physics benchmark, browser experiment, implementation test or independent review |
+| Field                  | Value                                                                                                                                                            |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status                 | Accepted plan; iterative traversal implemented locally. Section 1.4 records verification results and open acceptance limits                                      |
+| Prepared               | 26 October 2026                                                                                                                                                  |
+| Decision owner         | Repository owner, Maksym Shostak                                                                                                                                 |
+| Integration owner      | Current Codex task under the repository owner's implementation authorization; coordinates numerical state, label projection, scheduling and renderer publication |
+| Source document        | `C:\Users\maksy\Downloads\Optimising legacyForceSimulation.js for High-Performance WebVOWL Layouts.md`                                                           |
+| Source identity        | 52,885 bytes; SHA-256 `b5851a9dfa68e1092556a5afc0e5426f4a8d2008a9aef8ca7a91fc13efb700ee`                                                                         |
+| Inspected baseline     | `61ae133033e482814f47415a4e5d396e35e57244`, plus the current working-tree contents                                                                               |
+| Procedure              | HISEW `hadden-industries-plan-software-change`, installed `0.1.0-dev.29`                                                                                         |
+| Identifier scope       | All `REQ-###`, `AC-###`, `QA-###`, `DEC-###` and `SLICE-###` identifiers are local to this document; qualify cross-document references by filename               |
+| Evidence produced here | Original source synthesis and repository inspection, followed by the implementation, measurement, test and external-review record in section 1.4                 |
 
-The user authorized creation of a detailed plan in `docs/plans/`, preserving all relevant source detail.
+The user initially authorized creation of a detailed plan in `docs/plans/`, preserving all relevant source detail, and subsequently authorized its implementation as recorded in section 1.3.
 This document retains the report's technical findings, equations, alternatives, workload definitions, architecture, measurement protocol, roadmap and limitations.
 Its code examples are translated into contracts and implementation constraints rather than copied as complete proposed implementations.
 Section 13 maps the source's sections and examples to their dispositions.
@@ -23,18 +23,19 @@ Source line numbers and opaque citation tokens are replaced by current module re
 
 Existing modifications to `packages/vowl/src/lexicalJson.js`, `packages/vowl/src/snapshot.js` and `packages/vowl/test/admission.test.js`, and untracked `docs/canonical-vowl/` and the lexical-failure-position plan, were present before this task.
 They are outside this document's editing scope.
-No code, configuration, existing plan, Git history or remote state is changed by this planning task.
+The initial planning step changed only this document; section 1.4 records the subsequent implementation.
+No remote state is changed by this task.
 
 ### 1.1 HISEW applicability and prerequisite boundary
 
-Fresh inspection reports personal applicability active, workflow state `unrouted`, and no current execution.
+At the initial planning checkpoint, inspection reported personal applicability active, workflow state `unrouted`, and no current execution.
 Configured profiles are `focused` → `npm run lint`, `affected` → `npm run test`, and `full` → `npm run check`, each with a reported 600-second command timeout.
 The obligation assessment says `risk-route-not-selected`; available profiles are not selected verification obligations.
 These observations supersede older documents' descriptions of a retained execution, without rewriting their history.
-No execution was started, adopted, closed or verified here.
+No execution was started, adopted, closed or verified during that planning step; the subsequent execution is recorded in section 1.4.
 
-The source is a proposal, not an accepted design or an accepted risk route.
-This plan supplies a **draft** dossier and proposed route so its missing decisions are reviewable.
+The supplied source was a proposal, not an accepted design or an accepted risk route.
+This plan originally supplied a **draft** dossier and proposed route so its missing decisions were reviewable; section 1.3 records the subsequent acceptance.
 Before dependent implementation, the owner must accept the scope, numerical compatibility policy, quality/performance thresholds and applicable risk route, and assign integration and acceptance owners.
 Worker, approximation and Wasm slices have additional gates below.
 Missing prerequisites block those implementations; they do not prevent preserving the requested proposal.
@@ -72,6 +73,123 @@ Consolidate source changes before ordinary review.
 External review is reserved for the final implementation candidate: Claude Opus 5.5 at Max, up to 30 minutes per run; if unavailable, `agy` Flash 3.8 at High with the same timeout.
 Resolve external findings and use narrow repair reviews before the single final full test run.
 No duplicate helper-witnessed checks or evidence packages are required; signing and truthful result verification remain required.
+
+### 1.4 Selected implementation and evidence
+
+The first checkpoint is signed commit `51fb50a12a66a0a3cdac594ea516e38b97237625`.
+The single R2 execution is `9149fb1d-09e6-48dd-a30c-5626ef32e7ed`.
+Raw local measurements are retained in `C:\Users\maksy\.hi\w\e\operator\a5829ca38c224663b20c75d8aaa6073d`; this section is the working decision record, not a second evidence bundle.
+
+The selected production change replaces recursive generic quadtree visits and one closure per movable node with an iterative charge traversal.
+Three charge-pass-local stacks retain cells and their exact horizontal endpoints; reverse child pushes preserve quadrant order 0, 1, 2, 3.
+The midpoint expression, squared-distance division, charge/cutoff guards, cached current/previous coordinates and property-backed label writeback remain unchanged.
+The tree exposes its original horizontal bounds; insertion, topology rebuilding, accumulation, jitter, cooling, links, gravity, integration and per-step projection remain unchanged.
+The stacks die with the charge pass, so they neither retain a previous drawing nor share mutable traversal state between simulations.
+
+This is a measured refinement of SLICE-002's initial shared-visitor proposal.
+The baseline CPU profile attributed approximately 65.9% of samples to recursive `visit`, 6.0% to GC, 5.9% to `step`, 5.5% to accumulation and 6.9% to tree construction/insertion combined.
+These are diagnostic whole-process self samples, including startup, not clean phase timings.
+The shared-visitor pilot passed compatibility checks but produced inconsistent timings, including slower 5,000-point cases, and was superseded.
+The iterative pilot completed all six workloads with identical final state and lower median cooling times; its three runs per fixture are diagnostic evidence only.
+`baseline-force.cpuprofile`, `baseline-profile.json`, `visitor-diagnostic.json` and `iterative-diagnostic.json` retain these experiments.
+
+| Slice | Disposition for this increment                                                                                                                                                                                                                                                  |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 001   | Added six seeded force-point fixtures using real class and property-backed label objects, plus complete-cooling A/A and A/B measurement. Existing production browser measurement is reused for integration.                                                                     |
+| 002   | Selected iterative traversal after the visitor-only pilot failed to establish a consistent benefit. Independent D3 oracle and exact numerical compatibility are retained.                                                                                                       |
+| 003   | Retain the current two-step/32-ms renderer budget and one-step interaction policy. Kernel timing alone cannot qualify a changed foreground budget; an individual large-graph step can already exceed the report's 5–8-ms targets.                                               |
+| 004   | Retain theta 0.8 and infinite cutoff. The harness supports separately identified parameter experiments and detects changed trajectories, but no approximate mode or quality tolerance is selected. No Pareto-quality or visual-equivalence claim is made for those experiments. |
+| 005   | No pooling/flat-tree storage selected. The profile prioritizes traversal; its GC share does not justify adding a persistent pool and retained-reference lifecycle in this increment. Fresh-tree semantics remain intact.                                                        |
+| 006   | No packed representation selected. Property-backed labels and per-step projection already have exact observable ownership; a conversion layer lacks demonstrated end-to-end benefit after the smaller traversal change.                                                         |
+| 007   | No physics worker selected without the packed-state/projection seam and foreground evidence required by its dependencies. Existing canonical-model workers remain separate.                                                                                                     |
+| 008   | No Wasm/toolchain selected: the prerequisite packed/worker experiments have not justified that escalation.                                                                                                                                                                      |
+| 009   | Focused numerical/integration checks, a production browser functional pass, external source review, full Jest and production build completed. Repository-wide and timing acceptance limits are recorded below; release, deployment and field acceptance are not claimed.        |
+
+Conditional slices remain documented in full below for a later evidence-backed selection; a no-change disposition does not claim that their experiments or acceptance tests ran.
+For selecting this exact-state kernel optimization, the task's engineering target is at least 10% lower median cooling time on large fixtures, no small-fixture regression above 5%, and an A/A noise band below 5% on the same accepted environment.
+Twenty independent complete cooling cycles per version/fixture are required for timing qualification; per-tick samples within a cycle are descriptive, not independent layout replications.
+Foreground user-facing speedup is a separate outcome and cannot be inferred from this kernel target.
+
+The initial clean pilot was rejected at 28.2% host CPU busy; an A/A attempt was stopped at 17.6% after two pairs, and its retry stopped at 16.1% after seven pairs.
+Some of this task's metadata work overlapped those attempts, so these readings cannot be attributed solely to other host activity.
+Those incomplete files (`visitor-pilot.json`, `iterative-aa.json`, `iterative-aa-retry.json`) remain retained.
+After all tests and builds finished, one isolated A/A retry ran without other task commands.
+It completed 20 pairs for both medium fixtures and 14 large-fixture pairs, then stopped at 11.7% CPU busy against the unchanged 10% limit; `final-aa-isolated.json` retains the incomplete run and exact error.
+Clean timing acceptance is open; diagnostic measurements do not override the quiescent-environment policy.
+
+The completed diagnostic A/A and A/B matrices each contain 20 counterbalanced pairs per fixture after three warmup pairs.
+Every A/A and A/B pair retained exact final state; A/A median differences ranged from -1.18% to +1.78%, with individual contention spikes.
+The A/B medians below describe this host run only; they **do not satisfy clean timing or foreground acceptance**.
+Raw samples are in `final-aa-diagnostic.json` and `final-ab-diagnostic.json`.
+The later review repairs affect report I/O, import admission and comments only, so these measurements remain applicable to the unchanged numerical algorithm without another timing campaign.
+
+| Fixture               | Baseline cooling median (ms) | Candidate cooling median (ms) | Diagnostic change |
+| --------------------- | ---------------------------: | ----------------------------: | ----------------: |
+| `wvowl-medium-sparse` |                       267.54 |                        212.37 |           -20.62% |
+| `wvowl-medium-hub`    |                       292.40 |                        233.69 |           -20.08% |
+| `wvowl-large`         |                      1368.43 |                       1103.75 |           -19.34% |
+| `wvowl-large-hub`     |                      1551.51 |                       1213.51 |           -21.79% |
+| `wvowl-xlarge`        |                      4196.12 |                       3394.43 |           -19.11% |
+| `wvowl-xlarge-dense`  |                      4148.53 |                       3217.32 |           -22.45% |
+
+The final broad external assignment used the authorized fallback, AGY Gemini 3.8 Flash High with a 1,800-second answer window, after Claude Opus 5.5 Max reported its five-hour quota exhausted.
+AGY returned substantive source coverage and five findings; no execution of tests by the reviewer is claimed.
+The native attempt `bf75f74d-8bc7-5fe5-a869-61113dd443d9` remains failed for control qualification because the reviewer did not reproduce `Cwd` in the exact denied command probe; its source assessment and original diagnostics are retained.
+This is a review-control admission failure, not a product test failure.
+The narrow follow-up checked the repairs and dispositions below and requested that probe-argument correction; it did not repeat the broad assessment.
+
+The narrow follow-up `b22593f0-d1f7-5f32-93e6-6c6cd5f79eb1` returned no findings and explicitly closed all five repair/disposition questions.
+Its native control qualification still failed on the same `Cwd` exact-match condition despite the explicit correction instruction; the retained raw native input omitted `Cwd`, and the command was denied.
+Both failed native records remain intact.
+The retained substantive static reviews establish source-review feedback and its resolution, not qualified native control assurance or independent test execution.
+No further broad review or bookkeeping-only replay is selected under the owner's process instructions.
+Full product verification ran after this substantive review closure.
+
+| External finding                        | Disposition                                                                                                                                                                                                                               |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Redundant leaf midpoint/child checks    | No correctness defect. The proposed leaf fast path and claimed leaf fraction lack a measured benefit for this candidate; defer this additional optimization instead of changing the already measured kernel.                              |
+| Clean timing unqualified                | Accepted limitation, explicitly open above. No diagnostic figure is promoted to clean timing, release or foreground evidence.                                                                                                             |
+| Mixed-sign zero-sum subtree pruning     | Preserve inherited D3 semantics; document the numerical limitation at the pruning guard. Opposing charges can cancel the aggregate and prune their subtree. Existing differential cases remain authoritative.                             |
+| Existing output masks a benchmark error | Reserve an exclusive output descriptor before measuring; reject collisions before any cycle, and emit the original report to stderr if later report writing fails. A regression test checks no cycle runs and the existing bytes survive. |
+| Single-occurrence import replacement    | Explicitly require exactly one occurrence of each supported historical import before adapting it. Unsupported historical import shapes now fail at the declared import-contract boundary instead of partially rewriting a module.         |
+
+Focused proof includes unchanged exact-state oracle tests, new full-cooling zero/mixed-charge and finite-cutoff cases, coincident labels, interleaved simulation ownership and graph replacement.
+The benchmark tests require an explicit historical comparator and detect a theta-1.2 negative control while an A/A comparison remains exact.
+Renderer/viewport, label, adapter and settlement checks passed.
+The production Chromium functional pass on `W4-connected` completed loading, count/filter changes, selection, search and ten edits without runtime exceptions; it is functional-only evidence, not foreground performance acceptance.
+The production build passed with its existing large-chunk advisory.
+Exact-scope ESLint and Prettier checks passed after correcting braces and replacing a bitwise quadrant check with equivalent comparisons.
+
+The single HISEW full-profile attempt `e8f92a36-f3c9-4573-beb1-8f7cefe2a7c3` retained its failed result: `npm run check` passed application and Python lint, then stopped because the pre-existing, unrelated `packages/vowl/conformance/supplemental/lexical-position-v1/README.md` requires Markdown formatting.
+That file was preserved.
+The unrun components were then executed individually without repeating the successful lint stages:
+
+- Application and Python formatting checks passed; all ten Python files were already formatted.
+- Setup tests passed (28 tests, two skips), including repository-skill verification; all three Markdown integration tests passed.
+- Corpus-storage probes passed (four tests), and storage verification covered 7,227 artifacts in 64 bundles with no loose copies.
+- Repository JSON checking failed its quality contract.
+  JSON integration passed six of seven tests; the complete-repository contract assertion failed at `util/jsonIntegration.probes.mjs:67`.
+- Full Jest passed all **198 suites and 10,296 tests** in 203.163 seconds.
+- The subsequent production build passed with the existing large-chunk advisory.
+- The final generated-output JSON check retained all diagnostics in `final-generated-json.ndjson` and failed its overall contract across 7,110 observed members.
+  Its five failing source terminals are all in the unrelated `packages/vowl/conformance/supplemental/lexical-position-v1/vectors/` work: `snapshot-member-name-lone-surrogate/source.json`, `snapshot-member-name-noncharacter-after-unknown-member/source.json`, `snapshot-unicode-after-mistyped-member/source.json`, `snapshot-unicode-after-unknown-member/source.json` and `snapshot-unicode-before-later-mistyped-member/source.json`.
+  These inputs and their ownership remain unchanged.
+
+The failed aggregate and JSON results are not passes, and this task does not claim complete HISEW qualification.
+Original tool records and the native full-profile run remain the evidence; no duplicate receipts are manufactured.
+
+Reproduce the independent force checks and the six-workload comparison with:
+
+```powershell
+npm test -- --runInBand src/webvowl/js/runtime/legacyForceSimulation.test.js util/legacyForceBenchmarkFixtures.test.js util/benchmark-legacy-force.test.js
+node util/benchmark-legacy-force.mjs --baseline-ref 51fb50a --runs 20 --warmups 3 --aa --output <new-aa-result.json>
+node util/benchmark-legacy-force.mjs --baseline-ref 51fb50a --runs 20 --warmups 3 --output <new-ab-result.json>
+```
+
+Run comparisons serially on an idle host.
+The harness checks host load before timing and before every measured pair, counterbalances order, asserts 298 moving steps plus the terminating call, retains raw tick/cycle samples and refuses to overwrite an existing result.
+`--fixture` selects one or more named workloads; `--theta` and `--charge-distance` change only the experimental candidate.
+`--diagnostic` explicitly marks non-acceptance runs and omits the quiescence gate; it must never be used to label a rejected clean run as passing.
 
 ## 2. Source findings reconciled with current code
 

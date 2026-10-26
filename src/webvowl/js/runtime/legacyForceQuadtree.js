@@ -120,6 +120,10 @@ export function createLegacyQuadtree(data) {
   }
 
   const root = createNode();
+  // Charge traversal uses only horizontal cell bounds. Retain the exact
+  // endpoints so iterative traversal uses the same floating-point midpoints.
+  root.xMin = x1_;
+  root.xMax = x2_;
   root.visit = (f) => visit(f, root, x1_, y1_, x2_, y2_);
   for (let i = 0; i < data.length; ++i) {
     insert(root, data[i], xs[i], ys[i], x1_, y1_, x2_, y2_);

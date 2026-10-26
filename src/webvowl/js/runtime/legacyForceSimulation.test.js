@@ -361,3 +361,91 @@ test("canonical fixed targets, pause and natural end have distinct ownership", (
   expect(events).toEqual(["end"]);
   expect(force.alpha()).toBe(0);
 });
+
+test.each([
+  ["disabled charge", 0, Infinity, false],
+  ["zero-valued accessor", () => 0, Infinity, false],
+  [
+    "mixed signed charge",
+    (_, index) => (index % 2 ? 30 : -30),
+    Infinity,
+    false,
+  ],
+  ["finite charge cutoff", -300, 120, false],
+  ["coincident mixed charge", (_, index) => (index % 2 ? 30 : -30), 120, true],
+])(
+  "charge traversal preserves the independent oracle: %s",
+  (_, charge, cutoff, coincident) => {
+    const expected = fixture({ labels: true, coincident });
+    const actual = fixture({ labels: true, coincident });
+    const reference = configure(referenceForce(), expected)
+      .charge(charge)
+      .chargeDistance(cutoff)
+      .start();
+    const candidate = configure(
+      createLegacyForceSimulation({ random: seededRandom() }),
+      actual,
+    )
+      .charge(charge)
+      .chargeDistance(cutoff)
+      .start()
+      .stop();
+    try {
+      for (let step = 0; step < 300; step++) {
+        expect(candidate.tick()).toBe(reference.tick());
+        expect(state(actual)).toEqual(state(expected));
+        if (candidate.alpha() === 0) {
+          break;
+        }
+      }
+    } finally {
+      candidate.stop();
+      reference.stop();
+    }
+  },
+);
+
+test("interleaved simulations and graph replacement retain independent charge state", () => {
+  const first = fixture({ labels: true });
+  const second = fixture({ coincident: true });
+  const firstExpected = fixture({ labels: true });
+  const secondExpected = fixture({ coincident: true });
+  const firstReference = configure(referenceForce(), firstExpected);
+  const secondReference = configure(referenceForce(), secondExpected);
+  const firstForce = configure(
+    createLegacyForceSimulation({ random: seededRandom() }),
+    first,
+  ).stop();
+  const secondForce = configure(
+    createLegacyForceSimulation({ random: seededRandom() }),
+    second,
+  ).stop();
+  try {
+    for (let step = 0; step < 40; step++) {
+      firstForce.tick();
+      secondForce.tick();
+      firstReference.tick();
+      secondReference.tick();
+      expect(state(first)).toEqual(state(firstExpected));
+      expect(state(second)).toEqual(state(secondExpected));
+    }
+    const replacement = {
+      nodes: [{ x: 10, y: 20, px: 10, py: 20 }],
+      links: [],
+    };
+    const expectedReplacement = {
+      nodes: [{ x: 10, y: 20, px: 10, py: 20 }],
+      links: [],
+    };
+    configure(firstForce, replacement).stop();
+    configure(firstReference, expectedReplacement);
+    firstForce.tick();
+    firstReference.tick();
+    expect(state(replacement)).toEqual(state(expectedReplacement));
+  } finally {
+    firstForce.stop();
+    secondForce.stop();
+    firstReference.stop();
+    secondReference.stop();
+  }
+});

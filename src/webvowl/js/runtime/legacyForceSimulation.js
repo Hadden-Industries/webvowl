@@ -56,39 +56,71 @@ export function createLegacyForceSimulation({
     distances,
     strengths,
     charges;
-  function repulse(node, quadtree) {
-    // Repulsion changes only previous positions. Current coordinates stay
-    // fixed throughout this tree visit, including for property-backed labels.
-    const nodeX = node.x;
-    const nodeY = node.y;
-    // Keep the ordered Verlet updates local to this synchronous visit. No
-    // other point reads these previous coordinates until the visit completes.
-    let previousX = node.px;
-    let previousY = node.py;
-    quadtree.visit(function (quad, x1, _, x2) {
-      if (quad.point !== node) {
-        const dx = quad.cx - nodeX,
-          dy = quad.cy - nodeY,
-          dw = x2 - x1,
-          dn = dx * dx + dy * dy;
-        if ((dw * dw) / theta2 < dn) {
-          if (dn < chargeDistance2) {
-            const k = quad.charge / dn;
+  function repulse(nodes, quadtree) {
+    const cells = [],
+      leftBounds = [],
+      rightBounds = [];
+    for (let i = 0, n = nodes.length; i < n; i++) {
+      const node = nodes[i];
+      if (node.fixed) {
+        continue;
+      }
+      const nodeX = node.x,
+        nodeY = node.y;
+      let previousX = node.px,
+        previousY = node.py;
+      let top = 0;
+      cells[0] = quadtree;
+      leftBounds[0] = quadtree.xMin;
+      rightBounds[0] = quadtree.xMax;
+      // Reverse pushes preserve the recursive visitor's quadrant order. Keep
+      // cell endpoints, rather than halving widths, to retain exact rounding.
+      while (top >= 0) {
+        const quad = cells[top],
+          x1 = leftBounds[top],
+          x2 = rightBounds[top];
+        top--;
+        if (quad.point !== node) {
+          const dx = quad.cx - nodeX,
+            dy = quad.cy - nodeY,
+            dw = x2 - x1,
+            dn = dx * dx + dy * dy;
+          if ((dw * dw) / theta2 < dn) {
+            if (dn < chargeDistance2) {
+              const k = quad.charge / dn;
+              previousX -= dx * k;
+              previousY -= dy * k;
+            }
+            continue;
+          }
+          if (quad.point && dn && dn < chargeDistance2) {
+            const k = quad.pointCharge / dn;
             previousX -= dx * k;
             previousY -= dy * k;
           }
-          return true;
         }
-        if (quad.point && dn && dn < chargeDistance2) {
-          const k = quad.pointCharge / dn;
-          previousX -= dx * k;
-          previousY -= dy * k;
+        // Legacy cancellation prunes an exactly zero-sum subtree, including
+        // opposing signed charges. Preserve that numerical limitation.
+        if (!quad.charge) {
+          continue;
+        }
+        const midpoint = (x1 + x2) * 0.5;
+        for (let childIndex = 3; childIndex >= 0; childIndex--) {
+          const child = quad.nodes[childIndex];
+          if (!child) {
+            continue;
+          }
+          top++;
+          cells[top] = child;
+          const right = childIndex === 1 || childIndex === 3;
+          leftBounds[top] = right ? midpoint : x1;
+          rightBounds[top] = right ? x2 : midpoint;
         }
       }
-      return !quad.charge;
-    });
-    node.px = previousX;
-    node.py = previousY;
+      // Preserve the property-backed label's original per-visit writeback.
+      node.px = previousX;
+      node.py = previousY;
+    }
   }
   function step() {
     if ((alpha *= 0.99) < 0.005) {
@@ -140,12 +172,7 @@ export function createLegacyForceSimulation({
         charges,
         random,
       );
-      i = -1;
-      while (++i < n) {
-        if (!(o = nodes[i]).fixed) {
-          repulse(o, q);
-        }
-      }
+      repulse(nodes, q);
     }
     i = -1;
     while (++i < n) {
