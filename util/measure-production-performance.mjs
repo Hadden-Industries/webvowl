@@ -49,6 +49,7 @@ import { measureProductionUiPreview } from "./productionUiPreview.mjs";
 import { measureProductionUiSources } from "./productionUiSources.mjs";
 import { measureProductionCountAdjustment } from "./productionCountAdjustment.mjs";
 import { measureProductionInitialLayout } from "./productionInitialLayout.mjs";
+import { createLocalInteractionTiming } from "./productionInteractionTiming.mjs";
 
 // A companion to qualify-canonical-browser.mjs: actual production HTML/CSS,
 // headed isolated Chrome, and separately labelled latency/diagnostic passes.
@@ -516,6 +517,7 @@ function installMeasurement(
     documentIri,
   },
   twoFrames,
+  installTiming,
 ) {
   const {
     document,
@@ -715,28 +717,17 @@ function installMeasurement(
         },
     );
   }
-  const loaf = [];
-  // CDP's return-by-value does not serialize nested platform objects. Preserve
-  // script attribution explicitly instead of receiving an array of empty objects.
-  const serializeFrame = (entry) => ({
-    ...entry.toJSON(),
-    scripts: entry.scripts.map((script) => script.toJSON()),
+  const timings = installTiming({
+    PerformanceObserverClass:
+      instrumented || traced || observeFrames
+        ? globalThis.PerformanceObserver
+        : null,
   });
-  let observer;
-  if (
-    (instrumented || traced || observeFrames) &&
-    PerformanceObserver.supportedEntryTypes.includes("long-animation-frame")
-  ) {
-    observer = new PerformanceObserver((list) => {
-      for (const entry of list.getEntries()) loaf.push(serializeFrame(entry));
-    });
-    observer.observe({ type: "long-animation-frame", buffered: false });
-  }
   let bytes;
   let editTarget;
   const reset = () => {
     for (const key of Object.keys(counters)) delete counters[key];
-    loaf.length = 0;
+    timings.reset();
     workerEvents.length = 0;
     foregroundLost = false;
     performance.clearMeasures();
@@ -745,15 +736,21 @@ function installMeasurement(
   const traceMark = (name) => {
     if (traced) performance.mark(`webvowl.s0.${name}`);
   };
-  const observations = () => ({
-    counters: { ...counters },
-    workerEvents: [...workerEvents],
-    loaf: [...loaf],
-    measures: performance
-      .getEntriesByType("measure")
-      .map((entry) => entry.toJSON()),
-    state: stateSummary(),
-  });
+  const observations = () => {
+    const timing = timings.snapshot();
+    return {
+      counters: { ...counters },
+      workerEvents: [...workerEvents],
+      loaf: timing.loaf,
+      eventTiming: timing.events,
+      timingSupport: timing.supported,
+      droppedTimingEntries: timing.dropped,
+      measures: performance
+        .getEntriesByType("measure")
+        .map((entry) => entry.toJSON()),
+      state: stateSummary(),
+    };
+  };
   const stateSummary = () => {
     const state = controller.getState();
     return {
@@ -786,7 +783,6 @@ function installMeasurement(
           !document.hasFocus())
       )
         throw new Error("Foreground changed during measured operation");
-      if (observer) loaf.push(...observer.takeRecords().map(serializeFrame));
       return {
         start,
         completed,
@@ -829,8 +825,6 @@ function installMeasurement(
             const frames = await twoFrames();
             traceMark("paint-opportunity");
             counting = false;
-            if (observer)
-              loaf.push(...observer.takeRecords().map(serializeFrame));
             done({
               start,
               completed,
@@ -1029,8 +1023,6 @@ function installMeasurement(
           const frames = await twoFrames();
           traceMark("paint-opportunity");
           counting = false;
-          if (observer)
-            loaf.push(...observer.takeRecords().map(serializeFrame));
           done({
             start,
             completed,
@@ -1097,7 +1089,7 @@ function installMeasurement(
       );
     },
     restore() {
-      observer?.disconnect();
+      timings.dispose();
       document.removeEventListener("visibilitychange", checkForeground);
       globalThis.removeEventListener("blur", checkForeground);
       for (const restore of originals.reverse()) restore();
@@ -1143,6 +1135,7 @@ try {
     resolve("util/productionUiSources.mjs"),
     resolve("util/productionCountAdjustment.mjs"),
     resolve("util/productionInitialLayout.mjs"),
+    resolve("util/productionInteractionTiming.mjs"),
   ].map((path) => ({ path, sha256: sha256(readFileSync(path)) }));
   report.environment = {
     platform: platform(),
@@ -1416,7 +1409,7 @@ try {
       return state?.status === "ready";
     }, "default ontology ready");
     await evaluate(
-      `(${installMeasurement.toString()})(${JSON.stringify({ instrumented: mode === "counters", traced: ["trace", "layout"].includes(mode), observeFrames: mode === "frames", requireForeground, fixture: fixtureName, all: allNodes, documentIri: report.workload.documentIri })}, ${observeTwoAnimationFrames.toString()})`,
+      `(${installMeasurement.toString()})(${JSON.stringify({ instrumented: mode === "counters", traced: ["trace", "layout"].includes(mode), observeFrames: mode === "frames", requireForeground, fixture: fixtureName, all: allNodes, documentIri: report.workload.documentIri })}, ${observeTwoAnimationFrames.toString()}, ${createLocalInteractionTiming.toString()})`,
     );
     report.page = await evaluate("__webvowlMeasurement.prepare()");
     if (mode !== "counters")

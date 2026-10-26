@@ -14,8 +14,6 @@ import {
   readmitModel,
   readModelSource,
 } from "vowl";
-import { fromOwl, openOwl, exportModelRdf } from "vowl/owl";
-import { migrate } from "vowl/migrate";
 import { canonicalFailureDetails } from "./canonicalVowlFailure.js";
 import {
   MODEL_OPERATION_NAMES,
@@ -76,8 +74,11 @@ export async function runCanonicalVowlOperation(
   }
   let document;
   let metadata = {};
+  // Canonical/checkpoint jobs do not need OWL parsers or legacy migration.
+  // Imports stay inside the single-job worker's existing whole-job deadline.
   switch (operation) {
     case "open-owl-model": {
+      const { openOwl } = await import("vowl/owl");
       const opened = await openOwl(bytes, {
         documentIri: request.documentIri,
         mediaType: request.mediaType,
@@ -113,6 +114,7 @@ export async function runCanonicalVowlOperation(
       return openAdmittedDocument(decoded, limits);
     }
     case "open-legacy-model": {
+      const { migrate } = await import("vowl/migrate");
       const migrated = await migrate(bytes, {
         dialect: request.dialect,
         profile: request.profile,
@@ -183,6 +185,7 @@ export async function runCanonicalVowlOperation(
       return readModelSource(recovered.model, request.documentId, { limits });
     }
     case "export-model-rdf": {
+      const { exportModelRdf } = await import("vowl/owl");
       const recovered = await recoverCheckpoint(
         request.checkpoint,
         limits,
@@ -194,6 +197,7 @@ export async function runCanonicalVowlOperation(
       document = await decode(bytes, { limits });
       break;
     case "owl": {
+      const { fromOwl } = await import("vowl/owl");
       const result = await fromOwl(bytes, {
         documentIri: request.documentIri,
         mediaType: request.mediaType,
@@ -211,6 +215,7 @@ export async function runCanonicalVowlOperation(
       break;
     }
     case "migrate": {
+      const { migrate } = await import("vowl/migrate");
       const result = await migrate(bytes, {
         dialect: request.dialect,
         profile: request.profile,

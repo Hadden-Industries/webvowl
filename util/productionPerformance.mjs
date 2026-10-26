@@ -191,10 +191,59 @@ export function productionManifest(directory) {
     workers.push(path);
   });
   assert(workers.length > 0, "No actual production worker binding was found");
+  const workerClosures = {};
+  for (const worker of new Set(workers)) {
+    const reachable = new Set();
+    const pending = [worker];
+    while (pending.length) {
+      const module = pending.pop();
+      if (reachable.has(module)) continue;
+      assert(
+        files.some((file) => file.path === module),
+        `Missing worker module: ${module}`,
+      );
+      reachable.add(module);
+      visitSyntax(
+        parseModule(readFileSync(resolve(root, module), "utf8")),
+        (node) => {
+          if (
+            ![
+              "ImportDeclaration",
+              "ExportNamedDeclaration",
+              "ExportAllDeclaration",
+              "ImportExpression",
+            ].includes(node.type) ||
+            !node.source
+          )
+            return;
+          const dependency = staticString(node.source);
+          assert(
+            dependency?.startsWith("./") || dependency?.startsWith("../"),
+            "Worker imports must have a static local target",
+          );
+          const path = relative(
+            root,
+            resolve(root, dirname(module), dependency),
+          )
+            .split(sep)
+            .join("/");
+          assert(
+            path.endsWith(".js") &&
+              !path.startsWith("../") &&
+              !path.startsWith("/"),
+            "Worker module escapes its production output",
+          );
+          pending.push(path);
+        },
+      );
+    }
+    workerClosures[worker] = [...reachable].sort();
+  }
   return {
     schemaVersion: 1,
     entry,
     workers: [...new Set(workers)].sort(),
+    workerClosures,
     files,
     application: applicationEntryBinding(source),
   };

@@ -746,3 +746,37 @@ Do not combine unrelated rewrites merely because the initial small change misses
 The first proposed implementation candidates remain immutable record borrowing, renderer joins and text metric reuse.
 Their acceptance depends on the current-source proofs above.
 Worker, artifact, instrumentation and force-storage work retain distinct decisions so the resulting delivery can demonstrate real benefit without losing semantic, visual, ownership or recovery guarantees.
+
+## 13. Authorized implementation disposition — 26 October 2026
+
+The owner authorized implementation on local `main`, initially equal to remote `main` at `b12367df816877e9926686586db8bdc30511316f`.
+Signed checkpoint `f61c69f08b11c4b4f7f7c8acfebc02f17895b61d` preserves this plan before implementation.
+The retained UI execution was explicitly adopted and closed as superseded; this work continues in the accepted R2 execution `4b63c270-29b6-4a53-81dd-f0c356072929`.
+Existing `docs/canonical-vowl/` remains outside scope.
+
+- SLICE-002 reuses `readOntologyInspection().retainedFacts` at all three controller read sites, preserving public owned copies and revision immutability.
+  SLICE-003 uses length-prefixed string join keys and native direct-child class membership.
+- SLICE-006 defers OWL/migration imports inside the existing single-job worker and selects ES-module worker output.
+  The measured entry changes from 1,277,153 to 274,567 bytes; its complete nine-module closure is 1,276,524 bytes.
+  No validation, deadline, concurrency or preview contract is relaxed.
+- SLICE-008 tracks actual worker/chunk emissions and hashes, with contained, successful-write cleanup and attempt-specific temporary metadata.
+  Unknown old bundles and complete recovery assets are retained; this grants no remote cleanup or deployment authority.
+- SLICE-009 adds bounded optional local Event Timing/LoAF diagnostics to the production driver, excluding ontology content and field transmission. SLICE-010 adds deterministic CI byte/closure checks and rejects missing, stale, instrumented, incomplete or incorrectly scheduled latency evidence.
+  Timing regressions above 10% still require corroboration.
+- Class-only text-metric caching, warmed workers and quadtree pooling are not selected without their required equivalence, lifetime or allocation evidence.
+  The existing text barriers, force oracle, notation and prior scoped cadence disposition remain binding.
+
+The owner selected `agy` instead of Claude for final independent static review, using the saved Gemini 3.8 Flash High/High preference and a thirty-minute review limit.
+Ordinary review raised four issues in interrupted cleanup, overlapping LoAF intervals and comparison admission; their focused repairs passed narrow review.
+The final `agy` review reported no actionable defects.
+Full product verification follows resolution of these findings.
+
+Native production checks cover W1 clone counters and layout controls, W2/W3/W4 functional interactions and ten edits each, private W5/W6 functional interactions and ten edits each, and W1 ten-cycle replacement/edit/capture/disposal with retained-owner positive controls.
+W1 measured edit copies fell from four to two; semantic reference-key counters are unchanged and do not measure renderer tuple allocation.
+Actual lazy-chunk HTTP failure, recovery and cancellation during a held import passed, including final generation ownership and worker retirement.
+The first fault-control run assumed an initial generation of zero; the corrected control compares against the observed starting generation.
+Original failures, including the foreground-focus failure in the W5 baseline counter run, remain retained.
+
+Diagnostic durations are not latency acceptance.
+Native records and private raw evidence remain under the existing execution evidence root.
+No new field, device/AT, deployment or universal W6 frame-budget acceptance is claimed.

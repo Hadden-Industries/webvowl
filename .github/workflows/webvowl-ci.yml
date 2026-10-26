@@ -209,6 +209,8 @@ jobs:
       - run: npm run install:json
       - run: npm test -- --runInBand
       - run: npm run build
+      - name: Check deterministic production byte and worker-closure budgets
+        run: node util/check-production-budgets.mjs deploy
 
   required:
     name: WebVOWL application
