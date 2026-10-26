@@ -185,6 +185,28 @@ test("stopping within a numerical step cancels the rest of its frame", () => {
   }
 });
 
+test("stopping from the jitter source preserves the active numerical step", () => {
+  const expected = fixture({ coincident: true, labels: true });
+  const actual = fixture({ coincident: true, labels: true });
+  const reference = configure(referenceForce(), expected);
+  const random = seededRandom();
+  const candidate = createLegacyForceSimulation({
+    random: () => {
+      candidate.stop();
+      return random();
+    },
+  });
+  try {
+    configure(candidate, actual);
+    reference.tick();
+    candidate.tick();
+    expect(state(actual)).toEqual(state(expected));
+  } finally {
+    candidate.stop();
+    reference.stop();
+  }
+});
+
 test("a batched frame publishes its last moving state before ending once", () => {
   const force = createLegacyForceSimulation({ maxStepsPerFrame: 4 });
   const events = [];

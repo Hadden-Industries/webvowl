@@ -30,7 +30,7 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 import { dispatch, timer as createTimer } from "d3";
-import { createLegacyQuadtree } from "./legacyForceQuadtree.js";
+import { createLegacyQuadtreePool } from "./legacyForceQuadtree.js";
 
 /** Run unchanged legacy steps; a frame may publish several steps as one drawing. */
 export function createLegacyForceSimulation({
@@ -39,6 +39,16 @@ export function createLegacyForceSimulation({
   frameBudgetMs = 8,
   shouldBatchSteps = () => true,
 } = {}) {
+  const quadtreePool = createLegacyQuadtreePool();
+  let chargeInProgress = false,
+    releaseTreeAfterCharge = false;
+  function releaseQuadtree() {
+    if (chargeInProgress) {
+      releaseTreeAfterCharge = true;
+    } else {
+      quadtreePool.clear();
+    }
+  }
   const force = {},
     event = dispatch("step", "tick", "end");
   let timer,
@@ -124,6 +134,7 @@ export function createLegacyForceSimulation({
   }
   function step() {
     if ((alpha *= 0.99) < 0.005) {
+      quadtreePool.clear();
       timer?.stop();
       timer = null;
       event.call("end", force, {
@@ -166,13 +177,24 @@ export function createLegacyForceSimulation({
       }
     }
     if (charge) {
-      d3_layout_forceAccumulate(
-        (q = createLegacyQuadtree(nodes)),
-        alpha,
-        charges,
-        random,
-      );
-      repulse(nodes, q);
+      // A supplied jitter source can stop the timer. Its active tree must
+      // remain valid until this numerical phase has finished reading it.
+      chargeInProgress = true;
+      try {
+        d3_layout_forceAccumulate(
+          (q = quadtreePool.build(nodes)),
+          alpha,
+          charges,
+          random,
+        );
+        repulse(nodes, q);
+      } finally {
+        chargeInProgress = false;
+        if (releaseTreeAfterCharge) {
+          releaseTreeAfterCharge = false;
+          quadtreePool.clear();
+        }
+      }
     }
     i = -1;
     while (++i < n) {
@@ -235,6 +257,7 @@ export function createLegacyForceSimulation({
     if (!arguments.length) {
       return nodes;
     }
+    releaseQuadtree();
     nodes = x;
     return force;
   };
@@ -411,6 +434,7 @@ export function createLegacyForceSimulation({
     return force;
   };
   force.stop = function () {
+    releaseQuadtree();
     timer?.stop();
     timer = null;
     return force;

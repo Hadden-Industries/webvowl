@@ -30,6 +30,55 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 export function createLegacyQuadtree(data) {
+  return buildQuadtree(data, createNode);
+}
+
+/** One simulation owns this pool; each build invalidates its previous tree. */
+export function createLegacyQuadtreePool() {
+  let cells = [],
+    used = 0,
+    allocated = 0,
+    peak = 0;
+  function allocate() {
+    let cell = cells[used];
+    if (!cell) {
+      cell = cells[used] = createNode();
+      allocated++;
+    } else {
+      resetNode(cell);
+    }
+    used++;
+    peak = Math.max(peak, used);
+    return cell;
+  }
+  return {
+    build(data) {
+      const previousUsed = used;
+      used = 0;
+      const root = buildQuadtree(data, allocate);
+      // A smaller replacement must not keep points from its predecessor alive.
+      for (let i = used; i < previousUsed; i++) {
+        resetNode(cells[i]);
+      }
+      if (cells.length > used * 2) {
+        cells.length = used;
+      }
+      return root;
+    },
+    clear() {
+      for (const cell of cells) {
+        resetNode(cell);
+      }
+      cells = [];
+      used = 0;
+    },
+    statistics() {
+      return { allocated, peak, used, capacity: cells.length };
+    },
+  };
+}
+
+function buildQuadtree(data, allocate) {
   let x1_ = Infinity,
     y1_ = Infinity,
     x2_ = -Infinity,
@@ -103,7 +152,7 @@ export function createLegacyQuadtree(data) {
 
     // Recursively insert into the child node.
     n.leaf = false;
-    n = n.nodes[i] || (n.nodes[i] = createNode());
+    n = n.nodes[i] || (n.nodes[i] = allocate());
 
     // Update the bounds as we recurse.
     if (right) {
@@ -119,7 +168,7 @@ export function createLegacyQuadtree(data) {
     insert(n, d, x, y, x1, y1, x2, y2);
   }
 
-  const root = createNode();
+  const root = allocate();
   // Charge traversal uses only horizontal cell bounds. Retain the exact
   // endpoints so iterative traversal uses the same floating-point midpoints.
   root.xMin = x1_;
@@ -131,7 +180,27 @@ export function createLegacyQuadtree(data) {
   return root;
 }
 function createNode() {
-  return { leaf: true, nodes: [], point: null, x: null, y: null };
+  return {
+    leaf: true,
+    nodes: [],
+    point: null,
+    x: null,
+    y: null,
+    charge: 0,
+    pointCharge: 0,
+    cx: 0,
+    cy: 0,
+    xMin: 0,
+    xMax: 0,
+    visit: null,
+  };
+}
+function resetNode(node) {
+  node.leaf = true;
+  node.nodes.length = 0;
+  node.point = node.x = node.y = node.visit = null;
+  node.charge = node.pointCharge = node.cx = node.cy = 0;
+  node.xMin = node.xMax = 0;
 }
 function visit(f, node, x1, y1, x2, y2) {
   if (!f(node, x1, y1, x2, y2)) {

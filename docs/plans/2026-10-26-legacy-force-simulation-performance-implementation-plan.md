@@ -191,6 +191,102 @@ The harness checks host load before timing and before every measured pair, count
 `--fixture` selects one or more named workloads; `--theta` and `--charge-distance` change only the experimental candidate.
 `--diagnostic` explicitly marks non-acceptance runs and omits the quiescence gate; it must never be used to label a rejected clean run as passing.
 
+### 1.5 Continued conditional experiments and pooling candidate
+
+The owner subsequently requested continuation through the conditional investigations.
+The same execution resumed; the first implementation is signed commit `ada450ecab22ac07ee2f68614129ca6ec0a92e3f`.
+This continuation supersedes the first increment's SLICE-005/006 investigation status, without retrospectively claiming that those experiments ran before that commit.
+The owner separately directed that the lexical-position quality repair be left to its owner; no lexical files or `.json-quality.json` were changed here.
+
+Warm, startup-excluded profiles of three complete cooling cycles attributed approximately 69.6–70.2% of self samples to iterative repulsion, 6.4–7.8% to GC, 7.7–8.1% to accumulation and 9.3–9.5% to construction/insertion.
+The 2,000- and 5,000-point profiles are `optimized-wvowl-large.cpuprofile` and `optimized-wvowl-xlarge.cpuprofile`, with matching `-profile.json` summaries in the existing evidence directory.
+Profiling overhead is included; these are attribution diagnostics, not clean wall-time acceptance.
+The separate PerformanceObserver collection returned no GC entries despite GC CPU samples, so it supplies no GC-event-count or pause-duration claim.
+
+The selected additional **local production candidate** pools quadtree cells within each simulation while rebuilding topology and bounds on every charge pass.
+Reused cells reset point/child references, insertion coordinates, charge/center fields, bounds and visitor closure; retired tail cells release their references, and capacity shrinks when it exceeds twice current use.
+Stop, natural end and graph replacement release retained cells.
+A stop called by the supplied jitter function defers release until the active charge phase finishes: the original failing regression threw while reading a cleared point, and the repaired test preserves the independent D3 step exactly.
+Caller-owned fresh trees and other simulations retain separate storage.
+Six tree tests cover topology, changed coordinates, no warm allocation, large/small/large capacity, retained-reference release, independent owners, empty/invalid and near-coincident input; the force suite now has twenty tests.
+All 26 focused tests and exact-scope ESLint/Prettier passed before final review.
+
+The pooling prototype matched all 299 calls of every six-fixture cooling trajectory.
+The integrated three-pair, counterbalanced pilot retained exact final states and produced the following medians against the first committed iterative implementation (`integrated-pool-pilot.json`):
+
+| Fixture               | Iterative baseline (ms) | Pooled candidate (ms) | Diagnostic change |
+| --------------------- | ----------------------: | --------------------: | ----------------: |
+| `wvowl-medium-sparse` |                  197.89 |                167.06 |           -15.58% |
+| `wvowl-medium-hub`    |                  223.90 |                197.78 |           -11.67% |
+| `wvowl-large`         |                 1152.41 |               1001.81 |           -13.07% |
+| `wvowl-large-hub`     |                 1471.47 |               1098.59 |           -25.34% |
+| `wvowl-xlarge`        |                 3265.12 |               2909.74 |           -10.88% |
+| `wvowl-xlarge-dense`  |                 3384.22 |               2643.30 |           -21.89% |
+
+These figures do not qualify the engineering target.
+This pilot preceded the jitter-stop release guard; it is evidence for the pooling design, not a throughput qualification of the final repaired source.
+The subsequent isolated 20-pair qualification attempt, `pool-qualified.json`, was rejected before any measured fixture at 13.3% host CPU busy against the unchanged 10% limit.
+No other benchmark, test, build or bulk scan from this task ran during that attempt.
+Clean timing remains an external environment prerequisite; the failed run is retained rather than rewritten or waived.
+
+A separate complete Float64 numerical prototype includes indexed links/coefficients, a fresh indexed tree, the original accumulation/traversal/jitter order, integration, fixed targets and numerical solitary-label projection.
+Its projection descriptors include circular/rectangular borders, eligible-label membership, invalid-coordinate handling and edit-mode intersections.
+Every step matched an object-model comparator using the actual `createMath` and rectangular-border functions across all six workloads, including inverse pins, partial/null fixed targets, position edits, geometry edits and projection enablement changes.
+Initialization and coefficient accessors still execute once through the current `start()` implementation; this is not an independent replacement initialization proof.
+The experiment retains the D3 licence and source provenance in `packed-kernel.mjs`; `experiment-packed.mjs` and `packed-pilot.json` retain the executable experiment and raw results.
+The correctness-only follow-up `experiment-packed-boundaries.mjs` / `packed-boundaries.json` also matched all six complete trajectories with effective circle and rectangle geometry edits, invalid borders and recovery; it supplies no additional timing samples.
+
+| Fixture               | Object model with projection (ms) | Packed numeric owner (ms) | Packed with per-step model synchronization (ms) |
+| --------------------- | --------------------------------: | ------------------------: | ----------------------------------------------: |
+| `wvowl-medium-sparse` |                            213.13 |                    149.80 |                                          178.66 |
+| `wvowl-medium-hub`    |                            257.81 |                    176.21 |                                          200.83 |
+| `wvowl-large`         |                           1155.88 |                    792.48 |                                          905.34 |
+| `wvowl-large-hub`     |                           1356.46 |                    891.25 |                                         1056.39 |
+| `wvowl-xlarge`        |                           3701.54 |                   2234.26 |                                         2611.39 |
+| `wvowl-xlarge-dense`  |                           3922.73 |                   2259.33 |                                         2777.26 |
+
+These three-pair diagnostic medians include packed conversion, capacity growth and final model export; the synchronized variant also imports and publishes coordinates/pin state each step.
+Common fixture construction and original initialization are excluded.
+Packed state remains promising: synchronization reduces its gain but did not erase it in this pilot.
+The prototype is **not** imported by the application and does not establish a qualified live renderer/capture cutover.
+In particular, current `readArrangement`, `readOccurrenceGeometry`, `applyArrangement`, synchronous `captureRenderedDrawing`, canonical generation admission and `projectLayoutStep` consume or mutate current model geometry; frozen experimental descriptors do not migrate these owners.
+SLICE-006 therefore remains partially investigated, not completed or disproved, and its clean end-to-end and ownership gates remain open.
+
+The indexed-tree-only alternative retained the object model and also matched all six complete trajectories, but three-pair medians were 2.5–3.2 times the pooled-object-tree comparator across the six sizes/shapes (`flat-pilot.json`, `experiment-flat.mjs`, `flat-charge.mjs`).
+The scaling evidence supports rejecting this specific candidate; it is not a claim that all flat-tree designs are slower.
+The 5,000-point tail overlapped browser setup/idle preflights, so those samples are additionally contaminated; the earlier 500/2,000-point cases already showed the same large disadvantage before that overlap.
+No flat-tree code is selected for production.
+
+The original headed-browser attempt failed visibility admission while Windows was available; after the owner confirmed the desktop was unlocked and visible, the unchanged harness admitted a visible page.
+The iterative build's one `W4-connected` diagnostic run observed settlement at 8,512.1 ms and frame p95 62.6 ms.
+The pooled build's corresponding run settled at 8,185.2 ms with frame p95 58.2 ms and maximum interval 83.3 ms, retaining the initial nodes and observing movement with no foreground loss.
+The pooled run's idle guard rejected the overlapping flat-tree experiment before measuring; it admitted the actual operation after that experiment finished.
+Both runs remain single-run foreground diagnostics, not matched-cohort acceptance or a 50-ms pass.
+Their traces/CPU profiles cover initial loading through first frames, while the frame observations extend through relaxation; they do not profile the entire cooling interval.
+Evidence is retained under `optimized-foreground-active-window` and `pool-foreground-trace`.
+
+The reuse assessment retains the current legacy kernel because [modern D3 force simulation](https://d3js.org/d3-force/simulation) uses a different velocity/state and initialization contract.
+The current canonical worker client is a bounded document-operation owner, not a continuous physics owner; its generation and failure ideas are reusable, but moving physics into it would couple unrelated lifetimes.
+[Native transferable buffers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Transferable_objects) supply transport and detachment, not the missing projection, command-watermark or current-state capture contract.
+No new dependency or compiler is selected.
+SLICE-007 cannot enter production implementation until SLICE-006's complete ownership/capture path and clean outcome are qualified; the visible p95 result keeps responsiveness work relevant but does not waive that dependency.
+SLICE-008 likewise lacks its qualified packed-worker baseline and remaining-kernel attribution, so no Wasm toolchain, port or build change is launched.
+These are explicit **open prerequisite gates**, not claims that worker/Wasm experiments passed, were completed, or were shown unnecessary.
+
+Final consolidated source review used the requested Claude Opus 5.5 Max / 1,800-second allowance; attempt `0013eabe-4933-501e-b114-ce9184300b97` stopped on the provider's session quota before substantive review.
+The authorized fallback, AGY Flash 3.8 High with the same answer window, completed substantive static review in attempt `c284fa79-3a96-59da-96e3-1b47f95474b4` and returned no actionable findings.
+Its native qualification remains failed: the exact prescribed known-file read was not observed, and the report's coverage labels did not satisfy mechanical coverage admission.
+The retained review is source feedback with those limitations, not qualified native assurance or independently executed tests; no bookkeeping-only replay was performed.
+The independent review clone and native project `a87344ea-a4cb-4499-9a5f-3b9531cc2ea2` remain task-owned retained evidence, with cleanup deferred.
+
+After substantive review completed, all **199 Jest suites / 10,303 tests passed** in 178.517 seconds.
+The pooled production build also passed the `W4-connected` functional browser pass: load, count/filter changes, four slider changes, selection, search and ten edits (`pool-browser-functional`).
+The successful production build is reused because review introduced no runtime changes; its existing large-chunk advisory remains.
+The new native full verification run `ac387351-559b-4248-a41a-d846c0357a6a` passed application and Python lint, then stopped at `packages/vowl/conformance/supplemental/lexical-position-v1/README.md` formatting.
+It did not reach later commands, so the separately executed Jest pass does not turn that native run into a pass.
+The previously retained JSON fixture failures also remain outside this task's authorized repair scope.
+No full HISEW handoff, clean timing acceptance, release, deployment, worker/Wasm completion or push is claimed.
+
 ## 2. Source findings reconciled with current code
 
 ### 2.1 Central hypothesis and cost model
