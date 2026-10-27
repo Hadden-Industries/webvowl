@@ -2,18 +2,18 @@
 
 ## 1. Status, authority and source
 
-| Field                  | Value                                                                                                                                                                      |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status                 | Implemented through packed main-thread force; worker/Wasm gates evaluated; source review and full product checks complete; native admission limits recorded in section 1.9 |
-| Prepared               | 26 October 2026                                                                                                                                                            |
-| Decision owner         | Repository owner, Maksym Shostak                                                                                                                                           |
-| Integration owner      | Current Codex task under the repository owner's implementation authorization; coordinates numerical state, label projection, scheduling and renderer publication           |
-| Source document        | `C:\Users\maksy\Downloads\Optimising legacyForceSimulation.js for High-Performance WebVOWL Layouts.md`                                                                     |
-| Source identity        | 52,885 bytes; SHA-256 `b5851a9dfa68e1092556a5afc0e5426f4a8d2008a9aef8ca7a91fc13efb700ee`                                                                                   |
-| Inspected baseline     | `61ae133033e482814f47415a4e5d396e35e57244`, plus the current working-tree contents                                                                                         |
-| Procedure              | HISEW `hadden-industries-plan-software-change`, installed `0.1.0-dev.29`                                                                                                   |
-| Identifier scope       | All `REQ-###`, `AC-###`, `QA-###`, `DEC-###` and `SLICE-###` identifiers are local to this document; qualify cross-document references by filename                         |
-| Evidence produced here | Original source synthesis and repository inspection, followed by the implementation, measurement, test and external-review record in section 1.4                           |
+| Field                  | Value                                                                                                                                                                                                                                         |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status                 | Packed main-thread force implemented; approximation and worker/Wasm gates evaluated; browser functional/lifetime diagnostics complete; foreground performance, manual acceptance and native admission limits remain open in sections 1.9–1.12 |
+| Prepared               | 26 October 2026                                                                                                                                                                                                                               |
+| Decision owner         | Repository owner, Maksym Shostak                                                                                                                                                                                                              |
+| Integration owner      | Current Codex task under the repository owner's implementation authorization; coordinates numerical state, label projection, scheduling and renderer publication                                                                              |
+| Source document        | `C:\Users\maksy\Downloads\Optimising legacyForceSimulation.js for High-Performance WebVOWL Layouts.md`                                                                                                                                        |
+| Source identity        | 52,885 bytes; SHA-256 `b5851a9dfa68e1092556a5afc0e5426f4a8d2008a9aef8ca7a91fc13efb700ee`                                                                                                                                                      |
+| Inspected baseline     | `61ae133033e482814f47415a4e5d396e35e57244`, plus the current working-tree contents                                                                                                                                                            |
+| Procedure              | HISEW `hadden-industries-plan-software-change`, installed `0.1.0-dev.29`                                                                                                                                                                      |
+| Identifier scope       | All `REQ-###`, `AC-###`, `QA-###`, `DEC-###` and `SLICE-###` identifiers are local to this document; qualify cross-document references by filename                                                                                            |
+| Evidence produced here | Original source synthesis and repository inspection, followed by the implementation, measurement, test and external-review record in section 1.4                                                                                              |
 
 The user initially authorized creation of a detailed plan in `docs/plans/`, preserving all relevant source detail, and subsequently authorized its implementation as recorded in section 1.3.
 This document retains the report's technical findings, equations, alternatives, workload definitions, architecture, measurement protocol, roadmap and limitations.
@@ -435,6 +435,155 @@ The lexical-position owner’s current changes cleared the earlier unrelated JSO
 The next native progress read nevertheless rejected reuse with `process-environment-changed`, before any further source edit.
 That admission failure does not change the product result; its exact environmental cause is not established here, and the owner’s explicit no-duplicate-check instruction rules out a receipt-only rerun.
 This final documentation-only outcome update receives scoped Markdown validation; the completed implementation checks are reused without claiming complete HISEW/native review qualification.
+
+### 1.10 Approximation experiments — 27 October 2026
+
+The owner requested the remaining approximation experiments, followed by foreground performance and browser acceptance.
+The requested HISEW guard-reuse amendment was posted to [issue #157](https://github.com/Hadden-Industries/software-engineering-workflow/issues/157#issuecomment-6431135250), preserving the original refusals, callback-envelope failure, successful source-coverage recovery and remaining native qualification failure.
+No guard files or unrelated lexical work were replaced.
+
+SLICE-004 now has an independent theta/cutoff quality sweep over the six real class/property-label fixtures plus an eight-component disconnected control.
+Each fixture has three explicitly fixed class targets and three input seeds: 24,301, 7 and 42.
+The 147 cases compare theta 0.8/0.9/1.0/1.2 with infinite cutoff, and theta 0.8 with cutoff 300/600/1,200, changing one parameter at a time.
+Every case completed 298 moving steps and the terminating call, retained finite current/previous positions and preserved its fixed targets exactly.
+Initial-state/link/pin hashes, complete final coordinates, random-draw counts and per-step timing summaries are retained under `approximation/independent-sweep/` in the section 1.3 evidence directory.
+These are newly declared pinned cohorts, not replacements for the earlier exact-state timing populations.
+
+Quality is computed after timing: raw and rigidly aligned RMS/p95/maximum displacement, normalized by baseline RMS radius without fitting scale; rotation-only and reflection-permitted fits; exact class-circle/property-rectangle overlaps; relative force-link length error; sampled crossings; and nearest-neighbor preservation.
+Reflection is permitted only for structural comparison, never for pin or saved-view acceptance.
+Crossings use the same retained, deterministic sample of at most 50,000 unique link pairs for each comparison, excluding adjacent, touching and collinear pairs.
+They estimate straight force-link intersections, not curved SVG paths.
+Neighborhood preservation uses the exact ten nearest class neighbors at up to 256 evenly spaced class anchors.
+Edge-error target distance is 150; the nonzero denominator uses the documented epsilon of 1e-9, and a zero-radius displacement is explicitly undefined.
+Positive and negative controls check rotation/reflection invariance, rejection of scale fitting, crossing adjacency, actual glyph intersections, neighborhood changes, fixed targets and deterministic replay.
+
+The following quality ranges summarize 21 fixture/seed cases per candidate; complete per-case values and outliers remain in `approximation/summary.json`.
+Overlap ratios compare each candidate with its own matched baseline; values above one mean more overlaps.
+
+| Candidate    | Worst normalized RMS | Lowest mean neighbor preservation | Median overlap ratio | Maximum overlap ratio |
+| ------------ | -------------------: | --------------------------------: | -------------------: | --------------------: |
+| theta 0.9    |               0.4274 |                            40.90% |               0.9965 |                1.0390 |
+| theta 1.0    |               0.5178 |                            43.24% |               1.0000 |                1.0573 |
+| theta 1.2    |               0.3742 |                            44.69% |               1.0051 |                1.0526 |
+| cutoff 300   |               0.8597 |                             4.73% |               4.3494 |               10.3256 |
+| cutoff 600   |               0.8220 |                             9.45% |               2.0267 |                5.3208 |
+| cutoff 1,200 |               0.7283 |                            15.66% |               1.4008 |                3.0358 |
+
+The independent cutoff sweep showed only about 0.5–1.8% lower mean cooling time while substantially changing neighborhoods and increasing overlaps/crossings.
+Lower target-edge error alone does not make those layouts better: stronger clustering can reduce that error while making labels overlap.
+No cutoff combination was advanced.
+Theta 0.9 and 1.2 were selected for 20 counterbalanced complete-cycle repetitions on every fixture, after three warmups per variant.
+Timing includes packed conversion/import/export, real per-step label projection, timer teardown and per-step clock overhead; common fixture/start initialization and quality calculations are outside that interval.
+The owner's existing idle-guard waiver applies, so these remain diagnostic timings under uncontrolled host load.
+
+| Fixture              | theta 0.9 median cooling change | theta 1.2 median cooling change |
+| -------------------- | ------------------------------: | ------------------------------: |
+| Medium sparse        |                         -10.77% |                         -30.04% |
+| Medium hub           |                          -8.89% |                         -29.41% |
+| Large                |                         -11.69% |                         -32.38% |
+| Large hub            |                         -11.25% |                         -32.48% |
+| Extra large          |                         -12.01% |                         -33.65% |
+| Extra large dense    |                         -10.35% |                         -29.58% |
+| Disconnected control |                          -8.30% |                         -27.41% |
+
+The accompanying 20-pair A/A medians differed by +1.24% on medium sparse and +0.86% on extra large; individual contention outliers remain retained.
+Each parameter setting replayed its own final state exactly throughout these repetitions.
+Raw rounds, order and host observations are in `approximation/repeated-timing.json`.
+Theta 1.0 remains a three-seed exploratory point, not a separately repeated timing qualification.
+
+**Decision:** retain production theta 0.8 and infinite cutoff.
+The measured speed/quality curve supports an explicit no-change disposition: larger theta is faster, but no changed-layout tolerance has been accepted and structural drift is material.
+Quality changes are not monotonic in theta, so a smaller increase cannot be assumed safe without its own evidence.
+No approximate production mode, precision change or new escape bound is selected.
+The source-level curve and semantic controls are complete; clean-host qualification, an accepted tolerance matrix and visual/interaction acceptance would still be required before adopting an approximation.
+
+### 1.11 Foreground disposition and matched browser diagnostics
+
+Two new headed Chrome attempts failed visibility admission without producing an accepted timing sample.
+The dedicated page remained `hidden` despite ordinary CDP and owned-window activation, while Windows reported AC power and a 240-Hz display.
+The owner then explicitly answered **“Continue with diagnostics; foreground unavailable.”**
+Foreground frame, real input-to-paint and 50-ms budget acceptance therefore remain open; headless observations cannot close them.
+The failures are retained in `foreground/large-1-baseline/` and `foreground/large-1-baseline-retry1/`, with the owner's disposition in `foreground/headless-decision.md`.
+
+The authorized headless comparison completed 20 independent loads per variant/workload, in ABBA blocks of ten, with three unreported warmups per block.
+The force/renderer baseline is pooled commit `0f6aa8bc25ff1a89424b690c01a4da825ddb50d6`; the candidate is packed commit `1523de1d6b60ced26577530729c180348d02d477`.
+Chrome 156.0.8078.48 ran the actual minified production-mode application at an emulated 1,440 × 900 CSS-pixel viewport, with unchanged two-step/32-ms force scheduling, theta 0.8 and infinite cutoff.
+A test-page-only LCG stream, seed 24,301, resets before each load; production random-source code is unchanged.
+The same fixture bytes, dependency lock and build settings apply to both variants.
+These headless measurements retain the owner's host-idle waiver and are neither clean-host qualification nor foreground acceptance.
+
+The build audit found a provenance limitation: Vite's separate worker pipeline did not receive the first script's committed lexical/snapshot overlays.
+The main force/renderer inputs are pinned, and all nine parsing-worker closure assets are byte-identical across the two frozen builds, so this remains a matched comparison of the force increment against common worker bytes.
+It is not whole-commit browser qualification; the original manifests' `dirtyWorkspaceExcluded` description applies only to their main bundle.
+`foreground/provenance-limit.md` records that correction without rewriting frozen manifests or runs.
+Subsequent functional/lifetime builds install and verify committed-source overlays in both main and worker pipelines.
+No unrelated source or repository configuration was edited.
+
+| Workload / variant               | Rendered class nodes | Median source-to-first-frame (ms) | Median settlement (ms) | Median of per-run frame p95 (ms) |
+| -------------------------------- | -------------------: | --------------------------------: | ---------------------: | -------------------------------: |
+| W4-connected / pooled            |                2,000 |                          1,257.90 |               8,723.10 |                            66.60 |
+| W4-connected / packed            |                2,000 |                          1,244.20 |               8,857.55 |                            62.70 |
+| W4-disconnected / pooled         |                2,000 |                            597.25 |               2,132.55 |                            18.85 |
+| W4-disconnected / packed         |                2,000 |                            598.80 |               2,177.85 |                            16.80 |
+| Connected small control / pooled |                  250 |                            219.95 |                 981.45 |                             8.40 |
+| Connected small control / packed |                  250 |                            246.80 |               1,202.40 |                            12.50 |
+
+The connected cases contain 3,999 and 499 force points respectively, including property labels; the disconnected W4 population is kept separate.
+All 120 measured loads observed movement, retained their initial nodes, began with no class glyph wholly outside the viewport and settled within 12 seconds.
+Per-run frame distributions remain separate statistical units; frame samples were not pooled into fictitious independent loads.
+Raw intervals, first-image boundaries, viewport state, CPU observations and runs are in `foreground/headless-*/result.json`; `foreground/headless-summary.json` retains their descriptive aggregates, maximum intervals and 16.7-ms reference exceedances.
+The host's physical 240-Hz display does not turn headless frames into observed physical presentation.
+
+The connected packed cohort's median settlement was 1.54% longer despite a 5.86% lower median per-run frame p95; there is no demonstrated end-to-end settlement speedup.
+The small packed cohort was 22.51% slower in median settlement and 12.21% slower to its first frame, so **the small-input no-regression gate is not passed by these results**.
+Its two candidate blocks differed materially: median settlement 1,263.7 and 1,037.4 ms, versus baseline blocks 964.55 and 1,016.55 ms; the slower candidate block observed CPU busy as high as 51.84%.
+That temporal/load confounding limits attribution, but does not erase the unfavorable samples or justify declaring a pass.
+The existing exact-state numerical evidence remains valid; a controlled foreground comparison is still required for user-facing performance acceptance.
+
+### 1.12 Browser behavior, export and lifetime acceptance
+
+The committed packed candidate was rebuilt with both main and worker source overlays verified, excluding the unrelated lexical changes from those builds.
+`browser/manifest-committed.json` identifies the uninstrumented candidate; `browser/manifest-lifetime.json` identifies a separate diagnostic build with weak ownership taps only.
+Production force parameters, random-source behavior, scheduling and arithmetic remain unchanged.
+
+Actual Chrome 156.0.8078.48 and Edge 156.0.4314.42 engine checks passed in headless mode.
+Chrome covered FOAF and W4-connected; Edge covered FOAF.
+The ordinary browser sequence covered load, count/filter changes, native keyboard count adjustment, selection, search and ten edits.
+Force-specific checks covered two fixed targets through running steps, five rapid position updates, synchronous current arrangement reads, stable Pause and moving Resume, two native mouse drags, native pan/wheel zoom, active graph replacement with stale-reference rejection, and natural completion with a stable final model/drawing.
+The native mouse driver uses explicit pressed/moved/released button state and targets the actual node glyph.
+A separate focused Chrome probe enabled touch before application construction, moved two simultaneous native touch gestures while layout ran, verified both model locks and verified that both locks were released at touch end.
+That is browser-engine input evidence, not a physical touch-device test.
+
+Export checks compared every current class/property-label SVG transform with the page-local exported SVG, and checked the accepted pinned coordinates in the canonical VOWL export.
+The large case matched **3,999 transforms** and produced a 14,049,416-byte SVG; Edge's FOAF case matched **125 transforms**.
+Captures were explicitly paused and reported the existing `stable-frames` export outcome; this does not relabel them as natural initial-layout settlement.
+Screenshots were inspected and retained with the original result files.
+Local Event Timing, Long Animation Frame and long-task observers were available; the large functional probe retained 276 event entries, 50 long-animation-frame entries and 205 long tasks without dropping entries.
+Those observations include diagnostic load/export work and headless input, and do not establish field INP or foreground input-to-paint performance.
+
+Two harness failures remain retained with their original failed status.
+The first native drag attempt lacked explicit held-button state and used the group's bounds; the corrected native input sequence passed without a product repair.
+The next attempt reached its final natural-end question after the preceding assertions passed, but FOAF had loaded with saved paused intent.
+A narrow follow-up explicitly resumed that document and observed natural end in 650.1 ms with a stable final drawing; the successful earlier questions were reused.
+The large graph's resumed natural-end check completed in 9,151.4 ms.
+Evidence is in `browser/chrome-foaf*`, `browser/chrome-large`, `browser/edge-foaf`, and `browser/chrome-two-touch`.
+
+The separate Chrome lifetime probe completed **20** load/edit/capture/retirement cycles.
+Each cycle ran full/small/full layouts, reducing the visible class population from 2,000 to 50 and back before capture and collection.
+Weak references observed actual packed kernels, state/input buffers and every allocated tree capacity; canonical projection, inspection and read-model ownership used the existing browser probe.
+The deliberately retained packed positive control kept one kernel and 21 buffers alive; releasing it made all of them collectible.
+Every cycle collected all retired packed objects and canonical owners and observed zero remaining capture workers.
+After final controller disposal, **all 4,646 tracked kernel/buffer objects were absent**, all tracked canonical owners were absent and no workers remained.
+Forced-GC heap used approximately 74.36 MB after the first cycle, 76.18 MB after cycle 20 and 9.01 MB after disposal; these diagnostic totals include the accumulating observer registry and are not an allocation-rate or whole-browser-memory certification.
+The owned browser exited normally.
+`browser/chrome-packed-lifetime/result.json` retains the positive controls, every cycle and final disposal observations.
+
+No runtime source changed in this continuation.
+The consolidated ordinary review of the experiment/acceptance work corrected the worker-build provenance and test-driver/setup issues described above; their original evidence is preserved.
+The prior external packed-source review and the successful 200-suite/10,405-test full product run remain applicable to the unchanged runtime, with their existing native admission limits from section 1.9.
+Only the plan's documentation delta needs scoped formatting/validation; no full-suite or external campaign is repeated to manufacture new receipts.
+The owner-deferred foreground comparison, the unfavorable/confounded small-input diagnostic result, actual Firefox/Safari/mobile/assistive-technology acceptance and native evidence-admission qualification remain open.
+No release, deployment, push or disposable-directory cleanup is performed.
 
 ## 2. Source findings reconciled with current code
 
