@@ -41,6 +41,7 @@ const git = (...args) =>
 const sha256 = (input) => createHash("sha256").update(input).digest("hex");
 const sourcePath = "src/webvowl/js/runtime/legacyForceSimulation.js";
 const treePath = "src/webvowl/js/runtime/legacyForceQuadtree.js";
+const packedPath = "src/webvowl/js/runtime/legacyPackedForceKernel.js";
 const runs = Number(values.runs);
 const warmups = Number(values.warmups);
 const theta = Number(values.theta);
@@ -82,27 +83,39 @@ async function baselineFactory() {
     `${values["baseline-ref"]}^{commit}`,
   ).trim();
   const source = git("show", `${revision}:${sourcePath}`);
-  const tree = git("show", `${revision}:${treePath}`);
+  const packed = source.includes('from "./legacyPackedForceKernel.js"');
+  const dependencyPath = packed ? packedPath : treePath;
+  const dependency = git("show", `${revision}:${dependencyPath}`);
+  const dependencyImport = packed
+    ? 'from "./legacyPackedForceKernel.js"'
+    : 'from "./legacyForceQuadtree.js"';
   const moduleUrl = (text) =>
     `data:text/javascript;base64,${Buffer.from(text).toString("base64")}`;
   assert(
     source.split('from "d3"').length === 2 &&
-      source.split('from "./legacyForceQuadtree.js"').length === 2,
+      source.split(dependencyImport).length === 2,
     "Historical import contract changed; inspect the baseline loader",
   );
-  const adapted = source
+  let adapted = source
     .replace('from "d3"', `from ${JSON.stringify(import.meta.resolve("d3"))}`)
-    .replace(
-      'from "./legacyForceQuadtree.js"',
-      `from ${JSON.stringify(moduleUrl(tree))}`,
+    .replace(dependencyImport, `from ${JSON.stringify(moduleUrl(dependency))}`);
+  if (packed) {
+    assert(source.split('from "../elements/links/Label.js"').length === 2);
+    adapted = adapted.replace(
+      'from "../elements/links/Label.js"',
+      `from ${JSON.stringify(new URL("../src/webvowl/js/elements/links/Label.js", import.meta.url).href)}`,
     );
+  }
   return {
     factory: (await import(moduleUrl(adapted))).createLegacyForceSimulation,
     reference: {
       revision,
       sourceSha256: sha256(source),
-      treeSha256: sha256(tree),
-      importAdaptation: "D3 and historical quadtree URLs only",
+      dependencyPath,
+      dependencySha256: sha256(dependency),
+      importAdaptation: packed
+        ? "D3, historical packed kernel, and shared fixture Label identity URLs only"
+        : "D3 and historical quadtree URLs only",
     },
   };
 }
@@ -128,6 +141,12 @@ const report = {
     revision: git("rev-parse", "HEAD").trim(),
     sourceSha256: sha256(readFileSync(resolve(root, sourcePath))),
     treeSha256: sha256(readFileSync(resolve(root, treePath))),
+    packedKernelSha256: sha256(readFileSync(resolve(root, packedPath))),
+    labelSha256: sha256(
+      readFileSync(
+        new URL("../src/webvowl/js/elements/links/Label.js", import.meta.url),
+      ),
+    ),
     fixturesSha256: sha256(
       readFileSync(
         new URL("./legacyForceBenchmarkFixtures.mjs", import.meta.url),
@@ -140,6 +159,7 @@ const report = {
     theta,
     chargeDistance: chargeDistance === Infinity ? "Infinity" : chargeDistance,
     seed: 0x5eed,
+    random: "Seeded default Math.random captured during synchronous setup",
     runs,
     warmups,
     aa: values.aa,
@@ -156,11 +176,18 @@ const report = {
 
 function measure(factory, id, selectedParameters) {
   const graph = createLegacyForceFixture(id);
-  const force = configureLegacyForce(
-    factory({ random: createForceRandom() }),
-    graph,
-    selectedParameters,
-  );
+  // Capture a seeded default source in each force without exercising the
+  // separately tested custom-callback synchronization path. No timer can run
+  // during this synchronous setup, and configureLegacyForce stops it before
+  // restoring the process-wide source.
+  const previousRandom = Math.random;
+  let force;
+  try {
+    Math.random = createForceRandom();
+    force = configureLegacyForce(factory(), graph, selectedParameters);
+  } finally {
+    Math.random = previousRandom;
+  }
   const inputSha256 = sha256(
     JSON.stringify({
       state: legacyForceState(graph),

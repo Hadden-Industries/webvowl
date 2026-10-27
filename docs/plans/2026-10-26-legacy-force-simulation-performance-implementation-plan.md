@@ -2,18 +2,18 @@
 
 ## 1. Status, authority and source
 
-| Field                  | Value                                                                                                                                                            |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status                 | Accepted plan; iterative traversal implemented locally. Section 1.4 records verification results and open acceptance limits                                      |
-| Prepared               | 26 October 2026                                                                                                                                                  |
-| Decision owner         | Repository owner, Maksym Shostak                                                                                                                                 |
-| Integration owner      | Current Codex task under the repository owner's implementation authorization; coordinates numerical state, label projection, scheduling and renderer publication |
-| Source document        | `C:\Users\maksy\Downloads\Optimising legacyForceSimulation.js for High-Performance WebVOWL Layouts.md`                                                           |
-| Source identity        | 52,885 bytes; SHA-256 `b5851a9dfa68e1092556a5afc0e5426f4a8d2008a9aef8ca7a91fc13efb700ee`                                                                         |
-| Inspected baseline     | `61ae133033e482814f47415a4e5d396e35e57244`, plus the current working-tree contents                                                                               |
-| Procedure              | HISEW `hadden-industries-plan-software-change`, installed `0.1.0-dev.29`                                                                                         |
-| Identifier scope       | All `REQ-###`, `AC-###`, `QA-###`, `DEC-###` and `SLICE-###` identifiers are local to this document; qualify cross-document references by filename               |
-| Evidence produced here | Original source synthesis and repository inspection, followed by the implementation, measurement, test and external-review record in section 1.4                 |
+| Field                  | Value                                                                                                                                                                      |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status                 | Implemented through packed main-thread force; worker/Wasm gates evaluated; source review and full product checks complete; native admission limits recorded in section 1.9 |
+| Prepared               | 26 October 2026                                                                                                                                                            |
+| Decision owner         | Repository owner, Maksym Shostak                                                                                                                                           |
+| Integration owner      | Current Codex task under the repository owner's implementation authorization; coordinates numerical state, label projection, scheduling and renderer publication           |
+| Source document        | `C:\Users\maksy\Downloads\Optimising legacyForceSimulation.js for High-Performance WebVOWL Layouts.md`                                                                     |
+| Source identity        | 52,885 bytes; SHA-256 `b5851a9dfa68e1092556a5afc0e5426f4a8d2008a9aef8ca7a91fc13efb700ee`                                                                                   |
+| Inspected baseline     | `61ae133033e482814f47415a4e5d396e35e57244`, plus the current working-tree contents                                                                                         |
+| Procedure              | HISEW `hadden-industries-plan-software-change`, installed `0.1.0-dev.29`                                                                                                   |
+| Identifier scope       | All `REQ-###`, `AC-###`, `QA-###`, `DEC-###` and `SLICE-###` identifiers are local to this document; qualify cross-document references by filename                         |
+| Evidence produced here | Original source synthesis and repository inspection, followed by the implementation, measurement, test and external-review record in section 1.4                           |
 
 The user initially authorized creation of a detailed plan in `docs/plans/`, preserving all relevant source detail, and subsequently authorized its implementation as recorded in section 1.3.
 This document retains the report's technical findings, equations, alternatives, workload definitions, architecture, measurement protocol, roadmap and limitations.
@@ -286,6 +286,155 @@ The new native full verification run `ac387351-559b-4248-a41a-d846c0357a6a` pass
 It did not reach later commands, so the separately executed Jest pass does not turn that native run into a pass.
 The previously retained JSON fixture failures also remain outside this task's authorized repair scope.
 No full HISEW handoff, clean timing acceptance, release, deployment, worker/Wasm completion or push is claimed.
+
+### 1.6 Integrated Float64 candidate and current ownership
+
+The next coherent candidate replaces the production object's numerical hot loop with one private Float64 kernel and indexed fresh quadtree.
+The adapter retains start/accessor timing, cooling, events, timers and current model ownership: it imports edits before every step and publishes x/y/px/py before projection and observers.
+Known `Label` coordinate owners are resolved directly, while fixed state still reads the label's current inverse-property semantics.
+Coordinate aliases and node identity are distinct: duplicate nodes and two labels backed by the same property retain their original effects.
+Changed link endpoints, weights and charge indices are imported; stop, end, start and node/link replacement release private packed state.
+Explicit random callbacks synchronize the model around every call, including callbacks identical to the global `Math.random` function.
+The default production random algorithm, theta, cutoff and renderer scheduling remain unchanged.
+
+`legacyForceProjection.js` extracts the existing DOM-independent intersection/centering calculation; visible-label eligibility, canonical positionable exclusions, invalid-label handling and edit-mode intersections remain in the renderer.
+This is a complete main-thread physics path with current synchronous capture, not a shipped worker protocol.
+The independent D3 oracle is unchanged; 25 force tests, 52 real-renderer tests and three numerical projection tests passed.
+Added cases cover shared coordinate owners, duplicate identity, live endpoint/index/weight edits and state-observing random callbacks.
+Exact-scope lint/format and the production bundle passed before final review.
+
+The clean A/A attempt stopped before fixtures at 12.1% CPU busy against the 10% guard.
+The owner then explicitly instructed, **“Capture results ignoring the idle guard.”**
+Subsequent measurements retain diagnostic/uncontrolled-load labels; this is no clean-host or release acceptance claim.
+The retained 20-pair A/A run had median changes between -4.66% and +3.35% across the six fixtures.
+The final A/B run used 20 interleaved pairs and three warmups per fixture, compared with pooled commit `0f6aa8bc25ff1a89424b690c01a4da825ddb50d6`.
+It includes packed conversion, coefficient copies, capacity growth, per-step model synchronization, real-label projection and teardown; common fixture construction/initialization and SVG drawing are excluded.
+Both variants use the same current numerical projection helper, so this isolates physics plus synchronization rather than every renderer change.
+
+| Fixture               | Pooled median (ms) | Packed median (ms) |  Change |
+| --------------------- | -----------------: | -----------------: | ------: |
+| `wvowl-medium-sparse` |             170.57 |             161.49 |  -5.32% |
+| `wvowl-medium-hub`    |             187.06 |             183.30 |  -2.01% |
+| `wvowl-large`         |             964.12 |             871.73 |  -9.58% |
+| `wvowl-large-hub`     |            1049.47 |             967.67 |  -7.80% |
+| `wvowl-xlarge`        |            3037.75 |            2580.26 | -15.06% |
+| `wvowl-xlarge-dense`  |            3143.59 |            2540.03 | -19.20% |
+
+Every pair matched the complete final state exactly, with 298 moving steps and the final termination call.
+The preselected 5,000-point cases exceed the 10% engineering target; the 2,000-point cases do not both reach it, and no small-fixture regression was observed.
+`packed-final-ab-20.json`, `packed-current-aa-20.json` and their executable harnesses remain in the existing evidence group.
+The integrated A/B producer is `benchmark-packed-final.mjs`, which installs `step.geometry` projection on both variants; the repository's `util/benchmark-legacy-force.mjs` remains a separately identified kernel benchmark.
+Rejected callback-heavy and alias-safe but slower prototypes, their original failures, and the intermediate V5 source/timings are retained rather than overwritten as passes.
+The corrected final callback case and alias semantics supersede those intermediate candidates.
+
+The final forced-GC lifecycle probe observed collection of all three retired kernels and position buffers across 2,000 → 3 → 2,000 nodes and stop; its deliberately retained positive control stayed alive.
+`packed-final-lifetime.json` is Node ownership evidence, not browser heap acceptance.
+A real foreground `W4-connected` profile now spans the complete cooling interval.
+Source-position attribution identifies packed physics as 1,621 ms, 19.9% of sampled time and 65.6% of attributed JavaScript; 58.7% remains unattributed `(program)` time and is not labelled SVG by inference.
+Its instrumented frame p95 was 62.5 ms; the separate uninstrumented run, at 27.7% observed host CPU busy, had frame p95 79.3 ms and settled within 12 seconds.
+These unmatched diagnostics establish neither a browser speedup nor the 50-ms target.
+Evidence is `packed-complete-cooling`, `packed-cooling-attribution.json` and `packed-uninstrumented-cooling`.
+
+### 1.7 Seeded worker experiment
+
+The owner explicitly authorized **“Authorize seeded randomness for the worker experiment.”** after the current native random stream was identified as lacking transferable checkpoint state.
+That decision permits the experiment's private reproducible stream and possible changed jitter/final positions; the production default remains unchanged.
+The prototype, build transformations and browser evidence live under `worker-experiment` in the existing task evidence group, outside application source and configuration.
+It reuses the production packed kernel and numerical projection helper, with current circular/rectangular geometry and visible/solitary membership supplied by the renderer.
+No new dependency, compiler, hosting setting or installation is selected.
+
+The experimental ownership contract makes a published complete checkpoint authoritative; worker computation after it is speculative until admitted.
+Each checkpoint includes x/y/px/py, alpha and random state; main-owned coefficients, pins, targets, topology and projection inputs are retained for restart.
+One command is outstanding at a time, one paint callback is pending, and two transferable buffers hold bounded batches of intermediate checkpoints.
+Generation/run identity, sequence and command watermark guard publication; changed current model state rejects the pending result and restarts from the edited checkpoint.
+Intermediate step observers still receive every accepted step, then drawing publishes once per batch.
+Stop/replacement cancels pending paint and terminates the owned worker; failure resumes the same seeded main-thread kernel from the latest committed checkpoint.
+This avoids treating an obsolete visible snapshot as authority over a newer edit.
+
+The protocol comparison matched state and random position at every moving step for 500-point sparse/hub, 2,000-point and 5,000-point fixtures, including pin, position and geometry edits.
+All 298 moving steps matched in each case; Node transfer checks observed detachment and rejected stale generations and duplicate recycling.
+Real Chrome lifecycle checks retained current pins and synchronous arrangement reads, stable paused geometry, seeded failure recovery, rapid successive edits, and rejection of retired occurrence references after replacement.
+All 14 workers retired and 52 real browser transfers detached their senders; the only recorded failure was the deliberately injected recovery probe.
+An initial lifecycle-harness failure omitted its cohort metadata; that original result is retained, and the corrected harness passed without changing the worker implementation.
+The native scoped security assessment completed with no supported security vulnerabilities in the five canonical protocol/adapter files and bounded supporting context.
+Its sealed report is `C:\Users\maksy\.codex\state\plugins\codex-security\scans\worker-experiment\unversioned_20261026T233619Z_854mc_3l\report.md`, scan `0268001a-873f-4c7b-a97a-04e4cbd21186`.
+This is source assessment, not browser hosting, CSP or runtime acceptance; same-origin worker code is not a separate security principal.
+The native usage counters report 6,402,750 total tokens (6,374,295 input, including 6,247,424 cached; 28,455 output, including 7,843 reasoning) across four threads; they include earlier thread history and are not incremental scan-only usage.
+The frozen original experiment remains intact.
+
+Two ordinary correctness observations were repaired in the retained successor `worker-experiment-v3`: snapshot/constructor/initial-send failures now recover without leaving an owned worker alive, and arbitrary custom step listeners use the main-thread path rather than consuming precomputed intermediate steps after callbacks mutate force inputs.
+The focused callback test exposed D3's whitespace-separated event-name case; that original failure is retained, and the corrected name parser passes it.
+Nine focused startup/callback cases pass, including registration before startup and during a running worker, and the successor passes the same real-browser lifecycle checks with all 14 workers retired.
+These repairs are outside the original sealed security snapshot and receive narrow correctness review within the final consolidated source review.
+No worker production selection or Wasm qualification is claimed.
+
+### 1.8 Conditional escalation decision and final candidate
+
+The worker experiment ran real Chrome builds, rather than ending at a dependency deferral.
+Initial single-run diagnostics compared seeded main-thread and worker profiles: main two-step/32-ms settlement was 8,488 ms with 66.6-ms frame p95; worker two-step/32-ms was 7,791 ms with 62.6-ms p95; worker eight-step/6-ms was 8,215 ms with 58.4-ms p95.
+A seeded main-thread eight-step/6-ms control did not settle by 12,033 ms, despite 58.4-ms frame p95.
+These unmatched pilots suggested further measurement, not an adopted scheduling change.
+
+The corrected worker candidate was then compared with the unchanged renderer scheduling in three alternating large-graph pairs and two alternating small-graph pairs.
+Both variants use the same private seeded stream and packed numerical kernel; the main-thread control uses two steps/32 ms, and the worker candidate permits eight steps/6 ms.
+The large fixture is 2,000 connected class glyphs, approximately 3,999 force points; the small control is explicitly 250 classes/499 force points, not the original W4 workload.
+All measured runs retained foreground visibility/focus and the owner's busy-host waiver.
+Two hidden-page admission failures were retained and excluded before a successful foreground retry; no visibility-state override or hidden timing was used.
+Computer Use ended when its browser-URL policy check could not establish the URL; no further desktop input was attempted, and subsequent harness runs independently satisfied foreground admission.
+
+| Fixture / pair | Main settlement (ms) | Worker settlement (ms) | Main frame p95 (ms) | Worker frame p95 (ms) |
+| -------------- | -------------------: | ---------------------: | ------------------: | --------------------: |
+| Large / 1      |              8,376.4 |               10,091.6 |                62.5 |                  62.5 |
+| Large / 2      |              9,100.1 |                9,560.6 |                62.6 |                  66.6 |
+| Large / 3      |              9,475.8 |   >12,026.8; unsettled |                66.8 |                  91.7 |
+| Small / 1      |              1,163.9 |                  465.1 |                12.4 |                   8.4 |
+| Small / 2      |              1,154.8 |                  435.8 |                 8.4 |                   8.4 |
+
+The repeated large-graph results do not reproduce the pilot benefit: worker settlement is worse in each pair and the third misses the 12-second target.
+Small-graph gains are confounded by the larger step batch; they do not isolate worker execution as their cause or qualify a large-graph adoption.
+The ten successful measurement runs are exploratory evidence, not the plan's 20-cycle acceptance campaign; one has an unsettled outcome, and uncontrolled host load limits causal claims.
+`worker-experiment-v3/browser-comparison.json` points to every result, including actual CPU admission observations, worker counts and transfer diagnostics.
+The worker owns at most two result buffers, 2,047,488 bytes combined for this large fixture; this does not bound the complete heap, quadtree or duration of an individual step.
+
+Select the packed main-thread implementation with unchanged default randomness, theta, cutoff and renderer scheduling.
+Keep the seeded worker as a retained experiment: the demonstrated-benefit gate is not met, and pointer-drag/SVG-export acceptance, a 20-cycle lifecycle campaign and hosting/clean timing qualification are not claimed.
+SLICE-008's Wasm gate is also not met: there is no selected qualified JavaScript worker and no demonstrated remaining kernel-bound foreground bottleneck after transfer/publication costs.
+The worker's measured numerical computation was approximately 1.69–1.73 seconds per large run, while observed settlement was approximately 9.56–12.03 seconds; overlapping work and unattributed main-thread time prevent treating that ratio as precise critical-path attribution.
+No Wasm compiler, dependency, hosting change, SIMD/thread mode or production random-stream change is justified by these results.
+This disposes the conditional paths on evidence while preserving their contracts and reopening criteria below; it does not label unimplemented worker/Wasm product paths complete.
+
+The final consolidated external review covers the eight production/document paths and bounded experimental context, followed by narrow repairs if needed and then the required full repository check.
+Existing unrelated lexical-position changes remain with their owner.
+No push, deployment, release or manual-device acceptance is authorized or claimed.
+
+### 1.9 Final packed-source review and verification
+
+Claude Opus 5.5 Max attempt `9c032cec-4d9f-5474-833b-4cca6c382c70` stopped on the provider's five-hour quota before reading source.
+The authorized AGY Flash 3.8 High fallback retained the 1,800-second answer allowance.
+Its first attempt, `eee517b9-9e35-5aed-83ac-486ca83ea071`, completed but early native callback envelopes exceeded the unchanged 64-KiB guard limit; only 12 of 41 distinct inputs were read.
+Its claimed complete coverage is rejected, and its original failed capture and five proposed findings remain retained.
+Existing owned guard files were preserved when profile preparation refused to replace them; the correction used an independent owned clone and ten lossless input bundles, without weakening controls.
+
+The corrected source-coverage attempt, `75737b24-41f6-59fc-ad61-bc32d02de38c`, read all ten bundles and returned no findings after assessing the complete eight-file patch, surrounding numerical source, bounded worker context and actual integrated timing harness.
+It explicitly agreed with all five evidence-based dispositions:
+
+- Production `force.on` delegates to D3's existing whitespace-aware dispatcher; a focused registration/removal probe also passed.
+  The repaired worker eligibility parser is a separate experimental wrapper.
+- Sequential coordinate-alias integration preserves the baseline and independent oracle.
+  Aggregating fixed flags by owner would change inherited physics.
+- Solitary-label projection already updates x/y without resetting px/py; the extraction preserves that behavior.
+- The reported integrated 20-pair timings come from the harness that projects labels on every step, rather than the separate kernel utility.
+- Sections 1.6–1.8 explicitly limit worker results to nonshipping diagnostic evidence and record the unmet worker/Wasm adoption gates.
+
+The corrected attempt still failed native control qualification: the prescribed command-denial probe omitted the exact `Cwd` field.
+Its source feedback and resolved findings are retained independently of that failure; no qualified native assurance or reviewer-executed tests are claimed.
+No further review replay is selected solely to repair that bookkeeping outcome under the owner's explicit process instructions.
+After this substantive review closure, native full run `c47184a6-f222-4d02-a5f5-65f0c55a15b0` completed `npm run check` with exit zero, `passed: true` and no verification problems.
+All 200 Jest suites and 10,405 tests passed in 208.78 seconds; application/Python lint and formatting, Markdown, setup, corpus storage, all seven JSON integration tests, the production bundle and generated-output JSON checks passed.
+The lexical-position owner’s current changes cleared the earlier unrelated JSON/documentation blockers; those files remain outside this task’s commit.
+The next native progress read nevertheless rejected reuse with `process-environment-changed`, before any further source edit.
+That admission failure does not change the product result; its exact environmental cause is not established here, and the owner’s explicit no-duplicate-check instruction rules out a receipt-only rerun.
+This final documentation-only outcome update receives scoped Markdown validation; the completed implementation checks are reused without claiming complete HISEW/native review qualification.
 
 ## 2. Source findings reconciled with current code
 

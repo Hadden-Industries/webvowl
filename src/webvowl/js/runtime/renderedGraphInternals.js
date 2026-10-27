@@ -3,6 +3,7 @@ import { createBackgroundSelectionGesture } from "./backgroundSelectionGesture.j
 import { createRenderedGraphPanCache } from "./renderedGraphPanCache.js";
 import * as d3 from "d3";
 import { createLegacyForceSimulation } from "./legacyForceSimulation.js";
+import { projectLegacyLabelPosition } from "./legacyForceProjection.js";
 import { spaceInitialNodeFootprints } from "./initialTreeLayout.js";
 import { createLinkCreator as createLinkCreatorModule } from "../parsing/linkCreator.js";
 import { createElementTools as createElementToolsModule } from "../../../shared/js/util/elementTools.js";
@@ -1495,27 +1496,16 @@ function createGraph(
   /** Center constrained labels before the next solver step, without SVG writes. */
   function recenterSolitaryLabel(label) {
     const link = label.link();
-    if (
-      !svgRenderingGuard.isFinitePoint(link.domain()) ||
-      !svgRenderingGuard.isFinitePoint(link.range())
-    ) {
+    const projected = projectLegacyLabelPosition(link.domain(), link.range());
+    if (!projected) {
       return false;
     }
-    const domain = math.calculateIntersection(link.range(), link.domain(), 0);
-    const range = math.calculateIntersection(link.domain(), link.range(), 0);
-    const position = math.calculateCenter(domain, range);
-    if (
-      !svgRenderingGuard.isFinitePoint(domain) ||
-      !svgRenderingGuard.isFinitePoint(range) ||
-      !svgRenderingGuard.isFinitePoint(position)
-    ) {
-      return false;
-    }
+    const { position, domainIntersection, rangeIntersection } = projected;
     label.x = position.x;
     label.y = position.y;
     if (editMode) {
-      label.linkDomainIntersection = domain;
-      label.linkRangeIntersection = range;
+      label.linkDomainIntersection = domainIntersection;
+      label.linkRangeIntersection = rangeIntersection;
     }
     return true;
   }

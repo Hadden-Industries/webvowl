@@ -24,11 +24,11 @@ function seededRandom() {
   };
 }
 
-function referenceForce() {
+function referenceForce(random = seededRandom()) {
   // Untouched official distribution in an isolated realm. Its timers cannot run;
   // both algorithms are stepped manually with their own identical random stream.
   const math = Object.create(Math);
-  math.random = seededRandom();
+  math.random = random;
   const context = { Math: math, setTimeout() {}, clearTimeout() {} };
   runInNewContext(referenceSource, context);
   return context.d3.layout.force();
@@ -471,3 +471,110 @@ test("interleaved simulations and graph replacement retain independent charge st
     secondReference.stop();
   }
 });
+
+test.each(["duplicate node", "shared property", "edited links"])(
+  "packed coordinate ownership preserves the independent oracle for %s",
+  (kind) => {
+    function graph() {
+      const nodes = Array.from({ length: 12 }, (_, i) => ({
+        x: i * 17,
+        y: i * 23,
+        px: 0,
+        py: 0,
+      }));
+      if (kind === "duplicate node") {
+        nodes[5] = nodes[2];
+      }
+      if (kind === "shared property") {
+        const property = new OwlObjectProperty({ language: () => "en" });
+        Object.assign(property, nodes[2]);
+        nodes[2] = new Label(property, null);
+        nodes[5] = new Label(property, null);
+      }
+      return {
+        nodes,
+        links: nodes
+          .slice(1)
+          .map((node, i) => ({ source: nodes[i], target: node })),
+      };
+    }
+    const expected = graph(),
+      actual = graph();
+    const reference = configure(referenceForce(), expected);
+    const candidate = configure(
+      createLegacyForceSimulation({ random: seededRandom() }),
+      actual,
+    ).stop();
+    try {
+      for (let step = 0; step < 299; step++) {
+        if (step === 30 && kind === "edited links") {
+          for (const item of [expected, actual]) {
+            item.links[1].source = item.nodes[7];
+            item.links.reverse();
+            item.nodes[4].weight = 19;
+            item.nodes[5].index = 1;
+          }
+        }
+        expect(candidate.tick()).toBe(reference.tick());
+        expect(state(actual)).toEqual(state(expected));
+      }
+    } finally {
+      candidate.stop();
+      reference.stop();
+    }
+  },
+);
+
+test.each([false, true])(
+  "jitter callbacks observe current state and live parameters when sharing global identity: %s",
+  (sharesGlobalIdentity) => {
+    function prepare(factory, stopTimer = false) {
+      const graph = fixture({ coincident: true, labels: true });
+      const random = seededRandom(),
+        observations = [];
+      const owner = {};
+      const jitter = () => {
+        if (owner.force) {
+          observations.push(state(graph));
+          owner.force.theta(1.1).friction(0.7).chargeDistance(500);
+        }
+        return random();
+      };
+      const force = (() => {
+        const previous = Math.random;
+        try {
+          if (sharesGlobalIdentity) {
+            Math.random = jitter;
+          }
+          return configure(factory(jitter), graph);
+        } finally {
+          Math.random = previous;
+        }
+      })();
+      if (stopTimer) {
+        force.stop();
+      }
+      owner.force = force;
+      return { graph, force, observations };
+    }
+    const expected = prepare(referenceForce);
+    const actual = prepare(
+      (random) => createLegacyForceSimulation({ random }),
+      true,
+    );
+    let observations = 0;
+    try {
+      for (let step = 0; step < 299; step++) {
+        expect(actual.force.tick()).toBe(expected.force.tick());
+        expect(state(actual.graph)).toEqual(state(expected.graph));
+        expect(actual.observations).toEqual(expected.observations);
+        observations += actual.observations.length;
+        actual.observations.length = expected.observations.length = 0;
+      }
+      expect(observations).toBeGreaterThan(0);
+    } finally {
+      actual.force.stop();
+      expected.force.stop();
+    }
+  },
+);
