@@ -59,7 +59,7 @@ function expectedResults(full) {
   };
 }
 
-/** Required gate admits executed scope or verified provenance with all producer jobs skipped. */
+/** Reusable jobs require execution or verified PR proof; corpus storage stays fresh. */
 export function requireChecks(needs) {
   const scope = needs.scope;
   requireFact(scope?.result === "success", "Scope selection failed");
@@ -70,12 +70,6 @@ export function requireChecks(needs) {
     "Missing evidence decision",
   );
   const reused = outputs.reuse === "true";
-  // JSON always executes on the landed candidate; prior application proof cannot
-  // replace current physical/logical/record/generated JSON qualification.
-  requireFact(
-    needs.json?.result === "success",
-    "Fresh JSON checks did not succeed",
-  );
   requireFact(
     needs.corpus?.result === "success",
     "Fresh corpus storage checks did not succeed",
@@ -91,7 +85,7 @@ export function requireChecks(needs) {
     );
   }
   const results = expectedResults(outputs.full === "true");
-  for (const job of ["application", "tooling", "documentation"]) {
+  for (const job of ["application", "tooling", "documentation", "json"]) {
     requireFact(
       needs[job]?.result === (reused ? "skipped" : results[job]),
       `Unexpected ${job} result`,

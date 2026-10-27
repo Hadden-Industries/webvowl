@@ -16,8 +16,15 @@ The public package command owns selection, formatting checks, GFM linting, local
 Tracked Markdown is reconciled through the same selector, including missing selected documents.
 
 Full checks retain application tests and builds, the Ubuntu and Windows Python tooling jobs, and checks of all tracked authored documents.
-The required `WebVOWL application` status accepts skipped application and Python jobs only when scope selection succeeded and explicitly selected the documentation path.
+For fresh runs, the required `WebVOWL application` status accepts skipped application and Python jobs only when scope selection succeeded and explicitly selected the documentation path.
 Failures, cancellations and unexpected skipped jobs fail that status.
+
+Normal merges to `main` can reuse an immutable, successful same-repository PR receipt when the tested tree, parents, workflow, check scope and hosted identity match.
+The verifier requires the complete successful PR job inventory, including JSON quality on Ubuntu and Windows.
+With verified reuse, the application, Python, Markdown and JSON jobs are skipped on the merge; the required gate checks the retained provenance and expected skips.
+Missing, invalid or expired evidence falls back to fresh execution, and JSON still runs on documentation-only PRs and manual runs.
+Corpus storage checks continue to execute on every route.
+
 The `Dependency review` status remains present for documentation-only pull requests and reports that dependency analysis is not applicable.
 
 CodeQL uses the same classification and skips analysis for documentation-only changes.

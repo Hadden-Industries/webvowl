@@ -83,7 +83,7 @@ test("a successful same-repository PR records its actual tested merge and check 
 });
 
 test.each(["true", "false"])(
-  "JSON must execute for full=%s even when prior application evidence is reused",
+  "JSON is skipped only with verified reuse provenance for full=%s",
   (full) => {
     const jobs = needs(full);
     jobs.scope.outputs = {
@@ -95,16 +95,16 @@ test.each(["true", "false"])(
       source_receipt_digest: "sha256:" + "a".repeat(64),
       source_commit: hash("c"),
     };
-    for (const name of ["application", "tooling", "documentation"]) {
+    for (const name of ["application", "tooling", "documentation", "json"]) {
       jobs[name].result = "skipped";
     }
     expect(requireChecks(jobs)).toEqual({
       full: full === "true",
       reused: true,
     });
-    for (const result of ["skipped", "failure", "cancelled", undefined]) {
+    for (const result of ["success", "failure", "cancelled", undefined]) {
       jobs.json.result = result;
-      expect(() => requireChecks(jobs)).toThrow(/JSON/);
+      expect(() => requireChecks(jobs)).toThrow(/json/);
     }
   },
 );
@@ -115,6 +115,20 @@ test.each(["failure", "cancelled", "skipped", undefined])(
     const jobs = needs("false");
     jobs.corpus.result = result;
     expect(() => requireChecks(jobs)).toThrow(/corpus storage/);
+  },
+);
+
+test.each(["true", "false"])(
+  "fresh full=%s runs cannot record receipts without successful JSON checks",
+  (full) => {
+    for (const result of ["skipped", "failure", "cancelled", undefined]) {
+      const jobs = needs(full);
+      jobs.json.result = result;
+      expect(() => requireChecks(jobs)).toThrow(/json/);
+      expect(() => createReceipt({ context: context(), needs: jobs })).toThrow(
+        /json/,
+      );
+    }
   },
 );
 
@@ -294,18 +308,22 @@ test.each([true, false])(
       source_receipt_id: "51",
       source_receipt_digest: `sha256:${"1".repeat(64)}`,
     });
-    expect(
-      requireChecks({
-        ...needs(String(full)),
-        scope: {
-          result: "success",
-          outputs: { full: String(full), ...outputs },
-        },
-        application: { result: "skipped" },
-        tooling: { result: "skipped" },
-        documentation: { result: "skipped" },
-      }),
-    ).toEqual({ full, reused: true });
+    const mergedJobs = {
+      ...needs(String(full)),
+      scope: {
+        result: "success",
+        outputs: { full: String(full), ...outputs },
+      },
+      application: { result: "skipped" },
+      tooling: { result: "skipped" },
+      documentation: { result: "skipped" },
+      json: { result: "skipped" },
+    };
+    expect(requireChecks(mergedJobs)).toEqual({ full, reused: true });
+    for (const result of ["failure", "cancelled", "skipped", undefined]) {
+      mergedJobs.corpus.result = result;
+      expect(() => requireChecks(mergedJobs)).toThrow(/corpus storage/);
+    }
   },
 );
 
@@ -505,7 +523,7 @@ test("required gate rejects a reuse flag without authenticated provenance", () =
   expect(() => requireChecks(checks)).toThrow(/provenance/u);
 });
 
-test.each(["application", "tooling", "documentation"])(
+test.each(["application", "tooling", "documentation", "json"])(
   "reuse gate rejects a non-skipped producer: %s",
   async (job) => {
     const fixture = proofFixture();
@@ -516,13 +534,38 @@ test.each(["application", "tooling", "documentation"])(
       application: { result: "skipped" },
       tooling: { result: "skipped" },
       documentation: { result: "skipped" },
-      json: { result: "success" },
+      json: { result: "skipped" },
       corpus: { result: "success" },
     };
     checks[job].result = "success";
     expect(() => requireChecks(checks)).toThrow(`Unexpected ${job} result`);
   },
 );
+
+test.each(
+  ["JSON quality (ubuntu-24.04)", "JSON quality (windows-2025)"].flatMap(
+    (name) =>
+      ["failure", "cancelled", "skipped", "missing"].map((result) => [
+        name,
+        result,
+      ]),
+  ),
+)("reuse requires successful PR evidence for %s: %s", async (name, result) => {
+  const fixture = proofFixture();
+  const selection = await selectProof(fixture);
+  const listing =
+    fixture.responses["/actions/runs/41/jobs?filter=latest&per_page=100"];
+  const index = listing.jobs.findIndex((job) => job.name === name);
+  if (result === "missing") {
+    listing.jobs.splice(index, 1);
+    listing.total_count = listing.jobs.length;
+  } else {
+    listing.jobs[index].conclusion = result;
+  }
+  await expect(verifyProof({ ...fixture, selection })).rejects.toThrow(
+    /job inventory/,
+  );
+});
 
 test("manual workflow invocation selects fresh execution without consulting GitHub", async () => {
   const directory = mkdtempSync(join(tmpdir(), "webvowl-ci-manual-"));
@@ -601,6 +644,12 @@ test("CLI proof transport failure falls back; actual check failure stays fatal",
     };
     await runCommand("verify", env);
     expect(readFileSync(output, "utf8")).toBe("reuse=false\n");
+    const fallback = needs();
+    fallback.scope.outputs.reuse = readFileSync(output, "utf8")
+      .trim()
+      .split("=")[1];
+    fallback.json.result = "skipped";
+    expect(() => requireChecks(fallback)).toThrow(/json/);
     const checks = needs();
     checks.application.result = "failure";
     const result = spawnSync(
