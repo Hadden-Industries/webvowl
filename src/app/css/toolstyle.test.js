@@ -14,14 +14,15 @@ const mainJs = fs.readFileSync(
 );
 
 describe("mobile toolbar styles", () => {
-  test("positions mobile popovers above the complete bottom navigation surface", () => {
+  test("anchors mobile sheets to the viewport bottom with safe-area padding", () => {
     const mobilePopoverRule = stylesheet.match(
       /@media screen and \(width <= 768px\) \{[\s\S]*?\.modern-popover\s*\{([^{}]+)\}/,
     );
 
     expect(mobilePopoverRule).not.toBeNull();
+    expect(mobilePopoverRule[1]).toContain("inset: auto 0 0 !important");
     expect(mobilePopoverRule[1]).toContain(
-      "inset: auto 0 var(--bottom-bar-size) !important",
+      "padding-block-end: max(16px, var(--bottom-control-offset)) !important",
     );
   });
 
