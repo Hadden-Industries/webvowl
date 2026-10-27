@@ -2,18 +2,18 @@
 
 ## 1. Status, authority and source
 
-| Field                  | Value                                                                                                                                                                                                                                         |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status                 | Packed main-thread force implemented; approximation and worker/Wasm gates evaluated; browser functional/lifetime diagnostics complete; foreground performance, manual acceptance and native admission limits remain open in sections 1.9–1.12 |
-| Prepared               | 26 October 2026                                                                                                                                                                                                                               |
-| Decision owner         | Repository owner, Maksym Shostak                                                                                                                                                                                                              |
-| Integration owner      | Current Codex task under the repository owner's implementation authorization; coordinates numerical state, label projection, scheduling and renderer publication                                                                              |
-| Source document        | `C:\Users\maksy\Downloads\Optimising legacyForceSimulation.js for High-Performance WebVOWL Layouts.md`                                                                                                                                        |
-| Source identity        | 52,885 bytes; SHA-256 `b5851a9dfa68e1092556a5afc0e5426f4a8d2008a9aef8ca7a91fc13efb700ee`                                                                                                                                                      |
-| Inspected baseline     | `61ae133033e482814f47415a4e5d396e35e57244`, plus the current working-tree contents                                                                                                                                                            |
-| Procedure              | HISEW `hadden-industries-plan-software-change`, installed `0.1.0-dev.29`                                                                                                                                                                      |
-| Identifier scope       | All `REQ-###`, `AC-###`, `QA-###`, `DEC-###` and `SLICE-###` identifiers are local to this document; qualify cross-document references by filename                                                                                            |
-| Evidence produced here | Original source synthesis and repository inspection, followed by the implementation, measurement, test and external-review record in section 1.4                                                                                              |
+| Field                  | Value                                                                                                                                                                                                                                                                      |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status                 | Packed main-thread force implemented; conditional experiments and foreground/browser measurements complete; no overall browser speedup or connected-large 50-ms pass; performance acceptance, manual coverage and native admission limits remain open in sections 1.9–1.14 |
+| Prepared               | 26 October 2026                                                                                                                                                                                                                                                            |
+| Decision owner         | Repository owner, Maksym Shostak                                                                                                                                                                                                                                           |
+| Integration owner      | Current Codex task under the repository owner's implementation authorization; coordinates numerical state, label projection, scheduling and renderer publication                                                                                                           |
+| Source document        | `C:\Users\maksy\Downloads\Optimising legacyForceSimulation.js for High-Performance WebVOWL Layouts.md`                                                                                                                                                                     |
+| Source identity        | 52,885 bytes; SHA-256 `b5851a9dfa68e1092556a5afc0e5426f4a8d2008a9aef8ca7a91fc13efb700ee`                                                                                                                                                                                   |
+| Inspected baseline     | `61ae133033e482814f47415a4e5d396e35e57244`, plus the current working-tree contents                                                                                                                                                                                         |
+| Procedure              | HISEW `hadden-industries-plan-software-change`, installed `0.1.0-dev.29`                                                                                                                                                                                                   |
+| Identifier scope       | All `REQ-###`, `AC-###`, `QA-###`, `DEC-###` and `SLICE-###` identifiers are local to this document; qualify cross-document references by filename                                                                                                                         |
+| Evidence produced here | Original source synthesis and repository inspection, followed by the implementation, measurement, test and external-review record in section 1.4                                                                                                                           |
 
 The user initially authorized creation of a detailed plan in `docs/plans/`, preserving all relevant source detail, and subsequently authorized its implementation as recorded in section 1.3.
 This document retains the report's technical findings, equations, alternatives, workload definitions, architecture, measurement protocol, roadmap and limitations.
@@ -584,6 +584,91 @@ The prior external packed-source review and the successful 200-suite/10,405-test
 Only the plan's documentation delta needs scoped formatting/validation; no full-suite or external campaign is repeated to manufacture new receipts.
 The owner-deferred foreground comparison, the unfavorable/confounded small-input diagnostic result, actual Firefox/Safari/mobile/assistive-technology acceptance and native evidence-admission qualification remain open.
 No release, deployment, push or disposable-directory cleanup is performed.
+
+### 1.13 Exclusive-browser foreground comparison — 27 October 2026
+
+The owner subsequently made the browser available exclusively and requested a findings commit before any dependency upgrades.
+This supersedes the foreground deferral in section 1.11 for the new observations; the previous failures and headless measurements remain historical evidence.
+The first owned Chrome window initially became hidden after successful startup admission and waited before its first warmup.
+Measurements began only after actual visibility and focus were restored; no visibility emulation or hidden timing was admitted.
+
+Both variants were rebuilt with committed source overlays verified independently in the main and worker pipelines.
+The common source is `1523de1d6b60ced26577530729c180348d02d477`; the baseline substitutes the force adapter, renderer and quadtree from pooled commit `0f6aa8bc25ff1a89424b690c01a4da825ddb50d6`.
+The unrelated lexical working-tree changes are excluded from both build pipelines.
+This corrects the earlier shared-worker provenance limitation without replacing those older artifacts.
+Build scripts, manifests, every raw run and summaries are retained under `foreground-exclusive/` in the task evidence directory.
+The production source, dependency graph and numerical defaults were unchanged during this comparison.
+
+The protocol used headed Chrome 156.0.8078.48, a 1440 × 900 viewport, the same test-only LCG seed 24301 reset before each load, and three excluded warmups per browser.
+Each workload has four sequential ABBA blocks of ten measured loads: 20 baseline and 20 packed runs, with no profiler or counter wrappers.
+Actual visibility and focus were required throughout every measured load.
+The owner's existing host-idle waiver remained in force; browser exclusivity did not establish machine-wide quiescence.
+Independent loads remain the unit of observation; the table reports medians of per-run frame p95 values rather than pooling frames into independent replications.
+
+| Workload / variant         | Median source-to-first-frame (ms) | Median settlement (ms) | Median of per-run frame p95 (ms) |
+| -------------------------- | --------------------------------: | ---------------------: | -------------------------------: |
+| Small, pooled              |                            216.50 |                 962.60 |                             8.40 |
+| Small, packed              |                            222.25 |                 997.70 |                             8.40 |
+| Connected large, pooled    |                           1224.65 |                8554.35 |                            66.45 |
+| Connected large, packed    |                           1243.75 |                8871.15 |                            64.60 |
+| Disconnected large, pooled |                            575.75 |                2057.50 |                            16.70 |
+| Disconnected large, packed |                            608.55 |                2316.75 |                            16.80 |
+
+All 120 measured loads settled within 12 seconds, retained their initial class nodes, observed movement, and had no initial class node wholly outside the viewport.
+All small and disconnected runs had frame p95 below 50 ms; none of the 40 connected-large runs did.
+The small packed median settlement increased 3.65%, within the selected 5% scalar guardrail for this cohort, and its first frame increased 2.66%.
+Its settlement p95 nevertheless rose from 980.60 ms to 1127.00 ms, and the second packed block's median was 6.78% lower than the first packed block's.
+The earlier 22.51% headless difference is therefore not reproduced at that magnitude, but this does not prove a noise-free small-input result or erase the earlier observation.
+
+Connected-large packed settlement increased 3.70%, first frame increased 1.56%, and median per-run frame p95 decreased 2.78%.
+Disconnected packed settlement increased 12.60% and first frame increased 5.70%; its median per-run frame p95 increased 0.60%.
+The disconnected baseline's final block was 6.92% slower than its first block, exceeding the selected 5% noise reference.
+Across the 156 preflights including warmups, 81 exceeded 10% CPU busy; maximum observed busy fractions were 23.20%/36.71% for connected pooled/packed and 58.00%/55.11% for disconnected pooled/packed.
+The raw observations are retained, including unfavorable runs; temporal drift and uncontrolled host load limit causal attribution rather than converting regressions into passes.
+
+These foreground results establish successful visible settlement under the observed conditions, but **do not demonstrate an end-to-end browser speedup, a connected-large 50-ms pass, or complete performance acceptance**.
+The earlier kernel improvements remain separate evidence.
+No approximation, worker, Wasm backend or new scheduling policy is selected from these measurements.
+
+### 1.14 Foreground active-layout input observations
+
+A separate headed pass used the same committed builds and seeded fixture, with four ABBA browser blocks, three excluded warmups per block and ten independent graph loads per block.
+Each gesture started from a paused, centered, hit-tested class node, pressed the native mouse button, resumed force layout, moved through five native held-button events separated by animation frames, and released the button.
+The active controller state was asserted during the gesture; native input was trusted, the model moved and retained finite previous coordinates, and visibility/focus remained current.
+The controlled resume after press is part of this diagnostic protocol, not a claim that these timings represent every ordinary user gesture.
+All 20 baseline and 20 packed measured gestures completed without runtime exceptions or foreground loss.
+The final candidate screenshot was inspected; the graph, navigation controls and paused end state rendered normally.
+
+The first attempt failed before measured gestures because the probe expected the active status string `running`.
+The implementation at `d3RenderedGraphAdapter.js` and its existing resume test establish that this state is named `relaxing`.
+Only that harness assertion was corrected; `foreground-exclusive/input-1-baseline/result.json` retains the original failure, and the corrected cohort is stored in `input-1-baseline-retry1/`.
+No product assertion, state or requirement was weakened.
+
+Local Event Timing, Long Animation Frames and long-task observers covered the gesture window.
+Discrete event statistics use positive `interactionId` entries and first compute each independent gesture's maximum before summarizing across gestures.
+The browser quantizes durations and reports only events meeting the 16-ms observation threshold; continuous mouse movement is not represented by these discrete event statistics.
+Presentation delay is an estimate, and none of these values is field INP.
+
+| Gesture observation                                  | Pooled | Packed |
+| ---------------------------------------------------- | -----: | -----: |
+| Median maximum observed discrete-event duration (ms) | 160.00 | 160.00 |
+| p95 of maximum observed discrete-event duration (ms) | 168.00 | 184.00 |
+| Maximum observed discrete-event duration (ms)        | 168.00 | 200.00 |
+| Median maximum input delay (ms)                      |  31.95 |  31.65 |
+| Median maximum presentation-delay estimate (ms)      | 129.00 | 133.25 |
+| Long Animation Frames across measured gestures       |     34 |     50 |
+| Long tasks across measured gestures                  |    188 |    216 |
+
+All gestures produced qualifying discrete events; neither event nor Long Animation Frame buffers dropped observations.
+Median preflight CPU busy was 10.15% pooled and 11.56% packed, with maxima 28.19% and 25.92%; the existing idle waiver applies here too.
+There is no demonstrated input-latency improvement, and the packed observed tail is worse in this cohort.
+Raw input observations, CPU samples, screenshots and per-run aggregates are retained in `foreground-exclusive/input-*/`, `input-comparison.json` and `input-summary.json`.
+
+The earlier Chrome/Edge functional, export, simultaneous-touch and 20-cycle lifetime checks are reused for unchanged runtime source.
+The foreground availability gap is now replaced by actual measurements, while the performance failures and uncontrolled-load limitations above remain explicit.
+Actual Firefox/Safari/mobile/assistive-technology acceptance and the native evidence-admission qualification from section 1.9 remain unestablished.
+This findings increment changes only this plan and receives scoped Markdown validation; it does not repeat full product tests or external source review for unchanged inputs.
+No push, release, deployment or disposable-directory cleanup is performed.
 
 ## 2. Source findings reconciled with current code
 
