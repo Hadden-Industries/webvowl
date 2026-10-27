@@ -179,7 +179,7 @@
 :root {
   --right-sidebar-width: 280px;
   --left-sidebar-width: 200px;
-  --control-margin: 12px;
+  --control-margin: 16px;
   --action-pill-desktop-min-width: 112px;
   --toolbar-control-size: 44px;
   --safe-area-top: env(safe-area-inset-top, 0px);
@@ -2823,15 +2823,11 @@ button.accordion-trigger {
   gap: 8px;
 }
 
-.ontology-title-bar {
+#ontology-editor-open {
   position: absolute;
   z-index: 2;
   inset-block-start: calc(var(--safe-area-top) + 12px);
   inset-inline-start: 12px;
-
-  display: flex;
-  gap: 8px;
-  align-items: center;
 
   max-inline-size: calc(100% - 70px);
   padding: 4px 8px;
@@ -2841,6 +2837,11 @@ button.accordion-trigger {
   color: #f8fafc;
 
   background: #18202a;
+}
+
+#ontology-editor-open[hidden],
+#sidebarExpandButton[hidden] {
+  display: none;
 }
 
 .entity-preview {
@@ -3011,7 +3012,7 @@ button.accordion-trigger {
 }
 
 .ontology-dialog :is(button, select),
-.ontology-title-bar button,
+#ontology-editor-open,
 .entity-inspector-header button {
   min-block-size: 44px;
   padding: 8px 12px;
@@ -3025,7 +3026,7 @@ button.accordion-trigger {
 }
 
 .ontology-dialog :is(button, a, select, input, textarea):focus-visible,
-.ontology-title-bar button:focus-visible {
+#ontology-editor-open:focus-visible {
   outline: 2px solid #93c5fd;
   outline-offset: 2px;
 }
@@ -3084,17 +3085,14 @@ button.accordion-trigger {
 }
 
 .ontology-source-input {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  position: relative;
 }
 
 .ontology-source-input #iri-converter-input {
-  flex: 1 1 100%;
-
   inline-size: 100%;
   min-inline-size: 0;
   min-block-size: 44px;
+  padding-inline-end: 48px;
 
   font-size: 16px;
 }
@@ -3104,16 +3102,37 @@ button.accordion-trigger {
   min-block-size: 44px;
 }
 
-#m_select :is(.converter-form button, .empty-ontology-btn):not(:disabled) {
+#m_select
+  :is(.converter-form button, .empty-ontology-btn):not(
+    :disabled,
+    #ontology-source-clear
+  ) {
   color: #fff;
   background: #145da0;
 }
 
-.ontology-source-summary {
+#m_select #ontology-source-clear {
+  cursor: pointer;
+
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: 0;
+  transform: translateY(-50%);
+
+  inline-size: 44px;
+  block-size: 44px;
+  padding: 0;
+  border: 0;
+
   font-size: 13px;
-  line-height: 1.5;
+  line-height: 1;
   color: #e2e8f0;
-  overflow-wrap: anywhere;
+
+  background: transparent;
+}
+
+#m_select #ontology-source-clear[hidden] {
+  display: none;
 }
 
 .ontology-suggestions {
@@ -3179,24 +3198,11 @@ button.accordion-trigger {
   outline-offset: 2px;
 }
 
-#m_select .ontology-example-notices {
-  min-block-size: 24px;
-  padding: 4px 0;
-
-  font-size: 12px;
-  color: #cbd5e1;
-  text-decoration: underline;
-}
-
 #m_select {
-  bottom: max(
-    8px,
-    calc(
-      100dvh - var(--visual-viewport-height) -
-        var(--visual-viewport-offset-top) + 8px
-    )
+  max-block-size: min(
+    82svh,
+    calc(var(--visual-viewport-height) - var(--bottom-bar-size) - 32px)
   );
-  max-block-size: calc(var(--visual-viewport-height) - 24px);
 }
 
 @media (forced-colors: active) {
@@ -3516,8 +3522,8 @@ body:has(.search-expanded) #scrollRightButton {
 #zoomSlider {
   position: fixed;
   z-index: 999;
-  right: calc(12px + var(--safe-area-right));
-  bottom: calc(var(--bottom-bar-size) + 16px) !important;
+  right: calc(var(--control-margin) + var(--safe-area-right));
+  bottom: calc(var(--bottom-bar-size) + var(--control-margin)) !important;
 
   overflow: hidden;
 
@@ -4235,9 +4241,6 @@ a#locateSearchResult {
   #zoomSlider {
     position: fixed;
     z-index: 999;
-    right: calc(12px + var(--safe-area-right));
-    bottom: calc(var(--bottom-bar-size) + 16px);
-
     transition: right 0.3s ease;
   }
 }
@@ -4631,25 +4634,42 @@ a#locateSearchResult {
 }
 
 .range-touch-wrapper input[type="range"] {
-  touch-action: pan-x;
   cursor: pointer;
 
   width: 100%;
-  height: 6px;
+  height: 44px;
   margin: 0;
-  border-radius: 3px;
+  border: 0;
 
   appearance: none;
+  background: transparent;
+}
+
+.range-touch-wrapper input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 3px;
   background: rgb(255 255 255 / 15%);
-  outline: none;
+}
+
+.range-touch-wrapper input[type="range"]::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: rgb(255 255 255 / 15%);
+}
+
+.range-touch-wrapper input[type="range"]:focus-visible {
+  outline: 2px solid #3b99fc;
+  outline-offset: 2px;
 }
 
 /* WebKit Range Thumb (Chrome, Safari, Edge) */
 .range-touch-wrapper input[type="range"]::-webkit-slider-thumb {
   cursor: grab;
 
+  box-sizing: border-box;
   width: 28px;
   height: 28px;
+  margin-top: -11px;
   border: 3px solid #18202a;
   border-radius: 50%;
 
@@ -4672,6 +4692,7 @@ a#locateSearchResult {
 .range-touch-wrapper input[type="range"]::-moz-range-thumb {
   cursor: grab;
 
+  box-sizing: border-box;
   width: 28px;
   height: 28px;
   border: 3px solid #18202a;
@@ -4883,7 +4904,7 @@ a#locateSearchResult {
     will-change: transform;
 
     z-index: 99999 !important;
-    inset: auto 0 var(--bottom-bar-size) !important;
+    inset: auto 0 0 !important;
     transform: translateY(var(--sheet-drag-y, 0));
 
     width: 100% !important;

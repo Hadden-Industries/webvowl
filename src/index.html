@@ -48,24 +48,17 @@
     </svg>
     <main>
       <section id="canvasArea">
-        <div class="ontology-title-bar">
-          <h1 id="ontology-title-chip">No ontology loaded</h1>
-          <button
-            id="ontology-overview-open"
-            type="button"
-            aria-haspopup="dialog"
-          >
-            Overview
-          </button>
-          <button
-            id="ontology-editor-open"
-            type="button"
-            aria-haspopup="dialog"
-            hidden
-          >
-            Editor
-          </button>
-        </div>
+        <h1 id="ontology-title-chip" class="visually-hidden">
+          No ontology loaded
+        </h1>
+        <button
+          id="ontology-editor-open"
+          type="button"
+          aria-haspopup="dialog"
+          hidden
+        >
+          Editor
+        </button>
         <section
           id="entity-preview"
           class="entity-preview"
@@ -226,7 +219,12 @@
           </button>
         </div>
         <div class="noselect">
-          <button id="sidebarExpandButton" class="btn_shadowed" type="button">
+          <button
+            id="sidebarExpandButton"
+            class="btn_shadowed"
+            type="button"
+            hidden
+          >
             &gt;
           </button>
         </div>
@@ -309,8 +307,8 @@
                       class="converter-input-hint tool-hint"
                       id="iri-converter-hint"
                       aria-live="polite"
-                      >Enter an ontology URL or choose a suggestion</span
-                    >
+                      hidden
+                    ></span>
                     <div class="ontology-source-input">
                       <input
                         type="url"
@@ -322,32 +320,18 @@
                         autocorrect="off"
                         spellcheck="false"
                         required
-                        aria-describedby="iri-converter-hint ontology-source-summary"
+                        aria-describedby="iri-converter-hint"
                         aria-autocomplete="list"
                         aria-controls="ontology-suggestions"
                       />
                       <button
                         type="button"
-                        id="ontology-suggestions-toggle"
-                        aria-label="Ontology suggestions"
-                        aria-expanded="false"
-                        aria-controls="ontology-suggestions"
-                      >
-                        Browse
-                      </button>
-                      <button
-                        type="button"
                         id="ontology-source-clear"
                         aria-label="Clear ontology URL"
+                        hidden
                       >
-                        Clear
+                        ✕
                       </button>
-                    </div>
-                    <div
-                      id="ontology-source-summary"
-                      class="ontology-source-summary"
-                    >
-                      No source selected
                     </div>
                     <button type="submit" id="iri-converter-button" disabled>
                       Visualize
@@ -365,13 +349,6 @@
                       class="visually-hidden"
                       role="status"
                     ></span>
-                    <a
-                      class="ontology-example-notices"
-                      href="data/canonical-example-notices.txt"
-                      target="_blank"
-                      rel="noopener"
-                      >Packaged example provenance and licences</a
-                    >
                   </form>
                   <div class="converter-form">
                     <input
@@ -420,11 +397,11 @@
                     </button>
                     <button
                       type="button"
-                      id="ontology-facts"
+                      id="ontology-overview-open"
                       class="empty-ontology-btn"
-                      hidden
+                      aria-haspopup="dialog"
                     >
-                      Ontology facts
+                      Overview
                     </button>
                   </div>
                 </li>
@@ -895,14 +872,16 @@
                       id="colorexternalsModuleCheckbox"
                       type="checkbox"
                     />
-                    <label for="colorexternalsModuleCheckbox"
+                    <label
+                      id="externalColorModeLabel"
+                      for="colorexternalsModuleCheckbox"
                       >Color externals</label
                     >
                     <button
                       type="button"
                       class="color-mode-switch"
                       id="externalColorModeButton"
-                      aria-label="Toggle color mode"
+                      aria-labelledby="externalColorModeLabel externalColorModeButton"
                     ></button>
                   </div>
                 </li>
@@ -1242,6 +1221,7 @@
               <li id="c_select">
                 <button
                   type="button"
+                  id="ontology-menu-open"
                   class="navButton"
                   aria-label="Ontology"
                   popovertarget="m_select"

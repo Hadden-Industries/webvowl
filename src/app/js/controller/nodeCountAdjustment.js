@@ -1,6 +1,6 @@
 import { createNodesShownIntent } from "./nodesShownContracts.js";
 
-const QUIET_PERIOD_MS = 1000;
+const QUIET_PERIOD_MS = 50;
 const sameIntent = (left, right) =>
   left?.mode === right?.mode && left?.requestedCount === right?.requestedCount;
 const sameDocument = (left, right) =>

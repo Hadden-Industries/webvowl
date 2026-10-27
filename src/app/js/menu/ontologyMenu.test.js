@@ -1,8 +1,5 @@
 import { createOntologyMenu } from "./ontologyMenu.js";
-import {
-  normalizeOntologyUrl,
-  ONTOLOGY_URL_HINT,
-} from "../ui/ontologySourceSubmission.js";
+import { normalizeOntologyUrl } from "../ui/ontologySourceSubmission.js";
 
 // Explicit application connections used by the ontology input.
 let loadingModule;
@@ -323,7 +320,8 @@ describe("ontology menu actions", () => {
 
     expect(iriInput.element.value).toBe("https://example.org/ontology.owl");
     expect(iriInput.attributes["aria-invalid"]).toBeUndefined();
-    expect(iriHint.element.textContent).toBe(ONTOLOGY_URL_HINT);
+    expect(iriHint.element.textContent).toBe("");
+    expect(iriHint.element.hidden).toBe(true);
   });
 
   test("normalizes before native validation when Enter is pressed", () => {

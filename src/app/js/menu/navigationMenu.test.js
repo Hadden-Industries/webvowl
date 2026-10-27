@@ -318,7 +318,7 @@ describe("navigationMenu and popover event listeners", () => {
     global.cancelAnimationFrame = (id) => clearTimeout(id);
   });
 
-  test("suppresses contextmenu on scroll buttons and navButtons", () => {
+  test("suppresses contextmenu without swallowing native touch activation", () => {
     const navMenu = navigationMenuFactory({
       documentObject: global.document,
       windowObject: global.window,
@@ -336,7 +336,7 @@ describe("navigationMenu and popover event listeners", () => {
       bubbles: true,
     });
     scrollRightBtn.dispatchEvent(touchEventRight);
-    expect(touchEventRight.defaultPrevented).toBe(true);
+    expect(touchEventRight.defaultPrevented).toBe(false);
 
     const contextEventRight = new CustomEvent("contextmenu", {
       cancelable: true,
@@ -350,7 +350,7 @@ describe("navigationMenu and popover event listeners", () => {
       bubbles: true,
     });
     scrollLeftBtn.dispatchEvent(touchEventLeft);
-    expect(touchEventLeft.defaultPrevented).toBe(true);
+    expect(touchEventLeft.defaultPrevented).toBe(false);
 
     const contextEventLeft = new CustomEvent("contextmenu", {
       cancelable: true,
@@ -366,6 +366,38 @@ describe("navigationMenu and popover event listeners", () => {
     navBtn.dispatchEvent(contextEventNav);
     expect(contextEventNav.defaultPrevented).toBe(true);
   });
+
+  test.each([
+    ["scrollRightButton", 200],
+    ["scrollLeftButton", 0],
+  ])(
+    "%s preserves quick native activation and cancels held scrolling",
+    (id, expected) => {
+      const frame = jest.fn(() => 42);
+      const cancel = jest.spyOn(global, "cancelAnimationFrame");
+      const navMenu = navigationMenuFactory({
+        requestAnimationFrameFunction: frame,
+      });
+      navMenu.setup();
+      const container = document.getElementById("menuElementContainer");
+      container.clientWidth = 300;
+      container.scrollWidth = 800;
+      container.scrollLeft = 100;
+      const button = document.getElementById(id);
+      const down = new CustomEvent("pointerdown", { cancelable: true });
+      down.button = 0;
+      down.isPrimary = true;
+      button.dispatchEvent(down);
+      expect(down.defaultPrevented).toBe(false);
+      expect(frame).toHaveBeenCalledTimes(1);
+      button.dispatchEvent(new CustomEvent("pointerup"));
+      expect(cancel).toHaveBeenCalledWith(42);
+      expect(container.scrollLeft).toBe(100);
+      button.dispatchEvent(new CustomEvent("click"));
+      expect(container.scrollLeft).toBe(expected);
+      cancel.mockRestore();
+    },
+  );
 
   test("keeps scroll-button visibility in sync with the menu viewport", () => {
     const navMenu = navigationMenuFactory({

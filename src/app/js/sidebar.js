@@ -63,7 +63,7 @@ export function createSidebar({
   onViewportGeometryChanged = () => {},
   hideNavigationMenus = () => {},
   updateNavigationOverflow = () => {},
-  onToggleDetailsPanel,
+  onToggleEditorPanel,
 }) {
   const sidebar = {};
   const lifecycleAbortController = new AbortController();
@@ -634,8 +634,8 @@ export function createSidebar({
       "click",
       function () {
         hideNavMenus();
-        if (onToggleDetailsPanel) {
-          onToggleDetailsPanel();
+        if (onToggleEditorPanel) {
+          onToggleEditorPanel();
           return;
         }
         const currentVisibilityValue = Number.parseInt(

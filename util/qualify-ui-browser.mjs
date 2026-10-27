@@ -3,6 +3,12 @@ import { writeFile, mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { qualifyPresentationFixtures } from "./uiPresentationFixtures.mjs";
+import { checkNodeCountMouseDrag } from "./nodeCountBrowserCheck.mjs";
+import {
+  checkToolbarActivation,
+  checkOptionsPresentation,
+  checkMenuPlacement,
+} from "./menuActivationBrowserCheck.mjs";
 
 // Uses a caller-selected Playwright runtime; no project dependency or browser
 // policy is changed. These are functional checks, never foreground timings.
@@ -125,6 +131,62 @@ try {
   );
 
   await check(
+    "node count follows mouse dragging without changing control geometry",
+    async () => {
+      const evidence = await checkNodeCountMouseDrag(page);
+      const finalCount = evidence.steps.at(-1).value;
+      await page.waitForFunction((expected) => {
+        const current = globalThis.window.uiQualification.controller.getState();
+        return (
+          current.nodeCountAdjustment === null &&
+          current.nodeCountStatus.shownNodeCount === expected
+        );
+      }, finalCount);
+      await page
+        .locator("#nodesShown-exact")
+        .fill(String(evidence.initial.value));
+      await page.locator("#nodesShown-exact").press("Enter");
+      await page.waitForFunction(
+        (expected) =>
+          globalThis.window.uiQualification.controller.getState()
+            .nodeCountStatus.shownNodeCount === expected,
+        evidence.initial.value,
+      );
+      await page.keyboard.press("Escape");
+      return evidence;
+    },
+  );
+
+  await check(
+    "compact toolbar activation and Options presentation",
+    async () => {
+      const mobile = await browser.newPage({
+        viewport: { width: 440, height: 956 },
+        hasTouch: true,
+        ...(engine === "firefox" ? {} : { isMobile: true }),
+        reducedMotion: "reduce",
+      });
+      try {
+        mobile.on("pageerror", (error) => receipt.errors.push(error.message));
+        await mobile.goto(baseUrl, { waitUntil: "networkidle" });
+        await mobile.waitForFunction(
+          () =>
+            globalThis.document.querySelectorAll(
+              "#graph .nodeContainer > .node",
+            ).length > 0,
+        );
+        return {
+          toolbar: await checkToolbarActivation(mobile, { touch: true }),
+          options: await checkOptionsPresentation(mobile),
+          placement: await checkMenuPlacement(mobile),
+        };
+      } finally {
+        await mobile.close();
+      }
+    },
+  );
+
+  await check(
     "chooser catalogue, keyboard commit without load, and native URL sanitization",
     async () => {
       const before = await state();
@@ -179,6 +241,7 @@ try {
     "overview retains metadata, facts, native dialog focus and source identity",
     async () => {
       const before = await state();
+      await page.locator("#ontology-menu-open").click();
       await page.locator("#ontology-overview-open").click();
       const fields = await page.evaluate(() =>
         Object.fromEntries(
@@ -228,11 +291,11 @@ try {
         () =>
           !globalThis.document.getElementById("ontology-overview-dialog")
             .open &&
-          globalThis.document.activeElement.id === "ontology-overview-open",
+          globalThis.document.activeElement.id === "ontology-menu-open",
       );
       assert.equal(
         await page.evaluate(() => globalThis.document.activeElement.id),
-        "ontology-overview-open",
+        "ontology-menu-open",
       );
       assert.deepEqual((await state()).selection, before.selection);
       return fields;

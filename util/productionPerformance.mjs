@@ -233,6 +233,10 @@ export function productionManifest(directory) {
               !path.startsWith("/"),
             "Worker module escapes its production output",
           );
+          assert(
+            path !== worker,
+            `Worker dependency ${module} imports its own entry ${worker}`,
+          );
           pending.push(path);
         },
       );

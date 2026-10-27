@@ -46,7 +46,7 @@ test("a running graph holds while a count is pending, then installs the final sc
     h.controller.stageNodeCountAdjustment(exact(0));
     await h.advance(16);
     h.controller.stageNodeCountAdjustment(exact(1));
-    await h.advance(999);
+    await h.advance(49);
     expect(h.double.observe().mounted).toEqual(before);
     expect(h.double.observe().paused).toBe(true);
     expect(h.controller.getState().layout).toEqual({
@@ -58,6 +58,9 @@ test("a running graph holds while a count is pending, then installs the final sc
       h.controller.getState().nodeCountAdjustment.requestedNodesShown,
     ).toEqual(exact(1));
     await h.advance(1);
+    expect(h.controller.getState().nodeCountAdjustment?.status).not.toBe(
+      "pending",
+    );
     await h.controller.flushNodeCountAdjustment();
     expect(h.controller.getState().nodeCountStatus.shownNodeCount).toBe(1);
     expect(

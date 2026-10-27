@@ -278,6 +278,61 @@ function mountCanonicalGraph(drawing = CANONICAL_DRAWING) {
   return mountGraph(drawing);
 }
 
+test.each(["paused", "running", "settled"])(
+  "viewport notifications preserve the %s simulation and arrangement",
+  (mode) => {
+    const h = mountCanonicalGraph();
+    try {
+      h.graph.setRenderedGraphEventPort({ publishGraphLayoutState: jest.fn() });
+      h.graph.editorMode(false);
+      const drawing = structuredClone(CANONICAL_DRAWING);
+      drawing.nodes[0].pinned = false;
+      h.graph.load(1, {
+        canonicalDrawing: drawing,
+        isPaused: mode === "paused",
+      });
+      const simulation = createdSimulations.at(-1);
+      if (mode === "settled") {
+        simulation.alpha(0);
+      }
+      const snapshot = h.graph.readLayoutState();
+      const before = {
+        forceAlpha: snapshot.forceAlpha,
+        hasEnded: snapshot.hasEnded,
+        isPaused: snapshot.isPaused,
+        layoutElementPositions: snapshot.layoutElementPositions,
+      };
+      const start = jest.spyOn(simulation, "start");
+      const stop = jest.spyOn(simulation, "stop");
+      for (const widthPx of [800, 440, 800]) {
+        h.graph.resizeViewport({
+          widthPx,
+          heightPx: 600,
+          occludedLeftWidthPx: 0,
+          isTouchDevice: false,
+        });
+        expect(h.graph.readLayoutState()).toEqual(
+          expect.objectContaining({ ...before, widthPx, heightPx: 600 }),
+        );
+        expect(simulation.size()).toEqual([widthPx, 600]);
+        expect(h.document.querySelector("svg").getAttribute("width")).toBe(
+          String(widthPx),
+        );
+      }
+      expect(start).not.toHaveBeenCalled();
+      expect(stop).not.toHaveBeenCalled();
+      if (mode !== "running") {
+        d3.timerFlush();
+        expect(h.graph.readLayoutState()).toEqual(
+          expect.objectContaining(before),
+        );
+      }
+    } finally {
+      h.dispose();
+    }
+  },
+);
+
 test("a fresh running drawing keeps its prepared geometry until initial paint", () => {
   const h = mountCanonicalGraph();
   try {

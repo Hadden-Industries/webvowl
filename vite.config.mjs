@@ -232,7 +232,23 @@ export default defineConfig(({ mode }) => {
     publicDir: false,
 
     // Native dynamic imports keep OWL parsers out of canonical-only worker jobs.
-    worker: { format: "es" },
+    worker: {
+      format: "es",
+      rolldownOptions: {
+        output: {
+          codeSplitting: {
+            groups: [
+              {
+                // Keep shared model ownership outside the worker entry: WebKit
+                // can evaluate that entry again when a lazy parser imports it.
+                name: "vowl-core",
+                test: /packages[\\/]vowl[\\/]src[\\/]index\.js$/u,
+              },
+            ],
+          },
+        },
+      },
+    },
 
     build: {
       outDir: resolve(

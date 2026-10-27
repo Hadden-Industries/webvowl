@@ -66,7 +66,7 @@ export function createEntityDetailsPresenter({
   function renderPreview() {
     preview.hidden = !model.length || editor;
     if (preview.hidden && preview.contains(doc.activeElement)) {
-      doc.getElementById("ontology-overview-open").focus();
+      doc.getElementById("ontology-menu-open").focus();
     }
     if (preview.hidden) {
       onPresentationChanged();

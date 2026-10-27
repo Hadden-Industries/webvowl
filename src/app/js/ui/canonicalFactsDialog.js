@@ -11,8 +11,6 @@ export function createCanonicalFactsDialog({
   documentObject = document,
 }) {
   const doc = documentObject;
-  const button = doc.querySelector("#ontology-facts");
-  const lifecycle = new AbortController();
   let dialog;
   let restoreFocus;
   const close = () => {
@@ -30,11 +28,10 @@ export function createCanonicalFactsDialog({
       state.source &&
       state.loadGeneration > 0 &&
       state.layout?.status !== "unavailable";
-    button.disabled = !(
-      ["ready", "relaxing"].includes(state.status) || retainedAfterFailure
-    );
+    const canInspect =
+      ["ready", "relaxing"].includes(state.status) || retainedAfterFailure;
     if (
-      button.disabled ||
+      !canInspect ||
       fields.some((field) =>
         ["loadGeneration", "documentRevision"].includes(field),
       )
@@ -43,7 +40,6 @@ export function createCanonicalFactsDialog({
     }
   };
   const unsubscribe = controller.subscribeToState(refresh);
-  button.hidden = false;
   refresh(controller.getState());
 
   function open(invoker) {
@@ -190,14 +186,11 @@ export function createCanonicalFactsDialog({
     dialog.showModal();
     select.focus();
   }
-  button.addEventListener("click", () => open(), { signal: lifecycle.signal });
   return {
     open,
     dispose() {
-      lifecycle.abort();
       unsubscribe();
       close();
-      button.hidden = true;
     },
   };
 }
