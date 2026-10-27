@@ -1,5 +1,16 @@
 import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { pathToFileURL } from "node:url";
+import * as vowlLanguageTags from "bcp-47";
 import { canonicalize, decode, encode, profiles } from "vowl";
+
+// Resolve through each actual consumer so an upstream exact pin or deduplication
+// cannot silently substitute one parser for the other in this compatibility check.
+const requireVowl = createRequire(import.meta.url);
+const requireOwlapi = createRequire(requireVowl.resolve("owlapi"));
+const owlapiLanguageTags = await import(
+  pathToFileURL(requireOwlapi.resolve("bcp-47")).href
+);
 
 const source = () =>
   JSON.parse(
@@ -12,6 +23,58 @@ const source = () =>
   );
 const options = { profile: profiles.structuralContent };
 const text = (document) => new TextDecoder().decode(encode(document));
+
+test.each([
+  "EN-gb",
+  "x-private",
+  "en-x-example",
+  "en-u-ca-gregory",
+  "de-CH-1901",
+  "sl-rozaj-biske-1994",
+  "i-klingon",
+  "en-GB-oed",
+  "zh-min-nan",
+])(
+  "OwlAPI and VOWL language parsers preserve valid tag %s",
+  async (language) => {
+    const parsed = [owlapiLanguageTags, vowlLanguageTags].map((parser) => {
+      const warnings = [];
+      const value = parser.parse(language, {
+        normalize: false,
+        warning: (reason) => warnings.push(reason),
+      });
+      expect(warnings).toEqual([]);
+      expect(parser.stringify(value)).toBe(language);
+      return value;
+    });
+    expect(parsed[0]).toEqual(parsed[1]);
+    const model = source();
+    model.structural.constructs[0].value.language = language;
+    model.structural.constructs[1].assertion.value.language = language;
+    const document = await canonicalize(model, options);
+    expect(text(document)).toContain(`"language":"${language.toLowerCase()}"`);
+    expect(encode(await decode(encode(document)))).toEqual(encode(document));
+  },
+);
+
+test.each(["x", "en-x", "EN-x", "de-1901-x", "en-u-ca-gregory-x"])(
+  "empty private-use suffix %s remains invalid across the parser patch update",
+  async (language) => {
+    for (const parser of [owlapiLanguageTags, vowlLanguageTags]) {
+      const parsed = parser.parse(language, { normalize: false });
+      // Both consumers require lossless parsing. Version 2.1.1 silently drops
+      // the suffix; 2.1.2 reports the missing subtag. Neither may accept it.
+      expect(parser.stringify(parsed).toLowerCase()).not.toBe(
+        language.toLowerCase(),
+      );
+    }
+    const model = source();
+    model.structural.constructs[0].value.language = language;
+    await expect(canonicalize(model, options)).rejects.toMatchObject({
+      code: "LANGUAGE_TAG_INVALID",
+    });
+  },
+);
 
 test.each(["en-a-foo-a-bar", "de-1901-1901", "en_Us", "en-K"])(
   "rejects malformed RFC5646 tag %s",

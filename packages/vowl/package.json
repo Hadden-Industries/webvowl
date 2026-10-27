@@ -26,7 +26,7 @@
     "@hyperjump/uri": "1.3.9",
     "@streamparser/json": "0.0.26",
     "ajv": "8.20.0",
-    "bcp-47": "2.1.1",
+    "bcp-47": "2.1.2",
     "canonicalize": "5.1.0",
     "owlapi": "*",
     "rdf-canonize": "5.0.0"

@@ -5,7 +5,7 @@ const load = (path) =>
   parse(readFileSync(new URL(path, import.meta.url), "utf8"));
 const workflow = load("../.github/workflows/markdown-quality.yml");
 const application = load("../.github/workflows/webvowl-ci.yml");
-const producer = "47febbe1b6f3282814e77db7ea13eac72b4928ed";
+const producer = "fa1188a867b29bddd0b972a080b7fcd0261bdec3";
 
 function assertTrustedCaller(candidate) {
   expect(Object.keys(candidate.on)).toEqual(["workflow_dispatch"]);

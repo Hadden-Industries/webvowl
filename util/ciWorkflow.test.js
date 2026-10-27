@@ -18,7 +18,7 @@ test("Python provisioning preserves the repository selector and isolated locked 
     step.uses?.startsWith("astral-sh/setup-uv@"),
   );
   expect(provisioning.uses).toBe(
-    "astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884",
+    "astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e",
   );
   expect(provisioning.with).toEqual({
     version: "${{ steps.runtimes.outputs.uv }}",
