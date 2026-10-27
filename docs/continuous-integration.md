@@ -40,7 +40,8 @@ Commands use the supported public package bins and API/schema exports rather tha
 Windows observes cumulative Job peak committed bytes; Linux samples process-group RSS, so their resource measurements have different boundaries.
 Six passing samples describe the observed window and do not guarantee future tail performance.
 
-The manually dispatched trusted qualification caller uses the reusable producer workflow pinned to that same full source SHA.
+The manually dispatched trusted qualification caller uses the reusable producer workflow pinned to [`fa1188a867b29bddd0b972a080b7fcd0261bdec3`](https://github.com/Hadden-Industries/markdown-quality/tree/fa1188a867b29bddd0b972a080b7fcd0261bdec3).
+This workflow revision advances independently of the retained, qualified 1.0.3 package archives.
 It accepts distinct full trusted and candidate commits and processes candidate content as data through the installed producer-owned staging and observer contracts.
 The owner must first accept the exact reviewed trusted policy/profile/lock/archive tuple, then accept the attributable positive and adversarial hosted results before normal integration.
 An ordinary green CI status is not that trust decision.

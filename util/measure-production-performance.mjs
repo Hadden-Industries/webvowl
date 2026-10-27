@@ -50,6 +50,7 @@ import { measureProductionUiSources } from "./productionUiSources.mjs";
 import { measureProductionCountAdjustment } from "./productionCountAdjustment.mjs";
 import { measureProductionInitialLayout } from "./productionInitialLayout.mjs";
 import { createLocalInteractionTiming } from "./productionInteractionTiming.mjs";
+import { dispatchCdpEvent } from "./dispatchCdpEvent.mjs";
 
 // A companion to qualify-canonical-browser.mjs: actual production HTML/CSS,
 // headed isolated Chrome, and separately labelled latency/diagnostic passes.
@@ -1136,6 +1137,7 @@ try {
     resolve("util/productionCountAdjustment.mjs"),
     resolve("util/productionInitialLayout.mjs"),
     resolve("util/productionInteractionTiming.mjs"),
+    resolve("util/dispatchCdpEvent.mjs"),
   ].map((path) => ({ path, sha256: sha256(readFileSync(path)) }));
   report.environment = {
     platform: platform(),
@@ -1256,7 +1258,7 @@ try {
       pending.delete(message.id);
       if (message.error) item.fail(new Error(JSON.stringify(message.error)));
       else item.done(message.result);
-    } else events.get(message.method)?.(message.params, message.sessionId);
+    } else dispatchCdpEvent(events, message);
   });
   report.browser = await call("Browser.getVersion", {}, undefined);
   if (countAdjustmentOnly)

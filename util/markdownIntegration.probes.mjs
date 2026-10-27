@@ -27,14 +27,14 @@ const {
   validateQualityResult,
 } = await import(pathToFileURL(entry).href);
 const json = (path) => JSON.parse(readFileSync(path, "utf8"));
-const sourceSha = "47febbe1b6f3282814e77db7ea13eac72b4928ed";
+const workflowSha = "fa1188a867b29bddd0b972a080b7fcd0261bdec3";
 
 test("installed public contracts bind WebVOWL's retained source and resource policy", () => {
   const workflow = readFileSync(
     join(root, ".github/workflows/markdown-quality.yml"),
     "utf8",
   );
-  assert.ok(workflow.includes(`markdown-quality.yml@${sourceSha}`));
+  assert.ok(workflow.includes(`markdown-quality.yml@${workflowSha}`));
   const profile = readExecutionProfile({ root });
   assert.equal(profile.samples, 6);
   assert.equal(profile.checkerMs, 30000);
