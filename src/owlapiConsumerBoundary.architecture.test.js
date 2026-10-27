@@ -453,8 +453,14 @@ describe("installed owlapi consumer boundary", () => {
       ).toBe(LOCKED_PACKAGE.integrity);
       const archive = path.join(directory, "owlapi.tgz");
       writeFileSync(archive, bytes);
-      execFileSync("tar", ["-xzf", archive, "-C", directory], {
-        windowsHide: true,
+      // Extract with npm's bundled tar too: the tar first on PATH varies by
+      // shell, and Git Bash's GNU tar reads the drive letter of an absolute
+      // Windows path as a remote host.
+      npmRequire("tar").x({
+        file: archive,
+        cwd: directory,
+        strict: true,
+        sync: true,
       });
       const sort = (inventory) =>
         inventory.sort(([left], [right]) =>
