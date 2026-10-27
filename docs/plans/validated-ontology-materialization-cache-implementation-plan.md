@@ -185,7 +185,7 @@ No locally faster cache result compensates for a different ontology or an unsafe
 - The original assessment remains historical input.
   Current source/lock contracts supersede its retired paths, registry-only restriction and mandatory pre-load format-selection assumptions.
 - The owner explicitly requested synthesis of the uncommitted limits implementation.
-  The [27 October unbounded-limits amendment](../specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md) and its current working-tree implementation are therefore the planning baseline for §11.2, even before a commit exists.
+  The 27 October unbounded-limits amendment (`docs/specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md`, an uncommitted authoring input) and its current working-tree implementation are therefore the planning baseline for §11.2, even before a commit exists.
   The inspected public export is `operationLimitDefaults`; WebVOWL owns `APPLICATION_LIMIT_POLICY`, `APPLICATION_LIMITS` and `MODEL_OPERATION_LIMITS` separately.
   The OWL adapter now derives import/profile bounds, separates expanded XML from input bytes and reports caught host-resource exhaustion.
   The unchanged acquisition layer retains its independent byte/import gates; it does not restore every removed adapter cap.
@@ -2625,7 +2625,7 @@ Its release evidence explicitly says provider integration and production cache a
 - [Historical rc.1 public API](https://github.com/Hadden-Industries/owlapi/blob/v0.1.0-rc.1/API.md) and [npm package](https://www.npmjs.com/package/@hadden-industries/owlapi); the October 5 registry check is historical.
   Use the exact selected artifact's current API/export evidence for implementation.
 - WebVOWL `7a298176a9cb7fff31c89069a63d6746bf9bf23a` (committed baseline; adopted uncommitted limits work is separately identified in §2.6): `src/app/js/controller/canonicalVowlSourceAcquisition.js`, `importResolver.js`, canonical session/worker modules, `src/app/js/canonicalApplication.js` and `src/canonical-main.js`.
-- [Owner-approved 27 October unbounded-limits amendment](../specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md) and inspected uncommitted implementation: `packages/vowl/src/index.js`, `resourceBudget.js`, `errors.js`, `internalRdf.js`, `owl/loading.js`, `owl/policy.js`, `owl/compatibleLoading.js`; application `canonicalVowlWorkerPolicy.js`, `canonicalVowlWorkerOperations.js`, `canonicalVowlWorkerClient.js` and `importResolver.js`.
+- Owner-approved 27 October unbounded-limits amendment (uncommitted source path `docs/specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md`) and inspected uncommitted implementation: `packages/vowl/src/index.js`, `resourceBudget.js`, `errors.js`, `internalRdf.js`, `owl/loading.js`, `owl/policy.js`, `owl/compatibleLoading.js`; application `canonicalVowlWorkerPolicy.js`, `canonicalVowlWorkerOperations.js`, `canonicalVowlWorkerClient.js` and `importResolver.js`.
   §11.2 adopts those source contracts; §19 identifies existing unbounded-limit tests and the independent supplemental overlay for later qualification.
   This revision neither rewrites the historical core specification nor claims those tests passed.
 - Consumer diagnostic/acquisition evidence: `canonicalVowlFailure.js`, `canonicalVowlSourceAcquisition.js`; logical corpus reader `packages/vowl/conformance/storage.mjs`.
