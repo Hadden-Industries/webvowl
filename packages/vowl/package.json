@@ -4,7 +4,7 @@
   "description": "Experimental Canonical VOWL core for the 2026-09-24 proposed profiles",
   "private": true,
   "type": "module",
-  "license": "AGPL-3.0-only",
+  "license": "AGPL-3.0-only AND BSD-3-Clause",
   "exports": {
     ".": "./src/index.js",
     "./owl": "./src/owl/index.js",

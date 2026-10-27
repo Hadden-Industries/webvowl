@@ -1,0 +1,24 @@
+version = 1
+
+# Canonical VOWL schemas and conformance data are BSD-3-Clause so independent
+# implementations can copy them. Files not matched here keep their existing
+# licensing: LICENSE (AGPL-3.0-only), their own SPDX header, or a recorded
+# third-party notice.
+
+[[annotations]]
+path = "packages/vowl/schema/*.schema.json"
+SPDX-FileCopyrightText = "2026 Maksym Shostak"
+SPDX-License-Identifier = "BSD-3-Clause"
+
+[[annotations]]
+path = [
+  "packages/vowl/conformance/**/*.json",
+  "packages/vowl/conformance/**/*.jsonl",
+  "packages/vowl/conformance/**/*.nq",
+  "packages/vowl/conformance/**/*.input",
+  "packages/vowl/conformance/**/*.bin",
+  "packages/vowl/conformance/**/*.ofn",
+  "packages/vowl/conformance/**/*.ttl",
+]
+SPDX-FileCopyrightText = "2026 Maksym Shostak"
+SPDX-License-Identifier = "BSD-3-Clause"

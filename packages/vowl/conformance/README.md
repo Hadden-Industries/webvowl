@@ -87,4 +87,5 @@ Its historical rejection remains preserved; the amended-policy manifest pins a s
 Neither inventory is a complete coverage claim.
 `experiments/rdfc-budget-probe` preserves a bounded budget experiment that was explicitly nonconforming to the then-current linear policy; its successful exploratory output remains historical evidence, separate from the independently derived amended-policy positives.
 
-License: AGPL-3.0-only; reused standards libraries retain their own BSD-3-Clause and Apache-2.0 licenses.
+License: the corpus data files (`.json`, `.jsonl`, `.nq`, `.input`, `.bin`, `.ofn` and `.ttl`) are BSD-3-Clause, while the derivation scripts and these notes remain AGPL-3.0-only.
+The repository's [REUSE.toml](../../../REUSE.toml) is the authoritative list; reused standards libraries retain their own BSD-3-Clause and Apache-2.0 licenses.
