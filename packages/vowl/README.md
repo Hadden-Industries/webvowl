@@ -167,5 +167,5 @@ Run `node packages/vowl/scripts/generate-schemas.mjs` to regenerate the schema a
 The independently authored `conformance` corpus pins expected bytes and intermediate evidence; its README explains reproduction and experimental coverage limits.
 Never format or regenerate canonical expected bytes to hide a mismatch.
 
-License: AGPL-3.0-only.
+License: AGPL-3.0-only, except the JSON Schemas in `schema` and the conformance data files, which are BSD-3-Clause; the repository's [REUSE.toml](../../REUSE.toml) lists them.
 Reused standards libraries and their notices are listed in `THIRD-PARTY-NOTICES.md`.

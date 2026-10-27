@@ -230,5 +230,10 @@ The legacy `visualdataweb.org` domain is no longer associated with the project.
 
 Copyright © 2014–2026 Vincent Link, Steffen Lohmann, Eduard Marbach, Stefan Negru, Vitalis Wiens, Maksym Shostak.
 
-Licensed under **GNU AGPL version 3 only** (`AGPL-3.0-only`).
+Licensed under **GNU AGPL version 3 only** (`AGPL-3.0-only`), except as stated below.
 See [LICENSE](LICENSE).
+
+The Canonical VOWL schemas and conformance data in `packages/vowl` are licensed under the [BSD 3-Clause License](LICENSES/BSD-3-Clause.txt).
+[REUSE.toml](REUSE.toml) lists the files covered; the package's code remains AGPL-3.0-only.
+Canonical VOWL specification documents that state a CC BY 4.0 licence are licensed under [CC BY 4.0](LICENSES/CC-BY-4.0.txt); the dated records in `docs/specs/` remain AGPL-3.0-only.
+Those schemas, data and documents are copyright © 2026 Maksym Shostak.
