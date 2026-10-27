@@ -82,7 +82,7 @@ test("reuse wiring authenticates a bounded immutable receipt and preserves requi
     "ubuntu-24.04",
     "windows-latest",
   ]);
-  for (const job of ["application", "tooling", "documentation"]) {
+  for (const job of ["application", "tooling", "documentation", "json"]) {
     expect(workflow.jobs[job].if).toContain(
       "needs.scope.outputs.reuse != 'true'",
     );
@@ -153,10 +153,11 @@ test("the required workflow gate admits successful docs-only and full checks", (
   ).toBe(0);
 });
 
-test("JSON checking executes on both platforms even for documentation-only or reused runs", () => {
+test("JSON checking runs on both platforms unless scope verifies PR reuse", () => {
   const json = workflow.jobs.json;
   expect(json).toBeDefined();
-  expect(json.if).toBeUndefined();
+  expect(json.needs).toBe("scope");
+  expect(json.if).toBe("needs.scope.outputs.reuse != 'true'");
   expect(json.strategy.matrix.os).toEqual(["ubuntu-24.04", "windows-2025"]);
   expect(workflow.jobs.required.needs).toContain("json");
   const commands = json.steps

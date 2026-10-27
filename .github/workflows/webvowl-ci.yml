@@ -142,6 +142,8 @@ jobs:
         run: node packages/vowl/scripts/verify-corpus-storage.mjs
 
   json:
+    needs: scope
+    if: needs.scope.outputs.reuse != 'true'
     name: JSON quality (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
