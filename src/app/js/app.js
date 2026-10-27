@@ -433,7 +433,7 @@ export function createWebVowlApplication({
       hideNavigationMenus: () => navigationMenu.hideAllMenus(),
       updateNavigationOverflow: () =>
         navigationMenu.updateScrollButtonVisibility(),
-      onToggleDetailsPanel: () => detailsSurface.toggleDetails(),
+      onToggleEditorPanel: () => detailsSurface.toggleEditorPanel(),
     });
     detailsSurface = createAdaptiveDetailsSurface({
       setDockVisible: (value, suppress) => sidebar.showSidebar(value, suppress),

@@ -2483,8 +2483,14 @@ function createGraph(
   initializeGraph(); // << call the initialization function
 
   graph.resizeViewport = function (viewport) {
+    const sizeChanged =
+      renderedGraphSettings.width() !== viewport.widthPx ||
+      renderedGraphSettings.height() !== viewport.heightPx;
     renderedGraphSettings.width(viewport.widthPx);
     renderedGraphSettings.height(viewport.heightPx);
+    // Viewport geometry is presentation state. Keep the current simulation's
+    // alpha, timer and positions when a dialog or dock changes the viewport.
+    force.size([viewport.widthPx, viewport.heightPx]);
     occludedLeftWidthPx = viewport.occludedLeftWidthPx;
     touchDevice = viewport.isTouchDevice;
     if (!hasMeasuredViewport && viewport.widthPx > 0 && viewport.heightPx > 0) {
@@ -2496,7 +2502,10 @@ function createGraph(
       svgElement.attr("width", renderedGraphSettings.width());
       svgElement.attr("height", renderedGraphSettings.height());
       graphContainer.attr("transform", viewportTransformString());
-      graph.updateStyle();
+      if (sizeChanged) {
+        panCache?.invalidate();
+        panCache?.refresh();
+      }
     }
 
     return {

@@ -167,6 +167,8 @@ export function createNavigationMenu({
   function clearAllTimers() {
     cancelAnimationFrame(t_scrollLeft);
     cancelAnimationFrame(t_scrollRight);
+    t_scrollLeft = undefined;
+    t_scrollRight = undefined;
   }
 
   function timed_scrollRight() {
@@ -239,69 +241,60 @@ export function createNavigationMenu({
     });
 
     // bind global release listeners
-    windowObject.addEventListener("mouseup", clearAllTimers);
-    windowObject.addEventListener("touchend", clearAllTimers);
+    windowObject.addEventListener("pointerup", clearAllTimers);
+    windowObject.addEventListener("pointercancel", clearAllTimers);
+    windowObject.addEventListener("blur", clearAllTimers);
     windowObject.addEventListener("resize", function () {
       navigationMenu.updateScrollButtonVisibility();
       updateMenuPosition();
     });
 
     // connect scrollIndicator Buttons;
-    rightButton.addEventListener("mousedown", function () {
+    rightButton.addEventListener("pointerdown", function (event) {
+      if (event.button !== 0 || !event.isPrimary) {
+        return;
+      }
+      clearAllTimers();
       navigationMenu.hideAllMenus();
       t_scrollRight = requestAnimationFrameFunction(timed_scrollRight);
     });
-    rightButton.addEventListener(
-      "touchstart",
-      function (event) {
-        if (event && event.cancelable) {
-          event.preventDefault();
-        }
-        navigationMenu.hideAllMenus();
-        t_scrollRight = requestAnimationFrameFunction(timed_scrollRight);
-      },
-      { passive: false },
-    );
     rightButton.addEventListener("contextmenu", function (event) {
       if (event) {
         event.preventDefault();
       }
     });
     rightButton.addEventListener("click", function () {
+      navigationMenu.hideAllMenus();
       scrollContainer.scrollLeft += 100;
       navigationMenu.updateScrollButtonVisibility();
     });
-    rightButton.addEventListener("mouseup", clearAllTimers);
-    rightButton.addEventListener("touchend", clearAllTimers);
-    rightButton.addEventListener("touchcancel", clearAllTimers);
+    rightButton.addEventListener("pointerup", clearAllTimers);
+    rightButton.addEventListener("pointercancel", clearAllTimers);
+    rightButton.addEventListener("pointerleave", clearAllTimers);
 
-    leftButton.addEventListener("mousedown", function () {
+    // Pointer presses add hold-to-scroll without cancelling native clicks.
+    // Cancelling touchstart used to swallow quick taps before the first frame.
+    leftButton.addEventListener("pointerdown", function (event) {
+      if (event.button !== 0 || !event.isPrimary) {
+        return;
+      }
+      clearAllTimers();
       navigationMenu.hideAllMenus();
       t_scrollLeft = requestAnimationFrameFunction(timed_scrollLeft);
     });
-    leftButton.addEventListener(
-      "touchstart",
-      function (event) {
-        if (event && event.cancelable) {
-          event.preventDefault();
-        }
-        navigationMenu.hideAllMenus();
-        t_scrollLeft = requestAnimationFrameFunction(timed_scrollLeft);
-      },
-      { passive: false },
-    );
     leftButton.addEventListener("contextmenu", function (event) {
       if (event) {
         event.preventDefault();
       }
     });
     leftButton.addEventListener("click", function () {
+      navigationMenu.hideAllMenus();
       scrollContainer.scrollLeft -= 100;
       navigationMenu.updateScrollButtonVisibility();
     });
-    leftButton.addEventListener("mouseup", clearAllTimers);
-    leftButton.addEventListener("touchend", clearAllTimers);
-    leftButton.addEventListener("touchcancel", clearAllTimers);
+    leftButton.addEventListener("pointerup", clearAllTimers);
+    leftButton.addEventListener("pointercancel", clearAllTimers);
+    leftButton.addEventListener("pointerleave", clearAllTimers);
 
     documentObject.querySelectorAll(".navButton").forEach(function (btn) {
       btn.addEventListener("contextmenu", function (event) {

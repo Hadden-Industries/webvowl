@@ -2,10 +2,7 @@ import {
   findOntologySuggestions,
   ontologySuggestions,
 } from "./ontologySuggestions.js";
-import {
-  ONTOLOGY_URL_HINT,
-  resolveOntologySubmission,
-} from "./ontologySourceSubmission.js";
+import { resolveOntologySubmission } from "./ontologySourceSubmission.js";
 
 export function createOntologyChooser({
   documentObject,
@@ -17,10 +14,8 @@ export function createOntologyChooser({
   const form = documentObject.getElementById("iri-converter-form");
   const button = documentObject.getElementById("iri-converter-button");
   const hint = documentObject.getElementById("iri-converter-hint");
-  const toggle = documentObject.getElementById("ontology-suggestions-toggle");
   const clear = documentObject.getElementById("ontology-source-clear");
   const list = documentObject.getElementById("ontology-suggestions");
-  const summary = documentObject.getElementById("ontology-source-summary");
   const status = documentObject.getElementById("ontology-source-status");
   const popover = documentObject.getElementById("m_select");
   const listeners = [];
@@ -52,7 +47,7 @@ export function createOntologyChooser({
   function setOpen(value) {
     open = value;
     list.hidden = !open;
-    toggle.setAttribute("aria-expanded", String(open));
+    input.setAttribute("aria-expanded", String(open));
     if (!open) {
       activeId = null;
     }
@@ -135,11 +130,6 @@ export function createOntologyChooser({
       group.appendChild(option);
       options.set(entry.id, option);
     }
-    summary.textContent = result.committed
-      ? result.committed.title + " · " + result.committed.badge
-      : input.value
-        ? "Custom URL or search text"
-        : "No source selected";
     noMatches = result.matches.length === 0;
     if (noMatches && open) {
       setOpen(false);
@@ -161,6 +151,7 @@ export function createOntologyChooser({
       input.value = result.normalizedUrl;
     }
     button.disabled = !result.valid;
+    clear.hidden = input.value.length === 0;
     validationWasShown ||= showError;
     const error = validationWasShown && !result.empty && !result.valid;
     if (error) {
@@ -183,7 +174,8 @@ export function createOntologyChooser({
             (latestState.error?.message || "Check the address and try again.")
           : noMatches && !result.valid
             ? "No suggestions match. Enter a full URL starting with https://"
-            : ONTOLOGY_URL_HINT;
+            : "";
+    hint.hidden = !hint.textContent;
   }
   function commit(id) {
     const entry = catalogue.find((item) => item.id === id);
@@ -196,9 +188,9 @@ export function createOntologyChooser({
     submittedUrl = null;
     validationWasShown = false;
     validate();
+    input.focus({ preventScroll: true });
     setOpen(false);
     renderSuggestions();
-    input.focus({ preventScroll: true });
     announce(`${entry.title} selected. Activate Visualize to load.`);
   }
   function submit(value = input.value) {
@@ -225,15 +217,21 @@ export function createOntologyChooser({
       renderSuggestions({ resetActive: true });
     }
   });
+  on(input, "focus", () => {
+    setOpen(true);
+    renderSuggestions();
+  });
   on(input, "pointerdown", () => {
-    if (!input.value) {
-      setOpen(true);
-      renderSuggestions();
-    }
+    setOpen(true);
+    renderSuggestions();
   });
   on(input, "change", () => {
     validate({ normalize: true, showError: true });
-    renderSuggestions();
+    // Touch-generated mouse events blur the field before the click. Replacing
+    // options here would detach the pressed target and lose that native click.
+    if (!pointerInList) {
+      renderSuggestions();
+    }
   });
   on(input, "compositionstart", () => {
     composing = true;
@@ -306,11 +304,6 @@ export function createOntologyChooser({
       setOpen(false);
     }
     reflectState();
-  });
-  on(toggle, "click", () => {
-    setOpen(!open);
-    renderSuggestions();
-    input.focus({ preventScroll: true });
   });
   on(clear, "click", () => {
     input.value = "";
@@ -408,9 +401,6 @@ export function createOntologyChooser({
     input.value = remote ? source.identity : "";
     validate();
     renderSuggestions();
-    if (!remote) {
-      summary.textContent = source?.displayName || "Local ontology";
-    }
   }
   validate();
   setOpen(false);

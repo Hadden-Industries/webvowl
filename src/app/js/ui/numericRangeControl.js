@@ -11,11 +11,18 @@ export function bindNumericRangeControl(
 
   function handleInput() {
     const value = Number(input.value);
-    if (!Number.isFinite(value) || value < 1) {
+    if (input.disabled || !Number.isFinite(value) || value < 1) {
       return;
     }
     valueLabel.textContent = input.value;
     requestValue(value);
+  }
+  function handleChange() {
+    // Some input/AT paths commit with change alone. The presented value also
+    // tracks external state, so deduplicate against it rather than a stale cache.
+    if (Number(input.value) !== Number(valueLabel.textContent)) {
+      handleInput();
+    }
   }
   function handleWheel(event) {
     if (
@@ -37,9 +44,11 @@ export function bindNumericRangeControl(
     event.preventDefault();
   }
   input.addEventListener("input", handleInput);
+  input.addEventListener("change", handleChange);
   input.addEventListener("wheel", handleWheel, { passive: false });
   return () => {
     input.removeEventListener("input", handleInput);
+    input.removeEventListener("change", handleChange);
     input.removeEventListener("wheel", handleWheel);
   };
 }

@@ -28,7 +28,7 @@ export function createOntologyOverview({
     dialog.showModal();
     doc.getElementById("ontology-overview-heading").focus();
   });
-  on(dialog, "close", () => invoker.focus());
+  on(dialog, "close", () => doc.getElementById("ontology-menu-open").focus());
   on(facts, "click", () => openFacts(facts));
   on(reload, "click", () => {
     dialog.close();

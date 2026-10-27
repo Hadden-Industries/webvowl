@@ -223,6 +223,43 @@ describe("ontology chooser interaction", () => {
     h.type("https://example.org/ontology.owl");
     expect(h.input.getAttribute("aria-invalid")).toBeUndefined();
   });
+  test("focus offers suggestions and clearing retains focus without submitting", () => {
+    const h = setup();
+    const clear = h.elements.get("ontology-source-clear");
+    const hint = h.elements.get("iri-converter-hint");
+    expect(clear.hidden).toBe(true);
+    expect(hint.hidden).toBe(true);
+    h.input.focus();
+    h.fire(h.input, "focus");
+    expect(h.list.hidden).toBe(false);
+    expect(h.input.getAttribute("aria-expanded")).toBe("true");
+    h.type("foaf");
+    expect(clear.hidden).toBe(false);
+    expect(hint.hidden).toBe(true);
+    h.fire(clear, "click");
+    expect(h.input.value).toBe("");
+    expect(clear.hidden).toBe(true);
+    expect(h.documentObject.activeElement).toBe(h.input);
+    expect(h.submitSource).not.toHaveBeenCalled();
+  });
+  test("a native change before a touch click preserves the tapped suggestion", () => {
+    const h = setup();
+    h.input.focus();
+    h.type("foaf");
+    const option = h.list.children[0].children[1];
+    h.fire(h.list, "pointerdown", { pointerType: "touch" });
+    h.fire(h.list, "pointerup", { pointerType: "touch" });
+    h.documentObject.activeElement = null;
+    h.fire(h.input, "change");
+    h.fire(h.input, "blur");
+    expect(h.list.contains(option)).toBe(true);
+    const click = new Event("click");
+    Object.defineProperty(click, "target", { value: option });
+    h.list.dispatchEvent(click);
+    expect(h.input.value).toBe("http://localhost:5173/foaf.json");
+    expect(h.elements.get("iri-converter-button").disabled).toBe(false);
+    expect(h.submitSource).not.toHaveBeenCalled();
+  });
   test("no-match guidance is visible without an empty list; pointer opening and hover do not commit", () => {
     const h = setup();
     h.input.focus();

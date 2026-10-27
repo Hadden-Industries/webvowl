@@ -62,12 +62,12 @@ function setup() {
 }
 const exact = (requestedCount) => ({ mode: "exact", requestedCount });
 
-test("a multi-frame burst holds once and applies only the final count after its quiet period", async () => {
+test("a multi-frame burst holds once and applies only the final count after 50 quiet milliseconds", async () => {
   const h = setup();
   h.adjustment.stage(exact(61));
-  await h.advance(400);
+  await h.advance(16);
   h.adjustment.stage(exact(73));
-  await h.advance(999);
+  await h.advance(49);
   expect(h.apply).not.toHaveBeenCalled();
   expect(h.holdLayout).toHaveBeenCalledTimes(1);
   expect(h.publish).toHaveBeenLastCalledWith({
@@ -85,7 +85,7 @@ test("a multi-frame burst holds once and applies only the final count after its 
 test("duplicate input/change and concurrent close flushes do not duplicate installation", async () => {
   const h = setup();
   h.adjustment.stage(exact(73));
-  await h.advance(600);
+  await h.advance(25);
   h.adjustment.stage(exact(73));
   await Promise.all([h.adjustment.flush(), h.adjustment.flush()]);
   await h.advance(5000);
@@ -124,6 +124,33 @@ test("an in-flight application retains only the latest newer count", async () =>
     exact(90),
   ]);
   expect(h.release).toHaveBeenCalledTimes(1);
+});
+
+test("slow application keeps one newer count without overlapping applications", async () => {
+  const h = setup();
+  let complete;
+  h.apply.mockImplementationOnce(
+    () =>
+      new Promise((resolve) => {
+        complete = resolve;
+      }),
+  );
+  h.adjustment.stage(exact(61));
+  await h.advance(50);
+  for (const count of [73, 80, 90]) {
+    h.adjustment.stage(exact(count));
+    await h.advance(50);
+    expect(h.apply).toHaveBeenCalledTimes(1);
+  }
+  complete();
+  await h.advance(0);
+  await h.advance(0);
+  expect(h.apply.mock.calls.map(([intent]) => intent)).toEqual([
+    exact(61),
+    exact(90),
+  ]);
+  expect(h.release).toHaveBeenCalledTimes(1);
+  expect(h.timers.size).toBe(0);
 });
 
 test("retirement cancels callbacks and never installs a draft into a replacement document", async () => {

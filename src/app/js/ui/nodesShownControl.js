@@ -282,7 +282,9 @@ export function createNodesShownControl({
           ? "No nodes are available with the current filters."
           : `${intent.mode === "auto" && status.shownNodeCount < status.eligibleNodeCount ? "Automatically showing" : "Showing"} ${status.shownNodeCount} of ${status.eligibleNodeCount} available nodes.${shortfall}`;
       controls.range.setAttribute("aria-valuetext", text);
-      controls.status.hidden = adjustment === null && !orderingUnavailable;
+      // Inserting a progress paragraph during native range dragging interrupts
+      // the gesture. Keep adjustment feedback in the count and accessible value.
+      controls.status.hidden = !orderingUnavailable;
       if (orderingUnavailable) {
         const message =
           status.orderingStatus === "preparing"
@@ -292,13 +294,6 @@ export function createNodesShownControl({
           controls.status.textContent = message;
         }
       } else if (adjustment) {
-        const message =
-          adjustment.status === "applying"
-            ? "Applying node count…"
-            : "Node count will update when adjustment stops.";
-        if (controls.status.textContent !== message) {
-          controls.status.textContent = message;
-        }
         controls.range.setAttribute(
           "aria-valuetext",
           `Requested ${requestedCount()}; currently showing ${status.shownNodeCount} of ${status.eligibleNodeCount} available nodes.`,

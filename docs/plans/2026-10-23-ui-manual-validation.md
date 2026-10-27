@@ -2,7 +2,8 @@
 
 Status: the single residual browser and assistive-technology batch for the UI delivery on `feat/architecture-performance-ui`.
 This packet does not claim that an untested platform passed, and does not authorize deployment.
-On 23 October 2026 the owner explicitly kept manual acceptance pending until this batch is validated; no unrun combination is waived.
+On 23 October 2026 the owner explicitly kept manual acceptance pending until this batch is validated.
+On 27 October the owner waived Android/TalkBack as a release blocker for this delivery; it remains untested, and no other unrun combination is waived.
 The [bounded initial-layout follow-up](2026-10-23-initial-layout-improvement-plan.md) proceeds through its separate design decision, while this packet remains the single manual acceptance batch.
 
 ## Candidate and starting state
@@ -31,20 +32,78 @@ The independent automated fixture already covers all eight roles, hidden/anonymo
 | OS / device / browser version                 | To record per row below |
 | AT name, version, input language and settings | To record per row below |
 
+### Current browser acceptance candidate — 27 October 2026
+
+The [force implementation plan, section 1.15](2026-10-26-legacy-force-simulation-performance-implementation-plan.md#115-browser-compatibility-repair-and-live-acceptance-candidate--27-october-2026) records the candidate, compatibility repair, deployment authority and automated evidence.
+The owner explicitly authorized deploying this test version to the existing production origin after the temporary ngrok origin returned an HTML notice to credential-free JSON requests.
+This authorization permits testing the deployed candidate; it does not establish completion of the scenarios below.
+
+| Current candidate record      | Value                                                                                                                                                                                                                                      |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Source                        | `7a298176a9cb7fff31c89069a63d6746bf9bf23a` plus the approved `vowl-core` worker chunk setting; unrelated working changes excluded                                                                                                          |
+| Frozen build manifest SHA-256 | `83b3b4e21b07f0959c20b9edbfdd66fae457ba67ad7c10e4e3f5010a1586bce3`                                                                                                                                                                         |
+| Verified test origin          | `https://haddenindustries.com/webvowl/`; all 53 public files and the landing page matched the build after CloudFront invalidation                                                                                                          |
+| Physical device               | Owner-reported iPhone 18 Pro Max, iOS/Safari 27.0.1; the user agent's frozen `18_7` token is not the reported OS version                                                                                                                   |
+| Initial device observations   | LAN HTTP failed without a secure context; ngrok credential-free FOAF fetch returned HTML, while the correct JSON passed native and package parsing                                                                                         |
+| Current device result         | Owner reported all requested smoke steps passed on the verified origin: FOAF loaded without error, Pause/Resume worked, Overview and retained Facts opened and both dialogs closed; VoiceOver, keyboard and touch scenarios remain pending |
+| Automated live-origin smoke   | Chrome 156.0.8078.48 and WebKit 27.2: FOAF, Pause/Resume and nested Overview/Facts focus return passed; headless evidence only                                                                                                             |
+
+### Node-count follow-up source repair — 27 October 2026
+
+The owner reported that mouse dragging froze after its first movement and that adjustment helper text changed the control's shape.
+Chrome reproduced the freeze at 47 while the pointer continued toward other counts.
+An isolated native-browser reproduction using the real control and adjustment modules established that inserting the progress paragraph interrupted dragging; suppressing that paragraph alone restored the gesture.
+The source now omits adjustment helper text, retains meaningful preparation/failure messages and accessible requested/current counts, and reduces the quiet period from 1,000 ms to 50 ms.
+One application and only the latest pending count remain the controller's limit.
+The browser acceptance runner now checks bidirectional dragging, endpoints, synchronized exact values and unchanged control geometry using native mouse events.
+Focused source-module browser checks passed in Chrome and WebKit; they are not qualification of a rebuilt production candidate.
+Builds and deployment were held at the owner's request during this source repair; the subsequently authorized test deployment is recorded below.
+
+### Options, toolbar activation and mobile sheets — 27 October 2026
+
+The owner reported that VoiceOver's up/down adjustment gesture only re-announced the Options sliders, that the colour-mode button omitted its current setting, and that double-tapping the toolbar scroll buttons did not scroll.
+Quick native taps reproduced the toolbar failure in Chrome and WebKit: cancelling `touchstart` suppressed the click, while release cancelled the pending scrolling frame.
+The source preserves native click activation and uses pointer events for held scrolling, including release, cancellation, pointer exit and window blur.
+The colour-mode accessible name now derives from the visible label and setting, exposing “Color externals Same color” or “Color externals Gradient”.
+Options sliders retain native range semantics, accept committed `change` events without duplicating ordinary `input` updates, and have real 44-pixel input targets with separate thin tracks and visible keyboard focus.
+This is a compatibility repair; current WebKit accessibility source dispatches both events, so the historical change-only behavior does not establish the cause of the owner's iPhone failure.
+
+At the owner's request, compact sheets now rest at the viewport bottom, covering the toolbar, and reveal it during downward dismissal.
+Desktop popover positioning and bottom safe-area padding are retained.
+Native source-module checks passed in Chrome and WebKit for toolbar taps, keyboard/click activation, both colour-mode names, range commits and keyboard adjustments, and sheet placement at 320-, 440- and 568-pixel widths.
+The scoped sheet checks also passed synthetic drag/dismissal, a simulated 34-pixel bottom safe area and the existing desktop placement.
+The affected four unit suites passed 76 tests; the browser acceptance runner now retains the toolbar, accessible-name, range-target and compact-sheet checks for the next candidate.
+These source fixtures use a command recorder instead of the renderer and do not simulate VoiceOver.
+Original failures and corrected harness results remain in the task's `browser-acceptance-current` evidence directory.
+Actual iPhone slider adjustment, colour-mode speech, scroll-button activation, sheet dragging and software-keyboard layout still require retesting.
+
+The owner lifted the build hold and authorized uploading the updated test version on 27 October 2026.
+Candidate `browser-acceptance-current/mobile-repairs-2` contains the accepted browser repairs over revision `7a298176a9cb7fff31c89069a63d6746bf9bf23a`, preserving unrelated working-tree changes outside the build.
+The shared S3 uploader uploaded three changed files, retained 50 unchanged files and deleted none; CloudFront invalidation `I7ADE2HYY28YVGVLF5U364XS40` completed.
+All 53 public files and the landing URL at `https://haddenindustries.com/webvowl/` matched the frozen build's hashes.
+Live Chrome and WebKit checks passed FOAF loading, native suggestion selection, toolbar activation, Options names and target sizes, bottom sheet placement, Overview/Facts focus return, node-count dragging and Pause/Resume, with no observed console or network errors.
+The drag harness now waits for stable entry-animation geometry before positioning its mouse; the original premature-coordinate failures and corrected results are retained.
+This is a deployed test candidate for the owner's retest, not completed real-device/VoiceOver acceptance or final full verification.
+
+The next source repair fixes the owner's desktop Ontology-positioning report: an ID-specific `bottom` rule put the pane 8 pixels above the screen bottom instead of using the shared 16-pixel toolbar gap.
+Removing that override restores the common desktop anchor; the chooser's height limit now reserves room for the toolbar and top clearance.
+Chrome and WebKit placement checks passed at widths 1440, 1024, 769, 768 and 440, including a 360-pixel-high desktop viewport and the unchanged mobile bottom-edge anchor.
+The acceptance runner retains this geometry check; this later CSS repair is not part of deployed candidate `mobile-repairs-2`.
+
 ## Required combinations
 
 Run the scenarios listed for each actual combination.
 Reuse the shared steps rather than repeating separate checklists.
 Mark unavailable combinations explicitly; the release owner must then choose to obtain coverage or accept a documented release limitation.
 
-| Actual platform                                          | Scenarios | Result and evidence |
-| -------------------------------------------------------- | --------- | ------------------- |
-| Windows, NVDA with Firefox                               | M1–M4, M6 | Not run             |
-| Windows, NVDA with Chrome                                | M1–M4, M6 | Not run             |
-| Windows, JAWS with Chrome                                | M1–M4, M6 | Not run             |
-| macOS, VoiceOver with Safari                             | M1–M5     | Not run             |
-| iOS, VoiceOver with Safari and real software keyboard    | M1–M5     | Not run             |
-| Android, TalkBack with Chrome and real software keyboard | M1–M5     | Not run             |
+| Actual platform                                          | Scenarios | Result and evidence                                                                                                                                                                                                                                                                                                      |
+| -------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Windows, NVDA with Firefox                               | M1–M4, M6 | Not run                                                                                                                                                                                                                                                                                                                  |
+| Windows, NVDA with Chrome                                | M1–M4, M6 | Not run                                                                                                                                                                                                                                                                                                                  |
+| Windows, JAWS with Chrome                                | M1–M4, M6 | Not run                                                                                                                                                                                                                                                                                                                  |
+| macOS, VoiceOver with Safari                             | M1–M5     | Not run                                                                                                                                                                                                                                                                                                                  |
+| iOS, VoiceOver with Safari and real software keyboard    | M1–M5     | Basic Safari smoke passed. Owner initially reported checkbox activation dismissing Options, then reported Zoom controls worked after its announcement finished; no confirmed checkbox defect or workaround. Remaining VoiceOver checks, including Facts/Overview focus return, and full M1–M5 acceptance remain pending. |
+| Android, TalkBack with Chrome and real software keyboard | M1–M5     | Not run; owner waived release blocker on 27 October 2026                                                                                                                                                                                                                                                                 |
 
 ## M1 — Source choice, commitment and loading
 

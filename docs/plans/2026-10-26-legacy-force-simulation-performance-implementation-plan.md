@@ -2,18 +2,18 @@
 
 ## 1. Status, authority and source
 
-| Field                  | Value                                                                                                                                                                                                                                                                      |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status                 | Packed main-thread force implemented; conditional experiments and foreground/browser measurements complete; no overall browser speedup or connected-large 50-ms pass; performance acceptance, manual coverage and native admission limits remain open in sections 1.9–1.14 |
-| Prepared               | 26 October 2026                                                                                                                                                                                                                                                            |
-| Decision owner         | Repository owner, Maksym Shostak                                                                                                                                                                                                                                           |
-| Integration owner      | Current Codex task under the repository owner's implementation authorization; coordinates numerical state, label projection, scheduling and renderer publication                                                                                                           |
-| Source document        | `C:\Users\maksy\Downloads\Optimising legacyForceSimulation.js for High-Performance WebVOWL Layouts.md`                                                                                                                                                                     |
-| Source identity        | 52,885 bytes; SHA-256 `b5851a9dfa68e1092556a5afc0e5426f4a8d2008a9aef8ca7a91fc13efb700ee`                                                                                                                                                                                   |
-| Inspected baseline     | `61ae133033e482814f47415a4e5d396e35e57244`, plus the current working-tree contents                                                                                                                                                                                         |
-| Procedure              | HISEW `hadden-industries-plan-software-change`, installed `0.1.0-dev.29`                                                                                                                                                                                                   |
-| Identifier scope       | All `REQ-###`, `AC-###`, `QA-###`, `DEC-###` and `SLICE-###` identifiers are local to this document; qualify cross-document references by filename                                                                                                                         |
-| Evidence produced here | Original source synthesis and repository inspection, followed by the implementation, measurement, test and external-review record in section 1.4                                                                                                                           |
+| Field                  | Value                                                                                                                                                                                                                                                                                       |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status                 | Packed main-thread force implemented; conditional experiments and foreground/browser measurements complete; worker compatibility fix deployed for owner-authorized browser acceptance; performance acceptance, manual coverage and native admission limits remain open in sections 1.9–1.15 |
+| Prepared               | 26 October 2026                                                                                                                                                                                                                                                                             |
+| Decision owner         | Repository owner, Maksym Shostak                                                                                                                                                                                                                                                            |
+| Integration owner      | Current Codex task under the repository owner's implementation authorization; coordinates numerical state, label projection, scheduling and renderer publication                                                                                                                            |
+| Source document        | `C:\Users\maksy\Downloads\Optimising legacyForceSimulation.js for High-Performance WebVOWL Layouts.md`                                                                                                                                                                                      |
+| Source identity        | 52,885 bytes; SHA-256 `b5851a9dfa68e1092556a5afc0e5426f4a8d2008a9aef8ca7a91fc13efb700ee`                                                                                                                                                                                                    |
+| Inspected baseline     | `61ae133033e482814f47415a4e5d396e35e57244`, plus the current working-tree contents                                                                                                                                                                                                          |
+| Procedure              | HISEW `hadden-industries-plan-software-change`, installed `0.1.0-dev.29`                                                                                                                                                                                                                    |
+| Identifier scope       | All `REQ-###`, `AC-###`, `QA-###`, `DEC-###` and `SLICE-###` identifiers are local to this document; qualify cross-document references by filename                                                                                                                                          |
+| Evidence produced here | Original source synthesis and repository inspection, followed by the implementation, measurement, test and external-review record in section 1.4                                                                                                                                            |
 
 The user initially authorized creation of a detailed plan in `docs/plans/`, preserving all relevant source detail, and subsequently authorized its implementation as recorded in section 1.3.
 This document retains the report's technical findings, equations, alternatives, workload definitions, architecture, measurement protocol, roadmap and limitations.
@@ -669,6 +669,51 @@ The foreground availability gap is now replaced by actual measurements, while th
 Actual Firefox/Safari/mobile/assistive-technology acceptance and the native evidence-admission qualification from section 1.9 remain unestablished.
 This findings increment changes only this plan and receives scoped Markdown validation; it does not repeat full product tests or external source review for unchanged inputs.
 No push, release, deployment or disposable-directory cleanup is performed.
+
+### 1.15 Browser compatibility repair and live acceptance candidate — 27 October 2026
+
+Browser acceptance continues against merged `main` revision `7a298176a9cb7fff31c89069a63d6746bf9bf23a` plus the owner's explicitly approved worker chunk setting in `vite.config.mjs`.
+The frozen production build excludes other owners' lexical-position changes through verified committed-source overlays in both the application and worker builds; subsequent unrelated working-tree edits are absent from these already-built bytes.
+Its manifest SHA-256 is `83b3b4e21b07f0959c20b9edbfdd66fae457ba67ad7c10e4e3f5010a1586bce3`.
+This is a test candidate with an uncommitted compatibility repair, not a final reviewed release.
+
+WebKit 27.2 loaded FOAF but rejected the connected-large OWL fixture with `MODEL_NOT_ADMITTED`.
+The lazy OWL chunk imported its worker entry, which WebKit evaluated again; diagnostic instance identities showed model creation and admission checking using different private registries.
+This agrees with [WebKit issue 324459](https://bugs.webkit.org/show_bug.cgi?id=324459); the observed failure, rather than the upstream issue's resolution status, determines this candidate's compatibility requirement.
+The approved `worker.rolldownOptions.output.codeSplitting.groups` entry moves `packages/vowl/src/index.js` and its dependencies into `vowl-core`, preserving lazy OWL parsers and private model admission.
+The production manifest now rejects reachable imports or re-exports back to the worker entry.
+Three regression cases first failed as expected; the affected manifest and production-budget suites then passed all 30 tests.
+Exact-scope JavaScript formatting and lint passed.
+Final external review and subsequent full verification remain pending for this repair; earlier successful checks are retained within their original scope.
+
+The repaired candidate passed the complete existing functional sequence in WebKit 27.2 with 2,000 connected classes and 3,999 force points, and in Firefox 153 and Chrome 156.0.8078.48 with FOAF.
+The sequence covers deliberate source loading, nested native dialogs and focus return, force ownership, pause/export, native drag/pan/zoom, active replacement and natural end.
+No runtime exceptions, console warnings/errors or network failures were captured in these successful runs.
+These are headless engine checks, not retail Safari, physical touch, native IME, screen-reader speech, actual 200% browser zoom or foreground performance acceptance.
+The original failed browser attempts and test-harness failures remain retained alongside their scoped corrections.
+
+The owner's iPhone 18 Pro Max with reported iOS/Safari 27.0.1 exposed two test-origin problems before graph rendering:
+
+- LAN HTTP was not a secure context and lacked the required Web Crypto capability.
+- On the authorized ngrok HTTPS origin, `credentials: "same-origin"` returned the correct 130,997-byte FOAF JSON, which passed native and package parsing; `credentials: "omit"` returned a 2,885-byte HTML notice and correctly failed JSON parsing at byte zero.
+
+The application's credential-free acquisition contract and JSON parser were preserved.
+The owner then explicitly authorized uploading this test version to the existing `https://haddenindustries.com/webvowl/` deployment using the S3 process.
+After the owner renewed the expired AWS session, the existing shared uploader published 17 files and skipped 36 unchanged files under `s3://haddenindustries-com-static-assets/webvowl`; no remote objects were deleted.
+The internal `.vite` build manifest and mobile diagnostic page were not uploaded.
+S3 versioning was confirmed enabled, and the previous version IDs and metadata of all six overwritten objects were retained for recovery; restoration was not exercised or claimed.
+CloudFront invalidation `IEOGEBX5OWEEHUIHAH8640PBHB` on distribution `E5R9EPFOCX1JR` completed.
+All 53 public assets and the directory landing page subsequently matched the frozen build byte for byte.
+Live-origin Chrome and WebKit both loaded FOAF with 50 rendered nodes and passed Pause/Resume and nested Overview/Facts dismissal with focus return, without captured console or network errors.
+The live WebKit screenshot was inspected; graph and controls rendered with a visible focus indicator.
+The task-owned ngrok tunnel was stopped; no Cloudflare tunnel was created.
+
+The existing [manual-validation packet](2026-10-23-ui-manual-validation.md) remains the single record for real-device and assistive-technology results.
+The owner waived Android/TalkBack as a release blocker; that unrun combination is not a pass and does not waive other combinations.
+On the verified production origin, the owner reported that every requested initial iPhone smoke step passed: FOAF loaded without error, Pause/Resume worked, Overview and retained Facts opened, and both dialogs closed.
+This establishes actual Safari smoke acceptance on that device; touch, native software-keyboard, VoiceOver and the remaining desktop/assistive-technology scenarios are still pending.
+The unfavorable performance findings in sections 1.13–1.14 and native admission limitation remain unchanged.
+Evidence is retained under the existing task evidence root in `browser-acceptance-current/`, including the frozen build manifest, engine results, original failures, uploader's native results, previous S3 version IDs and live verification results.
 
 ## 2. Source findings reconciled with current code
 

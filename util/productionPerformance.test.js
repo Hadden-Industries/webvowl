@@ -116,6 +116,35 @@ describe("production measurement admission", () => {
     }
   });
 
+  test.each([
+    'import "./worker.js";',
+    'export { registry } from "./worker.js";',
+    'import("./worker.js");',
+  ])("rejects a worker chunk importing its own entry: %s", (dependency) => {
+    const root = mkdtempSync(join(tmpdir(), "webvowl-worker-entry-cycle-"));
+    try {
+      mkdirSync(join(root, "js"));
+      mkdirSync(join(root, "assets"));
+      writeFileSync(
+        join(root, "index.html"),
+        '<script type="module" src="./js/index.js"></script>',
+      );
+      writeFileSync(
+        join(root, "js/index.js"),
+        'new Worker(new URL("../assets/worker.js",import.meta.url),{type:"module"});window.addEventListener("load",()=>app.initialize());',
+      );
+      writeFileSync(
+        join(root, "assets/worker.js"),
+        'export const registry=new WeakSet();import("./parser.js");',
+      );
+      writeFileSync(join(root, "assets/parser.js"), dependency);
+      expect(() => productionManifest(root)).toThrow(/imports its own entry/u);
+    } finally {
+      expect(dirname(resolve(root))).toBe(resolve(tmpdir()));
+      rmSync(root, { recursive: true });
+    }
+  });
+
   test("uses ABBA with at least twenty independent observations per version", () => {
     const order = buildCohortOrder(20);
     expect(order.slice(0, 8)).toEqual(["A", "B", "B", "A", "A", "B", "B", "A"]);

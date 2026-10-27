@@ -57,7 +57,7 @@ export function createAdaptiveDetailsSurface({
     const focusInDetails = content.contains(focused);
     pin.hidden = !wide;
     editorOpen.hidden = !isEditor || wide;
-    toggle.hidden = isEditor && !wide;
+    toggle.hidden = !isEditor || !wide;
     if (isEditor) {
       closeModal();
       if (wide) {
@@ -103,11 +103,6 @@ export function createAdaptiveDetailsSurface({
         }
       }
       setDockVisible(docked ? 1 : 0, true);
-      toggle.setAttribute("aria-expanded", String(detailsOpen));
-      toggle.setAttribute(
-        "aria-label",
-        detailsOpen ? "Close details" : "Open details",
-      );
       if (focusInDetails && detailsOpen) {
         focused.focus();
       }
@@ -139,7 +134,7 @@ export function createAdaptiveDetailsSurface({
     onDetailsClose();
     (invoker?.isConnected
       ? invoker
-      : doc.getElementById("ontology-overview-open")
+      : doc.getElementById("ontology-menu-open")
     )?.focus();
   }
   on(dialog, "close", () => {
@@ -170,7 +165,7 @@ export function createAdaptiveDetailsSurface({
   return Object.freeze({
     openDetails,
     closeDetails,
-    toggleDetails() {
+    toggleEditorPanel() {
       if (isEditor) {
         if (!canDockDetails(windowObject)) {
           editorDialog.showModal();
@@ -179,10 +174,6 @@ export function createAdaptiveDetailsSurface({
           editorDockOpen = !editorDockOpen;
           apply();
         }
-      } else if (detailsOpen) {
-        closeDetails();
-      } else {
-        openDetails(toggle, { pinToSide: canDockDetails(windowObject) });
       }
     },
     applyShareLinkVisibility(value) {

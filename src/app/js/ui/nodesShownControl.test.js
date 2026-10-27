@@ -185,7 +185,9 @@ test("a range burst spanning animation frames does not apply intermediate counts
     await advance(16);
     expect(controls.exact.value).toBe("73");
     expect(onChange).not.toHaveBeenCalled();
-    await advance(1000);
+    await advance(33);
+    expect(onChange).not.toHaveBeenCalled();
+    await advance(1);
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenCalledWith({
       mode: "exact",
@@ -196,7 +198,7 @@ test("a range burst spanning animation frames does not apply intermediate counts
   }
 });
 
-test("a burst updates requested counts without repeating the pending live announcement", async () => {
+test("a burst updates requested counts without inserting adjustment helper text", async () => {
   const h = setup();
   const announcements = [];
   let text = "";
@@ -213,10 +215,12 @@ test("a burst updates requested counts without repeating the pending live announ
       h.controls.range.dispatchEvent(new Event("input"));
       await h.advance(16);
     }
-    expect(announcements).toEqual([
-      "Node count will update when adjustment stops.",
-    ]);
+    expect(announcements).toEqual([]);
+    expect(h.controls.status.hidden).toBe(true);
     expect(h.controls.exact.value).toBe("73");
+    await h.advance(50);
+    expect(announcements).toEqual([]);
+    expect(h.controls.status.hidden).toBe(true);
   } finally {
     h.control.dispose();
   }
@@ -249,7 +253,7 @@ test("requested count is announced separately, and the preset replaces a pending
     expect(h.controls.range.attributes.get("aria-valuetext")).toBe(
       "Requested 73; currently showing 50 of 109 available nodes.",
     );
-    expect(h.controls.status.hidden).toBe(false);
+    expect(h.controls.status.hidden).toBe(true);
     expect(h.controls.fifty.disabled).toBe(false);
     h.controls.fifty.dispatchEvent(new Event("click"));
     await flush();
