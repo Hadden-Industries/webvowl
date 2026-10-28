@@ -1,12 +1,18 @@
 import { jest } from "@jest/globals";
+import { webcrypto } from "node:crypto";
 import { ResourceLimitError } from "owlapi/io";
 import { createCanonicalWebVowlController } from "./canonicalWebVowlController.js";
 import { createCanonicalVowlDocumentSession } from "./canonicalVowlDocumentSession.js";
 import { runCanonicalVowlOperation } from "./canonicalVowlWorkerOperations.js";
 import { createCanonicalVowlSourceAcquisition } from "./canonicalVowlSourceAcquisition.js";
-import { createVisualizationViewApplicationRequest } from "./renderedGraphRuntimeContracts.js";
+import {
+  createVisualizationViewApplicationRequest,
+  DEFAULT_VISUALIZATION_MODES,
+  DEFAULT_FORCE_LAYOUT_DISTANCES,
+} from "./renderedGraphRuntimeContracts.js";
 import { WebVowlOperationError } from "./webVowlControllerContracts.js";
 import { createWebMcpToolDispatch } from "../webmcp/webMcpToolContracts.js";
+import { createVisualizationArtifactService } from "./visualizationArtifactService.js";
 
 function deferred() {
   let resolve, reject;
@@ -17,7 +23,7 @@ function deferred() {
   return { promise, resolve, reject };
 }
 
-function setup() {
+function setup({ artifactService, ...dependencies } = {}) {
   let listener;
   let accepted;
   const runtime = {
@@ -67,12 +73,13 @@ function setup() {
     remote: jest.fn(async (documentIri) => ({ documentIri })),
     resolveImport() {},
   };
-  const artifacts = { dispose() {} };
+  const artifacts = artifactService ?? { dispose() {} };
   const controller = createCanonicalWebVowlController({
     renderedGraphRuntime: runtime,
     documentSession: session,
     sourceAcquisition: acquisition,
     visualizationArtifactService: artifacts,
+    ...dependencies,
   });
   const load = (documentIri) =>
     controller.loadOntology({
@@ -852,6 +859,72 @@ test("semantic exports delegate to the accepted session without a legacy model",
       filename: "original.owl",
     }),
   );
+});
+
+test("archived-source status remains in UI state while exports retain only source provenance", async () => {
+  const serializeRenderedSvgSnapshot = jest.fn(() => "<svg/>");
+  const artifacts = createVisualizationArtifactService({
+    svgSerializer: { serializeRenderedSvgSnapshot },
+    webCrypto: webcrypto,
+    BlobConstructor: Blob,
+    objectUrlApi: {
+      createObjectURL: () => "blob:archived-source-export",
+      revokeObjectURL() {},
+    },
+    visualizationArtifactPublicationPort: { publishPageLocalArtifact() {} },
+  });
+  const { controller, load, session, acquisition, runtime } = setup({
+    artifactService: artifacts,
+    graphLayoutSettler: {
+      waitForSettledGraphLayout: async () => ({
+        status: "settled",
+        reason: "stable-frames",
+      }),
+    },
+    waitForDocumentFonts: async () => {},
+    waitForBrowserPaint: async () => {},
+  });
+  const cache = { status: "archived", canRefresh: true };
+  acquisition.observeCache = async (root, imports, { onStatus }) => ({
+    start: () => onStatus(cache),
+    dispose() {},
+  });
+  runtime.readVisualizationView = () => ({
+    language: "en",
+    focus: [],
+    modes: DEFAULT_VISUALIZATION_MODES,
+    forceDistances: DEFAULT_FORCE_LAYOUT_DISTANCES,
+  });
+  runtime.createRenderedSvgSnapshot = () => ({ widthPx: 640, heightPx: 480 });
+  await load("https://example.test/archived.owl");
+  const source = {
+    kind: "ontology-document-iri",
+    identity: "https://example.test/archived.owl",
+  };
+  await expect(
+    controller.exportVisualization({ format: "svg" }),
+  ).resolves.toMatchObject({ format: "svg" });
+  expect(serializeRenderedSvgSnapshot).toHaveBeenCalledWith(
+    expect.objectContaining({
+      viewRecipe: expect.objectContaining({ source }),
+    }),
+    expect.anything(),
+  );
+  for (const format of ["vowl-json", "turtle"]) {
+    await controller.exportVisualization({ format });
+  }
+  await controller.exportOriginalSource({ documentId: "root" });
+  for (const method of [
+    "exportCanonicalArtifact",
+    "exportTurtleArtifact",
+    "exportOriginalSourceArtifact",
+  ]) {
+    expect(session[method]).toHaveBeenCalledWith(
+      expect.objectContaining({ source }),
+    );
+  }
+  expect(controller.getState().source).toEqual({ ...source, cache });
+  controller.dispose();
 });
 
 test.each(["original", "turtle", "vowl-json"])(

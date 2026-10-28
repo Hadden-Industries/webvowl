@@ -375,6 +375,16 @@ export function createCanonicalWebVowlController({
   function current(operation) {
     return lifecycle.check(operation);
   }
+  function exportSourceProvenance() {
+    // Acquisition status belongs to the live UI, not persisted source provenance.
+    const source = {};
+    for (const field of ["kind", "identity", "displayName", "sha256Hex"]) {
+      if (state.source[field] !== undefined) {
+        source[field] = state.source[field];
+      }
+    }
+    return source;
+  }
   function resolveFocusable(ontologyElementReferences) {
     current("getOntologySummary");
     return boundOntologyFocusResult(
@@ -1670,7 +1680,7 @@ export function createCanonicalWebVowlController({
         artifactService: artifacts,
         renderedGraphRuntime: runtime,
         filename,
-        source: state.source,
+        source: exportSourceProvenance(),
         signal: combined,
       };
       try {
@@ -1689,7 +1699,7 @@ export function createCanonicalWebVowlController({
           waitForBrowserPaint,
           request: { ...request, format },
           loadGeneration: accepted.loadGeneration,
-          source: state.source,
+          source: exportSourceProvenance(),
           view: state.view,
           signal: combined,
           assertCurrent: ticket.assertCurrent,
@@ -1744,7 +1754,7 @@ export function createCanonicalWebVowlController({
           filename,
           signal: combined,
           artifactService: artifacts,
-          source: state.source,
+          source: exportSourceProvenance(),
         });
       } finally {
         ticket.release();
