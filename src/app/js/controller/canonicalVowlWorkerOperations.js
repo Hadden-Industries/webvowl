@@ -27,6 +27,17 @@ const modelLimits = Object.freeze({
   ...modelOperationLimits,
 });
 
+// Diagnostic spans carry no ontology data and do not change the worker protocol.
+// The existing whole-job budget remains authoritative, including failed stages.
+async function measureModelStage(name, operation) {
+  const start = performance.now();
+  try {
+    return await operation();
+  } finally {
+    performance.measure(name, { start, end: performance.now() });
+  }
+}
+
 // Owner-approved desktop profile, measured on a 10,000-class hierarchy.
 // One model must remain usable across opening, editing, recovery and export;
 // explicit limits still win, and WebVOWL's retained policy supplies the rest.
@@ -152,13 +163,17 @@ export async function runCanonicalVowlOperation(
         limits,
         context,
       );
-      const result = await editModel(recovered.model, request.changes, {
-        limits,
-      });
+      const result = await measureModelStage("webvowl.model.edit", () =>
+        editModel(recovered.model, request.changes, { limits }),
+      );
       return {
-        inspection: inspectModel(result.model),
+        inspection: await measureModelStage("webvowl.model.inspection", () =>
+          inspectModel(result.model),
+        ),
         displayOrderKeys: await displayOrderKeys(result.model, limits),
-        checkpoint: await checkpointModel(result.model, { limits }),
+        checkpoint: await measureModelStage("webvowl.model.checkpoint", () =>
+          checkpointModel(result.model, { limits }),
+        ),
         correspondence: result.correspondence,
         created: result.created,
       };
@@ -169,13 +184,15 @@ export async function runCanonicalVowlOperation(
         limits,
         context,
       );
-      const result = await captureModel(recovered.model, {
-        profile: request.profile,
-        ...(request.visualization === undefined
-          ? {}
-          : { visualization: request.visualization }),
-        limits,
-      });
+      const result = await measureModelStage("webvowl.model.capture", () =>
+        captureModel(recovered.model, {
+          profile: request.profile,
+          ...(request.visualization === undefined
+            ? {}
+            : { visualization: request.visualization }),
+          limits,
+        }),
+      );
       return {
         document: result.document,
         bytes: encode(result.document),
@@ -292,7 +309,9 @@ async function recoverCheckpoint(checkpoint, limits, context) {
       "Missing model revision context",
     );
   }
-  const result = await readmitModel(checkpoint, { limits });
+  const result = await measureModelStage("webvowl.model.readmit", () =>
+    readmitModel(checkpoint, { limits }),
+  );
   if (result.model.revision !== context.baseRevision) {
     throw new VowlError(
       "MODEL_REVISION_MISMATCH",

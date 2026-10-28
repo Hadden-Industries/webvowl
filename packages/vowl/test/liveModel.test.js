@@ -519,3 +519,82 @@ test.each([
     encode((await captureModel(recovered.model, options)).document),
   ).toEqual(encode(canonical));
 });
+
+test("a 1,000-class chain edit preserves content within the local latency regression bound", async () => {
+  const document = await canonicalize(fixture("empty-structural"), options);
+  const { model } = await openCanonical(document, noRdf);
+  const n = 1000;
+  const setupChanges = [];
+  for (let i = 0; i < n; i++) {
+    setupChanges.push(
+      {
+        kind: "insert",
+        collection: "subjects",
+        record: { id: `s${i}`, iri: `urn:chain:${i}` },
+      },
+      {
+        kind: "insert",
+        collection: "roles",
+        record: { id: `r${i}`, kind: "class", subject: `s${i}` },
+      },
+    );
+  }
+  for (let i = 0; i < n - 1; i++) {
+    setupChanges.push({
+      kind: "insert",
+      collection: "constructs",
+      record: {
+        id: `k${i}`,
+        kind: "subclass",
+        sub: `r${i}`,
+        super: `r${i + 1}`,
+      },
+    });
+  }
+  const loaded = await editModel(model, setupChanges, noRdf);
+  const singleInsert = [
+    {
+      kind: "insert",
+      collection: "subjects",
+      record: { id: "extra:s", iri: "urn:chain:extra" },
+    },
+    {
+      kind: "insert",
+      collection: "roles",
+      record: { id: "extra:r", kind: "class", subject: "extra:s" },
+    },
+    {
+      kind: "insert",
+      collection: "constructs",
+      record: {
+        id: "extra:k",
+        kind: "subclass",
+        sub: "extra:r",
+        super: "r0",
+      },
+    },
+  ];
+  const t0 = performance.now();
+  const edited = await editModel(loaded.model, singleInsert, noRdf);
+  const elapsed = performance.now() - t0;
+  expect(elapsed).toBeLessThan(1000);
+  expect(edited.model.revision).toBe(2);
+  const after = inspectModel(edited.model);
+  const extra = after.records.subjects.find(
+    ({ iri }) => iri === "urn:chain:extra",
+  );
+  const role = after.records.roles.find(({ subject }) => subject === extra.id);
+  expect(after.records.subjects).toHaveLength(n + 1);
+  expect(after.records.roles).toHaveLength(n + 1);
+  expect(after.records.constructs).toContainEqual({
+    id: expect.any(String),
+    kind: "subclass",
+    sub: role.id,
+    super: "r0",
+  });
+  expect(edited.created).toHaveLength(6);
+  expect(inspectModel(loaded.model).records.roles).toHaveLength(n);
+  const checkpoint = await checkpointModel(edited.model, noRdf);
+  const recovered = await readmitModel(transport(checkpoint), noRdf);
+  expect(inspectModel(recovered.model)).toEqual(after);
+});

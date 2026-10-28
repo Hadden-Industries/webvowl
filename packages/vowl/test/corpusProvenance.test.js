@@ -37,6 +37,25 @@ test("the complete frozen corpus and active overlay inventory retain their recor
   expect(editingManifest.vectors).toHaveLength(6);
 });
 
+test("cached bundled reads retain independent frozen digest and length checks", () => {
+  const pin = frozenPins.find(
+    ({ path, base }) =>
+      base !== "repository" &&
+      path.startsWith("supplemental/field-contract/") &&
+      path.endsWith("/source.json"),
+  );
+  expect(pin).toBeDefined();
+  const first = readPinned(pin);
+  expect(first.length).toBeGreaterThan(0);
+  first[0] = (first[0] + 1) % 256;
+  const second = readPinned(pin);
+  expect(second).not.toEqual(first);
+  expect(() => readPinned({ ...pin, sha256: "0".repeat(64) })).toThrow(
+    "Frozen artifact changed",
+  );
+  expect(() => readPinned({ ...pin, byteLength: second.length + 1 })).toThrow();
+});
+
 // Private auditor controls are deliberately not public Canonical VOWL errors.
 const controls = readJson(
   "supplemental/mapping-counterexamples/auditor-v2/controls-manifest.json",

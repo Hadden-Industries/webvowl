@@ -89,6 +89,26 @@ function defineOwnedDocumentField(result, name, source) {
   });
 }
 
+function captureVisualization(scene) {
+  const owned = structuredClone(scene);
+  // Renderer coordinates may contain IEEE -0; the canonical wire requires +0.
+  // Normalize only the owned presentation copy, retaining exact scene values
+  // and the package's strict number validation for all other caller data.
+  function point(position) {
+    if (Object.is(position.x, -0)) {
+      position.x = 0;
+    }
+    if (Object.is(position.y, -0)) {
+      position.y = 0;
+    }
+  }
+  point(owned.camera.center);
+  for (const placement of owned.placements) {
+    point(placement.position);
+  }
+  return owned;
+}
+
 function documentSnapshot(accepted, visualization = accepted.scene.snapshot()) {
   // A literal allocation site's cached shape can retain one of the lazy
   // getters below, including its old inspection. Use an ordinary object
@@ -1178,7 +1198,7 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
             ...(profile === profiles.structuralContent
               ? {}
               : {
-                  visualization: structuredClone(
+                  visualization: captureVisualization(
                     base.ordinaryScene ?? base.scene.snapshot(),
                   ),
                 }),

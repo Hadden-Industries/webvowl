@@ -823,3 +823,82 @@ Keep rejected hypotheses and their evidence visible; do not combine unrelated re
 
 Unchecked items are implementation prerequisites or future proof obligations.
 They do not prevent this draft from preserving the audit and making the proposed work reviewable.
+
+## 14. Implementation record — 28 October 2026
+
+This section records implementation decisions and reproduced results; the preceding audit remains historical evidence.
+The owner authorized implementation, changes to the existing `packages/vowl` candidate and plan-required configuration, with minimal workflow administration.
+The owning chat closed execution `9149fb1d-09e6-48dd-a30c-5626ef32e7ed` as superseded at generation 8.
+This chat then started owned R2 execution `8a46c58f-9d0a-45b5-a910-533510a3f2c0` against `9282ea541ada16ce9565031af760325d7a107581`, where local and live remote main initially matched.
+The signed first checkpoint is `4385d0eabcd44ee58e40d2dfb0b7d2e69116c886`, containing this plan alone.
+The existing allocator and latency-test edits are included with the owner's authorization; no unrelated checkout changes are included.
+
+### Selected changes and conservative exclusions
+
+- **HOT-01:** retain the monotonic generated-handle cursor and poll inside collision scans.
+  Deterministic tests cover both normalizing and validating paths, contiguous/gapped reservations, exact generated handles, collision cancellation/deadline response within 1,024 visits and the existing occurrence-cardinality guard.
+  Independent baseline controls fail the new bounds: 544 lookups against an expected 48, and 4,097 collision visits against the 1,061 cancellation/deadline bound.
+- **HOT-02:** compare every typed, remapped record field before preserving support.
+  Object-member order is immaterial; literal strings, ordered/repeated sequence members, null mappings, aliases and non-edit precedence remain significant.
+  Any unproved candidate group uses the original canonical comparison, built lazily once per operation.
+  IDs or requested changes alone never establish equivalence.
+- **HOT-03:** the proven support comparison avoids the old-tree snapshot/remap for unchanged groups.
+  Final admission, validation, owned publication snapshots, freezing and resource-count meanings are retained.
+  Broader publication-copy elision is excluded because it would cross an ownership/counting boundary without additional proof.
+- **HOT-04:** build one operation-local handle index, update it for ordered changes, retain removal tombstones until final stable compaction and keep removed/occurrence handles reserved.
+  Tests cover replacement after removal/insertion, exact failing request pointers and assertion-anchor retargeting across tombstones.
+  The baseline replacement control consumes 322,800 visits against a bound of 28,000; the candidate passes.
+  This bounds direct lookup work, not every normalization, anchor or validation phase.
+- **HOT-05:** reject the attempted decoded-buffer cache in the frozen corpus reader.
+  The independent pin check correctly rejected changing `conformance/storage.mjs`; the reader was restored exactly, without repinning any manifest, provenance, golden or oracle.
+  Additional tests retain independent digest/length rejection, per-reader lifetime and caller-owned returned buffers.
+- Worker diagnostics add data-free spans for readmission, edit, inspection, checkpoint and capture.
+  They preserve the existing protocol, safe error projection and finite desktop policy.
+  Maintained benchmark/browser drivers keep private inputs outside the checkout, retain failed outcomes, distinguish admitted timing from functional-only runs and select the production worker through its verified build manifest.
+- Native large-chain capture exposed an existing presentation/canonical boundary mismatch: renderers and scenes permit negative zero, but canonical numeric values forbid it.
+  Capture now converts only coordinate `-0` to `0` in its owned visualization copy; it preserves the scene, literal data and strict package validation.
+  The regression asserts the outgoing request before the older unit transport's JSON conversion can erase negative zero; the original native repro and failing regression are retained.
+
+### Reproduced performance and native acceptance
+
+Core edit measurements use one discarded warmup, twenty observations, unchanged finite desktop limits and identical native checkpoint digests for paired baseline/candidate cohorts.
+The complete admitted chain cohorts from `paired-edit-desktop-03.json` are:
+
+| Classes | Baseline median (ms) | Candidate median (ms) | Candidate p95 (ms) |
+| ------- | -------------------- | --------------------- | ------------------ |
+| 100     | 32.54                | 24.76                 | 33.88              |
+| 500     | 432.73               | 117.11                | 129.59             |
+| 1,000   | 1,678.00             | 245.45                | 264.68             |
+| 2,000   | Not sampled          | 486.46                | 497.14             |
+
+That receipt as a whole remains **failed**: background CPU admission interrupted its later 10,000-class cohort.
+The separate bounded fresh-process protocol completed twenty admitted 10,000-class observations: median 2,469.07 ms, p95 2,579.90 ms, maximum 2,631.88 ms.
+It reuses one valid earlier observation and retains every refused attempt separately; it is not a claim that all attempts passed.
+The baseline 10,000-class pathological path was not repeated twenty times.
+Core observations exclude setup, inspection and checkpoint serialization; they are not browser-interaction SLOs or proof of lower RSS/GC pauses.
+
+The private URD closure is pinned locally by complete SHA-256 and length: URD 1,139,625 bytes, ISO/IEC 11179 602,598 bytes and W3C SKOS 28,966 bytes.
+The import resolver binds the exact ISO version IRI and SKOS document IRI; no network import fallback or private content is included in review material.
+Native production-worker checks cover the 30,001-occurrence edited chain and the property/axiom-heavy URD model, meaningful class/subclass insertion, complete source-byte preservation, exact checkpoint recovery and unchanged resource enforcement.
+Ten small lifecycle cycles exercise capture, stale revisions, tighter limits, native cancellation and termination; native GC finds no retained retired checkpoints, sessions or workers.
+Separate rendered-session checks use the real D3 adapter and accepted document session at an 800×600 viewport with automatic node selection, proving visible accepted frames and current edits for both large inputs.
+Functional-only wall clocks are explicitly unadmitted when host CPU is busy; no browser percentile claim follows from those runs.
+Mobile/constrained-device safety and whole-process peak memory remain unqualified; desktop limits are unchanged.
+URD capture, reload and recapture preserve exact artifact bytes.
+After repairing negative-zero capture, the rendered, source-backed 10,000-class chain fails closed at the unchanged **4,000,000 embedded-value limit** (`MODEL_RESOURCE_LIMIT`, actual 4,000,001).
+Its visible edit and checkpoint recovery pass; full artifact capture for that workload is **not accepted** under this desktop profile.
+This is resource-envelope evidence for a later owner decision, not authority to raise limits or claim complete large-chain lifecycle acceptance.
+The original native capture failures remain failed records; no rerun relabels them as passes.
+
+The original 1,000-class latency assertion remains strictly below 1,000 ms, with model counts, the intended subclass, created handles, previous-revision isolation and exact checkpoint recovery asserted.
+An added full RDF capture exceeded its deadline during development; that failed outcome is retained, and no large RDF-capture speedup is inferred from the edit measurements.
+The rejected cache experiment, failed controls and host-admission refusals remain in native tool records and private task evidence under `operator/8a46c58f-9d0a-45b5-a910-533510a3f2c0`.
+
+### Final validation and delivery
+
+The final `npm run check` completed with exit 0: 206 Jest suites / 10,614 tests, 28 Python tests, Markdown/JSON integration gates, exact corpus storage (7,227 artifacts / 64 bundles / zero loose copies), lint/format checks, production build and generated-artifact JSON validation.
+The complete output is retained as `full-check-01.log`; intentional negative-corpus quality findings remain governed by their unchanged independent contracts.
+No source-test failure remains from that run.
+The requested Claude Opus 5.5 Max review is a subsequent gate against the signed source candidate, with a 60-minute allowance; this source record does not claim its result in advance.
+Provider output and any narrowly scoped repair review remain in the native review records rather than duplicated evidence packages.
+No package installation, application activation, deployment or resource-policy recalibration is authorized by this record.

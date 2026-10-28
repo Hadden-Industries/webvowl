@@ -9,7 +9,7 @@ import {
 } from "./validateGraph.js";
 import { validateProjection } from "./projection.js";
 import { snapshotSource, deepFreeze } from "./snapshot.js";
-import { jsonKey } from "./canonicalJson.js";
+import { createPreservedSupportLookup } from "./supportPreservation.js";
 import { readmitSourceArchive } from "./sourceArchive.js";
 import {
   compatibleArtifactProfile,
@@ -404,45 +404,17 @@ export function editLiveModel(model, changes, budget) {
     allRecords(before.structural).map(({ id }) => id),
   );
   const correspondence = editingCorrespondence(before, source, resolve, budget);
-  const renamedBefore = snapshotSource(
-    { structural: before.structural },
-    budget,
-  );
   const successors = new Map(
     correspondence.map(({ previous, current }) => [previous, current]),
   );
-  walkTyped(
-    renamedBefore,
-    envelope(profiles.structuralContent),
-    (value, shape, _pointer, parent, field) => {
-      budget.check();
-      if (shape?.reference || shape?.id) {
-        parent[field] = successors.get(value) ?? null;
-      }
-    },
+  const preservedSupport = createPreservedSupportLookup(
+    before,
+    successors,
+    budget,
   );
-  const previousSupport = new Map(
-    before.supports.map((support) => [support.record, support]),
-  );
-  const preserved = new Map();
-  for (const collection of collections) {
-    renamedBefore.structural[collection].forEach((record, index) => {
-      budget.check();
-      if (record.id === null) {
-        return;
-      }
-      const key = jsonKey(record);
-      const support = previousSupport.get(
-        before.structural[collection][index].id,
-      );
-      if (!preserved.has(key) || support.origin !== "edit") {
-        preserved.set(key, support);
-      }
-    });
-  }
   const supports = allRecords(source.structural).map((record) => {
     budget.check();
-    const support = preserved.get(jsonKey(record));
+    const support = preservedSupport(record);
     return support
       ? { ...support, record: record.id }
       : {
