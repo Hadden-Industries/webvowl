@@ -373,14 +373,18 @@ test("display reads enforce cancellation during async hashing and native resourc
     readModelDisplayOrderKeys({ revision: 0 }),
   ).rejects.toMatchObject({ code: "MODEL_NOT_ADMITTED" });
   const { model } = await load("<urn:A> a owl:Class.");
-  for (const limits of [
-    { rdfQuads: 1 },
-    { embeddedValues: 1 },
-    { totalStringBytes: 1 },
+  // Each limit fails with its one code, as it does in every other stage.
+  for (const [limits, code] of [
+    [{ rdfQuads: 1 }, "RDF_RESOURCE_LIMIT"],
+    [{ embeddedValues: 1 }, "MODEL_RESOURCE_LIMIT"],
+    [{ totalStringBytes: 1 }, "MODEL_RESOURCE_LIMIT"],
   ]) {
     await expect(
       readModelDisplayOrderKeys(model, { limits }),
-    ).rejects.toMatchObject({ code: "RDF_RESOURCE_LIMIT" });
+    ).rejects.toMatchObject({
+      code,
+      details: { limit: Object.keys(limits)[0] },
+    });
   }
   const abort = new AbortController();
   const original = crypto.subtle.digest.bind(crypto.subtle);

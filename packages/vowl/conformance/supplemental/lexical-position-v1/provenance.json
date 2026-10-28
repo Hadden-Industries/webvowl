@@ -1,0 +1,227 @@
+{
+  "format": "canonical-vowl-supplement-provenance/1",
+  "supplement": "supplemental/lexical-position-v1",
+  "authorities": [
+    {
+      "path": "docs/canonical-vowl/index.html",
+      "pinnedBy": "section",
+      "sectionRule": "A pinned section of the specification draft is its Markdown heading line, the one ending in {#id}, through to the line before the next heading of the same or a higher level, or to the end of the document; a line inside a fenced code block is not a heading. The digest covers exactly those bytes.",
+      "readRevision": {
+        "sha256": "030bd44364db10e91e7c4d29db46c4d62bdbac58ad0c9a932ff5d948bc63a433",
+        "byteLength": 249142,
+        "role": "Whole bytes of the draft that this revision read, recorded for provenance; not checked, because the draft is still being edited."
+      },
+      "firstReadRevision": {
+        "sha256": "3202c49af4853af659ca74ca096e2afabad359aeceb8d6589ef5dcb1e7077897",
+        "byteLength": 167679,
+        "role": "Whole bytes of the draft that the first derivation read, recorded for provenance; not checked. A renewed section records, in firstRead, the first pin that this supplement recorded for it and the edits since, which derive.mjs reverses."
+      },
+      "sections": [
+        {
+          "id": "notation",
+          "sha256": "1e83b3978ce5fca5a469bc0f71193e348ac7174288f2523c09cfd8bff4156f31",
+          "byteLength": 2380
+        },
+        {
+          "id": "canonical-profiles",
+          "sha256": "6643e8f70bc0e5e3e566540300b504880023d07f1e69991c587981e4c5b1f472",
+          "byteLength": 722
+        },
+        {
+          "id": "envelope",
+          "sha256": "34400bdef9166d641e6f68bc61e00ba12b2660c377c1b4b5d09001601e287150",
+          "byteLength": 2249
+        },
+        {
+          "id": "ontology",
+          "sha256": "f8cbb83716fb921c273188a1209c90b7c435a02d27cbd62dd31929ff527b0a89",
+          "byteLength": 578
+        },
+        {
+          "id": "subjects-and-roles",
+          "sha256": "e3c4bfc4d02d7e4b5304e97866fe601152526441ea146e5e25f50cbd525ae3e8",
+          "byteLength": 2459
+        },
+        {
+          "id": "exact-decoding",
+          "sha256": "a7691b558317355141ff4f2a036c9d139d682204aac0048110231b08813dfb35",
+          "byteLength": 2495
+        },
+        {
+          "id": "duplicate-members",
+          "sha256": "7039971c09d97a4a3e95fef369bc2dea611b38b00c0c0809ec4e769d243eb15b",
+          "byteLength": 1347
+        },
+        {
+          "id": "unicode-admission",
+          "sha256": "426c0bd1102c1e13f50ee57e297a6908fa4ab870917ddd09093a34259627cb42",
+          "byteLength": 895
+        },
+        {
+          "id": "number-admission",
+          "sha256": "f14cc074b8c42517b80840d33bafe8558e9f600b7429b83d59dfb794e2070fd8",
+          "byteLength": 673
+        },
+        {
+          "id": "in-memory-input",
+          "sha256": "d731038e63136a3c4a86c36c443adcf8a62e27265578dc52589fc4087545e15d",
+          "byteLength": 1940,
+          "firstRead": {
+            "sha256": "6c6590304ffc7093658ab4170924ed235578c221ffed70b7f7fc6e043095b0ed",
+            "byteLength": 1717,
+            "edits": [
+              {
+                "current": "The producer MUST fail with `SOURCE_UNSAFE_VALUE` on input that is not plain data, such as a cyclic value, an accessor property, or a value of a type that JSON lacks, like `undefined`, a function, a symbol or a big integer.\nA number that JSON cannot represent, such as NaN or an infinity, is plain data that fails number admission instead ([[[#number-admission]]]).\n",
+                "firstRead": "The producer MUST fail with `SOURCE_UNSAFE_VALUE` on input that is not plain data, such as a cyclic value or a value with no JSON counterpart.\n"
+              }
+            ]
+          }
+        },
+        {
+          "id": "validation-order",
+          "sha256": "c1fc33dfe002df78d8dfdd93f7fdba0bc57d1f76b52f3e81781b461c2979982c",
+          "byteLength": 5233
+        },
+        {
+          "id": "failure-positions",
+          "sha256": "274c1a7220f42d3d4569e3fc4c158c951e20d39731a130d66575bd808964f478",
+          "byteLength": 1759
+        },
+        {
+          "id": "limits",
+          "sha256": "e41dbd01b0fd6e73252a4bdfcffa5f44b4dcc09993c69889f4a9b6551625ddd6",
+          "byteLength": 7010,
+          "firstRead": {
+            "sha256": "43857b1908efa512872e277991f24af671769445de47497cd6f1f7814036aa11",
+            "byteLength": 6711,
+            "edits": [
+              {
+                "current": "  An [=OWL mapping adapter=] or [=migration adapter=] MUST share one deadline and one set of counters with the core operation it calls, rather than resetting them at each stage.\n  Each value counts once in an operation, however often the operation copies it, and a value that occurs at several positions counts at each: the core operation that an adapter hands its normalized source to does not count again what the adapter counted while building it.\n",
+                "firstRead": "  An [=OWL mapping adapter=] or [=migration adapter=] MUST share one deadline and one set of counters with the core operation it calls, rather than resetting them at each stage.\n",
+                "pinBefore": {
+                  "sha256": "c02b60618d5d3287604d14db9aef8269d4977af2e9b2decd23a5789186d551e7",
+                  "byteLength": 6737
+                }
+              },
+              {
+                "current": "  A code point that is not [=Unicode-valid=] fails before it is counted, so neither a lone surrogate nor a noncharacter ever counts toward a string limit.\n",
+                "firstRead": "  A code point that is not [=Unicode-valid=] fails before it is counted, so a lone surrogate never counts toward a string limit.\n"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "alsoRead": [
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-core-contract.md",
+      "sha256": "711ba30c291cfb0960334328203188600f60a331996e83379267a4a77b87988d",
+      "role": "Cited as A8 by the first derivation, which pinned it by its whole bytes, for the A7 error table and the A8 limit names, units, override domains and resource-limit codes. Consolidated into #errors; not relied on and not checked."
+    },
+    {
+      "path": "docs/specs/2026-09-30-canonical-vowl-resource-policy-amendment.md",
+      "sha256": "9f1b7d96229a06f57e29a52f92325a4256e6f826d7532e239848ef99dc0f47c1",
+      "role": "Read with A8 by the first derivation, which pinned it by its whole bytes; it concerns rdfDeepIterations, which no vector sets. Consolidated into #rdfc-work; not relied on and not checked."
+    },
+    {
+      "path": "docs/specs/2026-10-03-canonical-vowl-embedded-work-amendment.md",
+      "sha256": "99a0d42e47b88dbe9e2ee0d68951d7622928172d05180803805d30e8bb28e851",
+      "role": "Read with A8 by the first derivation, which pinned it by its whole bytes; it set the embeddedValues default, which the unbounded-limits amendment supersedes. Not relied on and not checked."
+    },
+    {
+      "path": "docs/specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md",
+      "sha256": "8f5b7dd02ebeefd0f3deced6fe7096b194120090611c58f505123c0c843bc9cc",
+      "role": "Read to decide whether it is an authority. It changes defaults, override bounds and the override domain, and #limits consolidates it; no expectation depends on a default or a bound, and every limit a vector sets is a positive safe integer. Not relied on and not checked."
+    }
+  ],
+  "producer": {
+    "path": "supplemental/lexical-position-v1/derive.mjs",
+    "sha256": "4a4da9ad1c0547cbd64874bf43a1f15f8970b7ea6de86c1462317c97425e4b1f"
+  },
+  "manifest": {
+    "path": "supplemental/lexical-position-v1/manifest.json",
+    "sha256": "336bfd188d3997bcefd2749925f3d32807d34ff752b672718949ffae1c88baf8",
+    "byteLength": 110478
+  },
+  "consultedConventions": [
+    "packages/vowl/conformance/README.md",
+    "packages/vowl/conformance/STORAGE.md",
+    "packages/vowl/conformance/storage.mjs",
+    "packages/vowl/conformance/supplemental/README.md",
+    "packages/vowl/conformance/supplemental/negative/derive.mjs",
+    "packages/vowl/conformance/supplemental/negative/manifest.json",
+    "packages/vowl/conformance/supplemental/accepted-protocol-v1/README.md",
+    "packages/vowl/conformance/supplemental/accepted-protocol-v1/derive.mjs",
+    "packages/vowl/conformance/supplemental/accepted-protocol-v1/derive-prefix.mjs",
+    "packages/vowl/conformance/supplemental/accepted-protocol-v1/prefix-negative-manifest.json",
+    "packages/vowl/conformance/supplemental/field-contract/support.mjs",
+    "packages/vowl/conformance/supplemental/unbounded-limits-v1/provenance.json"
+  ],
+  "notRead": [
+    "packages/vowl/src/",
+    "packages/vowl/test/",
+    "packages/vowl/scripts/",
+    "src/",
+    "docs/plans/",
+    "Git history and diffs"
+  ],
+  "notExecuted": "No module of the vowl package was imported or executed. derive.mjs uses only Node.js built-ins; its tracer re-derives stage-3 positions from the same written rules as a check on the tables.",
+  "settledQuestions": [
+    {
+      "question": "lexical-limit-error-code",
+      "settledBy": [
+        "#limits"
+      ],
+      "formerlyOmitted": [
+        "string-bytes-crossed-before-misplaced-number",
+        "string-bytes-crossed-before-escaped-noncharacter",
+        "string-bytes-crossed-in-member-name-before-raw-noncharacter",
+        "total-string-bytes-crossed-before-escaped-noncharacter",
+        "total-string-bytes-crossed-after-member-name-before-noncharacter",
+        "depth-crossed-before-grammar",
+        "total-string-bytes-crossed-inside-repeated-name"
+      ]
+    },
+    {
+      "question": "outermost-container-depth",
+      "settledBy": [
+        "#limits"
+      ],
+      "formerlyOmitted": []
+    },
+    {
+      "question": "member-names-in-string-limits",
+      "settledBy": [
+        "#limits"
+      ],
+      "formerlyOmitted": [
+        "string-bytes-crossed-in-member-name-before-raw-noncharacter",
+        "total-string-bytes-crossed-after-member-name-before-noncharacter",
+        "total-string-bytes-crossed-inside-repeated-name"
+      ]
+    },
+    {
+      "question": "non-finite-in-memory-numbers",
+      "settledBy": [
+        "#in-memory-input"
+      ],
+      "formerlyOmitted": []
+    },
+    {
+      "question": "undefined-string-limit-units",
+      "settledBy": [
+        "#limits"
+      ],
+      "formerlyOmitted": []
+    },
+    {
+      "question": "noncharacters-in-string-limits",
+      "settledBy": [
+        "#limits"
+      ],
+      "formerlyOmitted": []
+    }
+  ],
+  "omittedUndecidedCases": []
+}

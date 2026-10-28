@@ -1357,6 +1357,241 @@
     },
     {
       "paths": [
+        "packages/vowl/conformance/supplemental/lexical-position-v1/vectors/snapshot-member-name-lone-surrogate.json"
+      ],
+      "allowFormatWrites": false,
+      "expected": {
+        "sha256": "7875df047df72fa7e712fafbcaa88776fde527b16b34be0e6fff2f8af9881e60",
+        "byteLength": "220",
+        "diagnostics": [
+          {
+            "phase": "syntax",
+            "ruleId": null,
+            "messageId": "syntax",
+            "line": "12",
+            "column": "7",
+            "endLine": "12",
+            "endColumn": "7",
+            "severity": "error"
+          }
+        ]
+      },
+      "owner": "Canonical VOWL negative-conformance owner",
+      "reason": "Retain the exact intentional lone-surrogate escape of this in-memory snapshot vector, its native syntax diagnostic span and independent byte identity; unexpected or missing findings fail."
+    },
+    {
+      "paths": [
+        "packages/vowl/conformance/supplemental/lexical-position-v1/vectors/snapshot-member-name-noncharacter-after-unknown-member.json"
+      ],
+      "allowFormatWrites": false,
+      "expected": {
+        "sha256": "481d692f11c25e4c60119d042ddc00019c0fd44de4414e61db8fc2e61c505971",
+        "byteLength": "233",
+        "diagnostics": [
+          {
+            "phase": "lint",
+            "ruleId": "json-quality/interoperability",
+            "messageId": "noncharacter",
+            "line": "14",
+            "column": "3",
+            "endLine": "14",
+            "endColumn": "11",
+            "severity": "error",
+            "codePoint": "U+FFFE"
+          }
+        ]
+      },
+      "owner": "Canonical VOWL negative-conformance owner",
+      "reason": "Retain the exact intentional U+FFFE member-name vector, native diagnostic span and independent byte identity; unexpected or missing findings fail."
+    },
+    {
+      "paths": [
+        "packages/vowl/conformance/supplemental/lexical-position-v1/vectors/snapshot-unicode-after-mistyped-member.json"
+      ],
+      "allowFormatWrites": false,
+      "expected": {
+        "sha256": "e31f4cbe29a8b223f2c87b4ca8b5feb053389a9789a8e797e294cec92affa577",
+        "byteLength": "276",
+        "diagnostics": [
+          {
+            "phase": "syntax",
+            "ruleId": null,
+            "messageId": "syntax",
+            "line": "14",
+            "column": "35",
+            "endLine": "14",
+            "endColumn": "35",
+            "severity": "error"
+          }
+        ]
+      },
+      "owner": "Canonical VOWL negative-conformance owner",
+      "reason": "Retain the exact intentional lone-surrogate escape of this in-memory snapshot vector, its native syntax diagnostic span and independent byte identity; unexpected or missing findings fail."
+    },
+    {
+      "paths": [
+        "packages/vowl/conformance/supplemental/lexical-position-v1/vectors/snapshot-unicode-after-unknown-member.json"
+      ],
+      "allowFormatWrites": false,
+      "expected": {
+        "sha256": "91d24e1cd481cc0c82d9b5a91a0ede0064e4885db52bb62fb56636c1b3193923",
+        "byteLength": "293",
+        "diagnostics": [
+          {
+            "phase": "syntax",
+            "ruleId": null,
+            "messageId": "syntax",
+            "line": "15",
+            "column": "35",
+            "endLine": "15",
+            "endColumn": "35",
+            "severity": "error"
+          }
+        ]
+      },
+      "owner": "Canonical VOWL negative-conformance owner",
+      "reason": "Retain the exact intentional lone-surrogate escape of this in-memory snapshot vector, its native syntax diagnostic span and independent byte identity; unexpected or missing findings fail."
+    },
+    {
+      "paths": [
+        "packages/vowl/conformance/supplemental/lexical-position-v1/vectors/snapshot-unicode-before-later-mistyped-member.json"
+      ],
+      "allowFormatWrites": false,
+      "expected": {
+        "sha256": "9118f93a1e2b225d4774ab4d84d284d64e74a7d5b49c66c10c8e9f30b476d40a",
+        "byteLength": "235",
+        "diagnostics": [
+          {
+            "phase": "syntax",
+            "ruleId": null,
+            "messageId": "syntax",
+            "line": "9",
+            "column": "28",
+            "endLine": "9",
+            "endColumn": "28",
+            "severity": "error"
+          }
+        ]
+      },
+      "owner": "Canonical VOWL negative-conformance owner",
+      "reason": "Retain the exact intentional lone-surrogate escape of this in-memory snapshot vector, its native syntax diagnostic span and independent byte identity; unexpected or missing findings fail."
+    },
+    {
+      "paths": [
+        "packages/vowl/conformance/supplemental/unbounded-limits-v1/manifest.json"
+      ],
+      "allowFormatWrites": false,
+      "expected": {
+        "sha256": "e6d24d54ec9cfdf9f40df22c7bafa0e81874cab13a598f528f8ea4d316a10c40",
+        "byteLength": "101279",
+        "diagnostics": [
+          {
+            "phase": "lint",
+            "ruleId": "json/no-unsafe-values",
+            "messageId": "unsafeInteger",
+            "line": "691",
+            "column": "25",
+            "endLine": "691",
+            "endColumn": "41",
+            "severity": "error"
+          },
+          {
+            "phase": "lint",
+            "ruleId": "json/no-unsafe-values",
+            "messageId": "unsafeInteger",
+            "line": "816",
+            "column": "29",
+            "endLine": "816",
+            "endColumn": "45",
+            "severity": "error"
+          },
+          {
+            "phase": "lint",
+            "ruleId": "json/no-unsafe-values",
+            "messageId": "unsafeInteger",
+            "line": "941",
+            "column": "29",
+            "endLine": "941",
+            "endColumn": "45",
+            "severity": "error"
+          },
+          {
+            "phase": "lint",
+            "ruleId": "json/no-unsafe-values",
+            "messageId": "unsafeInteger",
+            "line": "1066",
+            "column": "20",
+            "endLine": "1066",
+            "endColumn": "36",
+            "severity": "error"
+          },
+          {
+            "phase": "lint",
+            "ruleId": "json/no-unsafe-values",
+            "messageId": "unsafeInteger",
+            "line": "1191",
+            "column": "26",
+            "endLine": "1191",
+            "endColumn": "42",
+            "severity": "error"
+          },
+          {
+            "phase": "lint",
+            "ruleId": "json/no-unsafe-values",
+            "messageId": "unsafeInteger",
+            "line": "1316",
+            "column": "31",
+            "endLine": "1316",
+            "endColumn": "47",
+            "severity": "error"
+          },
+          {
+            "phase": "lint",
+            "ruleId": "json/no-unsafe-values",
+            "messageId": "unsafeInteger",
+            "line": "1441",
+            "column": "23",
+            "endLine": "1441",
+            "endColumn": "39",
+            "severity": "error"
+          },
+          {
+            "phase": "lint",
+            "ruleId": "json/no-unsafe-values",
+            "messageId": "unsafeInteger",
+            "line": "1566",
+            "column": "32",
+            "endLine": "1566",
+            "endColumn": "48",
+            "severity": "error"
+          },
+          {
+            "phase": "lint",
+            "ruleId": "json/no-unsafe-values",
+            "messageId": "unsafeInteger",
+            "line": "1667",
+            "column": "25",
+            "endLine": "1667",
+            "endColumn": "41",
+            "severity": "error"
+          },
+          {
+            "phase": "lint",
+            "ruleId": "json/no-unsafe-values",
+            "messageId": "unsafeInteger",
+            "line": "1792",
+            "column": "31",
+            "endLine": "1792",
+            "endColumn": "47",
+            "severity": "error"
+          }
+        ]
+      },
+      "owner": "Canonical VOWL negative-conformance owner",
+      "reason": "Retain the ten intentional integers one above Number.MAX_SAFE_INTEGER that test the unbounded-limits amendment's rejection of unsafe integer limits, their exact diagnostic spans and the manifest's independent byte identity; unexpected or missing findings fail."
+    },
+    {
+      "paths": [
         "packages/vowl/conformance/supplemental/field-contract/semantic/scalar-domain-annotationvalue-language-lexical/source.json"
       ],
       "allowFormatWrites": false,

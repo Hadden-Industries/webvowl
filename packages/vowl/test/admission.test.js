@@ -46,9 +46,10 @@ test.each([
     "OPTION_INVALID",
   ],
   [
-    "infinite limit",
+    // The unbounded-limits amendment admits Infinity but no unsafe integer.
+    "unsafe integer limit",
     empty(),
-    { ...options, limits: { deadlineMs: Infinity } },
+    { ...options, limits: { deadlineMs: 2 ** 53 } },
     "OPTION_INVALID",
   ],
   ["missing structural", {}, options, "DOCUMENT_REQUIRED_FIELD"],
@@ -95,6 +96,134 @@ test.each([
 ])("lexically rejects %s before closed schema checks", async (text, code) => {
   await expectCode(decode(bytes(text)), code);
 });
+
+test("snapshot checks Unicode and numbers before closed fields and types", async () => {
+  const unknownFirst = empty();
+  unknownFirst.structural.aaa = 1;
+  unknownFirst.structural.subjects.push({ id: "s", iri: "urn:x\ud800" });
+  await expectCode(canonicalize(unknownFirst, options), "UNICODE_INVALID");
+  const mistypedFirst = empty();
+  mistypedFirst.structural.constructs = 1;
+  mistypedFirst.structural.zzz = -0;
+  await expectCode(canonicalize(mistypedFirst, options), "NUMBER_INVALID");
+  const invalidName = empty();
+  invalidName.structural["\ud800"] = 1;
+  await expectCode(canonicalize(invalidName, options), "UNICODE_INVALID");
+});
+
+const letters = (count) => "a".repeat(count);
+test.each([
+  [
+    "a misplaced string before its lone surrogate",
+    '[1 "\\ud800"]',
+    {},
+    "JSON_SYNTAX",
+  ],
+  ["a misplaced number before its value", "[1 -0]", {}, "JSON_SYNTAX"],
+  ["grammar tying with the byte after a number", "[-0x]", {}, "JSON_SYNTAX"],
+  ["a misplaced bracket after a number", "[-0[", {}, "JSON_SYNTAX"],
+  ["truncation tying with a final number", "[-0", {}, "JSON_SYNTAX"],
+  [
+    "a lone surrogate before an invalid escape",
+    '{"a":"\\ud800\\x"}',
+    {},
+    "UNICODE_INVALID",
+  ],
+  [
+    "a noncharacter before a raw tab",
+    '{"a":"\\uffff\t"}',
+    {},
+    "UNICODE_INVALID",
+  ],
+  [
+    "a lone surrogate before truncation",
+    '{"a":"\\ud800',
+    {},
+    "UNICODE_INVALID",
+  ],
+  [
+    "a misplaced bracket over the depth limit",
+    "[1 [",
+    { depth: 1 },
+    "JSON_SYNTAX",
+  ],
+  [
+    "a string limit before a lone surrogate",
+    `{"a":"${letters(40)}\\ud800"}`,
+    { stringBytes: 16 },
+    "MODEL_RESOURCE_LIMIT",
+  ],
+  [
+    "a string limit before a lone surrogate in one block",
+    `{"a":"${letters(1500)}\\ud800${letters(600)}"}`,
+    { stringBytes: 1400 },
+    "MODEL_RESOURCE_LIMIT",
+  ],
+  [
+    "a raw noncharacter before a raw tab",
+    `{"a":"${String.fromCodePoint(0xffff)}\t"}`,
+    {},
+    "UNICODE_INVALID",
+  ],
+  [
+    "a raw supplementary noncharacter before a raw tab",
+    `{"a":"${String.fromCodePoint(0x1ffff)}\t"}`,
+    {},
+    "UNICODE_INVALID",
+  ],
+  [
+    "an escaped pair for a noncharacter before an invalid escape",
+    '{"a":"\\ud83f\\udfff\\x"}',
+    {},
+    "UNICODE_INVALID",
+  ],
+  [
+    "a string limit in two-byte text before an invalid escape",
+    `{"a":"${String.fromCodePoint(0xe9).repeat(20)}\\x"}`,
+    { stringBytes: 16 },
+    "MODEL_RESOURCE_LIMIT",
+  ],
+  // Controls whose first failure already comes first.
+  [
+    "an escaped valid pair before an invalid escape",
+    '{"a":"\\ud83d\\ude00\\x"}',
+    {},
+    "JSON_SYNTAX",
+  ],
+  ["a final number", "-0", {}, "NUMBER_INVALID"],
+  ["a number before its closing bracket", "[-0]", {}, "NUMBER_INVALID"],
+  ["a number before whitespace and a bad byte", "[-0 x]", {}, "NUMBER_INVALID"],
+  ["a raw tab before a noncharacter", '{"a":"\t\\uffff"}', {}, "JSON_SYNTAX"],
+  [
+    "a duplicate name before a missing colon",
+    '{"a":1,"a" 2}',
+    {},
+    "JSON_DUPLICATE_MEMBER",
+  ],
+  [
+    "a lone surrogate before a string limit",
+    `{"a":"\\ud800${letters(40)}"}`,
+    { stringBytes: 16 },
+    "UNICODE_INVALID",
+  ],
+  [
+    "a total string limit inside a duplicate name",
+    '{"abcdef":1,"abcdef":2}',
+    { totalStringBytes: 9 },
+    "MODEL_RESOURCE_LIMIT",
+  ],
+  [
+    "a lone surrogate before the envelope checks",
+    '{"profile":"\\ud800"}',
+    {},
+    "UNICODE_INVALID",
+  ],
+])(
+  "reports the stage-3 failure at the smallest position: %s",
+  async (_name, text, limits, code) => {
+    await expectCode(decode(bytes(text), { limits }), code);
+  },
+);
 
 test("decoder snapshots bytes, rejects invalid UTF-8 and accepts no shared backing store", async () => {
   await expectCode(decode(new Uint8Array([0xc0, 0x80])), "JSON_INVALID_UTF8");

@@ -3,7 +3,11 @@ import { fail } from "../errors.js";
 import { compareBytes, jsonBytes, jsonKey } from "../canonicalJson.js";
 import { snapshotSource } from "../snapshot.js";
 import { namespaces } from "../profiles.js";
-import { waitForResult } from "./loading.js";
+import {
+  dependencyLimitFailure,
+  owlapiLimit,
+  waitForResult,
+} from "./loading.js";
 import { unsupportedQuantifier } from "./modelBuilder.js";
 
 const prefix =
@@ -153,6 +157,20 @@ function assessGenericRoles(loaded, budget, policy) {
   }
 }
 
+/** The caller's limits as OWL 2 profile-check bounds, without the former fixed caps. */
+export function profileCheckLimits(budget) {
+  const { limits } = budget;
+  const remaining = Math.max(1, Math.ceil(budget.deadline - performance.now()));
+  return {
+    maxDepth: owlapiLimit(limits.depth),
+    maxLiteralLength: owlapiLimit(limits.stringBytes),
+    maxNumericDigits: owlapiLimit(limits.stringBytes),
+    maxWork: owlapiLimit(limits.embeddedValues * 2),
+    // The profile check spells an absent elapsed deadline as null.
+    timeoutMs: remaining === Infinity ? null : owlapiLimit(remaining),
+  };
+}
+
 /** Validate the full closure, including excluded axioms and unattached source expressions. */
 export async function checkClosure(loaded, budget, policy) {
   budget.check();
@@ -160,11 +178,7 @@ export async function checkClosure(loaded, budget, policy) {
     new OWL2DLProfile().checkOntology(loaded.ontology, {
       sourceAssessment: true,
       signal: budget.signal,
-      maxDepth: budget.limits.depth,
-      maxLiteralLength: budget.limits.stringBytes,
-      maxNumericDigits: Math.min(65536, budget.limits.stringBytes),
-      maxWork: Math.min(1000000, budget.limits.embeddedValues * 2),
-      timeoutMs: Math.max(1, Math.ceil(budget.deadline - performance.now())),
+      ...profileCheckLimits(budget),
     }),
     budget,
   );
@@ -192,10 +206,7 @@ export async function checkClosure(loaded, budget, policy) {
   ]) {
     budget.check();
     if (item.code === "RESOURCE_LIMIT_EXCEEDED") {
-      fail("MODEL_RESOURCE_LIMIT", undefined, {
-        stage: "owl-validation",
-        resource: item.resource,
-      });
+      dependencyLimitFailure(item.resource, "owl-validation");
     }
     if (evidenceGaps.has(item.code)) {
       fail("DEPENDENCY_FAILURE", undefined, {

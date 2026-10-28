@@ -38,12 +38,15 @@ Run the full relevant tests and checked production build before deployment; focu
 Ordinary browser loading and the real large-ontology path need browser verification.
 
 The [consumer test](../src/owlapiConsumerBoundary.architecture.test.js) reads the selected source from the root manifest and verifies its generated lock and installed metadata.
-It uses npm's bundled `cacache` reader to retrieve the original archive by the generated lock's SHA-512 integrity and extracts it using native `tar`, without network access or lifecycle scripts.
-It then compares every installed package file against that source archive by relative path and SHA-256, without another hard-coded package version, commit, archive digest or file count.
+It then fetches that source with npm's bundled package fetcher, as installation does, without lifecycle scripts.
+A registry version's archive must match the generated lock's SHA-512 integrity.
+A Git commit is packed with npm's own file selection; npm compares no integrity for Git dependencies ([npm/rfcs#525](https://github.com/npm/rfcs/pull/525)), so the commit itself is the source's identity.
+The fetcher reads npm's cache first and uses the network only for what the cache lacks.
+It then compares every installed package file against that source by relative path and SHA-256, without another hard-coded package version, commit, archive digest or file count.
 Nested `node_modules` dependencies are excluded from this package payload and retain their own lockfile identities.
 Symlinks and unexpected non-file payload entries are rejected.
-Run `npm ci` before these tests so the selected archive is present in npm's cache.
-The reference payload comes from the selected archive, never from the installed files being tested.
+Run `npm ci` before these tests, which also leaves a registry archive in npm's cache.
+The reference payload comes from the selected source, never from the installed files being tested.
 
 The current source's compatibility and timing evidence belongs to this adoption.
 Upstream timing results and renderer-only timing results do not establish end-to-end browser loading performance for this build.

@@ -54,6 +54,7 @@ export async function migrate(input, options) {
     if (error instanceof VowlError) {
       throw error;
     }
+    budget.reportHostLimit(error);
     throw new VowlError(
       "DEPENDENCY_FAILURE",
       "Legacy migration dependency failed",

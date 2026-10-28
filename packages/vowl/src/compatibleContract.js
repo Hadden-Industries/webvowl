@@ -249,7 +249,9 @@ export function validateQualifications(source, budget, decoding = false) {
     ["sourceStatements", "V", "v"],
   ]) {
     for (const record of source.qualifications[name]) {
-      budget.charge("primaryRecords");
+      // Snapshotting or tokenizing already counted the record as an embedded
+      // value; primaryRecords counts only the five structural collections.
+      budget.poll();
       if (
         !record.id ||
         index.has(record.id) ||

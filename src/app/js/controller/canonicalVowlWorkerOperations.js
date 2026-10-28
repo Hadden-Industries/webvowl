@@ -16,15 +16,20 @@ import {
 } from "vowl";
 import { canonicalFailureDetails } from "./canonicalVowlFailure.js";
 import {
+  APPLICATION_LIMITS as applicationLimits,
   MODEL_OPERATION_NAMES,
   MODEL_OPERATION_LIMITS as modelOperationLimits,
 } from "./canonicalVowlWorkerPolicy.js";
 
 const modelOperations = new Set(MODEL_OPERATION_NAMES);
+const modelLimits = Object.freeze({
+  ...applicationLimits,
+  ...modelOperationLimits,
+});
 
 // Owner-approved desktop profile, measured on a 10,000-class hierarchy.
 // One model must remain usable across opening, editing, recovery and export;
-// explicit limits still win, and parser bytes/RDF/canonicalization caps stay native.
+// explicit limits still win, and WebVOWL's retained policy supplies the rest.
 
 async function displayOrderKeys(model, limits) {
   const start = performance.now();
@@ -59,18 +64,19 @@ export async function runCanonicalVowlOperation(
   context,
 ) {
   const { operation, bytes } = request;
+  const policyLimits = modelOperations.has(operation)
+    ? modelLimits
+    : applicationLimits;
   let limits = request.limits;
-  if (modelOperations.has(operation)) {
-    if (limits === undefined) {
-      limits = modelOperationLimits;
-    } else if (limits !== null && typeof limits === "object") {
-      // Retain prototypes, symbols and accessor/non-enumerable descriptors so
-      // the producer's option validator still rejects malformed caller data.
-      limits = Object.create(Object.getPrototypeOf(limits), {
-        ...Object.getOwnPropertyDescriptors(modelOperationLimits),
-        ...Object.getOwnPropertyDescriptors(limits),
-      });
-    }
+  if (limits === undefined) {
+    limits = policyLimits;
+  } else if (limits !== null && typeof limits === "object") {
+    // Retain prototypes, symbols and accessor/non-enumerable descriptors so
+    // the producer's option validator still rejects malformed caller data.
+    limits = Object.create(Object.getPrototypeOf(limits), {
+      ...Object.getOwnPropertyDescriptors(policyLimits),
+      ...Object.getOwnPropertyDescriptors(limits),
+    });
   }
   let document;
   let metadata = {};

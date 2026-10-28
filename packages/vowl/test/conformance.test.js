@@ -24,6 +24,9 @@ test.each(negatives)(
     } else {
       await expect(operation).rejects.toMatchObject({
         code: vector.expectedError,
+        ...(vector.expectedPointer === undefined
+          ? {}
+          : { pointer: vector.expectedPointer }),
       });
     }
   },

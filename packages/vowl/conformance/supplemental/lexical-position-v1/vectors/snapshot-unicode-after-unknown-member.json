@@ -1,0 +1,19 @@
+{
+  "structural": {
+    "aaa": true,
+    "constructs": [],
+    "expressions": [],
+    "occurrences": [],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    },
+    "roles": [],
+    "subjects": [
+      {
+        "id": "s",
+        "iri": "urn:example:\ud800"
+      }
+    ]
+  }
+}

@@ -164,6 +164,32 @@ test.each([false, true])(
   },
 );
 
+test("the adapter's records count once, not again when canonicalized", async () => {
+  const { document } = await fromOwl(bytes(subclass), options);
+  const records = [
+    "subjects",
+    "roles",
+    "expressions",
+    "constructs",
+    "occurrences",
+  ].reduce((sum, key) => sum + document.structural[key].length, 0);
+  await expect(
+    fromOwl(bytes(subclass), {
+      ...options,
+      limits: { primaryRecords: records - 1 },
+    }),
+  ).rejects.toMatchObject({
+    code: "MODEL_RESOURCE_LIMIT",
+    details: { limit: "primaryRecords" },
+  });
+  await expect(
+    fromOwl(bytes(subclass), {
+      ...options,
+      limits: { primaryRecords: records },
+    }),
+  ).resolves.toBeDefined();
+});
+
 test("invalid UTF-8 and exact syntax mismatches do not trigger sniffing", async () => {
   await expect(fromOwl(new Uint8Array([0xff]), options)).rejects.toMatchObject({
     code: "MAPPING_SYNTAX_INVALID",
@@ -686,3 +712,95 @@ test("named datatype-definition cycles are retained only under the explicit glob
     fromOwl(input, { ...options, mappingProfile: strict }),
   ).rejects.toMatchObject({ code: "MAPPING_GLOBAL_RESTRICTION" });
 });
+
+// The accepted identifiers of OWL 2 section 11.2 that no other test or corpus case covers.
+test.each([
+  [
+    "TOP_DATA_PROPERTY_POSITION",
+    `Declaration(DataProperty(<urn:d>)) SubDataPropertyOf(<${owl}topDataProperty> <urn:d>)`,
+  ],
+  [
+    "IRREGULAR_PROPERTY_HIERARCHY",
+    "Declaration(ObjectProperty(<urn:p>)) Declaration(ObjectProperty(<urn:q>)) SubObjectPropertyOf(ObjectPropertyChain(<urn:p> <urn:q>) <urn:p>) SubObjectPropertyOf(ObjectPropertyChain(<urn:q> <urn:p>) <urn:q>)",
+  ],
+  [
+    "ANONYMOUS_INDIVIDUAL_POSITION",
+    "Declaration(ObjectProperty(<urn:p>)) Declaration(Class(<urn:C>)) SubClassOf(<urn:C> ObjectHasValue(<urn:p> _:a))",
+  ],
+  [
+    "MULTIPLE_ANONYMOUS_EDGE_ASSERTIONS",
+    "Declaration(ObjectProperty(<urn:p>)) Declaration(ObjectProperty(<urn:q>)) Declaration(NamedIndividual(<urn:n>)) ObjectPropertyAssertion(<urn:p> <urn:n> _:a) ObjectPropertyAssertion(<urn:p> _:a _:b) ObjectPropertyAssertion(<urn:q> _:a _:b)",
+  ],
+  [
+    "ANONYMOUS_GRAPH_NOT_FOREST",
+    "Declaration(ObjectProperty(<urn:p>)) Declaration(NamedIndividual(<urn:n>)) ObjectPropertyAssertion(<urn:p> <urn:n> _:a) ObjectPropertyAssertion(<urn:p> _:a _:b) ObjectPropertyAssertion(<urn:p> _:b _:c) ObjectPropertyAssertion(<urn:p> _:c _:a)",
+  ],
+  [
+    "ANONYMOUS_TREE_WITHOUT_ROOT",
+    "Declaration(ObjectProperty(<urn:p>)) Declaration(NamedIndividual(<urn:m>)) Declaration(NamedIndividual(<urn:n>)) ObjectPropertyAssertion(<urn:p> <urn:m> _:a) ObjectPropertyAssertion(<urn:p> <urn:n> _:a)",
+  ],
+])(
+  "the %s global restriction is identified in the recovery diagnostic",
+  async (identifier, axioms) => {
+    const input = bytes(`Ontology(<urn:doc> ${axioms})`);
+    const { diagnostics } = await fromOwl(input, options);
+    expect(
+      diagnostics.some(
+        ({ code, details }) =>
+          code === "MAPPING_GLOBAL_RESTRICTION" &&
+          new RegExp(`\\b${identifier}\\b`).test(details),
+      ),
+    ).toBe(true);
+    await expect(
+      fromOwl(input, { ...options, mappingProfile: strict }),
+    ).rejects.toMatchObject({ code: "MAPPING_GLOBAL_RESTRICTION" });
+  },
+);
+
+test.each([
+  ["a non-record response", () => [], "OPTION_INVALID", "/resolveImport"],
+  [
+    "an extra response field",
+    () => ({
+      bytes: bytes(subclass),
+      documentIri: "urn:import",
+      mediaType: options.mediaType,
+      extra: true,
+    }),
+    "OPTION_INVALID",
+    "/resolveImport",
+  ],
+  [
+    "text instead of bytes",
+    () => ({
+      bytes: subclass,
+      documentIri: "urn:import",
+      mediaType: options.mediaType,
+    }),
+    "INPUT_TYPE",
+    "",
+  ],
+  [
+    "a relative document IRI",
+    () => ({
+      bytes: bytes(subclass),
+      documentIri: "relative",
+      mediaType: options.mediaType,
+    }),
+    "OPTION_INVALID",
+    "/resolveImport/documentIri",
+  ],
+])(
+  "a resolver response with %s fails at its location under both profiles",
+  async (_name, respond, code, pointer) => {
+    for (const mappingProfile of [undefined, strict]) {
+      await expect(
+        fromOwl(bytes("Ontology(Import(<urn:import>))"), {
+          ...options,
+          mappingProfile,
+          resolveImport: async () => respond(),
+        }),
+      ).rejects.toMatchObject({ code, pointer });
+    }
+  },
+);

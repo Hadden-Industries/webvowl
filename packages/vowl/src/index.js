@@ -1,5 +1,5 @@
 import { profiles } from "./profiles.js";
-import { fail, VowlError } from "./errors.js";
+import { fail, hostLimitResource, VowlError } from "./errors.js";
 import {
   optionRecord,
   ResourceBudget,
@@ -49,7 +49,7 @@ export {
   compatibleViewPolicy,
 } from "./profiles.js";
 export { dataRangeKinds } from "./modelContract.js";
-export { operationLimitPolicy } from "./resourceBudget.js";
+export { operationLimitDefaults } from "./resourceBudget.js";
 export { DISPLAY_ORDER_KEY_PURPOSE };
 const admitted = new WeakMap();
 const admittedModels = new WeakSet();
@@ -124,6 +124,9 @@ export async function edit(document, changes, options) {
     const created = [...issued.values()].filter((id) => !matched.has(id));
     budget.check();
     return deepFreeze({ document: result, correspondence, created });
+  } catch (error) {
+    budget.reportHostLimit(error);
+    throw error;
   } finally {
     budget.dispose();
   }
@@ -162,10 +165,7 @@ async function admit(source, profile, budget, originalBytes, issued) {
   try {
     bytes = jsonBytes(document);
   } catch (cause) {
-    throw new VowlError("DEPENDENCY_FAILURE", "JSON canonicalization failed", {
-      details: { stage: "jcs" },
-      cause,
-    });
+    budget.dependencyFailure(cause, "JSON canonicalization failed", "jcs");
   }
   budget.check();
   if (originalBytes && compareBytes(bytes, originalBytes) !== 0) {
@@ -190,6 +190,9 @@ export async function canonicalize(source, options) {
   try {
     const snapshot = snapshotSource(source, budget);
     return await admit(snapshot, opts.profile, budget);
+  } catch (error) {
+    budget.reportHostLimit(error);
+    throw error;
   } finally {
     if (!borrowed) {
       budget.dispose();
@@ -246,6 +249,9 @@ export async function decode(input, options) {
     );
     delete document.profile;
     return await admit(document, profile, budget, bytes);
+  } catch (error) {
+    budget.reportHostLimit(error);
+    throw error;
   } finally {
     budget.dispose();
   }
@@ -257,7 +263,16 @@ export function encode(document) {
   if (!bytes) {
     fail("DOCUMENT_NOT_ADMITTED");
   }
-  return new Uint8Array(bytes);
+  try {
+    return new Uint8Array(bytes);
+  } catch (error) {
+    // encode takes no limits or signal, so no cancellation can take precedence.
+    const resource = hostLimitResource(error);
+    if (resource !== undefined) {
+      fail("HOST_RESOURCE_LIMIT", undefined, { resource });
+    }
+    throw error;
+  }
 }
 
 /** Open verified retained content without acquiring canonical authority for the live token. */
@@ -269,6 +284,9 @@ export async function openCanonical(document, options) {
       await openCanonicalState(document, encode(document), budget),
       budget,
     );
+  } catch (error) {
+    budget.reportHostLimit(error);
+    throw error;
   } finally {
     budget.dispose();
   }
@@ -286,6 +304,9 @@ export async function editModel(model, changes, options) {
   try {
     requireModel(model);
     return rememberModel(editLiveModel(model, changes, budget), budget);
+  } catch (error) {
+    budget.reportHostLimit(error);
+    throw error;
   } finally {
     budget.dispose();
   }
@@ -339,6 +360,9 @@ export async function captureModel(model, options) {
         current,
       })),
     });
+  } catch (error) {
+    budget.reportHostLimit(error);
+    throw error;
   } finally {
     budget.dispose();
   }
@@ -367,6 +391,9 @@ export async function readModelRankingIdentity(model, options) {
     });
     budget.check();
     return result;
+  } catch (error) {
+    budget.reportHostLimit(error);
+    throw error;
   } finally {
     budget.dispose();
   }
@@ -389,6 +416,9 @@ export async function readModelDisplayOrderKeys(model, options) {
     });
     budget.check();
     return result;
+  } catch (error) {
+    budget.reportHostLimit(error);
+    throw error;
   } finally {
     budget.dispose();
   }
@@ -402,6 +432,9 @@ export async function checkpointModel(model, options) {
     const result = checkpointLiveModel(model, budget);
     budget.check();
     return result;
+  } catch (error) {
+    budget.reportHostLimit(error);
+    throw error;
   } finally {
     budget.dispose();
   }
@@ -414,6 +447,9 @@ export async function readModelSource(model, documentId, options) {
   try {
     requireModel(model);
     return readLiveModelSource(model, documentId, budget);
+  } catch (error) {
+    budget.reportHostLimit(error);
+    throw error;
   } finally {
     budget.dispose();
   }
@@ -424,6 +460,9 @@ export async function readmitModel(checkpoint, options) {
   const budget = new ResourceBudget(opts, performance.now());
   try {
     return rememberModel(await readmitLiveModel(checkpoint, budget), budget);
+  } catch (error) {
+    budget.reportHostLimit(error);
+    throw error;
   } finally {
     budget.dispose();
   }

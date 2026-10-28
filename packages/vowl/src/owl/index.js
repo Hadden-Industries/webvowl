@@ -25,6 +25,9 @@ export async function exportModelRdf(model, options) {
   const budget = new ResourceBudget(opts, performance.now());
   try {
     return Object.freeze(serializeModelRdf(inspectModel(model), budget));
+  } catch (error) {
+    budget.reportHostLimit(error);
+    throw error;
   } finally {
     budget.dispose();
   }
@@ -82,6 +85,7 @@ export async function openOwl(input, options) {
     if (error instanceof VowlError) {
       throw error;
     }
+    budget.reportHostLimit(error);
     throw new VowlError(
       "DEPENDENCY_FAILURE",
       "OWL live admission dependency failed",
@@ -131,6 +135,7 @@ export async function fromOwl(input, options) {
     if (error instanceof VowlError) {
       throw error;
     }
+    budget.reportHostLimit(error);
     throw new VowlError("DEPENDENCY_FAILURE", "OWL mapping dependency failed", {
       details: { stage: "owl-mapping" },
     });

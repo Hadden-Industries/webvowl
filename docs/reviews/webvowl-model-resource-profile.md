@@ -44,6 +44,20 @@ An ontology of similar byte size can have substantially different internal cost.
 Physical mobile devices, assistive technology, constrained-memory browsers, broad public ontology corpora and end-to-end latency percentiles remain unqualified.
 Larger-scale support requires measuring the entire model lifecycle and reducing structural-copy/refinement costs, rather than repeatedly raising one counter.
 
+## Counting change of 28 October 2026
+
+From 28 October 2026, each value counts once in an operation, however often the operation copies it.
+The measurements above counted some records two or three times.
+Measured again with every limit lifted, a 10,000-class subclass chain:
+
+- charges 59,997 records to open and 89,998 to edit;
+- charges at most 340,029 embedded values and 15,449,831 string bytes, the latter in ranking;
+- peaks at 1.2 GB of process memory over the whole lifecycle.
+
+So the profile now has more headroom than these measurements show, and opening accepts hierarchies about three times larger before a counter fails.
+Editing the same chain takes 204 seconds, beyond the 60-second deadline.
+The owner kept the profile unchanged, pending a recalibration after editing is fixed, which is also to measure the Universal Reference Data closure and browser memory.
+
 ## Error behavior
 
 The reported URL was also opened with the repaired application in local Chrome.

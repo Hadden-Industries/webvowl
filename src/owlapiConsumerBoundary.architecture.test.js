@@ -7,7 +7,6 @@ import {
   readdirSync,
   readFileSync,
   rmSync,
-  writeFileSync,
 } from "node:fs";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
@@ -56,6 +55,19 @@ const immutableGitCoordinate = (specifier) => {
   } catch {
     return false;
   }
+};
+// npm verifies a registry archive by its lockfile integrity, but compares none
+// for a Git dependency, whose identity is its commit (npm/rfcs#525).
+const trustedArchiveRequest = (specifier, lockedPackage) => {
+  if (exactPackageCoordinate(specifier)) {
+    return { spec: lockedPackage.resolved, integrity: lockedPackage.integrity };
+  }
+  if (immutableGitCoordinate(specifier)) {
+    return { spec: lockedPackage.resolved, integrity: undefined };
+  }
+  throw new Error(
+    `${specifier} is not an exact registry version or immutable Git commit`,
+  );
 };
 const EXPECTED_EXPORTS = {
   ".": "./index.js",
@@ -333,6 +345,49 @@ describe("installed owlapi consumer boundary", () => {
     },
   );
 
+  test.each([
+    [
+      "npm:@example/ontology@1.2.3",
+      {
+        resolved:
+          "https://registry.npmjs.org/@example/ontology/-/ontology-1.2.3.tgz",
+        integrity: "sha512-AAAA",
+      },
+      {
+        spec: "https://registry.npmjs.org/@example/ontology/-/ontology-1.2.3.tgz",
+        integrity: "sha512-AAAA",
+      },
+    ],
+    [
+      `git+https://github.com/example/ontology.git#${"a".repeat(40)}`,
+      {
+        resolved: `git+https://github.com/example/ontology.git#${"a".repeat(40)}`,
+        integrity: "sha512-BBBB",
+      },
+      {
+        spec: `git+https://github.com/example/ontology.git#${"a".repeat(40)}`,
+        integrity: undefined,
+      },
+    ],
+  ])(
+    "verifies an exact %s coordinate against the source npm installs from",
+    (specifier, lockedPackage, request) => {
+      expect(trustedArchiveRequest(specifier, lockedPackage)).toEqual(request);
+    },
+  );
+
+  test("refuses to choose a trusted source for an unpinned specifier", () => {
+    expect(() =>
+      trustedArchiveRequest(
+        "git+https://github.com/example/ontology.git#main",
+        {
+          resolved: "git+https://github.com/example/ontology.git#main",
+          integrity: "sha512-CCCC",
+        },
+      ),
+    ).toThrow("not an exact registry version or immutable Git commit");
+  });
+
   test("collects supported static, dynamic, and CommonJS module references", () => {
     const source = [
       'import model from "owlapi/model";',
@@ -426,14 +481,17 @@ describe("installed owlapi consumer boundary", () => {
     expect(installedPackage?.link).toBeUndefined();
   });
 
-  test("installed payload matches the selected cached source with no second pinned identity", async () => {
+  test("installed payload matches the locked source with no second pinned identity", async () => {
     expect(lstatSync(INSTALLED_PACKAGE_PATH).isSymbolicLink()).toBe(false);
     const directory = mkdtempSync(
       path.join(tmpdir(), "webvowl-owlapi-payload-"),
     );
     try {
-      // Reuse npm's bundled cache reader: npm ci stored the original archive
-      // by integrity. No network, lifecycle scripts or installed-file reference.
+      // Ask npm's own fetcher for the locked source through npm's cache, as
+      // installation does: it verifies a registry archive by its lockfile
+      // integrity, and packs a Git commit with npm's file selection, which
+      // reads the clone through npm's Arborist. It fetches only what the cache
+      // lacks, extracts in-process and runs no scripts.
       const cache = execFileSync(
         process.execPath,
         [process.env.npm_execpath, "config", "get", "cache"],
@@ -443,36 +501,25 @@ describe("installed owlapi consumer boundary", () => {
           windowsHide: true,
         },
       ).trim();
-      const cacache = npmRequire("cacache");
-      const bytes = await cacache.get.byDigest(
-        path.join(cache, "_cacache"),
-        LOCKED_PACKAGE.integrity,
+      const { spec, integrity } = trustedArchiveRequest(
+        EXPECTED_PACKAGE_SPECIFIER,
+        LOCKED_PACKAGE,
       );
-      expect(
-        `sha512-${createHash("sha512").update(bytes).digest("base64")}`,
-      ).toBe(LOCKED_PACKAGE.integrity);
-      const archive = path.join(directory, "owlapi.tgz");
-      writeFileSync(archive, bytes);
-      // Extract with npm's bundled tar too: the tar first on PATH varies by
-      // shell, and Git Bash's GNU tar reads the drive letter of an absolute
-      // Windows path as a remote host.
-      npmRequire("tar").x({
-        file: archive,
-        cwd: directory,
-        strict: true,
-        sync: true,
+      await npmRequire("pacote").extract(spec, directory, {
+        Arborist: npmRequire("@npmcli/arborist"),
+        cache: path.join(cache, "_cacache"),
+        integrity,
+        ignoreScripts: true,
       });
       const sort = (inventory) =>
         inventory.sort(([left], [right]) =>
           left < right ? -1 : left > right ? 1 : 0,
         );
-      expect(sort(packagePayload())).toEqual(
-        sort(packagePayload(path.join(directory, "package"))),
-      );
+      expect(sort(packagePayload())).toEqual(sort(packagePayload(directory)));
     } finally {
       rmSync(directory, { recursive: true, force: true });
     }
-  }, 30000);
+  }, 120000);
 
   test("observes the approved installed identity and public exports", () => {
     expect(existsSync(INSTALLED_PACKAGE_JSON_PATH)).toBe(true);

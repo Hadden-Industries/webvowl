@@ -1,0 +1,3217 @@
+{
+  "format": "canonical-vowl-negative-and-boundary-manifest/1",
+  "status": "supplemental-independent-errors-pending-review",
+  "independence": "Inputs and expected errors derived from the written rules of the pinned authorities; no product code was read, imported or executed to choose outcomes.",
+  "authorities": [
+    {
+      "path": "docs/canonical-vowl/index.html",
+      "sections": [
+        {
+          "id": "notation",
+          "sha256": "1e83b3978ce5fca5a469bc0f71193e348ac7174288f2523c09cfd8bff4156f31",
+          "byteLength": 2380
+        },
+        {
+          "id": "canonical-profiles",
+          "sha256": "6643e8f70bc0e5e3e566540300b504880023d07f1e69991c587981e4c5b1f472",
+          "byteLength": 722
+        },
+        {
+          "id": "envelope",
+          "sha256": "34400bdef9166d641e6f68bc61e00ba12b2660c377c1b4b5d09001601e287150",
+          "byteLength": 2249
+        },
+        {
+          "id": "ontology",
+          "sha256": "f8cbb83716fb921c273188a1209c90b7c435a02d27cbd62dd31929ff527b0a89",
+          "byteLength": 578
+        },
+        {
+          "id": "subjects-and-roles",
+          "sha256": "e3c4bfc4d02d7e4b5304e97866fe601152526441ea146e5e25f50cbd525ae3e8",
+          "byteLength": 2459
+        },
+        {
+          "id": "exact-decoding",
+          "sha256": "a7691b558317355141ff4f2a036c9d139d682204aac0048110231b08813dfb35",
+          "byteLength": 2495
+        },
+        {
+          "id": "duplicate-members",
+          "sha256": "7039971c09d97a4a3e95fef369bc2dea611b38b00c0c0809ec4e769d243eb15b",
+          "byteLength": 1347
+        },
+        {
+          "id": "unicode-admission",
+          "sha256": "426c0bd1102c1e13f50ee57e297a6908fa4ab870917ddd09093a34259627cb42",
+          "byteLength": 895
+        },
+        {
+          "id": "number-admission",
+          "sha256": "f14cc074b8c42517b80840d33bafe8558e9f600b7429b83d59dfb794e2070fd8",
+          "byteLength": 673
+        },
+        {
+          "id": "in-memory-input",
+          "sha256": "d731038e63136a3c4a86c36c443adcf8a62e27265578dc52589fc4087545e15d",
+          "byteLength": 1940
+        },
+        {
+          "id": "validation-order",
+          "sha256": "c1fc33dfe002df78d8dfdd93f7fdba0bc57d1f76b52f3e81781b461c2979982c",
+          "byteLength": 5233
+        },
+        {
+          "id": "failure-positions",
+          "sha256": "274c1a7220f42d3d4569e3fc4c158c951e20d39731a130d66575bd808964f478",
+          "byteLength": 1759
+        },
+        {
+          "id": "limits",
+          "sha256": "e41dbd01b0fd6e73252a4bdfcffa5f44b4dcc09993c69889f4a9b6551625ddd6",
+          "byteLength": 7010
+        }
+      ]
+    }
+  ],
+  "sourceArtifacts": [
+    {
+      "path": "supplemental/lexical-position-v1/derive.mjs",
+      "sha256": "4a4da9ad1c0547cbd64874bf43a1f15f8970b7ea6de86c1462317c97425e4b1f"
+    }
+  ],
+  "notes": [
+    "Authority paths are relative to the repository root; input and source-artifact paths are relative to packages/vowl/conformance. Rules beginning with # are pinned sections of the specification draft, the only authority.",
+    "The specification draft is pinned by the sections that the vectors cite. A pinned section of the specification draft is its Markdown heading line, the one ending in {#id}, through to the line before the next heading of the same or a higher level, or to the end of the document; a line inside a fenced code block is not a heading. The digest covers exactly those bytes.",
+    "Every input is a file directly in vectors/, named by its vector id: <id>.bin holds the bytes for decode, and <id>.json the source for canonicalize.",
+    "Pass options to the named operation. For canonicalize, parse the <id>.json source with an ordinary JSON parser to obtain the in-memory source: its \\uXXXX escapes yield lone surrogates and noncharacters, and -0 yields negative zero. Supply the recorded profile separately.",
+    "Each expected error holds for exactly the limits that the vector's options set, with the defaults of #limits for every other limit.",
+    "failurePositions lists the competing stage-3 failures that each decode input was built around, at the byte offsets that #failure-positions defines; failures after the first JSON grammar failure are the positions that bytes of a continued text would have, recorded to show what the order decides.",
+    "A crossed depth, stringBytes or totalStringBytes limit fails with MODEL_RESOURCE_LIMIT in every operation and stage (#limits), and the error's details.limit names the limit; in a vector that expects it, the first entry of failurePositions names that limit.",
+    "A code point that is not Unicode-valid fails before it is counted (#limits). Where a vector sets a string limit that a noncharacter would cross only if it were counted, its note gives the byte of that crossing, which is not a failure position.",
+    "Every vector is a rejection; expectedError is never null."
+  ],
+  "vectors": [
+    {
+      "id": "misplaced-string-holds-lone-high-surrogate-escape",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "misplaced-token",
+      "rules": [
+        "#failure-positions",
+        "#exact-decoding",
+        "#unicode-admission"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 3
+        },
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 9
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 3. Later: unicode-validity at byte 9.",
+      "note": "Example in #failure-positions.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/misplaced-string-holds-lone-high-surrogate-escape.bin",
+        "sha256": "eeba3402309f046593550088f2e08521eb1a10a2b6f75931f6d75067bc16af79",
+        "byteLength": 12
+      }
+    },
+    {
+      "id": "misplaced-string-holds-escaped-noncharacter",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "misplaced-token",
+      "rules": [
+        "#failure-positions",
+        "#exact-decoding",
+        "#unicode-admission"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 5
+        },
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 11
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 5. Later: unicode-validity at byte 11.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/misplaced-string-holds-escaped-noncharacter.bin",
+        "sha256": "838d1f20916579295f73193bab28de9fa1bdd216f0b5237a15e4797636f0dece",
+        "byteLength": 14
+      }
+    },
+    {
+      "id": "misplaced-string-holds-raw-noncharacter",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "misplaced-token",
+      "rules": [
+        "#failure-positions",
+        "#exact-decoding",
+        "#unicode-admission"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 5
+        },
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 8
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 5. Later: unicode-validity at byte 8.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/misplaced-string-holds-raw-noncharacter.bin",
+        "sha256": "fc6c1e73cb1cae2fdb8d4bd2df290ab33959eabc4dd246f12d56deec00049bac",
+        "byteLength": 11
+      }
+    },
+    {
+      "id": "misplaced-member-name-holds-lone-low-surrogate-escape",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "misplaced-token",
+      "rules": [
+        "#failure-positions",
+        "#exact-decoding",
+        "#unicode-admission"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 7
+        },
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 13
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 7. Later: unicode-validity at byte 13.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/misplaced-member-name-holds-lone-low-surrogate-escape.bin",
+        "sha256": "7542709e22350eab083bac115d26c5882727f8ec08a837eae3e4a0d6f75c6ba3",
+        "byteLength": 18
+      }
+    },
+    {
+      "id": "misplaced-number-negative-zero",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "misplaced-token",
+      "rules": [
+        "#failure-positions",
+        "#exact-decoding",
+        "#number-admission"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 3
+        },
+        {
+          "failure": "number-admission",
+          "byteOffset": 5
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 3. Later: number-admission at byte 5.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/misplaced-number-negative-zero.bin",
+        "sha256": "efb6436b7ea1e34a6d01accca2a57563cbd53a5446ae331bde4c39cce22fa929",
+        "byteLength": 6
+      }
+    },
+    {
+      "id": "misplaced-number-overflow",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "misplaced-token",
+      "rules": [
+        "#failure-positions",
+        "#exact-decoding",
+        "#number-admission"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 7
+        },
+        {
+          "failure": "number-admission",
+          "byteOffset": 12
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 7. Later: number-admission at byte 12.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/misplaced-number-overflow.bin",
+        "sha256": "f4e7752e56d3770f13b5e15ce741165689d1a0c861031bc99943f133eff5c43c",
+        "byteLength": 13
+      }
+    },
+    {
+      "id": "misplaced-number-in-member-name-position",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "misplaced-token",
+      "rules": [
+        "#failure-positions",
+        "#exact-decoding",
+        "#number-admission"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 1
+        },
+        {
+          "failure": "number-admission",
+          "byteOffset": 3
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 1. Later: number-admission at byte 3.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/misplaced-number-in-member-name-position.bin",
+        "sha256": "4b3fac5b04998058dd84774a6d4259b53b40efc06f1a8de6e981057ec1aa04ce",
+        "byteLength": 6
+      }
+    },
+    {
+      "id": "misplaced-string-crosses-string-bytes",
+      "operation": "decode",
+      "options": {
+        "limits": {
+          "stringBytes": 1
+        }
+      },
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "misplaced-token",
+      "rules": [
+        "#failure-positions",
+        "#exact-decoding",
+        "#limits"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 3
+        },
+        {
+          "failure": "lexical-limit",
+          "limit": "stringBytes",
+          "byteOffset": 5
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 3. Later: lexical-limit (stringBytes) at byte 5.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/misplaced-string-crosses-string-bytes.bin",
+        "sha256": "1b6eb2e223e43e48ff1b77bb068426b800ac19aba022b6aa874c4e0c796d9945",
+        "byteLength": 8
+      }
+    },
+    {
+      "id": "misplaced-string-crosses-total-string-bytes",
+      "operation": "decode",
+      "options": {
+        "limits": {
+          "totalStringBytes": 1
+        }
+      },
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "misplaced-token",
+      "rules": [
+        "#failure-positions",
+        "#exact-decoding",
+        "#limits"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 5
+        },
+        {
+          "failure": "lexical-limit",
+          "limit": "totalStringBytes",
+          "byteOffset": 6
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 5. Later: lexical-limit (totalStringBytes) at byte 6.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/misplaced-string-crosses-total-string-bytes.bin",
+        "sha256": "6a870fc7816a8268b169a4b6c225bf8b223acc89c1e3038b5cb12258eb21ed6f",
+        "byteLength": 9
+      }
+    },
+    {
+      "id": "misplaced-array-crosses-depth-inside",
+      "operation": "decode",
+      "options": {
+        "limits": {
+          "depth": 2
+        }
+      },
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "misplaced-token",
+      "rules": [
+        "#failure-positions",
+        "#exact-decoding",
+        "#limits"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 3
+        },
+        {
+          "failure": "lexical-limit",
+          "limit": "depth",
+          "byteOffset": 4
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 3. Later: lexical-limit (depth) at byte 4.",
+      "note": "The outermost container is at depth 1 (#limits).",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/misplaced-array-crosses-depth-inside.bin",
+        "sha256": "d789dd08d9b03ea8522d9ce8c05eae7cb79a23dccc3970c2f6a3ee07efa08711",
+        "byteLength": 8
+      }
+    },
+    {
+      "id": "lone-high-surrogate-escape-before-misplaced-number",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "misplaced-token",
+      "rules": [
+        "#failure-positions",
+        "#unicode-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 7
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 10
+        }
+      ],
+      "rationale": "First failure: unicode-validity at byte 7. Later: json-grammar at byte 10.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/lone-high-surrogate-escape-before-misplaced-number.bin",
+        "sha256": "c6cae42fff31b8828f26224e0d7569840513ad323378788508df6dfcbfc66259",
+        "byteLength": 12
+      }
+    },
+    {
+      "id": "raw-noncharacter-before-misplaced-string",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "misplaced-token",
+      "rules": [
+        "#failure-positions",
+        "#unicode-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 4
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 7
+        }
+      ],
+      "rationale": "First failure: unicode-validity at byte 4. Later: json-grammar at byte 7.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/raw-noncharacter-before-misplaced-string.bin",
+        "sha256": "ffc23c26818339ed9c780c452cd03e36a3d7b34f323220e0e015fcaba46c3cae",
+        "byteLength": 11
+      }
+    },
+    {
+      "id": "negative-zero-before-misplaced-number",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "NUMBER_INVALID",
+      "coverageGroup": "misplaced-token",
+      "rules": [
+        "#failure-positions",
+        "#number-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "number-admission",
+          "byteOffset": 3
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 4
+        }
+      ],
+      "rationale": "First failure: number-admission at byte 3. Later: json-grammar at byte 4.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/negative-zero-before-misplaced-number.bin",
+        "sha256": "418836b4bca7687ab53663c78db7f0532323231b7e25220d85bf70e9882e53a0",
+        "byteLength": 6
+      }
+    },
+    {
+      "id": "overflow-before-misplaced-member-name",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "NUMBER_INVALID",
+      "coverageGroup": "misplaced-token",
+      "rules": [
+        "#failure-positions",
+        "#number-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "number-admission",
+          "byteOffset": 10
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 11
+        }
+      ],
+      "rationale": "First failure: number-admission at byte 10. Later: json-grammar at byte 11.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/overflow-before-misplaced-member-name.bin",
+        "sha256": "db1638d8212926023d40b6f4b7902afaa1254e1dcd1a781793c0845c3191d5b7",
+        "byteLength": 17
+      }
+    },
+    {
+      "id": "string-bytes-crossed-before-misplaced-number",
+      "operation": "decode",
+      "options": {
+        "limits": {
+          "stringBytes": 1
+        }
+      },
+      "expectedError": "MODEL_RESOURCE_LIMIT",
+      "coverageGroup": "misplaced-token",
+      "rules": [
+        "#failure-positions",
+        "#limits",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "lexical-limit",
+          "limit": "stringBytes",
+          "byteOffset": 3
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 6
+        }
+      ],
+      "rationale": "First failure: lexical-limit (stringBytes) at byte 3. Later: json-grammar at byte 6.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/string-bytes-crossed-before-misplaced-number.bin",
+        "sha256": "d351660ebae8c584cf5899765ba6d46ee9bbca70dd91b57c109556ea0cff5355",
+        "byteLength": 8
+      }
+    },
+    {
+      "id": "negative-zero-then-grammar-at-next-byte",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "inadmissible-number",
+      "rules": [
+        "#failure-positions",
+        "#number-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 3
+        },
+        {
+          "failure": "number-admission",
+          "byteOffset": 3
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 3, which shares that byte with number-admission and comes first in the tie order.",
+      "note": "Example in #failure-positions.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/negative-zero-then-grammar-at-next-byte.bin",
+        "sha256": "630ca2d6ffd75b394fc61193449b92bf32c48e124f671c9a80f719bd3809b7a2",
+        "byteLength": 5
+      }
+    },
+    {
+      "id": "overflow-then-grammar-at-next-byte",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "inadmissible-number",
+      "rules": [
+        "#failure-positions",
+        "#number-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 6
+        },
+        {
+          "failure": "number-admission",
+          "byteOffset": 6
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 6, which shares that byte with number-admission and comes first in the tie order.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/overflow-then-grammar-at-next-byte.bin",
+        "sha256": "d748ee74d41803f7961194ed660e608281f7aa16891de899404588e487570f8c",
+        "byteLength": 8
+      }
+    },
+    {
+      "id": "negative-zero-fraction-exponent-then-mismatched-bracket",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "inadmissible-number",
+      "rules": [
+        "#failure-positions",
+        "#number-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 11
+        },
+        {
+          "failure": "number-admission",
+          "byteOffset": 11
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 11, which shares that byte with number-admission and comes first in the tie order.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/negative-zero-fraction-exponent-then-mismatched-bracket.bin",
+        "sha256": "8372f3184511d9142c98cec61f5f6e5850c96fb876ad0832f633c3faf1080ea1",
+        "byteLength": 12
+      }
+    },
+    {
+      "id": "negative-overflow-text-then-grammar-at-next-byte",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "inadmissible-number",
+      "rules": [
+        "#failure-positions",
+        "#number-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 6
+        },
+        {
+          "failure": "number-admission",
+          "byteOffset": 6
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 6, which shares that byte with number-admission and comes first in the tie order.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/negative-overflow-text-then-grammar-at-next-byte.bin",
+        "sha256": "b80d64dd0d2f614bb36808758f02e17d54f0c0523ab9a8f9e90fba7f65a2a4d0",
+        "byteLength": 7
+      }
+    },
+    {
+      "id": "negative-zero-then-space-then-grammar",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "NUMBER_INVALID",
+      "coverageGroup": "inadmissible-number",
+      "rules": [
+        "#failure-positions",
+        "#number-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "number-admission",
+          "byteOffset": 3
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 4
+        }
+      ],
+      "rationale": "First failure: number-admission at byte 3. Later: json-grammar at byte 4.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/negative-zero-then-space-then-grammar.bin",
+        "sha256": "1758c534eeb3ddf13f31970f02e1e0969be5e653c68e79ec4bc8e2d49e9fe65a",
+        "byteLength": 6
+      }
+    },
+    {
+      "id": "overflow-then-tab-then-grammar",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "NUMBER_INVALID",
+      "coverageGroup": "inadmissible-number",
+      "rules": [
+        "#failure-positions",
+        "#number-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "number-admission",
+          "byteOffset": 6
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 7
+        }
+      ],
+      "rationale": "First failure: number-admission at byte 6. Later: json-grammar at byte 7.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/overflow-then-tab-then-grammar.bin",
+        "sha256": "7a4d028ca51de54ff55f6afb613a97449aea45f27f1945596df3767cf7465679",
+        "byteLength": 9
+      }
+    },
+    {
+      "id": "negative-zero-exponent-then-line-feed-then-grammar",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "NUMBER_INVALID",
+      "coverageGroup": "inadmissible-number",
+      "rules": [
+        "#failure-positions",
+        "#number-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "number-admission",
+          "byteOffset": 10
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 11
+        }
+      ],
+      "rationale": "First failure: number-admission at byte 10. Later: json-grammar at byte 11.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/negative-zero-exponent-then-line-feed-then-grammar.bin",
+        "sha256": "517a65b9af5d0b977ae2107e78adeda4e69816615d6f340776ee9e6b4f0bcb0c",
+        "byteLength": 12
+      }
+    },
+    {
+      "id": "negative-overflow-text-then-space-then-grammar",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "NUMBER_INVALID",
+      "coverageGroup": "inadmissible-number",
+      "rules": [
+        "#failure-positions",
+        "#number-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "number-admission",
+          "byteOffset": 6
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 7
+        }
+      ],
+      "rationale": "First failure: number-admission at byte 6. Later: json-grammar at byte 7.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/negative-overflow-text-then-space-then-grammar.bin",
+        "sha256": "fd20a63348be176d207bfccf888d0fc5103cc0bd666155927d5f03fadd03a4c3",
+        "byteLength": 8
+      }
+    },
+    {
+      "id": "negative-zero-then-truncation",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "inadmissible-number",
+      "rules": [
+        "#failure-positions",
+        "#number-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 3
+        },
+        {
+          "failure": "number-admission",
+          "byteOffset": 3
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 3 (end of input), which shares that byte with number-admission and comes first in the tie order.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/negative-zero-then-truncation.bin",
+        "sha256": "2d0b184c76c48fc881a78e5d9cd72a43f793b2855b2bc93a2ce680c8faae4265",
+        "byteLength": 3
+      }
+    },
+    {
+      "id": "overflow-then-truncation",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "inadmissible-number",
+      "rules": [
+        "#failure-positions",
+        "#number-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 10
+        },
+        {
+          "failure": "number-admission",
+          "byteOffset": 10
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 10 (end of input), which shares that byte with number-admission and comes first in the tie order.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/overflow-then-truncation.bin",
+        "sha256": "ab08c121faf3345beeee6a381c7319f147b4353f7f4116aa372fc6d50c49bdae",
+        "byteLength": 10
+      }
+    },
+    {
+      "id": "negative-zero-then-space-then-truncation",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "NUMBER_INVALID",
+      "coverageGroup": "inadmissible-number",
+      "rules": [
+        "#failure-positions",
+        "#number-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "number-admission",
+          "byteOffset": 3
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 4
+        }
+      ],
+      "rationale": "First failure: number-admission at byte 3. Later: json-grammar at byte 4 (end of input).",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/negative-zero-then-space-then-truncation.bin",
+        "sha256": "74a74267da3f2796888e92f8ce739b181312f683e4d209afc761587ef57e6e6b",
+        "byteLength": 4
+      }
+    },
+    {
+      "id": "overflow-then-line-feed-then-truncation",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "NUMBER_INVALID",
+      "coverageGroup": "inadmissible-number",
+      "rules": [
+        "#failure-positions",
+        "#number-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "number-admission",
+          "byteOffset": 10
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 11
+        }
+      ],
+      "rationale": "First failure: number-admission at byte 10. Later: json-grammar at byte 11 (end of input).",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/overflow-then-line-feed-then-truncation.bin",
+        "sha256": "58725743f0d43d64decc4240277082fb26acd2773bb5c8665fd92cd08d567aca",
+        "byteLength": 11
+      }
+    },
+    {
+      "id": "negative-zero-text",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "NUMBER_INVALID",
+      "coverageGroup": "inadmissible-number",
+      "rules": [
+        "#failure-positions",
+        "#number-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "number-admission",
+          "byteOffset": 2
+        }
+      ],
+      "rationale": "First failure: number-admission at byte 2 (end of input).",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/negative-zero-text.bin",
+        "sha256": "ed79f26d03f412bde3db206601a698e0bb451bea9e3cc25289636ac17ea74b0a",
+        "byteLength": 2
+      }
+    },
+    {
+      "id": "overflow-text",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "NUMBER_INVALID",
+      "coverageGroup": "inadmissible-number",
+      "rules": [
+        "#failure-positions",
+        "#number-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "number-admission",
+          "byteOffset": 5
+        }
+      ],
+      "rationale": "First failure: number-admission at byte 5 (end of input).",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/overflow-text.bin",
+        "sha256": "f2bba4568fecd4b9729970732e571ac9373a33fb2d6a960794a41f0f2ecdbc25",
+        "byteLength": 5
+      }
+    },
+    {
+      "id": "negative-zero-fraction-exponent-text",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "NUMBER_INVALID",
+      "coverageGroup": "inadmissible-number",
+      "rules": [
+        "#failure-positions",
+        "#number-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "number-admission",
+          "byteOffset": 6
+        }
+      ],
+      "rationale": "First failure: number-admission at byte 6 (end of input).",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/negative-zero-fraction-exponent-text.bin",
+        "sha256": "176175453516453d47132cf56efe8848bca21c53dc012988e4c813178ea864f0",
+        "byteLength": 6
+      }
+    },
+    {
+      "id": "underflow-to-negative-zero-text",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "NUMBER_INVALID",
+      "coverageGroup": "inadmissible-number",
+      "rules": [
+        "#failure-positions",
+        "#number-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "number-admission",
+          "byteOffset": 7
+        }
+      ],
+      "rationale": "First failure: number-admission at byte 7 (end of input).",
+      "note": "The binary64 value of -1e-400 is negative zero under round-to-nearest.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/underflow-to-negative-zero-text.bin",
+        "sha256": "ee7e3b80afbb31879089a5572a426c1fcc495d93080acd225648fe88de702ac9",
+        "byteLength": 7
+      }
+    },
+    {
+      "id": "negative-zero-text-with-trailing-space",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "NUMBER_INVALID",
+      "coverageGroup": "inadmissible-number",
+      "rules": [
+        "#failure-positions",
+        "#number-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "number-admission",
+          "byteOffset": 2
+        }
+      ],
+      "rationale": "First failure: number-admission at byte 2.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/negative-zero-text-with-trailing-space.bin",
+        "sha256": "572fc2ee262d4fae74686ed1e34008090bb3386ecbab277d46cc273be2040ab2",
+        "byteLength": 3
+      }
+    },
+    {
+      "id": "negative-zero-in-complete-array",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "NUMBER_INVALID",
+      "coverageGroup": "inadmissible-number",
+      "rules": [
+        "#failure-positions",
+        "#number-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "number-admission",
+          "byteOffset": 3
+        }
+      ],
+      "rationale": "First failure: number-admission at byte 3.",
+      "note": "Example in #failure-positions.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/negative-zero-in-complete-array.bin",
+        "sha256": "406944522156bbc83abcf53df7e601ca959db44ca6cf2cbc1459f410dd9e79b6",
+        "byteLength": 4
+      }
+    },
+    {
+      "id": "lone-high-surrogate-escape-then-invalid-escape",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "prohibited-code-point",
+      "rules": [
+        "#failure-positions",
+        "#unicode-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 11
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 13
+        }
+      ],
+      "rationale": "First failure: unicode-validity at byte 11. Later: json-grammar at byte 13.",
+      "note": "Example in #failure-positions.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/lone-high-surrogate-escape-then-invalid-escape.bin",
+        "sha256": "d1540faaf0fe04bddfba4a57c0f82a54a2398aa7fb422628904ab2c25ca12999",
+        "byteLength": 16
+      }
+    },
+    {
+      "id": "lone-high-surrogate-escape-then-raw-control",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "prohibited-code-point",
+      "rules": [
+        "#failure-positions",
+        "#unicode-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 7
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 8
+        }
+      ],
+      "rationale": "First failure: unicode-validity at byte 7. Later: json-grammar at byte 8.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/lone-high-surrogate-escape-then-raw-control.bin",
+        "sha256": "314ed852c5d2b71ed7d3ce790a2adac5f67be1a8bcf7835f06dc1eb30c4b026a",
+        "byteLength": 11
+      }
+    },
+    {
+      "id": "lone-high-surrogate-escape-then-truncation",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "prohibited-code-point",
+      "rules": [
+        "#failure-positions",
+        "#unicode-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 7
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 8
+        }
+      ],
+      "rationale": "First failure: unicode-validity at byte 7. Later: json-grammar at byte 8 (end of input).",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/lone-high-surrogate-escape-then-truncation.bin",
+        "sha256": "2e242adb780d234f458cde9daabf9c67ec5e7a8763f8a87b7c122488791606ef",
+        "byteLength": 8
+      }
+    },
+    {
+      "id": "lone-low-surrogate-escape-then-invalid-escape",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "prohibited-code-point",
+      "rules": [
+        "#failure-positions",
+        "#unicode-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 7
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 9
+        }
+      ],
+      "rationale": "First failure: unicode-validity at byte 7. Later: json-grammar at byte 9.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/lone-low-surrogate-escape-then-invalid-escape.bin",
+        "sha256": "3f2222d9527a396a8d2d37ad02ea460ff07ffcd33df2eec8e4783addd350d5ea",
+        "byteLength": 12
+      }
+    },
+    {
+      "id": "lone-low-surrogate-escape-then-raw-control",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "prohibited-code-point",
+      "rules": [
+        "#failure-positions",
+        "#unicode-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 7
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 8
+        }
+      ],
+      "rationale": "First failure: unicode-validity at byte 7. Later: json-grammar at byte 8.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/lone-low-surrogate-escape-then-raw-control.bin",
+        "sha256": "85f23b7bc32b0eb2edc6e21b622bec5954b5110c755719b4eda99acce67dcba2",
+        "byteLength": 11
+      }
+    },
+    {
+      "id": "lone-low-surrogate-escape-then-truncation",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "prohibited-code-point",
+      "rules": [
+        "#failure-positions",
+        "#unicode-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 7
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 8
+        }
+      ],
+      "rationale": "First failure: unicode-validity at byte 7. Later: json-grammar at byte 8 (end of input).",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/lone-low-surrogate-escape-then-truncation.bin",
+        "sha256": "59d8e37f7eb01332c45dd370c01ca8ff3e9a601fea2a6fc8d7b0cf4f422f6e59",
+        "byteLength": 8
+      }
+    },
+    {
+      "id": "escaped-pair-noncharacter-then-invalid-escape",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "prohibited-code-point",
+      "rules": [
+        "#failure-positions",
+        "#unicode-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 13
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 15
+        }
+      ],
+      "rationale": "First failure: unicode-validity at byte 13. Later: json-grammar at byte 15.",
+      "note": "The escaped pair denotes U+1FFFE.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/escaped-pair-noncharacter-then-invalid-escape.bin",
+        "sha256": "a07bbe7d30c3c94b4caa37a6db00640584b793c7dcfb10217954a7527ef0d279",
+        "byteLength": 18
+      }
+    },
+    {
+      "id": "escaped-pair-noncharacter-then-raw-control",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "prohibited-code-point",
+      "rules": [
+        "#failure-positions",
+        "#unicode-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 13
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 14
+        }
+      ],
+      "rationale": "First failure: unicode-validity at byte 13. Later: json-grammar at byte 14.",
+      "note": "The escaped pair denotes U+10FFFF.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/escaped-pair-noncharacter-then-raw-control.bin",
+        "sha256": "c53f44858060a16a81da9f9e8d380163aade8b27656d52b0ea74e7a4399f750c",
+        "byteLength": 17
+      }
+    },
+    {
+      "id": "escaped-pair-noncharacter-then-truncation",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "prohibited-code-point",
+      "rules": [
+        "#failure-positions",
+        "#unicode-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 13
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 14
+        }
+      ],
+      "rationale": "First failure: unicode-validity at byte 13. Later: json-grammar at byte 14 (end of input).",
+      "note": "The escaped pair denotes U+2FFFF.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/escaped-pair-noncharacter-then-truncation.bin",
+        "sha256": "8aedc83c12f1fda7b0422bc96002496df2ad70879522a9f90e1c43b0dca4c50f",
+        "byteLength": 14
+      }
+    },
+    {
+      "id": "escaped-noncharacter-then-invalid-escape",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "prohibited-code-point",
+      "rules": [
+        "#failure-positions",
+        "#unicode-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 7
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 9
+        }
+      ],
+      "rationale": "First failure: unicode-validity at byte 7. Later: json-grammar at byte 9.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/escaped-noncharacter-then-invalid-escape.bin",
+        "sha256": "0a821398272ada4e434ad233a318bfafe1164bec01648716088bdacec4f8ae00",
+        "byteLength": 12
+      }
+    },
+    {
+      "id": "escaped-noncharacter-then-raw-control",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "prohibited-code-point",
+      "rules": [
+        "#failure-positions",
+        "#unicode-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 7
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 8
+        }
+      ],
+      "rationale": "First failure: unicode-validity at byte 7. Later: json-grammar at byte 8.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/escaped-noncharacter-then-raw-control.bin",
+        "sha256": "eba06a1b488fa6aac270aa5dc38044360ff3578788980b0aec787c11baaf6da1",
+        "byteLength": 11
+      }
+    },
+    {
+      "id": "escaped-noncharacter-then-truncation",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "prohibited-code-point",
+      "rules": [
+        "#failure-positions",
+        "#unicode-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 7
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 8
+        }
+      ],
+      "rationale": "First failure: unicode-validity at byte 7. Later: json-grammar at byte 8 (end of input).",
+      "note": "The escape uses uppercase hexadecimal digits.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/escaped-noncharacter-then-truncation.bin",
+        "sha256": "03a95b6b5cd330abb4c291a7137840804785736841197869ae92944ede76f26e",
+        "byteLength": 8
+      }
+    },
+    {
+      "id": "raw-three-byte-noncharacter-then-invalid-escape",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "prohibited-code-point",
+      "rules": [
+        "#failure-positions",
+        "#unicode-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 4
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 6
+        }
+      ],
+      "rationale": "First failure: unicode-validity at byte 4. Later: json-grammar at byte 6.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/raw-three-byte-noncharacter-then-invalid-escape.bin",
+        "sha256": "88ff9e349094b2e1a504ee8b8cc3827819cf6946074db24d1e6cec64ae3890e9",
+        "byteLength": 9
+      }
+    },
+    {
+      "id": "raw-three-byte-noncharacter-then-raw-control",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "prohibited-code-point",
+      "rules": [
+        "#failure-positions",
+        "#unicode-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 4
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 5
+        }
+      ],
+      "rationale": "First failure: unicode-validity at byte 4. Later: json-grammar at byte 5.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/raw-three-byte-noncharacter-then-raw-control.bin",
+        "sha256": "41ce56d478bd8cb5f58c3a11e593f4c400edd9ba421d330f844edb24f0aa188e",
+        "byteLength": 8
+      }
+    },
+    {
+      "id": "raw-three-byte-noncharacter-then-truncation",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "prohibited-code-point",
+      "rules": [
+        "#failure-positions",
+        "#unicode-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 4
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 5
+        }
+      ],
+      "rationale": "First failure: unicode-validity at byte 4. Later: json-grammar at byte 5 (end of input).",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/raw-three-byte-noncharacter-then-truncation.bin",
+        "sha256": "74eddc1702bac304d74ba92512dc8ba16fba02eeefe8ae285c2f8ba07dd8bc05",
+        "byteLength": 5
+      }
+    },
+    {
+      "id": "raw-four-byte-noncharacter-then-invalid-escape",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "prohibited-code-point",
+      "rules": [
+        "#failure-positions",
+        "#unicode-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 5
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 7
+        }
+      ],
+      "rationale": "First failure: unicode-validity at byte 5. Later: json-grammar at byte 7.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/raw-four-byte-noncharacter-then-invalid-escape.bin",
+        "sha256": "e0759e0a67dbf58dc2b71cac5f6bf181a7cda375a069507bc4ed7d8bfa982b09",
+        "byteLength": 10
+      }
+    },
+    {
+      "id": "raw-four-byte-noncharacter-then-raw-control",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "prohibited-code-point",
+      "rules": [
+        "#failure-positions",
+        "#unicode-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 5
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 6
+        }
+      ],
+      "rationale": "First failure: unicode-validity at byte 5. Later: json-grammar at byte 6.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/raw-four-byte-noncharacter-then-raw-control.bin",
+        "sha256": "9591e9745b229cb9890b6545d644d83c06f3c4ce7827e6a593f74ad00c10e921",
+        "byteLength": 9
+      }
+    },
+    {
+      "id": "raw-four-byte-noncharacter-then-truncation",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "prohibited-code-point",
+      "rules": [
+        "#failure-positions",
+        "#unicode-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 5
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 6
+        }
+      ],
+      "rationale": "First failure: unicode-validity at byte 5. Later: json-grammar at byte 6 (end of input).",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/raw-four-byte-noncharacter-then-truncation.bin",
+        "sha256": "a5cef360253bfbe6f4f1d26461f817f9cd65c768cbc0f5eb63b5dd3bed3cb4b8",
+        "byteLength": 6
+      }
+    },
+    {
+      "id": "invalid-escape-then-lone-high-surrogate-escape",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "prohibited-code-point",
+      "rules": [
+        "#failure-positions",
+        "#exact-decoding",
+        "#unicode-admission"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 3
+        },
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 9
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 3. Later: unicode-validity at byte 9.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/invalid-escape-then-lone-high-surrogate-escape.bin",
+        "sha256": "eae2bbc46819a5618a747617c5254bb1acd377cb64e4ba667ec3de45a9de3966",
+        "byteLength": 12
+      }
+    },
+    {
+      "id": "raw-control-then-lone-high-surrogate-escape",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "prohibited-code-point",
+      "rules": [
+        "#failure-positions",
+        "#exact-decoding",
+        "#unicode-admission"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 2
+        },
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 8
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 2. Later: unicode-validity at byte 8.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/raw-control-then-lone-high-surrogate-escape.bin",
+        "sha256": "834fa59832aa3015e22724cbe2a6d643b1f9c0f30319a683ad8c1d167f7ccf73",
+        "byteLength": 11
+      }
+    },
+    {
+      "id": "invalid-escape-then-lone-low-surrogate-escape",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "prohibited-code-point",
+      "rules": [
+        "#failure-positions",
+        "#exact-decoding",
+        "#unicode-admission"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 3
+        },
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 9
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 3. Later: unicode-validity at byte 9.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/invalid-escape-then-lone-low-surrogate-escape.bin",
+        "sha256": "c15880e40ba7ae336ad945f362bad52f6ae035f4a42941a93784e959e7e8bc89",
+        "byteLength": 12
+      }
+    },
+    {
+      "id": "raw-control-then-lone-low-surrogate-escape",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "prohibited-code-point",
+      "rules": [
+        "#failure-positions",
+        "#exact-decoding",
+        "#unicode-admission"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 2
+        },
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 8
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 2. Later: unicode-validity at byte 8.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/raw-control-then-lone-low-surrogate-escape.bin",
+        "sha256": "04eb95e6897a5e9c90a7c725ce35dd510645ff7308fcb067016cdd6db65d113f",
+        "byteLength": 11
+      }
+    },
+    {
+      "id": "invalid-escape-then-escaped-pair-noncharacter",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "prohibited-code-point",
+      "rules": [
+        "#failure-positions",
+        "#exact-decoding",
+        "#unicode-admission"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 3
+        },
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 15
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 3. Later: unicode-validity at byte 15.",
+      "note": "The escaped pair denotes U+1FFFE.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/invalid-escape-then-escaped-pair-noncharacter.bin",
+        "sha256": "2c530046f36ab6785fbe4a22e3405a2744a182eb472310973924cbebe6943097",
+        "byteLength": 18
+      }
+    },
+    {
+      "id": "raw-control-then-escaped-pair-noncharacter",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "prohibited-code-point",
+      "rules": [
+        "#failure-positions",
+        "#exact-decoding",
+        "#unicode-admission"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 2
+        },
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 14
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 2. Later: unicode-validity at byte 14.",
+      "note": "The escaped pair denotes U+10FFFF.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/raw-control-then-escaped-pair-noncharacter.bin",
+        "sha256": "e0d29e154da231795f8059e284ac7cf7c3aa22432e4d3cae830a49a499bab97c",
+        "byteLength": 17
+      }
+    },
+    {
+      "id": "invalid-escape-then-escaped-noncharacter",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "prohibited-code-point",
+      "rules": [
+        "#failure-positions",
+        "#exact-decoding",
+        "#unicode-admission"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 3
+        },
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 9
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 3. Later: unicode-validity at byte 9.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/invalid-escape-then-escaped-noncharacter.bin",
+        "sha256": "3347858df7b79fbcdb1ed0018aef5c534d6c194a46b18640581f61f6c6becd4b",
+        "byteLength": 14
+      }
+    },
+    {
+      "id": "raw-control-then-escaped-noncharacter",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "prohibited-code-point",
+      "rules": [
+        "#failure-positions",
+        "#exact-decoding",
+        "#unicode-admission"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 2
+        },
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 8
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 2. Later: unicode-validity at byte 8.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/raw-control-then-escaped-noncharacter.bin",
+        "sha256": "b1acea0e56c896ec09c3d5c03b2568043ce89567f1c3e7ffcb26710a543a87de",
+        "byteLength": 11
+      }
+    },
+    {
+      "id": "invalid-escape-then-raw-three-byte-noncharacter",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "prohibited-code-point",
+      "rules": [
+        "#failure-positions",
+        "#exact-decoding",
+        "#unicode-admission"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 3
+        },
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 6
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 3. Later: unicode-validity at byte 6.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/invalid-escape-then-raw-three-byte-noncharacter.bin",
+        "sha256": "635e6e69de2395bdb19cd7f3b471f9d53f42c273d262f8a9c5be855f5623e6f8",
+        "byteLength": 9
+      }
+    },
+    {
+      "id": "raw-control-then-raw-three-byte-noncharacter",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "prohibited-code-point",
+      "rules": [
+        "#failure-positions",
+        "#exact-decoding",
+        "#unicode-admission"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 2
+        },
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 5
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 2. Later: unicode-validity at byte 5.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/raw-control-then-raw-three-byte-noncharacter.bin",
+        "sha256": "2810f9214d14da6576717f8a16296639805984fe36df1924ade4f0a91c991502",
+        "byteLength": 8
+      }
+    },
+    {
+      "id": "invalid-escape-then-raw-four-byte-noncharacter",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "prohibited-code-point",
+      "rules": [
+        "#failure-positions",
+        "#exact-decoding",
+        "#unicode-admission"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 3
+        },
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 7
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 3. Later: unicode-validity at byte 7.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/invalid-escape-then-raw-four-byte-noncharacter.bin",
+        "sha256": "867b009647221a80731361001091945f975f4bad5387ef2823ed0d41ffe5a1d1",
+        "byteLength": 10
+      }
+    },
+    {
+      "id": "raw-control-then-raw-four-byte-noncharacter",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "prohibited-code-point",
+      "rules": [
+        "#failure-positions",
+        "#exact-decoding",
+        "#unicode-admission"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 2
+        },
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 6
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 2. Later: unicode-validity at byte 6.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/raw-control-then-raw-four-byte-noncharacter.bin",
+        "sha256": "fb71d49e226dd8d893fba57a63f9f8fd0b2a5ebd100e6cf0f8162cdd9d109758",
+        "byteLength": 11
+      }
+    },
+    {
+      "id": "string-bytes-crossed-after-escaped-noncharacter",
+      "operation": "decode",
+      "options": {
+        "limits": {
+          "stringBytes": 4
+        }
+      },
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "string-limit",
+      "rules": [
+        "#failure-positions",
+        "#unicode-admission",
+        "#exact-decoding",
+        "#limits"
+      ],
+      "failurePositions": [
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 7
+        }
+      ],
+      "rationale": "First failure: unicode-validity at byte 7.",
+      "note": "A code point that is not Unicode-valid fails before it is counted (#limits), so the stringBytes limit of 4 is not crossed; counting the noncharacter would cross it at byte 9.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/string-bytes-crossed-after-escaped-noncharacter.bin",
+        "sha256": "e1c19ca4ece9b6ee36398326d7228fbf07dcf19f7d0bbf14da2f5d9ae8a8f0a4",
+        "byteLength": 14
+      }
+    },
+    {
+      "id": "string-bytes-crossed-after-raw-noncharacter",
+      "operation": "decode",
+      "options": {
+        "limits": {
+          "stringBytes": 3
+        }
+      },
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "string-limit",
+      "rules": [
+        "#failure-positions",
+        "#unicode-admission",
+        "#exact-decoding",
+        "#limits"
+      ],
+      "failurePositions": [
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 4
+        }
+      ],
+      "rationale": "First failure: unicode-validity at byte 4.",
+      "note": "A code point that is not Unicode-valid fails before it is counted (#limits), so the stringBytes limit of 3 is not crossed; counting the noncharacter would cross it at byte 5.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/string-bytes-crossed-after-raw-noncharacter.bin",
+        "sha256": "8c0fa170f7dd9c45eb3182be3bd11e2cd5a10049f2672a089630df1fb2b2fc49",
+        "byteLength": 9
+      }
+    },
+    {
+      "id": "string-bytes-crossed-in-member-name-after-escaped-noncharacter",
+      "operation": "decode",
+      "options": {
+        "limits": {
+          "stringBytes": 3
+        }
+      },
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "string-limit",
+      "rules": [
+        "#failure-positions",
+        "#unicode-admission",
+        "#exact-decoding",
+        "#limits"
+      ],
+      "failurePositions": [
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 7
+        }
+      ],
+      "rationale": "First failure: unicode-validity at byte 7.",
+      "note": "A code point that is not Unicode-valid fails before it is counted (#limits), so the stringBytes limit of 3 is not crossed; counting the noncharacter would cross it at byte 8.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/string-bytes-crossed-in-member-name-after-escaped-noncharacter.bin",
+        "sha256": "95cee5e6349a53a02aac1b094507407c55f474ff9deef2cf1acd04faad5e385a",
+        "byteLength": 13
+      }
+    },
+    {
+      "id": "string-bytes-crossed-in-value-after-member-name-noncharacter",
+      "operation": "decode",
+      "options": {
+        "limits": {
+          "stringBytes": 3
+        }
+      },
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "string-limit",
+      "rules": [
+        "#failure-positions",
+        "#unicode-admission",
+        "#exact-decoding",
+        "#limits"
+      ],
+      "failurePositions": [
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 7
+        },
+        {
+          "failure": "lexical-limit",
+          "limit": "stringBytes",
+          "byteOffset": 14
+        }
+      ],
+      "rationale": "First failure: unicode-validity at byte 7. Later: lexical-limit (stringBytes) at byte 14.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/string-bytes-crossed-in-value-after-member-name-noncharacter.bin",
+        "sha256": "1e9de14cc9d7d1f302f202d6d7fe962c6b6cf8f9a8a3fcd630da424d6792b5f7",
+        "byteLength": 17
+      }
+    },
+    {
+      "id": "total-string-bytes-crossed-after-escaped-noncharacter",
+      "operation": "decode",
+      "options": {
+        "limits": {
+          "totalStringBytes": 3
+        }
+      },
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "string-limit",
+      "rules": [
+        "#failure-positions",
+        "#unicode-admission",
+        "#exact-decoding",
+        "#limits"
+      ],
+      "failurePositions": [
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 7
+        }
+      ],
+      "rationale": "First failure: unicode-validity at byte 7.",
+      "note": "A code point that is not Unicode-valid fails before it is counted (#limits), so the totalStringBytes limit of 3 is not crossed; counting the noncharacter would cross it at byte 11.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/total-string-bytes-crossed-after-escaped-noncharacter.bin",
+        "sha256": "8293c386f9dcec1d33253f5f13c9034596f87f9bbf07b9dd6841bbf148c68c3d",
+        "byteLength": 14
+      }
+    },
+    {
+      "id": "total-string-bytes-crossed-after-raw-noncharacter",
+      "operation": "decode",
+      "options": {
+        "limits": {
+          "totalStringBytes": 4
+        }
+      },
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "string-limit",
+      "rules": [
+        "#failure-positions",
+        "#unicode-admission",
+        "#exact-decoding",
+        "#limits"
+      ],
+      "failurePositions": [
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 5
+        }
+      ],
+      "rationale": "First failure: unicode-validity at byte 5.",
+      "note": "A code point that is not Unicode-valid fails before it is counted (#limits), so the totalStringBytes limit of 4 is not crossed; counting the noncharacter would cross it at byte 9.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/total-string-bytes-crossed-after-raw-noncharacter.bin",
+        "sha256": "0e7ca7735160473ea796b3fb63b8ae420a740ca091ab296c6016599cd5cbdce6",
+        "byteLength": 12
+      }
+    },
+    {
+      "id": "total-string-bytes-crossed-after-member-name-noncharacter",
+      "operation": "decode",
+      "options": {
+        "limits": {
+          "totalStringBytes": 3
+        }
+      },
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "string-limit",
+      "rules": [
+        "#failure-positions",
+        "#unicode-admission",
+        "#exact-decoding",
+        "#limits"
+      ],
+      "failurePositions": [
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 7
+        }
+      ],
+      "rationale": "First failure: unicode-validity at byte 7.",
+      "note": "A code point that is not Unicode-valid fails before it is counted (#limits), so the totalStringBytes limit of 3 is not crossed; counting the noncharacter would cross it at byte 11.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/total-string-bytes-crossed-after-member-name-noncharacter.bin",
+        "sha256": "e12d12759405553b67e7af6ec4d4e9696d18e400cdb1fa2c136d7caa440fc280",
+        "byteLength": 14
+      }
+    },
+    {
+      "id": "string-bytes-tie-escaped-noncharacter",
+      "operation": "decode",
+      "options": {
+        "limits": {
+          "stringBytes": 2
+        }
+      },
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "string-limit",
+      "rules": [
+        "#failure-positions",
+        "#unicode-admission",
+        "#exact-decoding",
+        "#limits"
+      ],
+      "failurePositions": [
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 7
+        }
+      ],
+      "rationale": "First failure: unicode-validity at byte 7.",
+      "note": "A code point that is not Unicode-valid fails before it is counted (#limits), so the stringBytes limit of 2 is not crossed; counting the noncharacter would cross it at byte 7.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/string-bytes-tie-escaped-noncharacter.bin",
+        "sha256": "460a7f71040b1f95e0fe194b8c9af400fb9b3930e5b360121c59dcbadf1bf571",
+        "byteLength": 10
+      }
+    },
+    {
+      "id": "string-bytes-tie-raw-four-byte-noncharacter",
+      "operation": "decode",
+      "options": {
+        "limits": {
+          "stringBytes": 3
+        }
+      },
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "string-limit",
+      "rules": [
+        "#failure-positions",
+        "#unicode-admission",
+        "#exact-decoding",
+        "#limits"
+      ],
+      "failurePositions": [
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 5
+        }
+      ],
+      "rationale": "First failure: unicode-validity at byte 5.",
+      "note": "A code point that is not Unicode-valid fails before it is counted (#limits), so the stringBytes limit of 3 is not crossed; counting the noncharacter would cross it at byte 5.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/string-bytes-tie-raw-four-byte-noncharacter.bin",
+        "sha256": "a58eb81794fb3683f56caf4acca214bf6058ca8216b5de42ad0e490a2846ee10",
+        "byteLength": 8
+      }
+    },
+    {
+      "id": "string-bytes-tie-member-name-raw-noncharacter",
+      "operation": "decode",
+      "options": {
+        "limits": {
+          "stringBytes": 2
+        }
+      },
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "string-limit",
+      "rules": [
+        "#failure-positions",
+        "#unicode-admission",
+        "#exact-decoding",
+        "#limits"
+      ],
+      "failurePositions": [
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 4
+        }
+      ],
+      "rationale": "First failure: unicode-validity at byte 4.",
+      "note": "A code point that is not Unicode-valid fails before it is counted (#limits), so the stringBytes limit of 2 is not crossed; counting the noncharacter would cross it at byte 4.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/string-bytes-tie-member-name-raw-noncharacter.bin",
+        "sha256": "8a1e927ebf1056796735e5438d07272510ad00af6cd67f0376188de46759b80c",
+        "byteLength": 9
+      }
+    },
+    {
+      "id": "total-string-bytes-tie-escaped-noncharacter",
+      "operation": "decode",
+      "options": {
+        "limits": {
+          "totalStringBytes": 3
+        }
+      },
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "string-limit",
+      "rules": [
+        "#failure-positions",
+        "#unicode-admission",
+        "#exact-decoding",
+        "#limits"
+      ],
+      "failurePositions": [
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 11
+        }
+      ],
+      "rationale": "First failure: unicode-validity at byte 11.",
+      "note": "A code point that is not Unicode-valid fails before it is counted (#limits), so the totalStringBytes limit of 3 is not crossed; counting the noncharacter would cross it at byte 11.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/total-string-bytes-tie-escaped-noncharacter.bin",
+        "sha256": "276eeb7de30571866870ec2899b553ba27f0e32a824c48da1b8d02e4a32011c0",
+        "byteLength": 14
+      }
+    },
+    {
+      "id": "string-bytes-crossed-before-escaped-noncharacter",
+      "operation": "decode",
+      "options": {
+        "limits": {
+          "stringBytes": 1
+        }
+      },
+      "expectedError": "MODEL_RESOURCE_LIMIT",
+      "coverageGroup": "string-limit",
+      "rules": [
+        "#failure-positions",
+        "#limits",
+        "#unicode-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "lexical-limit",
+          "limit": "stringBytes",
+          "byteOffset": 3
+        },
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 9
+        }
+      ],
+      "rationale": "First failure: lexical-limit (stringBytes) at byte 3. Later: unicode-validity at byte 9.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/string-bytes-crossed-before-escaped-noncharacter.bin",
+        "sha256": "29c7a2c84ef9d63ef2e481fdcf508c2e5bfe65ad4583feda7eb43325e33d873e",
+        "byteLength": 12
+      }
+    },
+    {
+      "id": "string-bytes-crossed-in-member-name-before-raw-noncharacter",
+      "operation": "decode",
+      "options": {
+        "limits": {
+          "stringBytes": 1
+        }
+      },
+      "expectedError": "MODEL_RESOURCE_LIMIT",
+      "coverageGroup": "string-limit",
+      "rules": [
+        "#failure-positions",
+        "#limits",
+        "#unicode-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "lexical-limit",
+          "limit": "stringBytes",
+          "byteOffset": 3
+        },
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 6
+        }
+      ],
+      "rationale": "First failure: lexical-limit (stringBytes) at byte 3. Later: unicode-validity at byte 6.",
+      "note": "Member names count toward stringBytes (#limits).",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/string-bytes-crossed-in-member-name-before-raw-noncharacter.bin",
+        "sha256": "d68311f86b812336e96d0b61bb12a3e5ca6f418a0a2e7cb0d81461bfdf4fc097",
+        "byteLength": 11
+      }
+    },
+    {
+      "id": "total-string-bytes-crossed-before-escaped-noncharacter",
+      "operation": "decode",
+      "options": {
+        "limits": {
+          "totalStringBytes": 1
+        }
+      },
+      "expectedError": "MODEL_RESOURCE_LIMIT",
+      "coverageGroup": "string-limit",
+      "rules": [
+        "#failure-positions",
+        "#limits",
+        "#unicode-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "lexical-limit",
+          "limit": "totalStringBytes",
+          "byteOffset": 6
+        },
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 12
+        }
+      ],
+      "rationale": "First failure: lexical-limit (totalStringBytes) at byte 6. Later: unicode-validity at byte 12.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/total-string-bytes-crossed-before-escaped-noncharacter.bin",
+        "sha256": "c85ec0dc6af20b0cd24e88b21fcaeb71a31136763d8dd52fa32578ed23893556",
+        "byteLength": 15
+      }
+    },
+    {
+      "id": "total-string-bytes-crossed-after-member-name-before-noncharacter",
+      "operation": "decode",
+      "options": {
+        "limits": {
+          "totalStringBytes": 1
+        }
+      },
+      "expectedError": "MODEL_RESOURCE_LIMIT",
+      "coverageGroup": "string-limit",
+      "rules": [
+        "#failure-positions",
+        "#limits",
+        "#unicode-admission",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "lexical-limit",
+          "limit": "totalStringBytes",
+          "byteOffset": 6
+        },
+        {
+          "failure": "unicode-validity",
+          "byteOffset": 12
+        }
+      ],
+      "rationale": "First failure: lexical-limit (totalStringBytes) at byte 6. Later: unicode-validity at byte 12.",
+      "note": "Member names count toward totalStringBytes (#limits).",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/total-string-bytes-crossed-after-member-name-before-noncharacter.bin",
+        "sha256": "69d704c01e6815b30d24f2a3bb622a5a4cff78ddd38d59939ca66d17b858b7a3",
+        "byteLength": 15
+      }
+    },
+    {
+      "id": "depth-tie-misplaced-array-after-value",
+      "operation": "decode",
+      "options": {
+        "limits": {
+          "depth": 1
+        }
+      },
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "nesting-limit-tie",
+      "rules": [
+        "#failure-positions",
+        "#exact-decoding",
+        "#limits"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 3
+        },
+        {
+          "failure": "lexical-limit",
+          "limit": "depth",
+          "byteOffset": 3
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 3, which shares that byte with lexical-limit (depth) and comes first in the tie order.",
+      "note": "The outermost container is at depth 1 (#limits).",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/depth-tie-misplaced-array-after-value.bin",
+        "sha256": "e7d84c612a06563588adccaa2bcc49839c36e6cb4d3e8eb3075247c901006f65",
+        "byteLength": 6
+      }
+    },
+    {
+      "id": "depth-tie-misplaced-array-in-member-name-position",
+      "operation": "decode",
+      "options": {
+        "limits": {
+          "depth": 1
+        }
+      },
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "nesting-limit-tie",
+      "rules": [
+        "#failure-positions",
+        "#exact-decoding",
+        "#limits"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 1
+        },
+        {
+          "failure": "lexical-limit",
+          "limit": "depth",
+          "byteOffset": 1
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 1, which shares that byte with lexical-limit (depth) and comes first in the tie order.",
+      "note": "The outermost container is at depth 1 (#limits).",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/depth-tie-misplaced-array-in-member-name-position.bin",
+        "sha256": "ad0dd67d9499d6282ee76885187ba19341d6a63d605bfde50a2ebe95206a0fa2",
+        "byteLength": 4
+      }
+    },
+    {
+      "id": "depth-tie-misplaced-object-after-member-name",
+      "operation": "decode",
+      "options": {
+        "limits": {
+          "depth": 1
+        }
+      },
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "nesting-limit-tie",
+      "rules": [
+        "#failure-positions",
+        "#exact-decoding",
+        "#limits"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 4
+        },
+        {
+          "failure": "lexical-limit",
+          "limit": "depth",
+          "byteOffset": 4
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 4, which shares that byte with lexical-limit (depth) and comes first in the tie order.",
+      "note": "The outermost container is at depth 1 (#limits).",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/depth-tie-misplaced-object-after-member-name.bin",
+        "sha256": "a68e3aba77e921f517b28dea813ded67c407ed535b6dfe8cebfc404febcb4503",
+        "byteLength": 7
+      }
+    },
+    {
+      "id": "depth-tie-misplaced-object-at-second-level",
+      "operation": "decode",
+      "options": {
+        "limits": {
+          "depth": 2
+        }
+      },
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "nesting-limit-tie",
+      "rules": [
+        "#failure-positions",
+        "#exact-decoding",
+        "#limits"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 4
+        },
+        {
+          "failure": "lexical-limit",
+          "limit": "depth",
+          "byteOffset": 4
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 4, which shares that byte with lexical-limit (depth) and comes first in the tie order.",
+      "note": "The outermost container is at depth 1 (#limits).",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/depth-tie-misplaced-object-at-second-level.bin",
+        "sha256": "d1bc793bd608690339d0dd696e753bc1ad2ea1c38db226bbe1b47705a8a9cf42",
+        "byteLength": 8
+      }
+    },
+    {
+      "id": "depth-tie-misplaced-array-after-negative-zero",
+      "operation": "decode",
+      "options": {
+        "limits": {
+          "depth": 1
+        }
+      },
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "nesting-limit-tie",
+      "rules": [
+        "#failure-positions",
+        "#exact-decoding",
+        "#number-admission",
+        "#limits"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 3
+        },
+        {
+          "failure": "number-admission",
+          "byteOffset": 3
+        },
+        {
+          "failure": "lexical-limit",
+          "limit": "depth",
+          "byteOffset": 3
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 3, which shares that byte with number-admission and lexical-limit (depth) and comes first in the tie order.",
+      "note": "The outermost container is at depth 1 (#limits).",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/depth-tie-misplaced-array-after-negative-zero.bin",
+        "sha256": "867a78b0d563f09e2b54e31d6cdd7f90c9223dcaeb1a70ce98c9db1252218e19",
+        "byteLength": 6
+      }
+    },
+    {
+      "id": "depth-grammar-before-crossing",
+      "operation": "decode",
+      "options": {
+        "limits": {
+          "depth": 1
+        }
+      },
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "nesting-limit-tie",
+      "rules": [
+        "#failure-positions",
+        "#exact-decoding",
+        "#limits"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 1
+        },
+        {
+          "failure": "lexical-limit",
+          "limit": "depth",
+          "byteOffset": 2
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 1. Later: lexical-limit (depth) at byte 2.",
+      "note": "The outermost container is at depth 1 (#limits).",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/depth-grammar-before-crossing.bin",
+        "sha256": "f7ec2319dad905e84e693615d6303e95632228e6fabfb9bc6b671e6d50f1120d",
+        "byteLength": 5
+      }
+    },
+    {
+      "id": "depth-crossed-before-grammar",
+      "operation": "decode",
+      "options": {
+        "limits": {
+          "depth": 1
+        }
+      },
+      "expectedError": "MODEL_RESOURCE_LIMIT",
+      "coverageGroup": "nesting-limit-tie",
+      "rules": [
+        "#failure-positions",
+        "#limits",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "lexical-limit",
+          "limit": "depth",
+          "byteOffset": 1
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 5
+        }
+      ],
+      "rationale": "First failure: lexical-limit (depth) at byte 1. Later: json-grammar at byte 5.",
+      "note": "The outermost container is at depth 1 (#limits).",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/depth-crossed-before-grammar.bin",
+        "sha256": "ddb1fb28460f15d445686df3b08374caca3e5eb66aad8f8d7323f53f149cd060",
+        "byteLength": 7
+      }
+    },
+    {
+      "id": "repeated-name-then-later-grammar",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_DUPLICATE_MEMBER",
+      "coverageGroup": "duplicate-member-name",
+      "rules": [
+        "#failure-positions",
+        "#duplicate-members",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "duplicate-member-name",
+          "byteOffset": 9
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 12
+        }
+      ],
+      "rationale": "First failure: duplicate-member-name at byte 9. Later: json-grammar at byte 12.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/repeated-name-then-later-grammar.bin",
+        "sha256": "9798410bc64b2fcd8c8e4b856a00005422d94b13d89e6d522725b6060cfa3a6f",
+        "byteLength": 13
+      }
+    },
+    {
+      "id": "repeated-name-then-grammar-at-next-byte",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_DUPLICATE_MEMBER",
+      "coverageGroup": "duplicate-member-name",
+      "rules": [
+        "#failure-positions",
+        "#duplicate-members",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "duplicate-member-name",
+          "byteOffset": 9
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 10
+        }
+      ],
+      "rationale": "First failure: duplicate-member-name at byte 9. Later: json-grammar at byte 10.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/repeated-name-then-grammar-at-next-byte.bin",
+        "sha256": "6c7094c2bd1421cf978ec5a8991526a6a6f045d887f34eeeddd74ad818fad2b3",
+        "byteLength": 11
+      }
+    },
+    {
+      "id": "repeated-name-then-truncation",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_DUPLICATE_MEMBER",
+      "coverageGroup": "duplicate-member-name",
+      "rules": [
+        "#failure-positions",
+        "#duplicate-members",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "duplicate-member-name",
+          "byteOffset": 9
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 10
+        }
+      ],
+      "rationale": "First failure: duplicate-member-name at byte 9. Later: json-grammar at byte 10 (end of input).",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/repeated-name-then-truncation.bin",
+        "sha256": "8672b7d53eaf283822580aa141b52d42a4d42c95912cc0e3238166f4b097cbb9",
+        "byteLength": 10
+      }
+    },
+    {
+      "id": "repeated-name-escaped-spelling-equal-value-then-grammar",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_DUPLICATE_MEMBER",
+      "coverageGroup": "duplicate-member-name",
+      "rules": [
+        "#failure-positions",
+        "#duplicate-members",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "duplicate-member-name",
+          "byteOffset": 14
+        },
+        {
+          "failure": "json-grammar",
+          "byteOffset": 18
+        }
+      ],
+      "rationale": "First failure: duplicate-member-name at byte 14. Later: json-grammar at byte 18.",
+      "note": "The repeated name is spelled as the escape of U+0061.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/repeated-name-escaped-spelling-equal-value-then-grammar.bin",
+        "sha256": "51b44561a0f2067250357d912681d9970df145853c1f587018b74dd46db0c0c8",
+        "byteLength": 20
+      }
+    },
+    {
+      "id": "grammar-before-repeated-name",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "duplicate-member-name",
+      "rules": [
+        "#failure-positions",
+        "#exact-decoding",
+        "#duplicate-members"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 11
+        },
+        {
+          "failure": "duplicate-member-name",
+          "byteOffset": 15
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 11. Later: duplicate-member-name at byte 15.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/grammar-before-repeated-name.bin",
+        "sha256": "cfaf2ee91eb040d1460f347b392ac7a788ad1bc71d0b32676138e69b91f84c72",
+        "byteLength": 19
+      }
+    },
+    {
+      "id": "same-name-in-sibling-objects-then-grammar",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "duplicate-member-name",
+      "rules": [
+        "#failure-positions",
+        "#exact-decoding",
+        "#duplicate-members"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 16
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 16.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/same-name-in-sibling-objects-then-grammar.bin",
+        "sha256": "e84868f66f5917ca6fec74f68e9d37e8ec85b60c9ad7a8e3186651f029455973",
+        "byteLength": 18
+      }
+    },
+    {
+      "id": "same-name-in-nested-object-then-grammar",
+      "operation": "decode",
+      "options": {},
+      "expectedError": "JSON_SYNTAX",
+      "coverageGroup": "duplicate-member-name",
+      "rules": [
+        "#failure-positions",
+        "#exact-decoding",
+        "#duplicate-members"
+      ],
+      "failurePositions": [
+        {
+          "failure": "json-grammar",
+          "byteOffset": 12
+        }
+      ],
+      "rationale": "First failure: json-grammar at byte 12.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/same-name-in-nested-object-then-grammar.bin",
+        "sha256": "effef1248c65a0fc054170b4b7bf84978601502b568c1594fce4a3a5ab0280af",
+        "byteLength": 14
+      }
+    },
+    {
+      "id": "total-string-bytes-crossed-inside-repeated-name",
+      "operation": "decode",
+      "options": {
+        "limits": {
+          "totalStringBytes": 2
+        }
+      },
+      "expectedError": "MODEL_RESOURCE_LIMIT",
+      "coverageGroup": "duplicate-member-name",
+      "rules": [
+        "#failure-positions",
+        "#limits",
+        "#duplicate-members",
+        "#exact-decoding"
+      ],
+      "failurePositions": [
+        {
+          "failure": "lexical-limit",
+          "limit": "totalStringBytes",
+          "byteOffset": 9
+        },
+        {
+          "failure": "duplicate-member-name",
+          "byteOffset": 11
+        }
+      ],
+      "rationale": "First failure: lexical-limit (totalStringBytes) at byte 9. Later: duplicate-member-name at byte 11.",
+      "note": "Member names count toward totalStringBytes (#limits).",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/total-string-bytes-crossed-inside-repeated-name.bin",
+        "sha256": "862a3757fafd2bf0459778653899f4f953fd70ce76b3990e37a32ba6bf1ae398",
+        "byteLength": 15
+      }
+    },
+    {
+      "id": "snapshot-unicode-after-unknown-member",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {},
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "in-memory-snapshot",
+      "rules": [
+        "#in-memory-input",
+        "#validation-order",
+        "#unicode-admission",
+        "#notation",
+        "#envelope",
+        "#subjects-and-roles",
+        "#canonical-profiles"
+      ],
+      "snapshotFailure": {
+        "location": "/structural/subjects/0/iri",
+        "failure": "unicode-validity"
+      },
+      "competingFailures": [
+        {
+          "location": "/structural/aaa",
+          "failure": "unknown-member",
+          "memberOrder": "before"
+        },
+        {
+          "location": "/structural/subjects/0/iri",
+          "failure": "iri-scalar-domain",
+          "memberOrder": "same"
+        }
+      ],
+      "rationale": "The snapshot's unicode-validity check at /structural/subjects/0/iri is reported at the start of stage 4, before closed field sets and scalar domains, so unknown-member at /structural/aaa and iri-scalar-domain at /structural/subjects/0/iri do not decide the error.",
+      "note": "Example in #in-memory-input.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/snapshot-unicode-after-unknown-member.json",
+        "sha256": "91d24e1cd481cc0c82d9b5a91a0ede0064e4885db52bb62fb56636c1b3193923",
+        "byteLength": 293
+      }
+    },
+    {
+      "id": "snapshot-unicode-after-mistyped-member",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {},
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "in-memory-snapshot",
+      "rules": [
+        "#in-memory-input",
+        "#validation-order",
+        "#unicode-admission",
+        "#notation",
+        "#envelope",
+        "#subjects-and-roles",
+        "#canonical-profiles"
+      ],
+      "snapshotFailure": {
+        "location": "/structural/subjects/0/iri",
+        "failure": "unicode-validity"
+      },
+      "competingFailures": [
+        {
+          "location": "/structural/constructs",
+          "failure": "mistyped-member",
+          "memberOrder": "before"
+        },
+        {
+          "location": "/structural/subjects/0/iri",
+          "failure": "iri-scalar-domain",
+          "memberOrder": "same"
+        }
+      ],
+      "rationale": "The snapshot's unicode-validity check at /structural/subjects/0/iri is reported at the start of stage 4, before closed field sets and scalar domains, so mistyped-member at /structural/constructs and iri-scalar-domain at /structural/subjects/0/iri do not decide the error.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/snapshot-unicode-after-mistyped-member.json",
+        "sha256": "e31f4cbe29a8b223f2c87b4ca8b5feb053389a9789a8e797e294cec92affa577",
+        "byteLength": 276
+      }
+    },
+    {
+      "id": "snapshot-number-after-unknown-member",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {},
+      "expectedError": "NUMBER_INVALID",
+      "coverageGroup": "in-memory-snapshot",
+      "rules": [
+        "#in-memory-input",
+        "#validation-order",
+        "#number-admission",
+        "#notation",
+        "#envelope",
+        "#subjects-and-roles",
+        "#canonical-profiles"
+      ],
+      "snapshotFailure": {
+        "location": "/structural/subjects/0/iri",
+        "failure": "number-admission"
+      },
+      "competingFailures": [
+        {
+          "location": "/structural/aaa",
+          "failure": "unknown-member",
+          "memberOrder": "before"
+        },
+        {
+          "location": "/structural/subjects/0/iri",
+          "failure": "mistyped-member",
+          "memberOrder": "same"
+        }
+      ],
+      "rationale": "The snapshot's number-admission check at /structural/subjects/0/iri is reported at the start of stage 4, before closed field sets and scalar domains, so unknown-member at /structural/aaa and mistyped-member at /structural/subjects/0/iri do not decide the error.",
+      "note": "The structural-content profile has no Number field, so the negative zero occupies a string-typed field; that type failure is a later stage-4 check.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/snapshot-number-after-unknown-member.json",
+        "sha256": "b544f58138794ac1777de001139258444816857696c76f35c8b2448566b479d5",
+        "byteLength": 275
+      }
+    },
+    {
+      "id": "snapshot-number-after-mistyped-member",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {},
+      "expectedError": "NUMBER_INVALID",
+      "coverageGroup": "in-memory-snapshot",
+      "rules": [
+        "#in-memory-input",
+        "#validation-order",
+        "#number-admission",
+        "#notation",
+        "#envelope",
+        "#subjects-and-roles",
+        "#canonical-profiles"
+      ],
+      "snapshotFailure": {
+        "location": "/structural/subjects/0/iri",
+        "failure": "number-admission"
+      },
+      "competingFailures": [
+        {
+          "location": "/structural/constructs",
+          "failure": "mistyped-member",
+          "memberOrder": "before"
+        },
+        {
+          "location": "/structural/subjects/0/iri",
+          "failure": "mistyped-member",
+          "memberOrder": "same"
+        }
+      ],
+      "rationale": "The snapshot's number-admission check at /structural/subjects/0/iri is reported at the start of stage 4, before closed field sets and scalar domains, so mistyped-member at /structural/constructs and mistyped-member at /structural/subjects/0/iri do not decide the error.",
+      "note": "The structural-content profile has no Number field, so the negative zero occupies a string-typed field; that type failure is a later stage-4 check.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/snapshot-number-after-mistyped-member.json",
+        "sha256": "15a5a779cc04dbf0c009fa009bb3d108d82ffe3e234dcf70b05adebba91ecbf8",
+        "byteLength": 258
+      }
+    },
+    {
+      "id": "snapshot-member-name-lone-surrogate",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {},
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "in-memory-snapshot",
+      "rules": [
+        "#in-memory-input",
+        "#validation-order",
+        "#unicode-admission",
+        "#notation",
+        "#envelope",
+        "#canonical-profiles"
+      ],
+      "snapshotFailure": {
+        "location": "/structural/<U+DC00>",
+        "failure": "unicode-validity"
+      },
+      "competingFailures": [
+        {
+          "location": "/structural/<U+DC00>",
+          "failure": "unknown-member",
+          "memberOrder": "same"
+        }
+      ],
+      "rationale": "The snapshot's unicode-validity check at /structural/<U+DC00> is reported at the start of stage 4, before closed field sets and scalar domains, so unknown-member at /structural/<U+DC00> does not decide the error.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/snapshot-member-name-lone-surrogate.json",
+        "sha256": "7875df047df72fa7e712fafbcaa88776fde527b16b34be0e6fff2f8af9881e60",
+        "byteLength": 220
+      }
+    },
+    {
+      "id": "snapshot-member-name-noncharacter-after-unknown-member",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {},
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "in-memory-snapshot",
+      "rules": [
+        "#in-memory-input",
+        "#validation-order",
+        "#unicode-admission",
+        "#notation",
+        "#envelope",
+        "#canonical-profiles"
+      ],
+      "snapshotFailure": {
+        "location": "/<U+FFFE>",
+        "failure": "unicode-validity"
+      },
+      "competingFailures": [
+        {
+          "location": "/aaa",
+          "failure": "unknown-member",
+          "memberOrder": "before"
+        },
+        {
+          "location": "/<U+FFFE>",
+          "failure": "unknown-member",
+          "memberOrder": "same"
+        }
+      ],
+      "rationale": "The snapshot's unicode-validity check at /<U+FFFE> is reported at the start of stage 4, before closed field sets and scalar domains, so unknown-member at /aaa and unknown-member at /<U+FFFE> do not decide the error.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/snapshot-member-name-noncharacter-after-unknown-member.json",
+        "sha256": "481d692f11c25e4c60119d042ddc00019c0fd44de4414e61db8fc2e61c505971",
+        "byteLength": 233
+      }
+    },
+    {
+      "id": "snapshot-unicode-before-later-mistyped-member",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {},
+      "expectedError": "UNICODE_INVALID",
+      "coverageGroup": "in-memory-snapshot",
+      "rules": [
+        "#in-memory-input",
+        "#validation-order",
+        "#unicode-admission",
+        "#notation",
+        "#envelope",
+        "#ontology",
+        "#canonical-profiles"
+      ],
+      "snapshotFailure": {
+        "location": "/structural/ontology/iri",
+        "failure": "unicode-validity"
+      },
+      "competingFailures": [
+        {
+          "location": "/structural/ontology/iri",
+          "failure": "iri-scalar-domain",
+          "memberOrder": "same"
+        },
+        {
+          "location": "/structural/subjects",
+          "failure": "mistyped-member",
+          "memberOrder": "after"
+        }
+      ],
+      "rationale": "The snapshot's unicode-validity check at /structural/ontology/iri is reported at the start of stage 4, before closed field sets and scalar domains, so iri-scalar-domain at /structural/ontology/iri does not decide the error.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/snapshot-unicode-before-later-mistyped-member.json",
+        "sha256": "9118f93a1e2b225d4774ab4d84d284d64e74a7d5b49c66c10c8e9f30b476d40a",
+        "byteLength": 235
+      }
+    },
+    {
+      "id": "snapshot-number-before-later-unknown-member",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {},
+      "expectedError": "NUMBER_INVALID",
+      "coverageGroup": "in-memory-snapshot",
+      "rules": [
+        "#in-memory-input",
+        "#validation-order",
+        "#number-admission",
+        "#notation",
+        "#envelope",
+        "#ontology",
+        "#canonical-profiles"
+      ],
+      "snapshotFailure": {
+        "location": "/structural/ontology/iri",
+        "failure": "number-admission"
+      },
+      "competingFailures": [
+        {
+          "location": "/structural/ontology/iri",
+          "failure": "mistyped-member",
+          "memberOrder": "same"
+        },
+        {
+          "location": "/structural/zzz",
+          "failure": "unknown-member",
+          "memberOrder": "after"
+        }
+      ],
+      "rationale": "The snapshot's number-admission check at /structural/ontology/iri is reported at the start of stage 4, before closed field sets and scalar domains, so mistyped-member at /structural/ontology/iri does not decide the error.",
+      "note": "The structural-content profile has no Number field, so the negative zero occupies a string-typed field; that type failure is a later stage-4 check.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "supplemental/lexical-position-v1/vectors/snapshot-number-before-later-unknown-member.json",
+        "sha256": "fb778c19e7aa1e6641d1f3e8c48c0db38ecd02f12067cd74f5c26c2bfb74614d",
+        "byteLength": 234
+      }
+    }
+  ]
+}

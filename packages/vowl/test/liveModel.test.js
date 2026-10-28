@@ -334,14 +334,60 @@ test("options, cancellation and resource bounds apply to live recovery", async (
 });
 
 test.each([
-  ["primaryRecords", 6],
-  ["embeddedValues", 44],
-  ["totalStringBytes", 1243],
+  [
+    "openCanonical",
+    ({ document }, limits) => openCanonical(document, { limits }),
+    3,
+  ],
+  [
+    "checkpointModel",
+    ({ model }, limits) => checkpointModel(model, { limits }),
+    3,
+  ],
+  [
+    "readmitModel",
+    ({ checkpoint }, limits) => readmitModel(checkpoint, { limits }),
+    3,
+  ],
+  [
+    "captureModel",
+    ({ model }, limits) => captureModel(model, { ...options, limits }),
+    3,
+  ],
+  // Editing also regenerates the class's occurrence, a fourth record.
+  ["editModel", ({ model }, limits) => editModel(model, [], { limits }), 4],
+])(
+  "%s counts each record once, however often it copies the model",
+  async (_operation, run, boundary) => {
+    const document = await canonicalize(
+      fixture("named-class-structural"),
+      options,
+    );
+    const { model } = await openCanonical(document);
+    const checkpoint = transport(await checkpointModel(model));
+    const subject = { document, model, checkpoint };
+    await expect(
+      run(subject, { primaryRecords: boundary - 1 }),
+    ).rejects.toMatchObject({
+      code: "MODEL_RESOURCE_LIMIT",
+      details: { limit: "primaryRecords", maximum: boundary - 1 },
+    });
+    await expect(
+      run(subject, { primaryRecords: boundary }),
+    ).resolves.toBeDefined();
+  },
+);
+
+test.each([
+  ["primaryRecords", 3],
+  ["embeddedValues", 23],
+  ["totalStringBytes", 712],
 ])(
   "checkpoint recovery preserves the %s boundary of %i",
   async (limit, boundary) => {
-    // Characterized before the admission refactor: both owned snapshots are
-    // charged. The three-record public vector also pins the captured bytes.
+    // Recovery counts the checkpoint once, as checkpointing does, plus the
+    // record holding the published state and its four member names. The
+    // three-record public vector also pins the captured bytes.
     const document = await canonicalize(
       fixture("named-class-structural"),
       options,

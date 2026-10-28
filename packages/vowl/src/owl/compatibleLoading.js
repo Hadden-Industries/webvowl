@@ -1,7 +1,12 @@
 import { OWL2DLProfile } from "owlapi/profiles";
 import { OWLDocumentFormats } from "owlapi/formats";
 import { fail } from "../errors.js";
-import { loadClosure, waitForResult } from "./loading.js";
+import {
+  dependencyLimitFailure,
+  loadClosure,
+  waitForResult,
+} from "./loading.js";
+import { profileCheckLimits } from "./policy.js";
 import { buildModel } from "./modelBuilder.js";
 import { snapshotSource } from "../snapshot.js";
 import { retainCompatibleEvidence } from "./sourceEvidence.js";
@@ -76,11 +81,7 @@ export async function loadCompatibleClosure(bytes, context, options, budget) {
     new OWL2DLProfile().checkOntology(loaded.ontology, {
       sourceAssessment: true,
       signal: budget.signal,
-      maxDepth: budget.limits.depth,
-      maxLiteralLength: budget.limits.stringBytes,
-      maxNumericDigits: Math.min(65536, budget.limits.stringBytes),
-      maxWork: Math.min(1000000, budget.limits.embeddedValues * 2),
-      timeoutMs: Math.max(1, Math.ceil(budget.deadline - performance.now())),
+      ...profileCheckLimits(budget),
     }),
     budget,
   );
@@ -102,10 +103,7 @@ export async function loadCompatibleClosure(bytes, context, options, budget) {
   ]) {
     budget.check();
     if (entry.code === "RESOURCE_LIMIT_EXCEEDED") {
-      fail("MODEL_RESOURCE_LIMIT", undefined, {
-        stage: "owl-validation",
-        resource: entry.resource,
-      });
+      dependencyLimitFailure(entry.resource, "owl-validation");
     }
   }
   const documents = loaded.documents.map(

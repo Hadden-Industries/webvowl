@@ -6,7 +6,7 @@ import {
   encode,
   profiles,
   VowlError,
-  operationLimitPolicy,
+  operationLimitDefaults,
 } from "vowl";
 
 const fixture = (name) =>
@@ -18,21 +18,21 @@ const fixture = (name) =>
 const empty = () => fixture("empty-structural");
 const options = (limits) => ({ profile: profiles.structuralContent, limits });
 
-test("public limit metadata cannot mutate the package admission policy", async () => {
+test("public limit defaults cannot mutate the package admission policy", async () => {
   expect(() => {
-    operationLimitPolicy.inputBytes[1] = 1;
+    operationLimitDefaults.depth = 1;
   }).toThrow(TypeError);
   expect(() => {
-    operationLimitPolicy.depth = [1, 1];
+    operationLimitDefaults.inputBytes = 1;
   }).toThrow(TypeError);
   await expect(
-    canonicalize(empty(), options({ inputBytes: 268435457 })),
+    canonicalize(empty(), options({ depth: 3 })),
   ).rejects.toMatchObject({
-    code: "OPTION_INVALID",
-    pointer: "/limits/inputBytes",
+    code: "MODEL_RESOURCE_LIMIT",
+    details: { limit: "depth", maximum: 3 },
   });
   await expect(
-    canonicalize(empty(), options({ depth: 512 })),
+    canonicalize(empty(), options({ inputBytes: 268435457 })),
   ).resolves.toBeDefined();
 });
 
@@ -64,9 +64,10 @@ test.each([false, true])(
   },
 );
 
-test("all A8 upper override bounds are inclusive and preserve independently pinned bytes", async () => {
-  // These are A8's published bounds, independent of the implementation's policy table.
-  // The companion conformance vectors reject each upper bound plus one.
+test("A8's former upper override bounds remain valid and preserve independently pinned bytes", async () => {
+  // These are A8's former published bounds, independent of the implementation's defaults.
+  // The unbounded-limits amendment removed them; the frozen conformance vectors that
+  // reject each bound plus one are superseded by a versioned overlay.
   const limits = {
     inputBytes: 268435456,
     primaryRecords: 1000000,
