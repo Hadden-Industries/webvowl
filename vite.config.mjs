@@ -298,12 +298,6 @@ export default defineConfig(({ mode }) => {
                 priority: 50,
               },
               {
-                // JSON parsing is shared by canonical ingress and cache metadata.
-                name: "vendor-json",
-                test: /node_modules[\\/]@streamparser[\\/]json(?:[\\/]|$)/u,
-                priority: 50,
-              },
-              {
                 name: "vendor-parser-shared",
                 test: /node_modules[\\/](?:abort-controller|base64-js|buffer|core-util-is|event-target-shim|events|ieee754|inherits|isarray|process|process-nextick-args|readable-stream|safe-buffer|string_decoder|util-deprecate)(?:[\\/]|$)/u,
                 priority: 60,

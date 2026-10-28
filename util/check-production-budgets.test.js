@@ -7,6 +7,7 @@ import {
 function manifest() {
   return {
     entry: "js/index.js",
+    initialClosure: ["js/index.js", "js/vendor-application.js", "js/shared.js"],
     workers: ["assets/worker.js"],
     workerClosures: {
       "assets/worker.js": ["assets/worker.js", "assets/parser.js"],
@@ -14,26 +15,71 @@ function manifest() {
     files: [
       { path: "js/index.js", byteLength: 680000 },
       { path: "js/vendor-application.js", byteLength: 300000 },
+      { path: "js/shared.js", byteLength: 20000 },
       { path: "assets/worker.js", byteLength: 1250000 },
       { path: "assets/parser.js", byteLength: 200000 },
     ],
   };
 }
 
-test("decimal entry gates report the entire worker closure separately", () => {
+test("decimal startup gates report the entire worker closure separately", () => {
   expect(assessProductionBudgets(manifest())).toEqual({
     entry: 680000,
-    vendor: 300000,
+    initialJavaScript: 1000000,
+    initialModules: 3,
     workerEntry: 1250000,
     workerClosure: 1450000,
     workerModules: 2,
   });
 });
 
-test.each([0, 1, 2])("one byte above budget fails asset %i", (index) => {
+test.each([0, 1, 2, 3])("one byte above budget fails asset %i", (index) => {
   const input = manifest();
   input.files[index].byteLength++;
   expect(() => assessProductionBudgets(input)).toThrow(/exceeds/u);
+});
+
+test("splitting or renaming startup chunks cannot evade the aggregate limit", () => {
+  const input = manifest();
+  input.files.push({ path: "js/new-vendor-name.js", byteLength: 1 });
+  input.initialClosure.push("js/new-vendor-name.js");
+  expect(() => assessProductionBudgets(input)).toThrow(
+    /Initial JavaScript exceeds 1000000 bytes: 1000001/u,
+  );
+});
+
+test("a vendor file above the former cap passes within the startup total", () => {
+  const input = manifest();
+  input.files[0].byteLength -= 20000;
+  input.files[1].byteLength += 20000;
+  expect(assessProductionBudgets(input).initialJavaScript).toBe(1000000);
+});
+
+test("shared startup assets count once and worker bytes stay separate", () => {
+  const input = manifest();
+  input.initialClosure.push("js/shared.js");
+  expect(assessProductionBudgets(input)).toMatchObject({
+    initialJavaScript: 1000000,
+    initialModules: 3,
+    workerClosure: 1450000,
+  });
+});
+
+test.each([undefined, [], ["js/shared.js"]])(
+  "an absent or incomplete startup closure cannot pass: %j",
+  (closure) => {
+    const input = manifest();
+    input.initialClosure = closure;
+    expect(() => assessProductionBudgets(input)).toThrow(/Initial closure/u);
+  },
+);
+
+test("a missing startup dependency cannot pass the aggregate gate", () => {
+  const input = manifest();
+  input.files.splice(2, 1);
+  expect(() => assessProductionBudgets(input)).toThrow(
+    /Missing production asset: js\/shared.js/u,
+  );
 });
 
 test("a missing dynamically imported parser cannot produce a passing budget", () => {

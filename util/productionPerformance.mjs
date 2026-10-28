@@ -166,9 +166,7 @@ export function productionManifest(directory) {
   const html = readFileSync(resolve(root, "index.html"), "utf8");
   const entryPaths = [
     ...html.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["']/gu),
-  ]
-    .map((match) => match[1])
-    .filter((path) => !/^https?:/u.test(path));
+  ].map((match) => match[1]);
   const candidates = entryPaths.filter((path) => path.endsWith("/index.js"));
   assert.equal(candidates.length, 1, "Bind the actual production HTML entry");
   const entry = candidates[0].replace(/^\.\//u, "").replace(/^\//u, "");
@@ -177,6 +175,63 @@ export function productionManifest(directory) {
     "Production entry asset is missing",
   );
   const source = readFileSync(resolve(root, entry), "utf8");
+  const preloadPaths = [...html.matchAll(/<link\b[^>]*>/gu)]
+    .filter((match) => /\brel=["']modulepreload["']/u.test(match[0]))
+    .map((match) => {
+      const href = match[0].match(/\bhref=["']([^"']+)["']/u);
+      assert(href, "Initial module preload is missing its target");
+      return href[1];
+    });
+  function initialModulePath(target, importer = "index.html") {
+    assert(
+      !/^(?:[a-z][a-z0-9+.-]*:|\/\/)/iu.test(target),
+      "Initial modules must have a local target",
+    );
+    const path = relative(
+      root,
+      target.startsWith("/")
+        ? resolve(root, "." + target)
+        : resolve(root, dirname(importer), target),
+    )
+      .split(sep)
+      .join("/");
+    assert(
+      path.endsWith(".js") && !path.startsWith("../") && !path.startsWith("/"),
+      "Initial module escapes its production output or is not JavaScript",
+    );
+    return path;
+  }
+  const initialModules = new Set();
+  const pendingInitial = [...entryPaths, ...preloadPaths].map((target) =>
+    initialModulePath(target),
+  );
+  while (pendingInitial.length) {
+    const module = pendingInitial.pop();
+    if (initialModules.has(module)) continue;
+    assert(
+      files.some((file) => file.path === module),
+      `Missing initial module: ${module}`,
+    );
+    initialModules.add(module);
+    for (const node of parseModule(readFileSync(resolve(root, module), "utf8"))
+      .body) {
+      if (
+        ![
+          "ImportDeclaration",
+          "ExportNamedDeclaration",
+          "ExportAllDeclaration",
+        ].includes(node.type) ||
+        !node.source
+      )
+        continue;
+      const dependency = staticString(node.source);
+      assert(
+        dependency?.startsWith("./") || dependency?.startsWith("../"),
+        "Initial imports must have a static local target",
+      );
+      pendingInitial.push(initialModulePath(dependency, module));
+    }
+  }
   const workers = [];
   visitSyntax(parseModule(source), (node) => {
     if (node.type !== "NewExpression" || node.callee.name !== "Worker") return;
@@ -246,6 +301,7 @@ export function productionManifest(directory) {
   return {
     schemaVersion: 1,
     entry,
+    initialClosure: [...initialModules].sort(),
     workers: [...new Set(workers)].sort(),
     workerClosures,
     files,

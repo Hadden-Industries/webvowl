@@ -21,11 +21,20 @@ export function assessProductionBudgets(manifest) {
     return file.byteLength;
   }
   const entry = bytes(manifest.entry);
-  const vendor = bytes("js/vendor-application.js");
   assert(entry <= 680000, `Production entry exceeds 680000 bytes: ${entry}`);
+  const initialClosure = manifest.initialClosure;
   assert(
-    vendor <= 300000,
-    `Application vendor exceeds 300000 bytes: ${vendor}`,
+    Array.isArray(initialClosure) && initialClosure.includes(manifest.entry),
+    "Initial closure is missing the production entry",
+  );
+  const initialModules = [...new Set(initialClosure)];
+  const initialJavaScript = initialModules.reduce(
+    (sum, path) => sum + bytes(path),
+    0,
+  );
+  assert(
+    initialJavaScript <= 1000000,
+    `Initial JavaScript exceeds 1000000 bytes: ${initialJavaScript}`,
   );
   assert(manifest.workers.length === 1, "Expected one current worker entry");
   const worker = manifest.workers[0];
@@ -45,7 +54,8 @@ export function assessProductionBudgets(manifest) {
   );
   return {
     entry,
-    vendor,
+    initialJavaScript,
+    initialModules: initialModules.length,
     workerEntry,
     workerClosure,
     workerModules: closure.length,
@@ -226,6 +236,12 @@ if (
     assert(
       ownership.files.includes(path),
       `Unowned current worker module: ${path}`,
+    );
+  }
+  for (const path of manifest.initialClosure) {
+    assert(
+      ownership.files.includes(path),
+      `Unowned initial JavaScript module: ${path}`,
     );
   }
   process.stdout.write(
