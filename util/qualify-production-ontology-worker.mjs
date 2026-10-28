@@ -77,7 +77,7 @@ try {
       await page.goto(base, { waitUntil: "networkidle" });
       assert(
         !requests.some((url) =>
-          /cachedOntologySourceAcquisition|ontology\/cache|ontology\/materializations/.test(
+          /cachedOntologySourceAcquisition|vendor-ontology-cache|ontology\/cache|ontology\/materializations/.test(
             url,
           ),
         ),
@@ -157,6 +157,10 @@ try {
         result.digests.includes(
           createHash("sha256").update(childText).digest("hex"),
         ),
+      );
+      await page.evaluate(
+        async (url) => void (await import(url)),
+        `${base}/js/cachedOntologySourceAcquisition.js`,
       );
       assert.deepEqual(errors, []);
       receipt.results.push({
