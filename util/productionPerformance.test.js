@@ -77,6 +77,79 @@ describe("production measurement admission", () => {
     expect(applicationEntryBinding(source).identifier).toBe("app");
   });
 
+  test("binds all initial scripts, preloads and static re-exports once while excluding lazy and worker code", () => {
+    const root = mkdtempSync(join(tmpdir(), "webvowl-initial-closure-"));
+    try {
+      mkdirSync(join(root, "js"));
+      writeFileSync(
+        join(root, "index.html"),
+        '<script type="module" src="./js/index.js"></script>' +
+          '<script type="module" src="./js/extra.js"></script>' +
+          '<link href="./js/preloaded.js" rel="modulepreload">',
+      );
+      writeFileSync(
+        join(root, "js/index.js"),
+        'import "./renamed-vendor.js";import "./shared.js";import("./lazy.js");' +
+          'new Worker(new URL("./worker.js",import.meta.url),{type:"module"});' +
+          'window.addEventListener("load",()=>app.initialize());',
+      );
+      writeFileSync(
+        join(root, "js/renamed-vendor.js"),
+        'export * from "./shared.js";',
+      );
+      writeFileSync(
+        join(root, "js/shared.js"),
+        'import "./renamed-vendor.js";',
+      );
+      writeFileSync(
+        join(root, "js/extra.js"),
+        'export { value } from "./preloaded.js";',
+      );
+      writeFileSync(join(root, "js/preloaded.js"), "export const value=1;");
+      writeFileSync(join(root, "js/lazy.js"), "// deferred code");
+      writeFileSync(join(root, "js/worker.js"), "// worker code");
+      expect(productionManifest(root).initialClosure).toEqual([
+        "js/extra.js",
+        "js/index.js",
+        "js/preloaded.js",
+        "js/renamed-vendor.js",
+        "js/shared.js",
+      ]);
+      rmSync(join(root, "js/shared.js"));
+      expect(() => productionManifest(root)).toThrow(/Missing initial module/u);
+    } finally {
+      expect(dirname(resolve(root))).toBe(resolve(tmpdir()));
+      rmSync(root, { recursive: true });
+    }
+  });
+
+  test.each([
+    'import "package";',
+    'import "https://example.test/module.js";',
+    'import "../../outside.js";',
+  ])("refuses an unaccountable initial import: %s", (dependency) => {
+    const root = mkdtempSync(join(tmpdir(), "webvowl-initial-import-"));
+    try {
+      mkdirSync(join(root, "js"));
+      writeFileSync(
+        join(root, "index.html"),
+        '<script type="module" src="./js/index.js"></script>',
+      );
+      writeFileSync(
+        join(root, "js/index.js"),
+        dependency +
+          'new Worker(new URL("./worker.js",import.meta.url));window.addEventListener("load",()=>app.initialize());',
+      );
+      writeFileSync(join(root, "js/worker.js"), "// worker code");
+      expect(() => productionManifest(root)).toThrow(
+        /Initial (?:imports|module)/u,
+      );
+    } finally {
+      expect(dirname(resolve(root))).toBe(resolve(tmpdir()));
+      rmSync(root, { recursive: true });
+    }
+  });
+
   test("binds every static and dynamic worker dependency, rejecting missing chunks", () => {
     const root = mkdtempSync(join(tmpdir(), "webvowl-worker-closure-"));
     try {
