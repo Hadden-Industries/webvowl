@@ -15,6 +15,7 @@ import { fileURLToPath } from "node:url";
 import { setTimeout as delay } from "node:timers/promises";
 import {
   admitHost,
+  retainFunctionalResult,
   reserveReport,
   sourceIdentity,
   spawnLoggedProcess,
@@ -97,6 +98,57 @@ test("owned producers use native log descriptors and close within bounded teardo
   expect(
     record.owned.exitCode !== null || record.owned.signalCode !== null,
   ).toBe(true);
+});
+
+test("owned teardown escalates when a producer ignores graceful termination", async () => {
+  const path = resolve(temporary(), "producer.log");
+  const record = spawnLoggedProcess(
+    process.execPath,
+    [
+      "-e",
+      "process.on('SIGTERM',()=>{});console.log('ready');setInterval(()=>{},1000)",
+    ],
+    path,
+  );
+  processes.push(record);
+  await new Promise((done) => record.owned.once("spawn", done));
+  for (
+    let attempt = 0;
+    attempt < 100 && !readFileSync(path, "utf8").includes("ready");
+    attempt++
+  ) {
+    await delay(10);
+  }
+  expect(readFileSync(path, "utf8")).toContain("ready");
+  const ended = await stopOwnedProcess(record, 100);
+  expect(ended.error).toBeUndefined();
+  if (process.platform !== "win32") {
+    expect(ended.signal).toBe("SIGKILL");
+  }
+});
+
+test("failure recovery preserves a completed cohort without rereading or relabeling it", async () => {
+  const completed = {
+    status: "failed",
+    finishedAt: "2026-10-28T12:00:00Z",
+    operations: ["kept"],
+  };
+  const receipt = { functional: completed };
+  const read = jest.fn();
+  await retainFunctionalResult(receipt, read);
+  expect(read).not.toHaveBeenCalled();
+  expect(receipt.functional).toBe(completed);
+  for (const snapshot of [
+    { status: "running", operations: ["inflight"] },
+    completed,
+  ]) {
+    const pending = {};
+    await retainFunctionalResult(pending, async () => snapshot);
+    expect(pending.functional).toEqual({
+      ...snapshot,
+      partial: !snapshot.finishedAt,
+    });
+  }
 });
 
 test("source identities cover staged changes and changed untracked bytes", () => {
@@ -240,4 +292,30 @@ test("browser CLI records an invalid executable failure before starting any prod
   expect(receipt.error.message).toContain("Chrome executable does not exist");
   expect(existsSync(resolve(root, "build.log"))).toBe(false);
   expect(existsSync(resolve(root, "vite.log"))).toBe(false);
+});
+
+test("browser CLI rejects conflicting modes before reserving any report", () => {
+  const root = temporary();
+  const invocation = spawnSync(
+    process.execPath,
+    [
+      resolve(repository, "util/qualify-vowl-edit.mjs"),
+      "--chrome",
+      process.execPath,
+      "--profile",
+      resolve(root, "profile"),
+      "--output",
+      root,
+      "--limits-only",
+      "--functional",
+      "--trace",
+    ],
+    { cwd: repository, encoding: "utf8", windowsHide: true },
+  );
+  expect(invocation.status).toBe(1);
+  expect(invocation.stderr).toContain(
+    "Keep functional-only and admitted diagnostic trace modes separate",
+  );
+  expect(existsSync(resolve(root, "qualification.json"))).toBe(false);
+  expect(existsSync(resolve(root, "build.log"))).toBe(false);
 });

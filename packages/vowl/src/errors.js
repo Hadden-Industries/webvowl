@@ -49,7 +49,7 @@ export function fail(code, pointer, details) {
 
 /** Append a field/index to a JSON Pointer without changing its spelling. */
 export function at(pointer, key) {
-  const value = String(key);
+  const value = typeof key === "string" ? key : String(key);
   // Grammar fields and array indexes normally need no JSON Pointer escaping.
   const escaped =
     value.includes("~") || value.includes("/")

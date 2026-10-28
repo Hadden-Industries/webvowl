@@ -14,6 +14,44 @@ import {
 
 afterEach(() => jest.restoreAllMocks());
 
+test.each(["", 'a\u0000\t"~', "x".repeat(1024), "x".repeat(1025), "é😀"])(
+  "string validation preserves exact UTF-8 bounds and optional aggregate charging (%j)",
+  (value) => {
+    const bytes = new TextEncoder().encode(value).length;
+    const budget = new ResourceBudget(
+      {
+        limits: {
+          stringBytes: Math.max(1, bytes),
+          totalStringBytes: Math.max(1, bytes),
+        },
+      },
+      performance.now(),
+    );
+    try {
+      expect(checkString(value, "/value", budget, false)).toBe(bytes);
+      expect(budget.counts.totalStringBytes).toBeUndefined();
+      expect(checkString(value, "/value", budget)).toBe(bytes);
+      expect(budget.counts.totalStringBytes).toBe(bytes);
+      if (bytes > 1) {
+        budget.limits.stringBytes = bytes - 1;
+        expect(() => checkString(value, "/value", budget)).toThrow(
+          expect.objectContaining({
+            code: "MODEL_RESOURCE_LIMIT",
+            pointer: "/value",
+            details: {
+              limit: "stringBytes",
+              actual: bytes,
+              maximum: bytes - 1,
+            },
+          }),
+        );
+      }
+    } finally {
+      budget.dispose();
+    }
+  },
+);
+
 test("descriptor snapshots own prototype-named fields without invoking accessors", () => {
   const budget = new ResourceBudget({}, performance.now());
   try {
@@ -64,6 +102,75 @@ function validationSource(size) {
     },
   };
 }
+
+test.each([
+  ["accessor", "SOURCE_UNSAFE_VALUE", "/child/a~1b~0c"],
+  ["number", "NUMBER_INVALID", "/child/value"],
+  ["unicode", "UNICODE_INVALID", "/child/value"],
+  ["symbol", "SOURCE_UNSAFE_VALUE", "/child"],
+  ["prototype", "SOURCE_UNSAFE_VALUE", "/child"],
+])(
+  "recopying a snapshot still rejects a newly introduced %s",
+  (kind, code, pointer) => {
+    const budget = new ResourceBudget({}, performance.now());
+    try {
+      const owned = snapshotSource({ child: { value: "safe" } }, budget);
+      if (kind === "accessor") {
+        Object.defineProperty(owned.child, "a/b~c", {
+          enumerable: true,
+          get() {
+            throw new Error("Accessor must not execute");
+          },
+        });
+      } else if (kind === "number") {
+        owned.child.value = -0;
+      } else if (kind === "unicode") {
+        owned.child.value = "\ud800";
+      } else if (kind === "symbol") {
+        owned.child[Symbol("unsafe")] = true;
+      } else {
+        Object.setPrototypeOf(owned.child, { inherited: true });
+      }
+      expect(() => snapshotSource(owned, budget)).toThrow(
+        expect.objectContaining({ code, pointer }),
+      );
+    } finally {
+      budget.dispose();
+    }
+  },
+);
+
+test("recopying an observed Proxy preserves symbol rejection before descriptor traps", () => {
+  const budget = new ResourceBudget({}, performance.now());
+  let descriptors = 0,
+    unsafe = false;
+  const proxy = new Proxy(
+    { value: "safe" },
+    {
+      ownKeys(target) {
+        return unsafe ? ["value", Symbol("unsafe")] : Reflect.ownKeys(target);
+      },
+      getOwnPropertyDescriptor(target, key) {
+        descriptors++;
+        return Object.getOwnPropertyDescriptor(target, key);
+      },
+    },
+  );
+  try {
+    snapshotSource({ proxy }, budget);
+    descriptors = 0;
+    unsafe = true;
+    expect(() => snapshotSource({ proxy }, budget)).toThrow(
+      expect.objectContaining({
+        code: "SOURCE_UNSAFE_VALUE",
+        pointer: "/proxy",
+      }),
+    );
+    expect(descriptors).toBe(0);
+  } finally {
+    budget.dispose();
+  }
+});
 
 test.each(["graph", "normalizing", "meaning"])(
   "%s validation observes mid-traversal expiry within 1024 visits and at completion",

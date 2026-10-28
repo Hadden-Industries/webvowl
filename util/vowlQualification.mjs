@@ -1,4 +1,4 @@
-import { execFile, execFileSync, spawn } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
   closeSync,
@@ -114,29 +114,32 @@ export function spawnLoggedProcess(executable, args, path, options = {}) {
 
 /** Stop only an owned producer, with bounded teardown even after a broken peer. */
 export async function stopOwnedProcess(record, timeoutMs = 5000) {
+  const timedOut = Symbol("teardown deadline");
+  const wait = () =>
+    Promise.race([record.ended, delay(timeoutMs, timedOut, { ref: false })]);
   if (record.owned.exitCode === null && record.owned.signalCode === null) {
-    if (process.platform === "win32" && record.owned.pid) {
-      await new Promise((done) =>
-        execFile(
-          "taskkill.exe",
-          ["/PID", String(record.owned.pid), "/T", "/F"],
-          { windowsHide: true, timeout: timeoutMs },
-          () => done(),
-        ),
-      );
-    } else record.owned.kill();
+    record.owned.kill();
   }
-  return Promise.race([
-    record.ended,
-    delay(
-      timeoutMs,
-      {
+  let ended = await wait();
+  if (ended !== timedOut) return ended;
+  // Use the retained ChildProcess handle, never a separately looked-up PID/tree.
+  if (record.owned.exitCode === null && record.owned.signalCode === null)
+    record.owned.kill("SIGKILL");
+  ended = await wait();
+  return ended === timedOut
+    ? {
         pid: record.owned.pid,
         error: { message: "Owned process teardown did not complete" },
-      },
-      { ref: false },
-    ),
-  ]);
+      }
+    : ended;
+}
+
+/** A later diagnostic failure must not relabel a completed functional cohort. */
+export async function retainFunctionalResult(receipt, readSnapshot) {
+  if (receipt.functional) return;
+  const snapshot = await readSnapshot();
+  if (snapshot)
+    receipt.functional = { ...snapshot, partial: !snapshot.finishedAt };
 }
 
 /** Observe the same native admission samples, including refusals, without rereading CPUs. */

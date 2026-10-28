@@ -863,6 +863,7 @@ The existing allocator and latency-test edits are included with the owner's auth
 ### Reproduced performance and native acceptance
 
 Core edit measurements use one discarded warmup, twenty observations, unchanged finite desktop limits and identical native checkpoint digests for paired baseline/candidate cohorts.
+These measurements describe candidate `889b85f5`; later repairs do not inherit its measured timings.
 The complete admitted chain cohorts from `paired-edit-desktop-03.json` are:
 
 | Classes | Baseline median (ms) | Candidate median (ms) | Candidate p95 (ms) |
@@ -924,3 +925,23 @@ The rebuilt native production-worker consumer probe passes all ten `Infinity` li
 It leaves no retired worker reachable after native GC.
 A separate intentional 5-second cohort timeout retains 11 completed operations and one in-flight operation before closing Chrome and Vite without teardown errors.
 That qualification remains **failed**, with `partial: true`; its retained failure is the successful negative control for result preservation, not a relabelled performance pass.
+
+### CI and narrow-review repair
+
+The narrow Claude Opus 5.5 Max review of `2f837e80` confirms the consumer overrides and the five original tool repairs.
+Its two verified follow-up defects are corrected: conflicting modes fail before report reservation, and recovery preserves completed cohorts instead of marking them interrupted.
+Owned-process teardown now uses the retained native child handle with bounded graceful termination and forced escalation; the Windows-only process-tree launcher is removed.
+The existing portability assertion remains unchanged.
+
+PR #97's first application run fails two assertions: the Windows launcher and a 1,000-class edit taking 1,150.55 ms against the unchanged strict 1,000 ms bound.
+The original CI failure remains retained on GitHub.
+An isolated diagnostic profile identifies snapshot traversal, pointer construction and serialization among the edit's costs; instrumentation is outside the product tree.
+A bulk-descriptor experiment is discarded after little diagnostic benefit.
+The selected small repair avoids re-coercing string pointer fields and uses an at-most-1,024-code-unit ASCII scan to establish exact UTF-8 length and valid scalar values.
+Non-ASCII and long strings retain their original interruptible validation; all snapshots, admission checks, aggregate charging and publication freezing remain.
+Scoped tests cover byte boundaries, Unicode, ownership, descriptor/proxy rejection, original error pointers and the unchanged latency assertion.
+The new paired performance attempts are refused by the unchanged host CPU guard; they remain failed receipts and establish no new speedup or percentile claim.
+Final full-check, native browser and narrowly scoped review outcomes remain in their actual task records.
+`full-check-03.log` completes with exit 0: all 207 suites / 10,643 Jest tests, 28 Python tests and the remaining quality, corpus, production-build and generated-artifact gates.
+The rebuilt native production-worker probe also passes all ten infinite overrides, larger finite overrides, capture, source recovery, strict data rejection, cancellation and teardown (`browser-consumer-overrides-02`).
+This candidate retains the strict latency assertion; hosted CI and the final narrow review remain publication gates.

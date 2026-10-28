@@ -18,6 +18,7 @@ import {
 import { assertQuiescentMachine } from "./benchmarkEnvironment.mjs";
 import {
   reserveReport,
+  retainFunctionalResult,
   sourceIdentity,
   spawnLoggedProcess,
   stopOwnedProcess,
@@ -48,6 +49,10 @@ assert(
 );
 assert(!existsSync(values.profile), "Use a fresh owned browser profile");
 assert(["all", "chain", "urd"].includes(values.case));
+assert(
+  !(values.functional && values.trace),
+  "Keep functional-only and admitted diagnostic trace modes separate",
+);
 const cohortTimeoutMs = Number(values["timeout-ms"]);
 assert(Number.isSafeInteger(cohortTimeoutMs) && cohortTimeoutMs > 0);
 const relativeOutput = relative(process.cwd(), resolve(values.output));
@@ -94,10 +99,6 @@ const receipt = {
     limitsOnly: values["limits-only"],
   },
 };
-assert(
-  !(values.functional && values.trace),
-  "Keep functional-only and admitted diagnostic trace modes separate",
-);
 const processes = [],
   pending = new Map();
 let socket,
@@ -439,8 +440,9 @@ try {
   process.exitCode = 1;
   if (sessionId && socket?.readyState === WebSocket.OPEN) {
     try {
-      const partial = await evaluate(sessionId, functionalExpression, 5000);
-      if (partial) receipt.functional = { ...partial, partial: true };
+      await retainFunctionalResult(receipt, () =>
+        evaluate(sessionId, functionalExpression, 5000),
+      );
     } catch (partialError) {
       receipt.partialReadError = partialError.message;
     }

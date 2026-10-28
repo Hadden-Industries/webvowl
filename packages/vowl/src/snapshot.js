@@ -17,6 +17,15 @@ export function utf8Length(scalar) {
 
 /** Validate I-JSON's Unicode domain and count exact UTF-8 bytes without allocating an encoding. */
 export function checkString(value, pointer, budget, charge = true) {
+  // A bounded ASCII scan proves both the I-JSON scalar domain and UTF-8 size.
+  // Longer strings retain the interruptible walk below.
+  if (value.length <= 1024 && !/[^\p{ASCII}]/u.test(value)) {
+    budget.bound("stringBytes", value.length, pointer);
+    if (charge) {
+      budget.charge("totalStringBytes", value.length, pointer);
+    }
+    return value.length;
+  }
   let bytes = 0;
   let nextCheck = 1024;
   for (let index = 0; index < value.length; index++) {
