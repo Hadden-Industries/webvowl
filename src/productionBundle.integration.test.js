@@ -100,6 +100,8 @@ test("the production bundle links without a browser package resolver", () => {
     .sort();
   assert.deepEqual(vendorChunkNames, [
     "js/vendor-application.js",
+    "js/vendor-json.js",
+    "js/vendor-ontology-cache.js",
     "js/vendor-parser-jsonld.js",
     "js/vendor-popover.js",
   ]);
