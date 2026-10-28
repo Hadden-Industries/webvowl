@@ -1,4 +1,9 @@
-import { generateProjection, validateProjection } from "../src/projection.js";
+import {
+  generateProjection,
+  occurrenceKey,
+  validateProjection,
+} from "../src/projection.js";
+import { normalizeDraft, editingCorrespondence } from "../src/editing.js";
 import { ResourceBudget } from "../src/resourceBudget.js";
 import { validateGraph, validateMeaning } from "../src/validateGraph.js";
 import { profiles } from "../src/profiles.js";
@@ -47,6 +52,86 @@ function contextFor(input, budget) {
     budget,
   );
 }
+
+test.each([false, true])(
+  "normalization keys preserve independently recomputed occurrence correspondence (edges=%s)",
+  (edges) => {
+    const budget = new ResourceBudget({}, performance.now());
+    try {
+      const original = source(128, [0, 2, 4]);
+      if (edges) {
+        original.structural.constructs = Array.from(
+          { length: 127 },
+          (_, index) => ({
+            id: `subclass${index}`,
+            kind: "subclass",
+            sub: `class${index}`,
+            super: `class${index + 1}`,
+          }),
+        );
+        normalizeDraft(original, budget);
+      }
+      const originalOccurrenceIds = new Set(
+        original.structural.occurrences.map((record) => record.id),
+      );
+      const draft = structuredClone(original);
+      const normalization = normalizeDraft(draft, budget);
+      const records = new Map(
+        Object.values(draft.structural)
+          .filter(Array.isArray)
+          .flat()
+          .map((record) => [record.id, record]),
+      );
+      const nextCache = new Map();
+      const recomputed = new Map(
+        draft.structural.occurrences.map((record) => [
+          occurrenceKey(record, (id) => records.get(id), nextCache, budget),
+          record.id,
+        ]),
+      );
+      const previous = new Map(
+        Object.values(original.structural)
+          .filter(Array.isArray)
+          .flat()
+          .map((record) => [record.id, record]),
+      );
+      const oldCache = new Map();
+      const expected = original.structural.occurrences.map((record) => ({
+        previous: record.id,
+        current:
+          recomputed.get(
+            occurrenceKey(
+              record,
+              (id) => previous.get(id),
+              oldCache,
+              budget,
+              normalization.resolve,
+            ),
+          ) ?? null,
+      }));
+      const result = editingCorrespondence(
+        original,
+        draft,
+        normalization,
+        budget,
+      );
+      expect(
+        result.filter((pair) => originalOccurrenceIds.has(pair.previous)),
+      ).toEqual(expected);
+      expect(expected).toHaveLength(originalOccurrenceIds.size);
+      if (edges) {
+        expect(expected.length).toBeGreaterThan(128);
+      }
+      expect(expected.every((pair) => pair.current !== null)).toBe(true);
+      for (const [key, id] of recomputed) {
+        expect(normalization.occurrenceKeys.get(key)).toBe(id);
+      }
+      validateProjection(draft, contextFor(draft, budget), budget);
+    } finally {
+      budget.dispose();
+    }
+  },
+);
 
 test.each([false, true])(
   "allocator work is bounded by the occupied prefix plus emitted nodes (normalizing=%s)",

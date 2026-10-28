@@ -945,3 +945,15 @@ Final full-check, native browser and narrowly scoped review outcomes remain in t
 `full-check-03.log` completes with exit 0: all 207 suites / 10,643 Jest tests, 28 Python tests and the remaining quality, corpus, production-build and generated-artifact gates.
 The rebuilt native production-worker probe also passes all ten infinite overrides, larger finite overrides, capture, source recovery, strict data rejection, cancellation and teardown (`browser-consumer-overrides-02`).
 This candidate retains the strict latency assertion; hosted CI and the final narrow review remain publication gates.
+
+The subsequent hosted run at `220a27a1` passes portability but still fails the strict latency assertion at 1,057.83 ms.
+That failed run is retained; the local full pass does not establish hosted acceptance.
+Correspondence now consumes the exact B1 key map just produced by normalization for the same privately owned draft, instead of rebuilding every new occurrence key immediately.
+The map stays within the current edit; no cache crosses revisions, and final admission still takes its own snapshot and independently regenerates and validates the complete projection.
+Differential tests recompute correspondence separately for isolated nodes, nested edge endpoints and occupied ordinal gaps; the affected edit corpus passes.
+The additional paired timing attempt is again refused by the unchanged CPU guard; diagnostic profiles do not become admitted timing claims.
+`full-check-04.log` retains exit 1: 204 suites pass and 43 tests in three suites fail because legacy migration still expects normalization's former bare function return.
+The migration caller now extracts `resolve`; the OWL builder already ignores that return and needs no change.
+All five affected suites / 257 tests pass after this repair, including migration, unbounded limits, document sessions, independent correspondence and the strict live-edit assertion.
+The rebuilt native production worker again passes the consumer-override cohort with no retired workers (`browser-consumer-overrides-03`).
+Reuse the successful unchanged full-run scope; the final-head hosted application run remains the complete publication gate.

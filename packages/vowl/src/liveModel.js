@@ -398,12 +398,16 @@ export function editLiveModel(model, changes, budget) {
       budget,
     );
   }
-  const resolve = normalizeDraft(
+  const correspondence = editingCorrespondence(
+    before,
     source,
+    normalizeDraft(
+      source,
+      budget,
+      allRecords(before.structural).map(({ id }) => id),
+    ),
     budget,
-    allRecords(before.structural).map(({ id }) => id),
   );
-  const correspondence = editingCorrespondence(before, source, resolve, budget);
   const successors = new Map(
     correspondence.map(({ previous, current }) => [previous, current]),
   );

@@ -529,17 +529,22 @@ export function normalizeDraft(source, budget, reservedHandles = []) {
     context.roleMap.set(JSON.stringify([iri, kind]), role);
     return role;
   };
-  model.occurrences = generateProjection(source, context, budget, {
+  const projection = generateProjection(source, context, budget, {
     normalizing: true,
     createBuiltin,
-  }).expected;
+  });
+  model.occurrences = projection.expected;
   budget.check();
-  return resolve;
+  return { resolve, occurrenceKeys: projection.keys };
 }
 
 /** Preserve only explicit record identities and exact B1 generation-key correspondence. */
-export function editingCorrespondence(original, draft, resolve, budget) {
+export function editingCorrespondence(original, draft, normalization, budget) {
   budget.check();
+  // Normalization just generated this exact private draft and its B1 keys.
+  // Consume them before any further mutation; final admission still regenerates
+  // and validates projection independently after taking its own snapshot.
+  const { resolve, occurrenceKeys: nextKeys } = normalization;
   const oldRecords = new Map(
     Object.values(original.structural)
       .filter(Array.isArray)
@@ -553,15 +558,8 @@ export function editingCorrespondence(original, draft, resolve, budget) {
       .map((record) => [record.id, record]),
   );
   const oldCache = new Map();
-  const nextCache = new Map();
   const oldOccurrences = new Set(
     original.structural.occurrences.map((record) => record.id),
-  );
-  const nextKeys = new Map(
-    draft.structural.occurrences.map((record) => [
-      occurrenceKey(record, (id) => nextRecords.get(id), nextCache, budget),
-      record.id,
-    ]),
   );
   const correspondence = [...oldRecords.values()].map((record) => {
     budget.poll();

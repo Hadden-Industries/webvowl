@@ -99,11 +99,10 @@ export async function edit(document, changes, options) {
       /^\/changes\/[0-9]+\/record$/.test(pointer),
     ).changes;
     applyChanges(source, requests, budget);
-    const resolve = normalizeDraft(source, budget);
     const correspondence = editingCorrespondence(
       document,
       source,
-      resolve,
+      normalizeDraft(source, budget),
       budget,
     );
     const issued = new Map();
