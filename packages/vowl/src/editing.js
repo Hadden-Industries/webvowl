@@ -32,24 +32,19 @@ export function applyChanges(source, changes, budget) {
   // Handles name the admitted revision and the whole atomic request. Removing a
   // record cannot make its handle available to a different record in this batch.
   const reservedHandles = new Set();
+  const recordsByHandle = new Map();
+  const removedCollections = new Set();
   for (const collection of [...Object.keys(collections), "occurrences"]) {
-    for (const record of model[collection]) {
+    for (let position = 0; position < model[collection].length; position++) {
+      const record = model[collection][position];
       budget.poll();
       reservedHandles.add(record.id);
-    }
-  }
-  const lookup = (id) => {
-    for (const collection of Object.keys(collections)) {
-      const position = model[collection].findIndex((record) => {
-        budget.poll();
-        return record.id === id;
-      });
-      if (position >= 0) {
-        return { collection, position, record: model[collection][position] };
+      if (collection !== "occurrences") {
+        recordsByHandle.set(record.id, { collection, position, record });
       }
     }
-    return undefined;
-  };
+  }
+  const lookup = (id) => recordsByHandle.get(id);
   function retargetAnchors(previous, next) {
     if (previous.kind === "assertion-anchor") {
       return;
@@ -57,7 +52,7 @@ export function applyChanges(source, changes, budget) {
     const priorKey = semanticKey(previous, "Construct", undefined, budget);
     for (const record of model.constructs) {
       budget.poll();
-      if (record.kind !== "assertion-anchor") {
+      if (record === null || record.kind !== "assertion-anchor") {
         continue;
       }
       if (
@@ -119,6 +114,11 @@ export function applyChanges(source, changes, budget) {
       }
       reservedHandles.add(change.record.id);
       model[change.collection].push(change.record);
+      recordsByHandle.set(change.record.id, {
+        collection: change.collection,
+        position: model[change.collection].length - 1,
+        record: change.record,
+      });
       return;
     }
     if (change.kind === "set-ontology") {
@@ -133,7 +133,11 @@ export function applyChanges(source, changes, budget) {
       fail("EDIT_INVALID", path);
     }
     if (change.kind === "remove") {
-      model[target.collection].splice(target.position, 1);
+      // Keep later positions stable throughout the ordered atomic request.
+      // Compact only after every operation and anchor retarget has completed.
+      model[target.collection][target.position] = null;
+      removedCollections.add(target.collection);
+      recordsByHandle.delete(target.record.id);
       return;
     }
     let replacement = change.record;
@@ -160,7 +164,14 @@ export function applyChanges(source, changes, budget) {
       retargetAnchors(target.record, replacement);
     }
     model[target.collection][target.position] = replacement;
+    recordsByHandle.set(replacement.id, { ...target, record: replacement });
   });
+  for (const collection of removedCollections) {
+    model[collection] = model[collection].filter((record) => {
+      budget.poll();
+      return record !== null;
+    });
+  }
   model.occurrences = [];
   budget.check();
 }
@@ -518,17 +529,22 @@ export function normalizeDraft(source, budget, reservedHandles = []) {
     context.roleMap.set(JSON.stringify([iri, kind]), role);
     return role;
   };
-  model.occurrences = generateProjection(source, context, budget, {
+  const projection = generateProjection(source, context, budget, {
     normalizing: true,
     createBuiltin,
-  }).expected;
+  });
+  model.occurrences = projection.expected;
   budget.check();
-  return resolve;
+  return { resolve, occurrenceKeys: projection.keys };
 }
 
 /** Preserve only explicit record identities and exact B1 generation-key correspondence. */
-export function editingCorrespondence(original, draft, resolve, budget) {
+export function editingCorrespondence(original, draft, normalization, budget) {
   budget.check();
+  // Normalization just generated this exact private draft and its B1 keys.
+  // Consume them before any further mutation; final admission still regenerates
+  // and validates projection independently after taking its own snapshot.
+  const { resolve, occurrenceKeys: nextKeys } = normalization;
   const oldRecords = new Map(
     Object.values(original.structural)
       .filter(Array.isArray)
@@ -542,15 +558,8 @@ export function editingCorrespondence(original, draft, resolve, budget) {
       .map((record) => [record.id, record]),
   );
   const oldCache = new Map();
-  const nextCache = new Map();
   const oldOccurrences = new Set(
     original.structural.occurrences.map((record) => record.id),
-  );
-  const nextKeys = new Map(
-    draft.structural.occurrences.map((record) => [
-      occurrenceKey(record, (id) => nextRecords.get(id), nextCache, budget),
-      record.id,
-    ]),
   );
   const correspondence = [...oldRecords.values()].map((record) => {
     budget.poll();

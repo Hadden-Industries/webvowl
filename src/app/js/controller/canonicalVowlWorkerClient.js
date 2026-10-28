@@ -4,19 +4,18 @@ import {
 } from "./canonicalVowlFailure.js";
 
 import {
-  APPLICATION_LIMIT_POLICY,
+  APPLICATION_LIMITS,
   MODEL_OPERATION_NAMES,
   MODEL_OPERATION_LIMITS,
 } from "./canonicalVowlWorkerPolicy.js";
 
-const [DEFAULT_DEADLINE_MS, MAXIMUM_DEADLINE_MS] =
-  APPLICATION_LIMIT_POLICY.deadlineMs;
+const DEFAULT_DEADLINE_MS = APPLICATION_LIMITS.deadlineMs;
 // The owner-approved desktop allowance covers the entire model lifecycle;
 // the same whole-job deadline travels to the package in the worker request.
 const MODEL_OPERATION_DEADLINE_MS = MODEL_OPERATION_LIMITS.deadlineMs;
 const modelOperations = new Set(MODEL_OPERATION_NAMES);
-const [DEFAULT_INPUT_BYTES, MAXIMUM_INPUT_BYTES] =
-  APPLICATION_LIMIT_POLICY.inputBytes;
+const DEFAULT_INPUT_BYTES = APPLICATION_LIMITS.inputBytes;
+const MAXIMUM_TIMER_DELAY = 2147483647;
 const typedArrayPrototype = Object.getPrototypeOf(Uint8Array.prototype);
 const byteBuffer = Object.getOwnPropertyDescriptor(
   typedArrayPrototype,
@@ -52,9 +51,9 @@ function copyBytes(bytes) {
   return bytes.slice();
 }
 
-function positiveLimit(value, fallback, maximum) {
+function positiveLimit(value, fallback) {
   const result = value ?? fallback;
-  if (!Number.isSafeInteger(result) || result < 1 || result > maximum) {
+  if (result !== Infinity && (!Number.isSafeInteger(result) || result < 1)) {
     throw failure("OPTION_INVALID");
   }
   return result;
@@ -77,13 +76,38 @@ function limitRecord(value) {
     if (
       typeof key !== "string" ||
       !descriptor.enumerable ||
-      !("value" in descriptor)
+      !("value" in descriptor) ||
+      (descriptor.value !== Infinity &&
+        (!Number.isSafeInteger(descriptor.value) || descriptor.value < 0))
     ) {
       throw failure("OPTION_INVALID");
     }
   }
-  // Numeric ranges and known field names remain the producer's authority.
+  // Exact per-field minima and known names remain the producer's authority.
   return value;
+}
+
+function armDeadline(milliseconds, expire) {
+  if (milliseconds === Infinity) {
+    return () => {};
+  }
+  const deadline = performance.now() + milliseconds;
+  let timer;
+  function arm() {
+    const remaining = deadline - performance.now();
+    timer = setTimeout(
+      () => {
+        if (performance.now() < deadline) {
+          arm();
+        } else {
+          expire();
+        }
+      },
+      Math.max(0, Math.min(remaining, MAXIMUM_TIMER_DELAY)),
+    );
+  }
+  arm();
+  return () => clearTimeout(timer);
 }
 
 /** Bound plain checkpoint/request data before transport allocates its copy. */
@@ -138,7 +162,10 @@ function measureCheckpointInput(value, maximum, maxDepth) {
     if (item === null || typeof item === "boolean") {
       return add(5);
     }
-    if (typeof item === "number" && Number.isFinite(item)) {
+    if (
+      typeof item === "number" &&
+      (Number.isFinite(item) || (sourceStage === 8 && item === Infinity))
+    ) {
       return add(String(item).length);
     }
     if (!item || typeof item !== "object" || ancestors.has(item)) {
@@ -196,16 +223,21 @@ function measureCheckpointInput(value, maximum, maxDepth) {
         string(key);
         add(1);
       }
-      // Only the retained source-byte path needs context. Do not allocate a
-      // complete JSON Pointer for every field in large semantic checkpoints.
+      // Context permits native source bytes and Infinity only at top-level
+      // limit-option values, never inside a checkpoint or an aliased object.
+      // Avoid allocating a JSON Pointer for each large-checkpoint field.
       const nextSourceStage =
-        (sourceStage === 1 && key === "checkpoint") ||
-        (sourceStage === 2 && key === "source") ||
-        (sourceStage === 3 && key === "sources") ||
-        (sourceStage === 4 && /^(0|[1-9][0-9]*)$/.test(key)) ||
-        (sourceStage === 5 && key === "bytes")
-          ? sourceStage + 1
-          : 0;
+        sourceStage === 1 && key === "limits"
+          ? 7
+          : sourceStage === 7
+            ? 8
+            : (sourceStage === 1 && key === "checkpoint") ||
+                (sourceStage === 2 && key === "source") ||
+                (sourceStage === 3 && key === "sources") ||
+                (sourceStage === 4 && /^(0|[1-9][0-9]*)$/.test(key)) ||
+                (sourceStage === 5 && key === "bytes")
+              ? sourceStage + 1
+              : 0;
       visit(descriptor.value, depth + 1, nextSourceStage);
     }
     if (array && members !== item.length) {
@@ -267,13 +299,8 @@ export function createCanonicalVowlWorkerClient({
             ? MODEL_OPERATION_DEADLINE_MS
             : DEFAULT_DEADLINE_MS,
         undefined,
-        MAXIMUM_DEADLINE_MS,
       );
-      const inputLimit = positiveLimit(
-        limits.inputBytes,
-        DEFAULT_INPUT_BYTES,
-        MAXIMUM_INPUT_BYTES,
-      );
+      const inputLimit = positiveLimit(limits.inputBytes, DEFAULT_INPUT_BYTES);
       // Serialize before yielding. Only owned source-byte copies are transferred;
       // checkpoint buffers stay owned by the caller and are cloned by transport.
       const checkpointOperation = [
@@ -287,10 +314,7 @@ export function createCanonicalVowlWorkerClient({
       let acquiredBytes = bytes?.byteLength ?? 0;
       let checkpointPayload;
       if (checkpointOperation) {
-        const depth = positiveLimit(
-          limits.depth,
-          ...APPLICATION_LIMIT_POLICY.depth,
-        );
+        const depth = positiveLimit(limits.depth, APPLICATION_LIMITS.depth);
         const allowed = [
           "operation",
           "checkpoint",
@@ -350,22 +374,20 @@ export function createCanonicalVowlWorkerClient({
         let previewDelivered = false;
         let orderingStarted = false;
         let finishOrdering;
-        const timer = setTimeout(
-          () =>
-            settle(
-              failure("DEADLINE_EXCEEDED", {
-                stage: "worker",
-                resource: "deadlineMs",
-              }),
-            ),
-          deadlineMs,
+        const cancelDeadline = armDeadline(deadlineMs, () =>
+          settle(
+            failure("DEADLINE_EXCEEDED", {
+              stage: "worker",
+              resource: "deadlineMs",
+            }),
+          ),
         );
         function settle(error, result) {
           if (finished) {
             return;
           }
           finished = true;
-          clearTimeout(timer);
+          cancelDeadline();
           clearTimeout(resultTimer);
           clearTimeout(previewTimer);
           signal?.removeEventListener("abort", abort);

@@ -20,6 +20,54 @@ const bytes = new Uint8Array(
 );
 const request = () => ({ operation: "open-canonical-model", bytes });
 
+test("capture admits renderer negative-zero coordinates without changing the accepted scene", async () => {
+  const { session, control } = setup();
+  // Assert before the legacy test transport's JSON realm conversion, which
+  // would otherwise erase -0. Native structured-clone transport preserves it.
+  control.before = async (request) => {
+    if (request.operation === "capture-model") {
+      expect(Object.is(request.visualization.camera.center.y, -0)).toBe(false);
+      expect(
+        request.visualization.placements.find(
+          ({ position }) => position.y === 47,
+        ).position.x,
+      ).toBe(0);
+    }
+  };
+  try {
+    await session.load(request());
+    const node = session
+      .snapshot()
+      .inspection.occurrences.find(({ kind }) => kind === "class-node");
+    session.scene().arrange(
+      [
+        {
+          reference: session.scene().reference(node.id),
+          position: { x: -0, y: 47 },
+          pinned: true,
+        },
+      ],
+      { camera: { center: { x: 23, y: -0 }, zoom: 2 } },
+    );
+    const before = session.scene().snapshot();
+    expect(Object.is(before.camera.center.y, -0)).toBe(true);
+    const document = await decode(await session.capture());
+    expect(document.visualization.camera).toEqual({
+      center: { x: 23, y: 0 },
+      zoom: 2,
+    });
+    expect(document.visualization.placements).toContainEqual({
+      occurrence: expect.any(String),
+      position: { x: 0, y: 47 },
+      pinned: true,
+    });
+    expect(session.scene().snapshot()).toEqual(before);
+    expect(await session.capture()).toEqual(await session.capture());
+  } finally {
+    session.dispose();
+  }
+});
+
 test("temporary neighbourhood replacement and capture preserve the complete ordinary scene", async () => {
   const { session } = setup();
   await session.load(request());

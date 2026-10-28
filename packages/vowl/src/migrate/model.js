@@ -372,7 +372,7 @@ export function buildLegacyModel(input, joined, profile, budget, policy) {
     budget.check();
     build();
   }
-  const resolve = normalizeDraft(source, budget);
+  const { resolve } = normalizeDraft(source, budget);
   for (const row of joined.all.values()) {
     if (row.role) {
       row.role = resolve(row.role);

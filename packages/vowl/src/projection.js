@@ -145,6 +145,7 @@ export function generateProjection(
   const expected = [];
   const generated = new Map();
   const keys = new Map();
+  let nextOrdinal = 0;
   function add(payload) {
     budget.check();
     const key = occurrenceKey(payload, (id) => generated.get(id), keys, budget);
@@ -156,11 +157,12 @@ export function generateProjection(
     if (!normalizing && expected.length >= model.occurrences.length) {
       fail("PROJECTION_INVALID", "/structural/occurrences");
     }
-    let ordinal = expected.length;
-    let id = `generated${ordinal}`;
+    let id = `generated${nextOrdinal}`;
     while (get(id) || generated.has(id)) {
-      id = `generated${++ordinal}`;
+      budget.poll();
+      id = `generated${++nextOrdinal}`;
     }
+    nextOrdinal++;
     // Group arrays and endpoint contexts can occur in several generated payloads.
     // Own each edit result by value before canonical ID rewriting visits its fields.
     // The snapshot charges this primary record and its embedded values before copying.

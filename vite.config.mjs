@@ -65,8 +65,13 @@ const preManifestGeneratedJavaScriptFiles = [
  *   - In production: deletes deploy/data/benchmark.json and cleans up leftover .map files
  */
 function webvowlBuildPlugin(mode) {
+  let outputDirectory;
   return {
     name: "webvowl-build",
+
+    configResolved(configuration) {
+      outputDirectory = resolve(configuration.root, configuration.build.outDir);
+    },
 
     transformIndexHtml(html) {
       let processedHtml = html;
@@ -92,8 +97,8 @@ function webvowlBuildPlugin(mode) {
       // Post-build cleanup actions only run in production
       if (mode !== "production") return;
 
-      const deployDir = resolve(configDir, "deploy");
-      if (!existsSync(deployDir)) return;
+      const deployDir = outputDirectory;
+      if (!deployDir || !existsSync(deployDir)) return;
 
       // 1. Remove non-prod data files
       const filesToRemove = [

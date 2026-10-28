@@ -69,6 +69,17 @@ test("changed or duplicate bundled evidence is rejected", () => {
   );
 });
 
+test("a reader owns a stable verified bundle snapshot while fresh readers recheck changed storage", () => {
+  const original = fixture(Buffer.from("original"));
+  const read = writeBundle([original]);
+  expect(read(member).toString()).toBe("original");
+  const returned = read(member);
+  returned.fill(0);
+  const fresh = writeBundle([{ ...original, text: "modified" }]);
+  expect(read(member).toString()).toBe("original");
+  expect(() => fresh(member)).toThrow();
+});
+
 test("a missing bundled member cannot fall back to a loose file", () => {
   const path = resolve(directory, member);
   mkdirSync(dirname(path), { recursive: true });
