@@ -239,8 +239,6 @@ export function createLoadingModule({
           } catch (_error) {
             if (!lifecycleAbortController.signal.aborted) {
               loadingModule.renderControllerState(webVowlController.getState());
-              cacheStatus.textContent =
-                "The source check or update could not finish. The current graph remains open.";
             }
           }
         },

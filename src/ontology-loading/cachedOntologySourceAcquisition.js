@@ -137,7 +137,12 @@ export function createCachedOntologySourceAcquisition({
           throw error;
         }
       }
-      return remember(await client.materialize(iri, { signal, context }));
+      try {
+        return remember(await client.materialize(iri, { signal, context }));
+      } catch (error) {
+        check(error, iri, signal);
+        throw error;
+      }
     },
     refresh(iri, { signal, mode = "check-now" } = {}) {
       if (blocked.has(iri)) {

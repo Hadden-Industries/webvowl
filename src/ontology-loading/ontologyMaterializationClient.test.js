@@ -204,6 +204,54 @@ test("a tombstone prohibits direct acquisition and remains observed", async () =
   expect(resolver.loadBytes).not.toHaveBeenCalled();
 });
 
+test.each(["SOURCE_WITHDRAWN", "SOURCE_QUARANTINED", "CONTENT_QUARANTINED"])(
+  "materialization containment remains observed on a fresh open: %s",
+  async (code) => {
+    const { options, fetchImpl } = harness({
+      pointerStatus: 404,
+      api({ url, response }) {
+        return response(
+          JSON.stringify({
+            schemaVersion: 1,
+            kind: "error",
+            requestId: "withdrawal-test",
+            error: { code, message: "Source unavailable", retryable: false },
+          }),
+          url,
+          403,
+          { "content-type": "application/json" },
+        );
+      },
+    });
+    const resolver = {
+      getDocumentIRI: (iri) => ({ value: iri }),
+      loadBytes: jest
+        .fn()
+        .mockRejectedValueOnce(
+          new MissingImportError("CORS", {
+            cause: new TypeError("Failed to fetch"),
+          }),
+        )
+        .mockResolvedValue({ bytes: Uint8Array.of(42), documentIri: source }),
+    };
+    const acquisition = createCachedOntologySourceAcquisition({
+      ...options,
+      resolver,
+    });
+    await expect(acquisition.acquire(source)).rejects.toHaveProperty(
+      "code",
+      code,
+    );
+    const requests = fetchImpl.mock.calls.length;
+    await expect(acquisition.acquire(source)).rejects.toHaveProperty(
+      "code",
+      "SOURCE_WITHDRAWN",
+    );
+    expect(fetchImpl).toHaveBeenCalledTimes(requests);
+    expect(resolver.loadBytes).toHaveBeenCalledTimes(1);
+  },
+);
+
 test("corrupt discovery can degrade to a direct success with a bounded diagnostic", async () => {
   const { options } = harness({
     mutate(records) {
