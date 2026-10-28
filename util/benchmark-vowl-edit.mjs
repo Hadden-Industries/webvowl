@@ -1,12 +1,16 @@
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { cpus, platform, release, totalmem } from "node:os";
 import { resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
-import { assertQuiescentMachine } from "./benchmarkEnvironment.mjs";
+import {
+  admitHost,
+  reserveReport,
+  sourceIdentity,
+  writeReport,
+} from "./vowlQualification.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const { values } = parseArgs({
@@ -39,6 +43,8 @@ const sizes = (text) =>
 const samples = Number(values.samples);
 assert(Number.isSafeInteger(samples) && samples > 0);
 assert(["desktop", "package"].includes(values.profile));
+const reportDescriptor =
+  values.output === "-" ? undefined : reserveReport(resolve(values.output));
 const limits =
   values.profile === "desktop"
     ? {
@@ -49,12 +55,6 @@ const limits =
       }
     : {};
 const hash = (bytes) => createHash("sha256").update(bytes).digest("hex");
-const git = (directory, args) =>
-  execFileSync("git", ["-C", directory, ...args], {
-    encoding: "utf8",
-    maxBuffer: 16 * 1024 * 1024,
-    windowsHide: true,
-  });
 const receipt = {
   schemaVersion: 1,
   status: "running",
@@ -73,6 +73,12 @@ const receipt = {
     ramBytes: totalmem(),
   },
   harnessSha256: hash(readFileSync(fileURLToPath(import.meta.url))),
+  harnessSupportSha256: Object.fromEntries(
+    ["benchmarkEnvironment.mjs", "vowlQualification.mjs"].map((path) => [
+      path,
+      hash(readFileSync(new URL(path, import.meta.url))),
+    ]),
+  ),
   cohorts: [],
   admissions: [],
 };
@@ -92,16 +98,16 @@ async function load(directory) {
       ),
     ),
   );
+  const identity = sourceIdentity(directory, ["packages/vowl"]);
   return {
     api,
     jsonKey,
     input,
     source: {
       directory,
-      head: git(directory, ["rev-parse", "HEAD"]).trim(),
-      packageDiffSha256: hash(
-        git(directory, ["diff", "--binary", "--", "packages/vowl"]),
-      ),
+      head: identity.head,
+      packageDiffSha256: identity.diffSha256,
+      untracked: identity.untracked,
       implementation: Object.fromEntries(
         [
           "projection.js",
@@ -260,7 +266,7 @@ function stats(raw) {
 async function cohort(n, targets) {
   const retained = { classes: n, status: "running", candidates: [] };
   receipt.cohorts.push(retained);
-  receipt.admissions.push(await assertQuiescentMachine());
+  await admitHost(receipt.admissions);
   const active = [];
   for (const target of targets) {
     const entry = { source: target.source, rawMs: [] };
@@ -276,7 +282,7 @@ async function cohort(n, targets) {
   for (const target of active) await edit(target, false);
   let last;
   for (let i = 0; i < samples; i++) {
-    receipt.admissions.push(await assertQuiescentMachine());
+    await admitHost(receipt.admissions);
     for (const target of i % 2 ? [...active].reverse() : active) {
       last = await edit(target, true);
       target.lastModel = last.model;
@@ -302,7 +308,7 @@ async function cohort(n, targets) {
   active.forEach((target, index) =>
     Object.assign(retained.candidates[index], stats(target.raw)),
   );
-  receipt.admissions.push(await assertQuiescentMachine());
+  await admitHost(receipt.admissions);
   retained.status = "passed";
 }
 try {
@@ -332,11 +338,7 @@ try {
   if (values.output === "-") {
     console.log(JSON.stringify(receipt));
   } else {
-    writeFileSync(
-      resolve(values.output),
-      JSON.stringify(receipt, null, 2) + "\n",
-      { flag: "wx" },
-    );
+    if (!writeReport(reportDescriptor, receipt)) process.exitCode = 1;
     console.log(
       JSON.stringify({
         status: receipt.status,

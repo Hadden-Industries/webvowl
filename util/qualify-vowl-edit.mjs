@@ -1,17 +1,28 @@
 import assert from "node:assert/strict";
-import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
-  createWriteStream,
   existsSync,
+  mkdirSync,
   readFileSync,
+  statSync,
   writeFileSync,
 } from "node:fs";
 import { createServer } from "node:http";
-import { resolve } from "node:path";
+import { isAbsolute, relative, resolve, sep } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
-import { parseArgs } from "node:util";
+import {
+  isDeepStrictEqual,
+  parseArgs,
+  stripVTControlCharacters,
+} from "node:util";
 import { assertQuiescentMachine } from "./benchmarkEnvironment.mjs";
+import {
+  reserveReport,
+  sourceIdentity,
+  spawnLoggedProcess,
+  stopOwnedProcess,
+  writeReport,
+} from "./vowlQualification.mjs";
 
 const { values } = parseArgs({
   options: {
@@ -24,14 +35,45 @@ const { values } = parseArgs({
     "render-only": { type: "boolean", default: false },
     capture: { type: "boolean", default: false },
     case: { type: "string", default: "all" },
+    "limits-only": { type: "boolean", default: false },
+    "timeout-ms": { type: "string", default: "500000" },
   },
 });
 assert(
-  values.chrome && values.profile && values.output && values.closure,
+  values.chrome &&
+    values.profile &&
+    values.output &&
+    (values.closure || values["limits-only"]),
   "--chrome, a new --profile, existing private --output directory and --closure JSON are required",
 );
 assert(!existsSync(values.profile), "Use a fresh owned browser profile");
 assert(["all", "chain", "urd"].includes(values.case));
+const cohortTimeoutMs = Number(values["timeout-ms"]);
+assert(Number.isSafeInteger(cohortTimeoutMs) && cohortTimeoutMs > 0);
+const relativeOutput = relative(process.cwd(), resolve(values.output));
+assert(
+  relativeOutput === ".." ||
+    relativeOutput.startsWith(`..${sep}`) ||
+    isAbsolute(relativeOutput),
+  "Keep qualification output outside the source checkout",
+);
+assert(statSync(values.output).isDirectory(), "Output directory must exist");
+for (const name of [
+  "build.log",
+  "vite.log",
+  "chrome.log",
+  "qualification.json",
+  "private-trace.json",
+  "production",
+]) {
+  assert(
+    !existsSync(resolve(values.output, name)),
+    `Output already exists: ${name}`,
+  );
+}
+const reportDescriptor = reserveReport(
+  resolve(values.output, "qualification.json"),
+);
 const hash = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const receipt = {
   status: "running",
@@ -41,13 +83,15 @@ const receipt = {
     : values.trace
       ? "instrumented diagnostic"
       : "uninstrumented functional/timing observation",
-  source:
-    "Native production module Worker; unchanged finite desktop policy; local private closure",
+  source: values["limits-only"]
+    ? "Native production module Worker; explicit consumer overrides; built-in fixtures"
+    : "Native production module Worker; unchanged finite desktop policy; local private closure",
   exceptions: [],
   phases: {
     renderOnly: values["render-only"],
     capture: values.capture,
     case: values.case,
+    limitsOnly: values["limits-only"],
   },
 };
 assert(
@@ -58,41 +102,34 @@ const processes = [],
   pending = new Map();
 let socket,
   server,
+  sessionId,
   sequence = 0;
 function child(executable, args, name) {
-  const owned = spawn(executable, args, {
-    windowsHide: true,
-    stdio: ["ignore", "pipe", "pipe"],
-  });
-  const stream = createWriteStream(resolve(values.output, name), {
-    flags: "wx",
-  });
-  owned.stdout.pipe(stream, { end: false });
-  owned.stderr.pipe(stream, { end: false });
-  const ended = new Promise((done) =>
-    owned.once("close", (code, signal) => {
-      stream.end();
-      done({ code, signal });
-    }),
+  const record = spawnLoggedProcess(
+    executable,
+    args,
+    resolve(values.output, name),
   );
-  processes.push({ owned, ended });
-  return owned;
+  processes.push(record);
+  return record.owned;
 }
 async function waitFor(action, label, attempts = 120) {
   for (let i = 0; i < attempts; i++) {
+    const failed = processes.find((record) => record.error);
+    if (failed) throw new Error(failed.error.message);
     const value = await action();
     if (value) return value;
     await delay(250);
   }
   throw new Error(`Deadline: ${label}`);
 }
-function call(method, params = {}, sessionId) {
+function call(method, params = {}, sessionId, timeoutMs = 180000) {
   const id = ++sequence;
   return new Promise((done, fail) => {
     const timer = setTimeout(() => {
       pending.delete(id);
       fail(new Error(`CDP deadline: ${method}`));
-    }, 180000);
+    }, timeoutMs);
     pending.set(id, { done, fail, timer });
     socket.send(
       JSON.stringify({
@@ -104,19 +141,60 @@ function call(method, params = {}, sessionId) {
     );
   });
 }
-async function evaluate(sessionId, expression) {
+async function evaluate(sessionId, expression, timeoutMs = 180000) {
   const response = await call(
     "Runtime.evaluate",
     { expression, returnByValue: true },
     sessionId,
+    timeoutMs,
   );
   assert(!response.exceptionDetails, JSON.stringify(response.exceptionDetails));
   return response.result.value;
 }
+const functionalExpression =
+  "(()=>{if(!globalThis.canonicalEditQualification)return null;const {retired,...value}=canonicalEditQualification;return value})()";
 try {
-  const manifest = JSON.parse(
-    readFileSync("deploy/.vite/webvowl-generated-js.json"),
+  assert(
+    existsSync(values.chrome) && statSync(values.chrome).isFile(),
+    "Chrome executable does not exist",
   );
+  receipt.sourceIdentity = sourceIdentity(process.cwd());
+  receipt.harnessHashes = Object.fromEntries(
+    [
+      "util/qualify-vowl-edit.mjs",
+      "util/vowlQualification.mjs",
+      "util/benchmarkEnvironment.mjs",
+      "packages/vowl/test/browser/performance-edit.js",
+    ].map((path) => [path, hash(readFileSync(path))]),
+  );
+  const productionDirectory = resolve(values.output, "production");
+  mkdirSync(productionDirectory);
+  child(
+    process.execPath,
+    [
+      resolve("node_modules/vite/bin/vite.js"),
+      "build",
+      "--outDir",
+      productionDirectory,
+    ],
+    "build.log",
+  );
+  const built = await processes.at(-1).ended;
+  receipt.build = { directory: productionDirectory, ...built };
+  assert.equal(
+    built.code,
+    0,
+    built.error?.message ?? "Owned production build failed; see build.log",
+  );
+  assert(
+    isDeepStrictEqual(sourceIdentity(process.cwd()), receipt.sourceIdentity),
+    "Source changed during the owned build",
+  );
+  const manifestPath = resolve(
+    productionDirectory,
+    ".vite/webvowl-generated-js.json",
+  );
+  const manifest = JSON.parse(readFileSync(manifestPath));
   const workers = manifest.files.filter((path) =>
     /^assets\/canonicalVowlWorker-[^/]+\.js$/u.test(path),
   );
@@ -128,20 +206,23 @@ try {
   const assets = new Map(
     manifest.files.map((path) => {
       assert(!path.split("/").includes("..") && !path.includes("\\"));
-      const bytes = readFileSync(resolve("deploy", path));
+      const bytes = readFileSync(resolve(productionDirectory, path));
       assert.equal(hash(bytes), manifest.hashes[path], path);
       return [`/production/${path}`, bytes];
     }),
   );
   receipt.production = {
     worker: workers[0],
-    manifestSha256: hash(
-      readFileSync("deploy/.vite/webvowl-generated-js.json"),
-    ),
+    manifestSha256: hash(readFileSync(manifestPath)),
     hashes: manifest.hashes,
   };
-  const closure = JSON.parse(readFileSync(values.closure));
-  assert(Array.isArray(closure.documents) && closure.documents.length >= 1);
+  const closure = values["limits-only"]
+    ? { documents: [] }
+    : JSON.parse(readFileSync(values.closure));
+  assert(
+    Array.isArray(closure.documents) &&
+      (values["limits-only"] || closure.documents.length >= 1),
+  );
   const documents = closure.documents.map((document, index) => {
     const bytes = readFileSync(document.path);
     assert.equal(hash(bytes), document.sha256, "Private closure input changed");
@@ -156,7 +237,9 @@ try {
       byteLength: bytes.length,
     };
   });
-  receipt.inputs = documents;
+  receipt.inputs = values["limits-only"]
+    ? "Built-in empty canonical and two-document OWL fixtures"
+    : documents;
   const fixture = resolve(
     "packages/vowl/test/browser/performance-edit.js",
   ).replaceAll("\\", "/");
@@ -167,6 +250,7 @@ try {
     renderOnly: values["render-only"],
     capture: values.capture,
     case: values.case,
+    limitsOnly: values["limits-only"],
   });
   const html = `<!doctype html><html lang="en"><meta charset="utf-8"><title>Private VOWL edit qualification</title><script type="module" src="http://127.0.0.1:5178/@fs/${fixture}"></script></html>`;
   assets.set(
@@ -209,13 +293,11 @@ try {
     ],
     "vite.log",
   );
-  let ready = false;
-  vite.stdout.on("data", (chunk) => {
-    ready ||= chunk.toString().includes("127.0.0.1:5178");
-  });
   await waitFor(() => {
     assert.equal(vite.exitCode, null, "Owned Vite exited");
-    return ready;
+    return stripVTControlCharacters(
+      readFileSync(resolve(values.output, "vite.log"), "utf8"),
+    ).includes("http://127.0.0.1:5178/");
   }, "owned Vite");
   receipt.hostAdmissionRefusals = [];
   for (let attempt = 0; ; attempt++) {
@@ -283,10 +365,10 @@ try {
   const { targetId } = await call("Target.createTarget", {
     url: "about:blank",
   });
-  const { sessionId } = await call("Target.attachToTarget", {
+  ({ sessionId } = await call("Target.attachToTarget", {
     targetId,
     flatten: true,
-  });
+  }));
   await call("Runtime.enable", {}, sessionId);
   await call("Page.enable", {}, sessionId);
   await call("Page.navigate", { url: `http://127.0.0.1:${port}/` }, sessionId);
@@ -294,12 +376,9 @@ try {
     () =>
       evaluate(sessionId, "globalThis.canonicalEditQualification?.finishedAt"),
     "native production worker cohort",
-    2000,
+    Math.ceil(cohortTimeoutMs / 250),
   );
-  receipt.functional = await evaluate(
-    sessionId,
-    "(()=>{const {retired,...value}=canonicalEditQualification;return value})()",
-  );
+  receipt.functional = await evaluate(sessionId, functionalExpression);
   await call("HeapProfiler.collectGarbage", {}, sessionId);
   await delay(50);
   await call("HeapProfiler.collectGarbage", {}, sessionId);
@@ -358,22 +437,54 @@ try {
   receipt.status = "failed";
   receipt.error = { message: error.message, stack: error.stack };
   process.exitCode = 1;
+  if (sessionId && socket?.readyState === WebSocket.OPEN) {
+    try {
+      const partial = await evaluate(sessionId, functionalExpression, 5000);
+      if (partial) receipt.functional = { ...partial, partial: true };
+    } catch (partialError) {
+      receipt.partialReadError = partialError.message;
+    }
+  }
 } finally {
   if (socket?.readyState === WebSocket.OPEN) {
-    await call("Browser.close").catch(() => {});
+    await call("Browser.close", {}, undefined, 5000).catch((error) => {
+      receipt.browserCloseError = error.message;
+    });
     socket.close();
   }
-  for (const { owned, ended } of processes.reverse()) {
-    if (owned.exitCode === null && owned.signalCode === null) owned.kill();
-    await ended;
+  for (const item of pending.values()) clearTimeout(item.timer);
+  pending.clear();
+  receipt.teardown = [];
+  for (const record of processes.reverse()) {
+    const ended = await stopOwnedProcess(record);
+    receipt.teardown.push(ended);
+    if (ended.error) {
+      receipt.status = "failed";
+      process.exitCode = 1;
+    }
   }
-  if (server) await new Promise((done) => server.close(done));
+  if (server) {
+    server.closeAllConnections();
+    await new Promise((done) => server.close(done));
+  }
+  if (receipt.sourceIdentity) {
+    try {
+      receipt.finalSourceIdentity = sourceIdentity(process.cwd());
+      if (
+        !isDeepStrictEqual(receipt.sourceIdentity, receipt.finalSourceIdentity)
+      ) {
+        receipt.status = "failed";
+        receipt.sourceChangedDuringQualification = true;
+        process.exitCode = 1;
+      }
+    } catch (error) {
+      receipt.sourceReadError = error.message;
+      receipt.status = "failed";
+      process.exitCode = 1;
+    }
+  }
   receipt.finishedAt = new Date().toISOString();
-  writeFileSync(
-    resolve(values.output, "qualification.json"),
-    JSON.stringify(receipt, null, 2) + "\n",
-    { flag: "wx" },
-  );
+  if (!writeReport(reportDescriptor, receipt)) process.exitCode = 1;
   console.log(
     JSON.stringify({
       status: receipt.status,

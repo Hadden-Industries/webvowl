@@ -19,6 +19,125 @@ const owlRequest = {
   mediaType: "text/owl-functional",
 };
 
+test.each([
+  ["inputBytes", 268435457],
+  ["depth", 513],
+  ["deadlineMs", 300001],
+])(
+  "consumer %s overrides may exceed former application maxima",
+  async (name, value) => {
+    const { client, workers } = harness();
+    try {
+      const pending = client.run(
+        {
+          operation: "recover-model",
+          checkpoint: {},
+          limits: { [name]: value },
+        },
+        context,
+      );
+      pending.catch(() => {});
+      expect(workers).toHaveLength(1);
+      const sent = workers[0].messages[0];
+      expect(sent.request.limits[name]).toBe(value);
+      workers[0].onmessage({
+        data: { ...sent, type: "result", result: { accepted: true } },
+      });
+      await expect(pending).resolves.toMatchObject({ accepted: true });
+    } finally {
+      client.dispose();
+    }
+  },
+);
+
+const liftedLimits = () =>
+  Object.fromEntries(
+    [
+      "inputBytes",
+      "primaryRecords",
+      "embeddedValues",
+      "depth",
+      "stringBytes",
+      "totalStringBytes",
+      "rdfQuads",
+      "rdfDeepIterations",
+      "deadlineMs",
+      "expandedXmlBytes",
+    ].map((name) => [name, Infinity]),
+  );
+
+test("consumer Infinity limit options cross checkpoint transport without an armed deadline", async () => {
+  jest.useFakeTimers();
+  const { client, workers } = harness();
+  try {
+    const pending = client.run(
+      { operation: "recover-model", checkpoint: {}, limits: liftedLimits() },
+      context,
+    );
+    pending.catch(() => {});
+    expect(workers).toHaveLength(1);
+    expect(workers[0].messages[0].request.limits).toEqual(liftedLimits());
+    expect(jest.getTimerCount()).toBe(0);
+    const rejected = expect(pending).rejects.toMatchObject({
+      code: "LOAD_ABORTED",
+    });
+    jest.advanceTimersByTime(2147483647 + 100);
+    expect(workers[0].terminate).not.toHaveBeenCalled();
+    client.dispose();
+    await rejected;
+    expect(workers[0].terminate).toHaveBeenCalledTimes(1);
+  } finally {
+    client.dispose();
+    jest.useRealTimers();
+  }
+});
+
+test("long consumer deadlines rearm safely across the native timer maximum", async () => {
+  jest.useFakeTimers();
+  const { client, workers } = harness();
+  try {
+    const pending = client.run(
+      {
+        operation: "decode",
+        bytes: Uint8Array.of(1),
+        limits: { deadlineMs: 2147483647 + 25 },
+      },
+      context,
+    );
+    const rejected = expect(pending).rejects.toMatchObject({
+      code: "DEADLINE_EXCEEDED",
+    });
+    rejected.catch(() => {});
+    expect(workers).toHaveLength(1);
+    jest.advanceTimersByTime(2147483647);
+    expect(workers[0].terminate).not.toHaveBeenCalled();
+    jest.advanceTimersByTime(24);
+    expect(workers[0].terminate).not.toHaveBeenCalled();
+    jest.advanceTimersByTime(1);
+    await rejected;
+    expect(workers[0].terminate).toHaveBeenCalledTimes(1);
+    expect(jest.getTimerCount()).toBe(0);
+  } finally {
+    client.dispose();
+    jest.useRealTimers();
+  }
+});
+
+test("unbounded consumer options do not admit Infinity as ordinary checkpoint data", async () => {
+  const { client, workers } = harness();
+  try {
+    const limits = liftedLimits();
+    for (const checkpoint of [{ value: Infinity }, { alias: limits }]) {
+      await expect(
+        client.run({ operation: "recover-model", checkpoint, limits }, context),
+      ).rejects.toMatchObject({ code: "CHECKPOINT_INVALID" });
+    }
+    expect(workers).toHaveLength(0);
+  } finally {
+    client.dispose();
+  }
+});
+
 test("desktop defaults preserve rejection of malformed caller limit records", async () => {
   const opened = await runCanonicalVowlOperation({
     ...owlRequest,

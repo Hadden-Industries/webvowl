@@ -4,7 +4,7 @@
 
 | Field              | Value                                                                                                                                             |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status             | Draft synthesis; no new implementation, acceptance, execution adoption, commit or publication authorized by this document                         |
+| Status             | Owner-selected implementation in progress; current authority, results and limits are recorded in section 14                                       |
 | Prepared           | 28 October 2026                                                                                                                                   |
 | Decision owner     | Repository owner, Maksym Shostak                                                                                                                  |
 | Integration owner  | To be assigned when this programme is selected                                                                                                    |
@@ -23,7 +23,8 @@ The source's opening tool transcript is provenance, not authorization to repeat 
 
 The existing working-tree candidate matches the audit's monotonic ordinal change and its appended timed 1,000-class test.
 It is user-owned work.
-This task does not edit, restore, stage, commit or claim authorship of those changes.
+The planning checkpoint did not authorize editing, restoring, staging, committing or claiming authorship of those changes.
+Section 14 records the owner's subsequent implementation authority and qualification of that candidate.
 The source calls them applied and verified; current inspection establishes their presence, not their test or release status.
 
 Observed candidate hashes at planning inspection:
@@ -902,3 +903,24 @@ No source-test failure remains from that run.
 The requested Claude Opus 5.5 Max review is a subsequent gate against the signed source candidate, with a 60-minute allowance; this source record does not claim its result in advance.
 Provider output and any narrowly scoped repair review remain in the native review records rather than duplicated evidence packages.
 No package installation, application activation, deployment or resource-policy recalibration is authorized by this record.
+
+### Consumer-override follow-up selected by the owner
+
+After the initial signed implementation candidate `889b85f554a75de668784fa3602394860d7528bc`, the owner explicitly requested removing the remaining worker-transport restrictions.
+Reuse this execution and its accepted risk route; the change extends consumer override support without raising any default.
+The client now accepts valid larger finite limits and `Infinity`, confines non-finite option values to the top-level limits record, arms no infinite watchdog and rearms long finite deadlines within the native timer range.
+The obsolete application maximum tuples are replaced with the same finite default values; import acquisition retains its existing default.
+Six added regression cases fail against the previous client, then pass with the repair; the complete affected worker/import suites pass 67 tests.
+Native consumer-only qualification uses built-in fixtures, separate from desktop-profile acceptance and the private URD cohort.
+The earlier broad review stays bound to its frozen source candidate; final validation and a narrow review cover this follow-up and any repairs.
+The updated full check completes with exit 0: 206 suites / 10,620 Jest tests and all other repository gates (`full-check-02.log`).
+
+Claude Opus 5.5 at Max completed the broad review of `889b85f5` in approximately 18 minutes, within its 60-minute allowance, with no product-code findings.
+Its five qualification-tool findings are repaired: synchronous report/log reservation and handled producer errors, bounded owned-process teardown, partial browser-result recovery before shutdown, an isolated build bound to current Git/harness identities, early benchmark output reservation, and real CPU-admission/staged/untracked-source metadata.
+Nine focused tool regressions pass; they cover native producer failures and teardown, preserved evidence on write/collision failures, staged/untracked identities, actual admission observations and CLI preflight ordering.
+The isolated build also fixes production cleanup to use the configured output directory instead of the checkout's default deployment directory.
+These tool repairs receive scoped validation; successful unchanged product checks are reused.
+The rebuilt native production-worker consumer probe passes all ten `Infinity` limit overrides, larger finite input/depth/deadline overrides, exact source-checkpoint recovery, capture, cancellation and rejection of ordinary non-finite checkpoint data.
+It leaves no retired worker reachable after native GC.
+A separate intentional 5-second cohort timeout retains 11 completed operations and one in-flight operation before closing Chrome and Vite without teardown errors.
+That qualification remains **failed**, with `partial: true`; its retained failure is the successful negative control for result preservation, not a relabelled performance pass.

@@ -31,7 +31,9 @@ const limits = {
   totalStringBytes: 67108864,
   deadlineMs: 60000,
 };
-result.limits = limits;
+result.limits = config.limitsOnly
+  ? { scope: "explicit consumer overrides", defaultProfileAcceptance: false }
+  : limits;
 const check = (condition, name) => {
   if (!condition) {
     throw new Error(name);
@@ -431,127 +433,193 @@ async function renderCases() {
     ),
   );
 }
-try {
-  if (!config.renderOnly) {
-    const empty = await (await fetch("/empty.json")).json();
-    const admitted = await canonicalize(empty, {
-      profile: profiles.structuralContent,
-    });
-    const original = encode(admitted);
-    for (let cycle = 0; cycle < 10; cycle++) {
-      await timed(`lifecycle:${cycle}`, () => smallLifecycle(original, cycle));
-      check(liveWorkers.size === 0, `worker-teardown:${cycle}`);
-    }
-    const opened = await openCanonical(admitted, { limits });
-    const chain = await timed("chain:core-setup", () =>
-      editModel(opened.model, chainChanges(10000), { limits }),
+
+async function qualifyConsumerLimits() {
+  const lifted = Object.fromEntries(
+    [
+      "inputBytes",
+      "primaryRecords",
+      "embeddedValues",
+      "depth",
+      "stringBytes",
+      "totalStringBytes",
+      "rdfQuads",
+      "rdfDeepIterations",
+      "deadlineMs",
+      "expandedXmlBytes",
+    ].map((name) => [name, Infinity]),
+  );
+  result.infinityLimitFields = Object.keys(lifted);
+  const source = await (await fetch("/empty.json")).json();
+  const bytes = encode(
+    await canonicalize(source, { profile: profiles.structuralContent }),
+  );
+  const client = workerClient();
+  try {
+    const opened = await client.run(
+      { operation: "open-canonical-model", bytes, limits: lifted },
+      context(0),
     );
-    let checkpoint = await checkpointModel(chain.model, { limits });
-    result.chainOccurrences = checkpoint.structural?.occurrences?.length;
-    const client = workerClient();
-    try {
-      const edited = await timed(
-        "chain:production-worker-edit",
-        () =>
-          client.run(
-            {
-              operation: "edit-model",
-              checkpoint,
-              changes: [
-                ...addition("chainExtra"),
-                {
-                  kind: "insert",
-                  collection: "constructs",
-                  record: {
-                    id: "chainExtra:k",
-                    kind: "subclass",
-                    sub: "chainExtra:r",
-                    super: checkpoint.structural.roles.find(
-                      ({ kind }) => kind === "class",
-                    ).id,
-                  },
-                },
-              ],
-              limits,
-            },
-            context(1),
-          ),
-        { diagnostic: true },
+    const edited = await client.run(
+      {
+        operation: "edit-model",
+        checkpoint: opened.checkpoint,
+        changes: addition("unboundedConsumer"),
+        limits: lifted,
+      },
+      context(0),
+    );
+    check(
+      edited.inspection.revision === 1 && edited.created.length === 3,
+      "consumer-infinity-edit-is-admitted",
+    );
+    for (const limits of [
+      lifted,
+      { inputBytes: 268435457, depth: 1024, deadlineMs: 300001 },
+      { deadlineMs: 2147483647 + 25 },
+    ]) {
+      const recovered = await client.run(
+        { operation: "recover-model", checkpoint: edited.checkpoint, limits },
+        context(1),
       );
-      if (edited) {
-        check(edited.inspection.revision === 2, "chain-edit-revision");
-        check(edited.created.length === 6, "chain-full-semantic-insertion");
-        const recovered = await timed(
-          "chain:production-worker-recovery",
-          () =>
-            client.run(
-              {
-                operation: "recover-model",
-                checkpoint: edited.checkpoint,
-                limits,
-              },
-              context(2),
-            ),
-          { diagnostic: true },
+      check(
+        isEqual(recovered.checkpoint, edited.checkpoint),
+        "consumer-overrides-recover-exactly",
+      );
+    }
+    const captured = await client.run(
+      {
+        operation: "capture-model",
+        checkpoint: edited.checkpoint,
+        profile: profiles.structuralContent,
+        limits: lifted,
+      },
+      context(1),
+    );
+    check(captured.bytes.length > 0, "consumer-infinity-capture-is-admitted");
+    const owl = await client.run(
+      {
+        operation: "open-owl-model",
+        bytes: new TextEncoder().encode(
+          "Ontology(<urn:consumer:root> Import(<urn:consumer:import>) Declaration(Class(<urn:consumer:A>)))",
+        ),
+        documentIri: "urn:consumer:root",
+        mediaType: "text/owl-functional",
+        limits: lifted,
+      },
+      context(0, {
+        resolveImport: async () => ({
+          bytes: new TextEncoder().encode(
+            "Ontology(<urn:consumer:import> Declaration(Class(<urn:consumer:B>)))",
+          ),
+          documentIri: "urn:consumer:import",
+          mediaType: "text/owl-functional",
+        }),
+      }),
+    );
+    check(
+      owl.inspection.documents.length === 2,
+      "consumer-infinity-import-closure-is-admitted",
+    );
+    const recoveredSource = await client.run(
+      {
+        operation: "recover-model",
+        checkpoint: owl.checkpoint,
+        limits: lifted,
+      },
+      context(0),
+    );
+    check(
+      isEqual(recoveredSource.checkpoint, owl.checkpoint),
+      "consumer-infinity-source-byte-checkpoint-recovers",
+    );
+    await expectCode(
+      () =>
+        client.run(
+          {
+            operation: "recover-model",
+            checkpoint: { value: Infinity },
+            limits: lifted,
+          },
+          context(0),
+        ),
+      "CHECKPOINT_INVALID",
+      "ordinary-nonfinite-data-remains-rejected",
+    );
+    await expectCode(
+      () =>
+        client.run(
+          {
+            operation: "recover-model",
+            checkpoint: edited.checkpoint,
+            limits: { ...lifted, unknown: Infinity },
+          },
+          context(1),
+        ),
+      "OPTION_INVALID",
+      "producer-still-owns-known-limit-names",
+    );
+    const abort = new AbortController();
+    const pending = client.run(
+      {
+        operation: "recover-model",
+        checkpoint: edited.checkpoint,
+        limits: lifted,
+      },
+      context(1, { signal: abort.signal }),
+    );
+    abort.abort();
+    await expectCode(
+      () => pending,
+      "LOAD_ABORTED",
+      "consumer-infinity-job-remains-cancellable",
+    );
+  } finally {
+    client.dispose();
+  }
+  check(liveWorkers.size === 0, "consumer-overrides-retire-all-workers");
+}
+try {
+  if (config.limitsOnly) {
+    await timed("consumer-limit-overrides", qualifyConsumerLimits);
+  } else {
+    if (!config.renderOnly) {
+      const empty = await (await fetch("/empty.json")).json();
+      const admitted = await canonicalize(empty, {
+        profile: profiles.structuralContent,
+      });
+      const original = encode(admitted);
+      for (let cycle = 0; cycle < 10; cycle++) {
+        await timed(`lifecycle:${cycle}`, () =>
+          smallLifecycle(original, cycle),
         );
-        if (recovered) {
-          check(
-            isEqual(recovered.checkpoint, edited.checkpoint),
-            "chain-exact-recovery",
-          );
-        }
+        check(liveWorkers.size === 0, `worker-teardown:${cycle}`);
       }
-      checkpoint = null;
-      const root = config.documents[0];
-      const rootBytes = await bytesAt(root.url);
-      const resolveImport = async (iri) => {
-        const entry = config.documents.find((item) => item.documentIri === iri);
-        if (!entry) {
-          throw new Error("Unbound private import");
-        }
-        return {
-          bytes: await bytesAt(entry.url),
-          documentIri: entry.documentIri,
-          mediaType: entry.mediaType,
-        };
-      };
-      const urd = await timed(
-        "urd:production-worker-open",
-        () =>
-          client.run(
-            {
-              operation: "open-owl-model",
-              bytes: rootBytes,
-              documentIri: root.documentIri,
-              mediaType: root.mediaType,
-              limits,
-            },
-            context(0, { resolveImport }),
-          ),
-        { diagnostic: true },
+      const opened = await openCanonical(admitted, { limits });
+      const chain = await timed("chain:core-setup", () =>
+        editModel(opened.model, chainChanges(10000), { limits }),
       );
-      if (urd) {
-        check(
-          urd.inspection.documents.length === config.documents.length,
-          "urd-complete-import-closure",
-        );
+      let checkpoint = await checkpointModel(chain.model, { limits });
+      result.chainOccurrences = checkpoint.structural?.occurrences?.length;
+      const client = workerClient();
+      try {
         const edited = await timed(
-          "urd:production-worker-edit",
+          "chain:production-worker-edit",
           () =>
             client.run(
               {
                 operation: "edit-model",
-                checkpoint: urd.checkpoint,
+                checkpoint,
                 changes: [
-                  ...addition("urdExtra"),
+                  ...addition("chainExtra"),
                   {
                     kind: "insert",
                     collection: "constructs",
                     record: {
-                      id: "urdExtra:k",
+                      id: "chainExtra:k",
                       kind: "subclass",
-                      sub: "urdExtra:r",
-                      super: urd.inspection.records.roles.find(
+                      sub: "chainExtra:r",
+                      super: checkpoint.structural.roles.find(
                         ({ kind }) => kind === "class",
                       ).id,
                     },
@@ -559,38 +627,15 @@ try {
                 ],
                 limits,
               },
-              context(0),
+              context(1),
             ),
           { diagnostic: true },
         );
         if (edited) {
-          check(edited.inspection.revision === 1, "urd-edited-revision");
-          check(edited.created.length === 6, "urd-full-semantic-insertion");
-          for (const document of edited.inspection.documents) {
-            const expected = config.documents.find(
-              ({ documentIri }) => documentIri === document.documentIri,
-            );
-            check(expected, "urd-source-identity-bound");
-            const original = await bytesAt(expected.url);
-            const source = await timed("urd:original-source", () =>
-              client.run(
-                {
-                  operation: "read-model-source",
-                  checkpoint: edited.checkpoint,
-                  documentId: document.id,
-                  limits,
-                },
-                context(1),
-              ),
-            );
-            check(
-              source.bytes.length === original.length &&
-                source.bytes.every((byte, index) => byte === original[index]),
-              "urd-source-byte-fidelity-after-edit",
-            );
-          }
+          check(edited.inspection.revision === 2, "chain-edit-revision");
+          check(edited.created.length === 6, "chain-full-semantic-insertion");
           const recovered = await timed(
-            "urd:production-worker-recovery",
+            "chain:production-worker-recovery",
             () =>
               client.run(
                 {
@@ -598,23 +643,134 @@ try {
                   checkpoint: edited.checkpoint,
                   limits,
                 },
-                context(1),
+                context(2),
               ),
             { diagnostic: true },
           );
           if (recovered) {
             check(
               isEqual(recovered.checkpoint, edited.checkpoint),
-              "urd-exact-recovery",
+              "chain-exact-recovery",
             );
           }
         }
+        checkpoint = null;
+        const root = config.documents[0];
+        const rootBytes = await bytesAt(root.url);
+        const resolveImport = async (iri) => {
+          const entry = config.documents.find(
+            (item) => item.documentIri === iri,
+          );
+          if (!entry) {
+            throw new Error("Unbound private import");
+          }
+          return {
+            bytes: await bytesAt(entry.url),
+            documentIri: entry.documentIri,
+            mediaType: entry.mediaType,
+          };
+        };
+        const urd = await timed(
+          "urd:production-worker-open",
+          () =>
+            client.run(
+              {
+                operation: "open-owl-model",
+                bytes: rootBytes,
+                documentIri: root.documentIri,
+                mediaType: root.mediaType,
+                limits,
+              },
+              context(0, { resolveImport }),
+            ),
+          { diagnostic: true },
+        );
+        if (urd) {
+          check(
+            urd.inspection.documents.length === config.documents.length,
+            "urd-complete-import-closure",
+          );
+          const edited = await timed(
+            "urd:production-worker-edit",
+            () =>
+              client.run(
+                {
+                  operation: "edit-model",
+                  checkpoint: urd.checkpoint,
+                  changes: [
+                    ...addition("urdExtra"),
+                    {
+                      kind: "insert",
+                      collection: "constructs",
+                      record: {
+                        id: "urdExtra:k",
+                        kind: "subclass",
+                        sub: "urdExtra:r",
+                        super: urd.inspection.records.roles.find(
+                          ({ kind }) => kind === "class",
+                        ).id,
+                      },
+                    },
+                  ],
+                  limits,
+                },
+                context(0),
+              ),
+            { diagnostic: true },
+          );
+          if (edited) {
+            check(edited.inspection.revision === 1, "urd-edited-revision");
+            check(edited.created.length === 6, "urd-full-semantic-insertion");
+            for (const document of edited.inspection.documents) {
+              const expected = config.documents.find(
+                ({ documentIri }) => documentIri === document.documentIri,
+              );
+              check(expected, "urd-source-identity-bound");
+              const original = await bytesAt(expected.url);
+              const source = await timed("urd:original-source", () =>
+                client.run(
+                  {
+                    operation: "read-model-source",
+                    checkpoint: edited.checkpoint,
+                    documentId: document.id,
+                    limits,
+                  },
+                  context(1),
+                ),
+              );
+              check(
+                source.bytes.length === original.length &&
+                  source.bytes.every((byte, index) => byte === original[index]),
+                "urd-source-byte-fidelity-after-edit",
+              );
+            }
+            const recovered = await timed(
+              "urd:production-worker-recovery",
+              () =>
+                client.run(
+                  {
+                    operation: "recover-model",
+                    checkpoint: edited.checkpoint,
+                    limits,
+                  },
+                  context(1),
+                ),
+              { diagnostic: true },
+            );
+            if (recovered) {
+              check(
+                isEqual(recovered.checkpoint, edited.checkpoint),
+                "urd-exact-recovery",
+              );
+            }
+          }
+        }
+      } finally {
+        client.dispose();
       }
-    } finally {
-      client.dispose();
     }
+    await renderCases();
   }
-  await renderCases();
   check(liveWorkers.size === 0, "all-workers-terminated");
   result.status = result.operations.some(({ status }) => status === "failed")
     ? "completed-with-limitations"

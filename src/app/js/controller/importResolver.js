@@ -1,5 +1,5 @@
 import { IRI } from "owlapi/model";
-import { APPLICATION_LIMIT_POLICY } from "./canonicalVowlWorkerPolicy.js";
+import { APPLICATION_LIMITS } from "./canonicalVowlWorkerPolicy.js";
 import {
   MissingImportError,
   ResourceLimitError,
@@ -222,7 +222,7 @@ export class WebVowlImportResolver {
 
       const declaredLength = Number(response.headers?.get?.("content-length"));
       const limit =
-        config.maxRemoteDocumentBytes ?? APPLICATION_LIMIT_POLICY.inputBytes[0];
+        config.maxRemoteDocumentBytes ?? APPLICATION_LIMITS.inputBytes;
       if (preserveBytes && (!Number.isSafeInteger(limit) || limit < 0)) {
         throw new TypeError(
           "The source byte limit must be a finite nonnegative integer.",
