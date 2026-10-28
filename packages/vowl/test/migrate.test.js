@@ -136,6 +136,33 @@ test("shared aggregate primary-record limits include the legacy join", async () 
   ).rejects.toMatchObject({ code: "MODEL_RESOURCE_LIMIT" });
 });
 
+test("the two historical records and each built record count once", async () => {
+  const { document } = await migrate(bytes(named()), options);
+  const built = [
+    "subjects",
+    "roles",
+    "expressions",
+    "constructs",
+    "occurrences",
+  ].reduce((sum, key) => sum + document.structural[key].length, 0);
+  const boundary = 2 + built;
+  await expect(
+    migrate(bytes(named()), {
+      ...options,
+      limits: { primaryRecords: boundary - 1 },
+    }),
+  ).rejects.toMatchObject({
+    code: "MODEL_RESOURCE_LIMIT",
+    details: { limit: "primaryRecords" },
+  });
+  await expect(
+    migrate(bytes(named()), {
+      ...options,
+      limits: { primaryRecords: boundary },
+    }),
+  ).resolves.toBeDefined();
+});
+
 test("multiple grammar defects obey required-field-before-unknown-field precedence", async () => {
   const input = named();
   delete input.class[0].id;

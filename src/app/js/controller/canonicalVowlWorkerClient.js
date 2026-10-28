@@ -3,20 +3,20 @@ import {
   canonicalLoadingMessage,
 } from "./canonicalVowlFailure.js";
 
-import { operationLimitPolicy } from "vowl";
 import {
+  APPLICATION_LIMIT_POLICY,
   MODEL_OPERATION_NAMES,
   MODEL_OPERATION_LIMITS,
 } from "./canonicalVowlWorkerPolicy.js";
 
 const [DEFAULT_DEADLINE_MS, MAXIMUM_DEADLINE_MS] =
-  operationLimitPolicy.deadlineMs;
+  APPLICATION_LIMIT_POLICY.deadlineMs;
 // The owner-approved desktop allowance covers the entire model lifecycle;
 // the same whole-job deadline travels to the package in the worker request.
 const MODEL_OPERATION_DEADLINE_MS = MODEL_OPERATION_LIMITS.deadlineMs;
 const modelOperations = new Set(MODEL_OPERATION_NAMES);
 const [DEFAULT_INPUT_BYTES, MAXIMUM_INPUT_BYTES] =
-  operationLimitPolicy.inputBytes;
+  APPLICATION_LIMIT_POLICY.inputBytes;
 const typedArrayPrototype = Object.getPrototypeOf(Uint8Array.prototype);
 const byteBuffer = Object.getOwnPropertyDescriptor(
   typedArrayPrototype,
@@ -289,7 +289,7 @@ export function createCanonicalVowlWorkerClient({
       if (checkpointOperation) {
         const depth = positiveLimit(
           limits.depth,
-          ...operationLimitPolicy.depth,
+          ...APPLICATION_LIMIT_POLICY.depth,
         );
         const allowed = [
           "operation",

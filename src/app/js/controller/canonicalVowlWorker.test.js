@@ -58,6 +58,48 @@ test("desktop defaults preserve rejection of malformed caller limit records", as
   expect(getter).not.toHaveBeenCalled();
 });
 
+test("worker operations keep A8's former package defaults as WebVOWL policy", async () => {
+  const source = JSON.parse(
+    readFileSync(
+      new URL(
+        "../../../../packages/vowl/conformance/vectors/annotated-class/source.json",
+        import.meta.url,
+      ),
+    ),
+  );
+  // An annotated assertion repeats its value, so every copy changes together.
+  const literals = [];
+  const collect = (value) => {
+    if (value !== null && typeof value === "object") {
+      if (value.kind === "language") {
+        literals.push(value);
+      }
+      Object.values(value).forEach(collect);
+    }
+  };
+  collect(source);
+  const original = literals[0].lexical;
+  for (const literal of literals.filter(
+    ({ lexical }) => lexical === original,
+  )) {
+    literal.lexical = "a".repeat(1048577);
+  }
+  const bytes = encode(
+    await canonicalize(source, {
+      profile: profiles.structuralContent,
+      limits: { stringBytes: Infinity },
+    }),
+  );
+  for (const operation of ["decode", "open-canonical-model"]) {
+    await expect(
+      runCanonicalVowlOperation({ operation, bytes }),
+    ).rejects.toMatchObject({
+      code: "MODEL_RESOURCE_LIMIT",
+      details: { limit: "stringBytes", maximum: 1048576 },
+    });
+  }
+});
+
 test("display ordering admits large named-class ontologies within the former failing string budget", async () => {
   const request = {
     operation: "open-owl-model",

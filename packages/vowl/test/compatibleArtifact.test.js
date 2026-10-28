@@ -251,6 +251,27 @@ test("public canonicalize retains closed qualifications and rejects altered seri
   ).rejects.toMatchObject({ code: "NON_CANONICAL_BYTES" });
 });
 
+test("qualification records count as embedded values, never as primary records", async () => {
+  // The fixture's three structural records are its only primary records; its
+  // two qualification records count once, as embedded values, when the input
+  // is snapshotted or tokenized.
+  const limits = { primaryRecords: 3 };
+  const document = await canonicalize(source(), {
+    profile: compatibleArtifactProfile,
+    limits,
+  });
+  await expect(decode(encode(document), { limits })).resolves.toBeDefined();
+  await expect(
+    canonicalize(source(), {
+      profile: compatibleArtifactProfile,
+      limits: { primaryRecords: 2 },
+    }),
+  ).rejects.toMatchObject({
+    code: "MODEL_RESOURCE_LIMIT",
+    details: { limit: "primaryRecords" },
+  });
+});
+
 test("residual RDF survives compatible save, reopen and unrelated edits without becoming OWL", async () => {
   const input =
     '@prefix owl: <http://www.w3.org/2002/07/owl#>. @prefix xsd: <http://www.w3.org/2001/XMLSchema#>. <urn:root> a owl:Ontology. <urn:C> a owl:Class. _:local <urn:unknown> "01"^^xsd:integer.';

@@ -1,0 +1,14 @@
+{
+  "structural": {
+    "constructs": [],
+    "expressions": [],
+    "occurrences": [],
+    "ontology": {
+      "annotations": [],
+      "imports": [],
+      "iri": "urn:example:\udfff"
+    },
+    "roles": [],
+    "subjects": {}
+  }
+}

@@ -4,7 +4,7 @@ import { IRI, OWLOntologyLoaderConfiguration } from "owlapi/model";
 import { StringDocumentSource, UnloadableImportError } from "owlapi/io";
 import { OWLDocumentFormats } from "owlapi/formats";
 import { fail, VowlError } from "../errors.js";
-import { optionRecord } from "../resourceBudget.js";
+import { limitCode, optionRecord } from "../resourceBudget.js";
 import { checkString, snapshotBytes } from "../snapshot.js";
 
 const domExceptionName = Object.getOwnPropertyDescriptor(
@@ -118,6 +118,88 @@ export function waitForResult(result, budget) {
   });
 }
 
+/** owlapi's normative profile accepts only safe integers, and no input reaches this one. */
+export const owlapiLimit = (limit) => Math.min(limit, Number.MAX_SAFE_INTEGER);
+
+// The caller limit behind each owlapi bound that loaderLimits and profileCheckLimits
+// derive; a bound that owlapi fixes itself has none.
+const derivedLimits = new Map(
+  Object.entries({
+    timeoutMs: "deadlineMs",
+    profileTimeoutMs: "deadlineMs",
+    maxInputBytes: "inputBytes",
+    maxExpandedXmlBytes: "expandedXmlBytes",
+    maxEntityDeclarations: "expandedXmlBytes",
+    maxEntityExpansionDepth: "expandedXmlBytes",
+    maxEntityReplacementLength: "expandedXmlBytes",
+    maxAxioms: "primaryRecords",
+    maxBlankNodes: "primaryRecords",
+    maxImportCount: "primaryRecords",
+    maxTokenCount: "embeddedValues",
+    maxRdfListLength: "embeddedValues",
+    profileWork: "embeddedValues",
+    maxTokenLength: "stringBytes",
+    profileLiteralLength: "stringBytes",
+    profileNumericDigits: "stringBytes",
+    maxQuads: "rdfQuads",
+    maxAnnotationDepth: "depth",
+    maxExpressionDepth: "depth",
+    maxXmlNestingDepth: "depth",
+    maxImportDepth: "depth",
+    expressionDepth: "depth",
+    profileDepth: "depth",
+    profilePatternDepth: "depth",
+  }),
+);
+
+/** Fail with the code of the caller limit from which an exhausted owlapi bound derives. */
+export function dependencyLimitFailure(resource, stage) {
+  const limit = derivedLimits.get(resource);
+  if (limit === "deadlineMs") {
+    fail("DEADLINE_EXCEEDED");
+  }
+  fail(limitCode(limit), undefined, {
+    stage,
+    resource,
+    ...(limit === undefined ? {} : { limit }),
+  });
+}
+
+/**
+ * The caller's limits as owlapi loader bounds, without the former fixed import caps.
+ * An unbounded expanded-XML limit also lifts owlapi's internal-entity controls.
+ */
+export function loaderLimits(budget) {
+  const { limits } = budget;
+  const entityControls =
+    limits.expandedXmlBytes === Infinity
+      ? {
+          maxEntityDeclarations: owlapiLimit(Infinity),
+          maxEntityExpansionDepth: owlapiLimit(Infinity),
+          maxEntityReplacementLength: owlapiLimit(Infinity),
+        }
+      : {};
+  return {
+    timeoutMs: owlapiLimit(
+      Math.max(1, Math.ceil(budget.deadline - performance.now())),
+    ),
+    maxInputBytes: owlapiLimit(limits.inputBytes),
+    maxExpandedXmlBytes: owlapiLimit(limits.expandedXmlBytes),
+    ...entityControls,
+    maxAxioms: owlapiLimit(limits.primaryRecords),
+    maxBlankNodes: owlapiLimit(limits.primaryRecords),
+    maxTokenCount: owlapiLimit(limits.embeddedValues),
+    maxTokenLength: owlapiLimit(limits.stringBytes),
+    maxQuads: owlapiLimit(limits.rdfQuads),
+    maxRdfListLength: owlapiLimit(limits.embeddedValues),
+    maxAnnotationDepth: owlapiLimit(limits.depth),
+    maxExpressionDepth: owlapiLimit(limits.depth),
+    maxXmlNestingDepth: owlapiLimit(limits.depth),
+    maxImportCount: owlapiLimit(limits.primaryRecords),
+    maxImportDepth: owlapiLimit(limits.depth),
+  };
+}
+
 /** Translate only owning errors; source text, callback errors and raw stacks never escape. */
 function loadingFailure(error, budget) {
   budget.check();
@@ -141,14 +223,14 @@ function loadingFailure(error, budget) {
       pending.push(item.cause);
     }
   }
+  for (const item of failures) {
+    budget.reportHostLimit(item);
+  }
   const limited = failures.find(
     (item) => item.code === "RESOURCE_LIMIT_EXCEEDED",
   );
   if (limited) {
-    fail("MODEL_RESOURCE_LIMIT", undefined, {
-      stage: "owl-loading",
-      resource: limited.resource,
-    });
+    dependencyLimitFailure(limited.resource, "owl-loading");
   }
   if (failures.some((item) => item.code === "MISSING_IMPORT")) {
     fail("MAPPING_IMPORT_UNRESOLVED");
@@ -251,7 +333,6 @@ export async function loadClosure(bytes, context, options, budget, policy) {
       },
     },
   });
-  const limits = budget.limits;
   const configuration = new OWLOntologyLoaderConfiguration({
     parsingMode: policy.parsingMode ?? "preserve",
     loadAnnotationAxioms: true,
@@ -261,20 +342,7 @@ export async function loadClosure(bytes, context, options, budget, policy) {
     remoteJsonLdContexts: false,
     missingImportHandling: policy.strict ? "throw" : "diagnostic",
     signal: budget.signal,
-    timeoutMs: Math.max(1, Math.ceil(budget.deadline - performance.now())),
-    maxInputBytes: limits.inputBytes,
-    maxExpandedXmlBytes: limits.inputBytes,
-    maxAxioms: limits.primaryRecords,
-    maxBlankNodes: limits.primaryRecords,
-    maxTokenCount: limits.embeddedValues,
-    maxTokenLength: limits.stringBytes,
-    maxQuads: limits.rdfQuads,
-    maxRdfListLength: limits.embeddedValues,
-    maxAnnotationDepth: limits.depth,
-    maxExpressionDepth: limits.depth,
-    maxXmlNestingDepth: limits.depth,
-    maxImportCount: Math.min(256, limits.primaryRecords),
-    maxImportDepth: Math.min(32, limits.depth),
+    ...loaderLimits(budget),
   });
   try {
     const startedAt = performance.now();

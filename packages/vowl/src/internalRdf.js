@@ -1,5 +1,6 @@
 import rdf from "rdf-canonize";
-import { VowlError, fail } from "./errors.js";
+import { fail } from "./errors.js";
+import { limitCode } from "./resourceBudget.js";
 import { categories, namespaces, collectionTypeNames } from "./profiles.js";
 import { descriptorFor, walkTyped } from "./typedValues.js";
 import { envelope } from "./modelContract.js";
@@ -39,7 +40,7 @@ export function mapDataset(
   let blankCount = 0;
   const blank = () => ({ termType: "BlankNode", value: `b${blankCount++}` });
   function emit(subject, predicate, object) {
-    budget.charge("rdfQuads", 1, undefined, "RDF_RESOURCE_LIMIT");
+    budget.charge("rdfQuads");
     dataset.push({ subject, predicate, object, graph });
   }
   const typed = (node, kind) =>
@@ -182,11 +183,12 @@ export async function issueIds(
 export async function canonicalizeRdfDataset(dataset, blankCount, budget) {
   budget.check();
   const canonicalIdMap = new Map();
-  // The approved A8 amendment allows recursive work while retaining the absolute cap.
-  const maxDeepIterations = Math.min(
-    blankCount * blankCount,
-    budget.limits.rdfDeepIterations,
-  );
+  // The resource-policy amendment allows recursive work within the absolute cap;
+  // an unbounded cap lifts its B * B term too (unbounded-limits amendment).
+  const maxDeepIterations =
+    budget.limits.rdfDeepIterations === Infinity
+      ? Infinity
+      : Math.min(blankCount * blankCount, budget.limits.rdfDeepIterations);
   try {
     await rdf.canonize(dataset, {
       algorithm: "RDFC-1.0",
@@ -202,15 +204,12 @@ export async function canonicalizeRdfDataset(dataset, blankCount, budget) {
       cause?.message ===
       `Maximum deep iterations exceeded (${maxDeepIterations}).`
     ) {
-      fail("RDFC_RESOURCE_LIMIT", undefined, {
+      fail(limitCode("rdfDeepIterations"), undefined, {
         limit: "rdfDeepIterations",
         maximum: maxDeepIterations,
       });
     }
-    throw new VowlError("DEPENDENCY_FAILURE", "RDF canonicalization failed", {
-      details: { stage: "rdfc" },
-      cause,
-    });
+    budget.dependencyFailure(cause, "RDF canonicalization failed", "rdfc");
   }
   budget.check();
   return canonicalIdMap;

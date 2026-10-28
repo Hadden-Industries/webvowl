@@ -1,0 +1,1941 @@
+{
+  "format": "canonical-vowl-negative-and-boundary-manifest/1",
+  "status": "active-unbounded-limits-overlay-predecessor-preserved",
+  "independence": "Expectations derived from the written rules of the pinned amendment and core contract and from frozen corpus files; no production code was read, imported or executed, and no runtime output was used.",
+  "authorities": [
+    {
+      "path": "docs/specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md",
+      "sha256": "8f5b7dd02ebeefd0f3deced6fe7096b194120090611c58f505123c0c843bc9cc",
+      "byteLength": 8819,
+      "role": "Controlling authority, owner approved on 27 October 2026 and corrected the same day; it wins wherever it differs from the core contract."
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-core-contract.md",
+      "sha256": "711ba30c291cfb0960334328203188600f60a331996e83379267a4a77b87988d",
+      "byteLength": 53207,
+      "role": "Read with the amendment for the A7 error table and validation order and the A8 limit names, units and former values. The amendment supersedes A8's finite defaults, finite upper override bounds, override domain and rule that no operation exposes an unbounded option."
+    }
+  ],
+  "predecessor": {
+    "path": "supplemental/negative/manifest.json",
+    "sha256": "b7f6d60f8ba05c2c4a9e3fe6f2fe97f73b5c89a1ad656bf1ed8b06f49e4893a3"
+  },
+  "positiveBaseline": {
+    "path": "supplemental/amended-policy/manifest.json",
+    "sha256": "90f3754316f683a76ad9eecb8341d29a738b3f77b61c13362034de07cee92156",
+    "fixture": "empty-structural"
+  },
+  "sourceArtifacts": [
+    {
+      "path": "supplemental/unbounded-limits-v1/derive.mjs",
+      "sha256": "092a00f377b83911393ff68fc479c486b015a232871dea4452a96c2f500cc27b"
+    }
+  ],
+  "consumption": "Run the nine records that carry replaces instead of the predecessor records with the same id, matched by exact id, the predecessor manifest hash and replaces.recordSha256; their operation, profile, options and input are those of the predecessor records. Top-level expectedError, expectedCanonical, rules and reason are the active fields. All content nested under historical is preserved provenance only and must never be merged into active expectation metadata. Records without replaces are new vectors with new ids. Every other predecessor record keeps its expectation, and the predecessor manifest stays byte-for-byte unchanged.",
+  "notes": [
+    "Authority paths are relative to the repository root; input, fixture, manifest and source-artifact paths are relative to packages/vowl/conformance.",
+    "Pass options to the named operation and supply the recorded profile separately to canonicalize, as for the predecessor manifest. Parse the input with an ordinary JSON parser, such as JSON.parse, to obtain the in-memory source.",
+    "Null expectedError means that the operation must succeed and that its complete result must equal the bytes named by expectedCanonical, which have no trailing newline.",
+    "expectedPointer is the error location that the amendment's Overrides section gives, /limits/<name>, as a JSON Pointer into the options object. The predecessor manifest records no pointers.",
+    "A rule unbounded-limits#<anchor> names the section of the amendment with that heading; A7 is the error table and validation order of the core contract.",
+    "Option values are written exactly: 9007199254740991 is Number.MAX_SAFE_INTEGER and 9007199254740992 is the smallest integer above it, and both are exactly representable binary64 numbers. Infinity and NaN have no JSON spelling, so no vector passes either; README.md lists them with the other omissions."
+  ],
+  "vectors": [
+    {
+      "id": "option-inputBytes-above-ceiling",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "inputBytes": 268435457
+        }
+      },
+      "sourceFixture": "empty-structural",
+      "input": {
+        "path": "supplemental/negative/vectors/option-inputBytes-above-ceiling/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      },
+      "expectedError": null,
+      "expectedCanonical": {
+        "path": "vectors/empty-structural/canonical.json",
+        "sha256": "d20d292b5553f3af1316ec929445b959da5ac829d86751580f80219363b71aae"
+      },
+      "rules": [
+        "unbounded-limits#defaults",
+        "unbounded-limits#overrides",
+        "unbounded-limits#former-values",
+        "unbounded-limits#evidence-and-qualification"
+      ],
+      "reason": "268435457 is one above the former inputBytes upper override bound of 268435456 listed under Former values. The Overrides section admits any positive safe integer and sets no upper override bound, so the value is a valid override and OPTION_INVALID no longer applies. The input bytes equal vectors/empty-structural/source.json, which the pinned amended-policy positive manifest canonicalizes with default options to vectors/empty-structural/canonical.json. The value 268435457 is above the former inputBytes default of 33554432, under which that success is recorded, and under Defaults every other limit imposes no bound, keeps its former default or, like expandedXmlBytes, counts only XML, so no limit is crossed. Evidence and qualification states that the amendment changes admission only and no canonical byte, so canonicalize must succeed with exactly those bytes.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "authority": {
+        "path": "docs/specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md",
+        "sha256": "8f5b7dd02ebeefd0f3deced6fe7096b194120090611c58f505123c0c843bc9cc"
+      },
+      "replaces": {
+        "manifest": {
+          "path": "supplemental/negative/manifest.json",
+          "sha256": "b7f6d60f8ba05c2c4a9e3fe6f2fe97f73b5c89a1ad656bf1ed8b06f49e4893a3"
+        },
+        "vectorId": "option-inputBytes-above-ceiling",
+        "recordSha256": "659cc321e4e386038a56436e5c24b002810ff8e98c80ddfd5c6b8c3df6437eff",
+        "inputUnchanged": true,
+        "optionsUnchanged": true
+      },
+      "historical": {
+        "authority": "Historical record for provenance only; its expectedError and rules record the superseded A8 upper override bound and do not control this active overlay.",
+        "predecessorRecord": {
+          "id": "option-inputBytes-above-ceiling",
+          "operation": "canonicalize",
+          "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+          "options": {
+            "limits": {
+              "inputBytes": 268435457
+            }
+          },
+          "expectedError": "OPTION_INVALID",
+          "rules": [
+            "A7",
+            "A8"
+          ],
+          "sourceFixture": "empty-structural",
+          "status": "independently-derived-pending-review-and-production-execution",
+          "input": {
+            "path": "supplemental/negative/vectors/option-inputBytes-above-ceiling/source.json",
+            "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+            "byteLength": 200
+          }
+        }
+      }
+    },
+    {
+      "id": "option-primaryRecords-above-ceiling",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "primaryRecords": 1000001
+        }
+      },
+      "sourceFixture": "empty-structural",
+      "input": {
+        "path": "supplemental/negative/vectors/option-primaryRecords-above-ceiling/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      },
+      "expectedError": null,
+      "expectedCanonical": {
+        "path": "vectors/empty-structural/canonical.json",
+        "sha256": "d20d292b5553f3af1316ec929445b959da5ac829d86751580f80219363b71aae"
+      },
+      "rules": [
+        "unbounded-limits#defaults",
+        "unbounded-limits#overrides",
+        "unbounded-limits#former-values",
+        "unbounded-limits#evidence-and-qualification"
+      ],
+      "reason": "1000001 is one above the former primaryRecords upper override bound of 1000000 listed under Former values. The Overrides section admits any positive safe integer and sets no upper override bound, so the value is a valid override and OPTION_INVALID no longer applies. The input bytes equal vectors/empty-structural/source.json, which the pinned amended-policy positive manifest canonicalizes with default options to vectors/empty-structural/canonical.json. The baseline records 0 primary records for the fixture. The value 1000001 is above the former primaryRecords default of 100000, under which that success is recorded, and under Defaults every other limit imposes no bound, keeps its former default or, like expandedXmlBytes, counts only XML, so no limit is crossed. Evidence and qualification states that the amendment changes admission only and no canonical byte, so canonicalize must succeed with exactly those bytes.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "authority": {
+        "path": "docs/specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md",
+        "sha256": "8f5b7dd02ebeefd0f3deced6fe7096b194120090611c58f505123c0c843bc9cc"
+      },
+      "replaces": {
+        "manifest": {
+          "path": "supplemental/negative/manifest.json",
+          "sha256": "b7f6d60f8ba05c2c4a9e3fe6f2fe97f73b5c89a1ad656bf1ed8b06f49e4893a3"
+        },
+        "vectorId": "option-primaryRecords-above-ceiling",
+        "recordSha256": "fd73828575c01ac637e6c9b767e83d6bbc657263bd7b85ac8de470de7fd9a954",
+        "inputUnchanged": true,
+        "optionsUnchanged": true
+      },
+      "historical": {
+        "authority": "Historical record for provenance only; its expectedError and rules record the superseded A8 upper override bound and do not control this active overlay.",
+        "predecessorRecord": {
+          "id": "option-primaryRecords-above-ceiling",
+          "operation": "canonicalize",
+          "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+          "options": {
+            "limits": {
+              "primaryRecords": 1000001
+            }
+          },
+          "expectedError": "OPTION_INVALID",
+          "rules": [
+            "A7",
+            "A8"
+          ],
+          "sourceFixture": "empty-structural",
+          "status": "independently-derived-pending-review-and-production-execution",
+          "input": {
+            "path": "supplemental/negative/vectors/option-primaryRecords-above-ceiling/source.json",
+            "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+            "byteLength": 200
+          }
+        }
+      }
+    },
+    {
+      "id": "option-embeddedValues-above-ceiling",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "embeddedValues": 4000001
+        }
+      },
+      "sourceFixture": "empty-structural",
+      "input": {
+        "path": "supplemental/negative/vectors/option-embeddedValues-above-ceiling/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      },
+      "expectedError": null,
+      "expectedCanonical": {
+        "path": "vectors/empty-structural/canonical.json",
+        "sha256": "d20d292b5553f3af1316ec929445b959da5ac829d86751580f80219363b71aae"
+      },
+      "rules": [
+        "unbounded-limits#defaults",
+        "unbounded-limits#overrides",
+        "unbounded-limits#former-values",
+        "unbounded-limits#evidence-and-qualification"
+      ],
+      "reason": "4000001 is one above the former embeddedValues upper override bound of 4000000 listed under Former values. The Overrides section admits any positive safe integer and sets no upper override bound, so the value is a valid override and OPTION_INVALID no longer applies. The input bytes equal vectors/empty-structural/source.json, which the pinned amended-policy positive manifest canonicalizes with default options to vectors/empty-structural/canonical.json. The value 4000001 is above the former embeddedValues default of 1500000, under which that success is recorded, and under Defaults every other limit imposes no bound, keeps its former default or, like expandedXmlBytes, counts only XML, so no limit is crossed. Evidence and qualification states that the amendment changes admission only and no canonical byte, so canonicalize must succeed with exactly those bytes.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "authority": {
+        "path": "docs/specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md",
+        "sha256": "8f5b7dd02ebeefd0f3deced6fe7096b194120090611c58f505123c0c843bc9cc"
+      },
+      "replaces": {
+        "manifest": {
+          "path": "supplemental/negative/manifest.json",
+          "sha256": "b7f6d60f8ba05c2c4a9e3fe6f2fe97f73b5c89a1ad656bf1ed8b06f49e4893a3"
+        },
+        "vectorId": "option-embeddedValues-above-ceiling",
+        "recordSha256": "560ed5e30d0542b34e979cd02eb283bdfd8dd729a02a64cf0830755b8772c4b1",
+        "inputUnchanged": true,
+        "optionsUnchanged": true
+      },
+      "historical": {
+        "authority": "Historical record for provenance only; its expectedError and rules record the superseded A8 upper override bound and do not control this active overlay.",
+        "predecessorRecord": {
+          "id": "option-embeddedValues-above-ceiling",
+          "operation": "canonicalize",
+          "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+          "options": {
+            "limits": {
+              "embeddedValues": 4000001
+            }
+          },
+          "expectedError": "OPTION_INVALID",
+          "rules": [
+            "A7",
+            "A8"
+          ],
+          "sourceFixture": "empty-structural",
+          "status": "independently-derived-pending-review-and-production-execution",
+          "input": {
+            "path": "supplemental/negative/vectors/option-embeddedValues-above-ceiling/source.json",
+            "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+            "byteLength": 200
+          }
+        }
+      }
+    },
+    {
+      "id": "option-depth-above-ceiling",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "depth": 513
+        }
+      },
+      "sourceFixture": "empty-structural",
+      "input": {
+        "path": "supplemental/negative/vectors/option-depth-above-ceiling/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      },
+      "expectedError": null,
+      "expectedCanonical": {
+        "path": "vectors/empty-structural/canonical.json",
+        "sha256": "d20d292b5553f3af1316ec929445b959da5ac829d86751580f80219363b71aae"
+      },
+      "rules": [
+        "unbounded-limits#defaults",
+        "unbounded-limits#overrides",
+        "unbounded-limits#former-values",
+        "unbounded-limits#evidence-and-qualification"
+      ],
+      "reason": "513 is one above the former depth upper override bound of 512 listed under Former values. The Overrides section admits any positive safe integer and sets no upper override bound, so the value is a valid override and OPTION_INVALID no longer applies. The input bytes equal vectors/empty-structural/source.json, which the pinned amended-policy positive manifest canonicalizes with default options to vectors/empty-structural/canonical.json. The value 513 is above the former depth default of 128, under which that success is recorded, and under Defaults every other limit imposes no bound, keeps its former default or, like expandedXmlBytes, counts only XML, so no limit is crossed. Evidence and qualification states that the amendment changes admission only and no canonical byte, so canonicalize must succeed with exactly those bytes.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "authority": {
+        "path": "docs/specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md",
+        "sha256": "8f5b7dd02ebeefd0f3deced6fe7096b194120090611c58f505123c0c843bc9cc"
+      },
+      "replaces": {
+        "manifest": {
+          "path": "supplemental/negative/manifest.json",
+          "sha256": "b7f6d60f8ba05c2c4a9e3fe6f2fe97f73b5c89a1ad656bf1ed8b06f49e4893a3"
+        },
+        "vectorId": "option-depth-above-ceiling",
+        "recordSha256": "3a755c71ac1dee2e1861b25e9525f92abd05524cc3548fc47b8e378efb5b6d6c",
+        "inputUnchanged": true,
+        "optionsUnchanged": true
+      },
+      "historical": {
+        "authority": "Historical record for provenance only; its expectedError and rules record the superseded A8 upper override bound and do not control this active overlay.",
+        "predecessorRecord": {
+          "id": "option-depth-above-ceiling",
+          "operation": "canonicalize",
+          "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+          "options": {
+            "limits": {
+              "depth": 513
+            }
+          },
+          "expectedError": "OPTION_INVALID",
+          "rules": [
+            "A7",
+            "A8"
+          ],
+          "sourceFixture": "empty-structural",
+          "status": "independently-derived-pending-review-and-production-execution",
+          "input": {
+            "path": "supplemental/negative/vectors/option-depth-above-ceiling/source.json",
+            "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+            "byteLength": 200
+          }
+        }
+      }
+    },
+    {
+      "id": "option-stringBytes-above-ceiling",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "stringBytes": 16777217
+        }
+      },
+      "sourceFixture": "empty-structural",
+      "input": {
+        "path": "supplemental/negative/vectors/option-stringBytes-above-ceiling/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      },
+      "expectedError": null,
+      "expectedCanonical": {
+        "path": "vectors/empty-structural/canonical.json",
+        "sha256": "d20d292b5553f3af1316ec929445b959da5ac829d86751580f80219363b71aae"
+      },
+      "rules": [
+        "unbounded-limits#defaults",
+        "unbounded-limits#overrides",
+        "unbounded-limits#former-values",
+        "unbounded-limits#evidence-and-qualification"
+      ],
+      "reason": "16777217 is one above the former stringBytes upper override bound of 16777216 listed under Former values. The Overrides section admits any positive safe integer and sets no upper override bound, so the value is a valid override and OPTION_INVALID no longer applies. The input bytes equal vectors/empty-structural/source.json, which the pinned amended-policy positive manifest canonicalizes with default options to vectors/empty-structural/canonical.json. The value 16777217 is above the former stringBytes default of 1048576, under which that success is recorded, and under Defaults every other limit imposes no bound, keeps its former default or, like expandedXmlBytes, counts only XML, so no limit is crossed. Evidence and qualification states that the amendment changes admission only and no canonical byte, so canonicalize must succeed with exactly those bytes.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "authority": {
+        "path": "docs/specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md",
+        "sha256": "8f5b7dd02ebeefd0f3deced6fe7096b194120090611c58f505123c0c843bc9cc"
+      },
+      "replaces": {
+        "manifest": {
+          "path": "supplemental/negative/manifest.json",
+          "sha256": "b7f6d60f8ba05c2c4a9e3fe6f2fe97f73b5c89a1ad656bf1ed8b06f49e4893a3"
+        },
+        "vectorId": "option-stringBytes-above-ceiling",
+        "recordSha256": "3b74894723be9ee6480a65eb1f23a7194f5c0745f4852f6009e588b76121dc72",
+        "inputUnchanged": true,
+        "optionsUnchanged": true
+      },
+      "historical": {
+        "authority": "Historical record for provenance only; its expectedError and rules record the superseded A8 upper override bound and do not control this active overlay.",
+        "predecessorRecord": {
+          "id": "option-stringBytes-above-ceiling",
+          "operation": "canonicalize",
+          "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+          "options": {
+            "limits": {
+              "stringBytes": 16777217
+            }
+          },
+          "expectedError": "OPTION_INVALID",
+          "rules": [
+            "A7",
+            "A8"
+          ],
+          "sourceFixture": "empty-structural",
+          "status": "independently-derived-pending-review-and-production-execution",
+          "input": {
+            "path": "supplemental/negative/vectors/option-stringBytes-above-ceiling/source.json",
+            "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+            "byteLength": 200
+          }
+        }
+      }
+    },
+    {
+      "id": "option-totalStringBytes-above-ceiling",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "totalStringBytes": 134217729
+        }
+      },
+      "sourceFixture": "empty-structural",
+      "input": {
+        "path": "supplemental/negative/vectors/option-totalStringBytes-above-ceiling/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      },
+      "expectedError": null,
+      "expectedCanonical": {
+        "path": "vectors/empty-structural/canonical.json",
+        "sha256": "d20d292b5553f3af1316ec929445b959da5ac829d86751580f80219363b71aae"
+      },
+      "rules": [
+        "unbounded-limits#defaults",
+        "unbounded-limits#overrides",
+        "unbounded-limits#former-values",
+        "unbounded-limits#evidence-and-qualification"
+      ],
+      "reason": "134217729 is one above the former totalStringBytes upper override bound of 134217728 listed under Former values. The Overrides section admits any positive safe integer and sets no upper override bound, so the value is a valid override and OPTION_INVALID no longer applies. The input bytes equal vectors/empty-structural/source.json, which the pinned amended-policy positive manifest canonicalizes with default options to vectors/empty-structural/canonical.json. The value 134217729 is above the former totalStringBytes default of 16777216, under which that success is recorded, and under Defaults every other limit imposes no bound, keeps its former default or, like expandedXmlBytes, counts only XML, so no limit is crossed. Evidence and qualification states that the amendment changes admission only and no canonical byte, so canonicalize must succeed with exactly those bytes.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "authority": {
+        "path": "docs/specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md",
+        "sha256": "8f5b7dd02ebeefd0f3deced6fe7096b194120090611c58f505123c0c843bc9cc"
+      },
+      "replaces": {
+        "manifest": {
+          "path": "supplemental/negative/manifest.json",
+          "sha256": "b7f6d60f8ba05c2c4a9e3fe6f2fe97f73b5c89a1ad656bf1ed8b06f49e4893a3"
+        },
+        "vectorId": "option-totalStringBytes-above-ceiling",
+        "recordSha256": "43959d5a052e6cce44725dcb3135580cb2e0570e574b44f81efe0d3f3bf4a8d7",
+        "inputUnchanged": true,
+        "optionsUnchanged": true
+      },
+      "historical": {
+        "authority": "Historical record for provenance only; its expectedError and rules record the superseded A8 upper override bound and do not control this active overlay.",
+        "predecessorRecord": {
+          "id": "option-totalStringBytes-above-ceiling",
+          "operation": "canonicalize",
+          "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+          "options": {
+            "limits": {
+              "totalStringBytes": 134217729
+            }
+          },
+          "expectedError": "OPTION_INVALID",
+          "rules": [
+            "A7",
+            "A8"
+          ],
+          "sourceFixture": "empty-structural",
+          "status": "independently-derived-pending-review-and-production-execution",
+          "input": {
+            "path": "supplemental/negative/vectors/option-totalStringBytes-above-ceiling/source.json",
+            "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+            "byteLength": 200
+          }
+        }
+      }
+    },
+    {
+      "id": "option-rdfQuads-above-ceiling",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "rdfQuads": 8000001
+        }
+      },
+      "sourceFixture": "empty-structural",
+      "input": {
+        "path": "supplemental/negative/vectors/option-rdfQuads-above-ceiling/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      },
+      "expectedError": null,
+      "expectedCanonical": {
+        "path": "vectors/empty-structural/canonical.json",
+        "sha256": "d20d292b5553f3af1316ec929445b959da5ac829d86751580f80219363b71aae"
+      },
+      "rules": [
+        "unbounded-limits#defaults",
+        "unbounded-limits#overrides",
+        "unbounded-limits#former-values",
+        "unbounded-limits#evidence-and-qualification"
+      ],
+      "reason": "8000001 is one above the former rdfQuads upper override bound of 8000000 listed under Former values. The Overrides section admits any positive safe integer and sets no upper override bound, so the value is a valid override and OPTION_INVALID no longer applies. The input bytes equal vectors/empty-structural/source.json, which the pinned amended-policy positive manifest canonicalizes with default options to vectors/empty-structural/canonical.json. The baseline records 20 quads for the fixture. The value 8000001 is above the former rdfQuads default of 1000000, under which that success is recorded, and under Defaults every other limit imposes no bound, keeps its former default or, like expandedXmlBytes, counts only XML, so no limit is crossed. Evidence and qualification states that the amendment changes admission only and no canonical byte, so canonicalize must succeed with exactly those bytes.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "authority": {
+        "path": "docs/specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md",
+        "sha256": "8f5b7dd02ebeefd0f3deced6fe7096b194120090611c58f505123c0c843bc9cc"
+      },
+      "replaces": {
+        "manifest": {
+          "path": "supplemental/negative/manifest.json",
+          "sha256": "b7f6d60f8ba05c2c4a9e3fe6f2fe97f73b5c89a1ad656bf1ed8b06f49e4893a3"
+        },
+        "vectorId": "option-rdfQuads-above-ceiling",
+        "recordSha256": "34faf4c98cfcf39d25e3c34bad9d783e94041f53049792df996c1ea876a39d57",
+        "inputUnchanged": true,
+        "optionsUnchanged": true
+      },
+      "historical": {
+        "authority": "Historical record for provenance only; its expectedError and rules record the superseded A8 upper override bound and do not control this active overlay.",
+        "predecessorRecord": {
+          "id": "option-rdfQuads-above-ceiling",
+          "operation": "canonicalize",
+          "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+          "options": {
+            "limits": {
+              "rdfQuads": 8000001
+            }
+          },
+          "expectedError": "OPTION_INVALID",
+          "rules": [
+            "A7",
+            "A8"
+          ],
+          "sourceFixture": "empty-structural",
+          "status": "independently-derived-pending-review-and-production-execution",
+          "input": {
+            "path": "supplemental/negative/vectors/option-rdfQuads-above-ceiling/source.json",
+            "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+            "byteLength": 200
+          }
+        }
+      }
+    },
+    {
+      "id": "option-rdfDeepIterations-above-ceiling",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "rdfDeepIterations": 1000001
+        }
+      },
+      "sourceFixture": "empty-structural",
+      "input": {
+        "path": "supplemental/negative/vectors/option-rdfDeepIterations-above-ceiling/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      },
+      "expectedError": null,
+      "expectedCanonical": {
+        "path": "vectors/empty-structural/canonical.json",
+        "sha256": "d20d292b5553f3af1316ec929445b959da5ac829d86751580f80219363b71aae"
+      },
+      "rules": [
+        "unbounded-limits#defaults",
+        "unbounded-limits#overrides",
+        "unbounded-limits#former-values",
+        "unbounded-limits#evidence-and-qualification"
+      ],
+      "reason": "1000001 is one above the former rdfDeepIterations upper override bound of 1000000 listed under Former values. The Overrides section admits any positive safe integer and sets no upper override bound, so the value is a valid override and OPTION_INVALID no longer applies. The input bytes equal vectors/empty-structural/source.json, which the pinned amended-policy positive manifest canonicalizes with default options to vectors/empty-structural/canonical.json. With the 9 blank nodes that the baseline records for the fixture, the allowance min(B * B, rdfDeepIterations) that the Overrides section keeps for a finite value is 81, as under the former default of 100000, and under Defaults every other limit imposes no bound, keeps its former default or, like expandedXmlBytes, counts only XML, so no limit is crossed. Evidence and qualification states that the amendment changes admission only and no canonical byte, so canonicalize must succeed with exactly those bytes.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "authority": {
+        "path": "docs/specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md",
+        "sha256": "8f5b7dd02ebeefd0f3deced6fe7096b194120090611c58f505123c0c843bc9cc"
+      },
+      "replaces": {
+        "manifest": {
+          "path": "supplemental/negative/manifest.json",
+          "sha256": "b7f6d60f8ba05c2c4a9e3fe6f2fe97f73b5c89a1ad656bf1ed8b06f49e4893a3"
+        },
+        "vectorId": "option-rdfDeepIterations-above-ceiling",
+        "recordSha256": "5415e6da38c7feec1c97b94a3e867cd68773f0c518d3183acacd077205a5ffd3",
+        "inputUnchanged": true,
+        "optionsUnchanged": true
+      },
+      "historical": {
+        "authority": "Historical record for provenance only; its expectedError and rules record the superseded A8 upper override bound and do not control this active overlay.",
+        "predecessorRecord": {
+          "id": "option-rdfDeepIterations-above-ceiling",
+          "operation": "canonicalize",
+          "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+          "options": {
+            "limits": {
+              "rdfDeepIterations": 1000001
+            }
+          },
+          "expectedError": "OPTION_INVALID",
+          "rules": [
+            "A7",
+            "A8"
+          ],
+          "sourceFixture": "empty-structural",
+          "status": "independently-derived-pending-review-and-production-execution",
+          "input": {
+            "path": "supplemental/negative/vectors/option-rdfDeepIterations-above-ceiling/source.json",
+            "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+            "byteLength": 200
+          }
+        }
+      }
+    },
+    {
+      "id": "option-deadlineMs-above-ceiling",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "deadlineMs": 300001
+        }
+      },
+      "sourceFixture": "empty-structural",
+      "input": {
+        "path": "supplemental/negative/vectors/option-deadlineMs-above-ceiling/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      },
+      "expectedError": null,
+      "expectedCanonical": {
+        "path": "vectors/empty-structural/canonical.json",
+        "sha256": "d20d292b5553f3af1316ec929445b959da5ac829d86751580f80219363b71aae"
+      },
+      "rules": [
+        "unbounded-limits#defaults",
+        "unbounded-limits#overrides",
+        "unbounded-limits#former-values",
+        "unbounded-limits#evidence-and-qualification"
+      ],
+      "reason": "300001 is one above the former deadlineMs upper override bound of 300000 listed under Former values. The Overrides section admits any positive safe integer and sets no upper override bound, so the value is a valid override and OPTION_INVALID no longer applies. The input bytes equal vectors/empty-structural/source.json, which the pinned amended-policy positive manifest canonicalizes with default options to vectors/empty-structural/canonical.json. The value 300001 is above the former deadlineMs default of 10000, under which that success is recorded, and under Defaults every other limit imposes no bound, keeps its former default or, like expandedXmlBytes, counts only XML, so no limit is crossed. Evidence and qualification states that the amendment changes admission only and no canonical byte, so canonicalize must succeed with exactly those bytes.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "authority": {
+        "path": "docs/specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md",
+        "sha256": "8f5b7dd02ebeefd0f3deced6fe7096b194120090611c58f505123c0c843bc9cc"
+      },
+      "replaces": {
+        "manifest": {
+          "path": "supplemental/negative/manifest.json",
+          "sha256": "b7f6d60f8ba05c2c4a9e3fe6f2fe97f73b5c89a1ad656bf1ed8b06f49e4893a3"
+        },
+        "vectorId": "option-deadlineMs-above-ceiling",
+        "recordSha256": "4804fa1c22c2d0ea2eafb548a31505a5eddff384979160b8f93f442bd2cda511",
+        "inputUnchanged": true,
+        "optionsUnchanged": true
+      },
+      "historical": {
+        "authority": "Historical record for provenance only; its expectedError and rules record the superseded A8 upper override bound and do not control this active overlay.",
+        "predecessorRecord": {
+          "id": "option-deadlineMs-above-ceiling",
+          "operation": "canonicalize",
+          "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+          "options": {
+            "limits": {
+              "deadlineMs": 300001
+            }
+          },
+          "expectedError": "OPTION_INVALID",
+          "rules": [
+            "A7",
+            "A8"
+          ],
+          "sourceFixture": "empty-structural",
+          "status": "independently-derived-pending-review-and-production-execution",
+          "input": {
+            "path": "supplemental/negative/vectors/option-deadlineMs-above-ceiling/source.json",
+            "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+            "byteLength": 200
+          }
+        }
+      }
+    },
+    {
+      "id": "option-inputBytes-max-safe-integer",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "inputBytes": 9007199254740991
+        }
+      },
+      "expectedError": null,
+      "rules": [
+        "unbounded-limits#defaults",
+        "unbounded-limits#overrides",
+        "unbounded-limits#former-values",
+        "unbounded-limits#evidence-and-qualification"
+      ],
+      "sourceFixture": "empty-structural",
+      "expectedCanonical": {
+        "path": "vectors/empty-structural/canonical.json",
+        "sha256": "d20d292b5553f3af1316ec929445b959da5ac829d86751580f80219363b71aae"
+      },
+      "reason": "9007199254740991 is Number.MAX_SAFE_INTEGER, the largest positive safe integer, and the Overrides section admits it for inputBytes because there is no upper override bound. The input is vectors/empty-structural/source.json, which the pinned amended-policy positive manifest canonicalizes with default options to vectors/empty-structural/canonical.json. The value 9007199254740991 is above the former inputBytes default of 33554432, under which that success is recorded, and under Defaults every other limit imposes no bound, keeps its former default or, like expandedXmlBytes, counts only XML, so no limit is crossed. Evidence and qualification states that the amendment changes admission only and no canonical byte, so canonicalize must succeed with exactly those bytes.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-inputBytes-above-max-safe-integer",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "inputBytes": 9007199254740992
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/inputBytes",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "9007199254740992 is an integer above Number.MAX_SAFE_INTEGER, one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/inputBytes. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-inputBytes-fraction",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "inputBytes": 1.5
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/inputBytes",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "1.5 is a fraction, one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/inputBytes. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-inputBytes-null",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "inputBytes": null
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/inputBytes",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "null is one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/inputBytes. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-inputBytes-negative",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "inputBytes": -1
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/inputBytes",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "-1 is a negative number, one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/inputBytes. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-primaryRecords-max-safe-integer",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "primaryRecords": 9007199254740991
+        }
+      },
+      "expectedError": null,
+      "rules": [
+        "unbounded-limits#defaults",
+        "unbounded-limits#overrides",
+        "unbounded-limits#former-values",
+        "unbounded-limits#evidence-and-qualification"
+      ],
+      "sourceFixture": "empty-structural",
+      "expectedCanonical": {
+        "path": "vectors/empty-structural/canonical.json",
+        "sha256": "d20d292b5553f3af1316ec929445b959da5ac829d86751580f80219363b71aae"
+      },
+      "reason": "9007199254740991 is Number.MAX_SAFE_INTEGER, the largest positive safe integer, and the Overrides section admits it for primaryRecords because there is no upper override bound. The input is vectors/empty-structural/source.json, which the pinned amended-policy positive manifest canonicalizes with default options to vectors/empty-structural/canonical.json. The baseline records 0 primary records for the fixture. The value 9007199254740991 is above the former primaryRecords default of 100000, under which that success is recorded, and under Defaults every other limit imposes no bound, keeps its former default or, like expandedXmlBytes, counts only XML, so no limit is crossed. Evidence and qualification states that the amendment changes admission only and no canonical byte, so canonicalize must succeed with exactly those bytes.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-primaryRecords-above-max-safe-integer",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "primaryRecords": 9007199254740992
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/primaryRecords",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "9007199254740992 is an integer above Number.MAX_SAFE_INTEGER, one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/primaryRecords. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-primaryRecords-fraction",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "primaryRecords": 1.5
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/primaryRecords",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "1.5 is a fraction, one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/primaryRecords. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-primaryRecords-null",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "primaryRecords": null
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/primaryRecords",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "null is one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/primaryRecords. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-primaryRecords-negative",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "primaryRecords": -1
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/primaryRecords",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "-1 is a negative number, one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/primaryRecords. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-embeddedValues-max-safe-integer",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "embeddedValues": 9007199254740991
+        }
+      },
+      "expectedError": null,
+      "rules": [
+        "unbounded-limits#defaults",
+        "unbounded-limits#overrides",
+        "unbounded-limits#former-values",
+        "unbounded-limits#evidence-and-qualification"
+      ],
+      "sourceFixture": "empty-structural",
+      "expectedCanonical": {
+        "path": "vectors/empty-structural/canonical.json",
+        "sha256": "d20d292b5553f3af1316ec929445b959da5ac829d86751580f80219363b71aae"
+      },
+      "reason": "9007199254740991 is Number.MAX_SAFE_INTEGER, the largest positive safe integer, and the Overrides section admits it for embeddedValues because there is no upper override bound. The input is vectors/empty-structural/source.json, which the pinned amended-policy positive manifest canonicalizes with default options to vectors/empty-structural/canonical.json. The value 9007199254740991 is above the former embeddedValues default of 1500000, under which that success is recorded, and under Defaults every other limit imposes no bound, keeps its former default or, like expandedXmlBytes, counts only XML, so no limit is crossed. Evidence and qualification states that the amendment changes admission only and no canonical byte, so canonicalize must succeed with exactly those bytes.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-embeddedValues-above-max-safe-integer",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "embeddedValues": 9007199254740992
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/embeddedValues",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "9007199254740992 is an integer above Number.MAX_SAFE_INTEGER, one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/embeddedValues. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-embeddedValues-fraction",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "embeddedValues": 1.5
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/embeddedValues",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "1.5 is a fraction, one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/embeddedValues. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-embeddedValues-null",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "embeddedValues": null
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/embeddedValues",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "null is one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/embeddedValues. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-embeddedValues-negative",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "embeddedValues": -1
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/embeddedValues",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "-1 is a negative number, one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/embeddedValues. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-depth-max-safe-integer",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "depth": 9007199254740991
+        }
+      },
+      "expectedError": null,
+      "rules": [
+        "unbounded-limits#defaults",
+        "unbounded-limits#overrides",
+        "unbounded-limits#former-values",
+        "unbounded-limits#evidence-and-qualification"
+      ],
+      "sourceFixture": "empty-structural",
+      "expectedCanonical": {
+        "path": "vectors/empty-structural/canonical.json",
+        "sha256": "d20d292b5553f3af1316ec929445b959da5ac829d86751580f80219363b71aae"
+      },
+      "reason": "9007199254740991 is Number.MAX_SAFE_INTEGER, the largest positive safe integer, and the Overrides section admits it for depth because there is no upper override bound. The input is vectors/empty-structural/source.json, which the pinned amended-policy positive manifest canonicalizes with default options to vectors/empty-structural/canonical.json. The value 9007199254740991 is above the former depth default of 128, under which that success is recorded, and under Defaults every other limit imposes no bound, keeps its former default or, like expandedXmlBytes, counts only XML, so no limit is crossed. Evidence and qualification states that the amendment changes admission only and no canonical byte, so canonicalize must succeed with exactly those bytes.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-depth-above-max-safe-integer",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "depth": 9007199254740992
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/depth",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "9007199254740992 is an integer above Number.MAX_SAFE_INTEGER, one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/depth. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-depth-fraction",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "depth": 1.5
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/depth",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "1.5 is a fraction, one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/depth. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-depth-null",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "depth": null
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/depth",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "null is one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/depth. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-depth-negative",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "depth": -1
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/depth",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "-1 is a negative number, one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/depth. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-stringBytes-max-safe-integer",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "stringBytes": 9007199254740991
+        }
+      },
+      "expectedError": null,
+      "rules": [
+        "unbounded-limits#defaults",
+        "unbounded-limits#overrides",
+        "unbounded-limits#former-values",
+        "unbounded-limits#evidence-and-qualification"
+      ],
+      "sourceFixture": "empty-structural",
+      "expectedCanonical": {
+        "path": "vectors/empty-structural/canonical.json",
+        "sha256": "d20d292b5553f3af1316ec929445b959da5ac829d86751580f80219363b71aae"
+      },
+      "reason": "9007199254740991 is Number.MAX_SAFE_INTEGER, the largest positive safe integer, and the Overrides section admits it for stringBytes because there is no upper override bound. The input is vectors/empty-structural/source.json, which the pinned amended-policy positive manifest canonicalizes with default options to vectors/empty-structural/canonical.json. The value 9007199254740991 is above the former stringBytes default of 1048576, under which that success is recorded, and under Defaults every other limit imposes no bound, keeps its former default or, like expandedXmlBytes, counts only XML, so no limit is crossed. Evidence and qualification states that the amendment changes admission only and no canonical byte, so canonicalize must succeed with exactly those bytes.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-stringBytes-above-max-safe-integer",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "stringBytes": 9007199254740992
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/stringBytes",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "9007199254740992 is an integer above Number.MAX_SAFE_INTEGER, one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/stringBytes. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-stringBytes-fraction",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "stringBytes": 1.5
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/stringBytes",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "1.5 is a fraction, one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/stringBytes. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-stringBytes-null",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "stringBytes": null
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/stringBytes",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "null is one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/stringBytes. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-stringBytes-negative",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "stringBytes": -1
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/stringBytes",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "-1 is a negative number, one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/stringBytes. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-totalStringBytes-max-safe-integer",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "totalStringBytes": 9007199254740991
+        }
+      },
+      "expectedError": null,
+      "rules": [
+        "unbounded-limits#defaults",
+        "unbounded-limits#overrides",
+        "unbounded-limits#former-values",
+        "unbounded-limits#evidence-and-qualification"
+      ],
+      "sourceFixture": "empty-structural",
+      "expectedCanonical": {
+        "path": "vectors/empty-structural/canonical.json",
+        "sha256": "d20d292b5553f3af1316ec929445b959da5ac829d86751580f80219363b71aae"
+      },
+      "reason": "9007199254740991 is Number.MAX_SAFE_INTEGER, the largest positive safe integer, and the Overrides section admits it for totalStringBytes because there is no upper override bound. The input is vectors/empty-structural/source.json, which the pinned amended-policy positive manifest canonicalizes with default options to vectors/empty-structural/canonical.json. The value 9007199254740991 is above the former totalStringBytes default of 16777216, under which that success is recorded, and under Defaults every other limit imposes no bound, keeps its former default or, like expandedXmlBytes, counts only XML, so no limit is crossed. Evidence and qualification states that the amendment changes admission only and no canonical byte, so canonicalize must succeed with exactly those bytes.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-totalStringBytes-above-max-safe-integer",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "totalStringBytes": 9007199254740992
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/totalStringBytes",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "9007199254740992 is an integer above Number.MAX_SAFE_INTEGER, one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/totalStringBytes. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-totalStringBytes-fraction",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "totalStringBytes": 1.5
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/totalStringBytes",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "1.5 is a fraction, one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/totalStringBytes. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-totalStringBytes-null",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "totalStringBytes": null
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/totalStringBytes",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "null is one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/totalStringBytes. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-totalStringBytes-negative",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "totalStringBytes": -1
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/totalStringBytes",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "-1 is a negative number, one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/totalStringBytes. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-rdfQuads-max-safe-integer",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "rdfQuads": 9007199254740991
+        }
+      },
+      "expectedError": null,
+      "rules": [
+        "unbounded-limits#defaults",
+        "unbounded-limits#overrides",
+        "unbounded-limits#former-values",
+        "unbounded-limits#evidence-and-qualification"
+      ],
+      "sourceFixture": "empty-structural",
+      "expectedCanonical": {
+        "path": "vectors/empty-structural/canonical.json",
+        "sha256": "d20d292b5553f3af1316ec929445b959da5ac829d86751580f80219363b71aae"
+      },
+      "reason": "9007199254740991 is Number.MAX_SAFE_INTEGER, the largest positive safe integer, and the Overrides section admits it for rdfQuads because there is no upper override bound. The input is vectors/empty-structural/source.json, which the pinned amended-policy positive manifest canonicalizes with default options to vectors/empty-structural/canonical.json. The baseline records 20 quads for the fixture. The value 9007199254740991 is above the former rdfQuads default of 1000000, under which that success is recorded, and under Defaults every other limit imposes no bound, keeps its former default or, like expandedXmlBytes, counts only XML, so no limit is crossed. Evidence and qualification states that the amendment changes admission only and no canonical byte, so canonicalize must succeed with exactly those bytes.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-rdfQuads-above-max-safe-integer",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "rdfQuads": 9007199254740992
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/rdfQuads",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "9007199254740992 is an integer above Number.MAX_SAFE_INTEGER, one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/rdfQuads. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-rdfQuads-fraction",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "rdfQuads": 1.5
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/rdfQuads",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "1.5 is a fraction, one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/rdfQuads. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-rdfQuads-null",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "rdfQuads": null
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/rdfQuads",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "null is one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/rdfQuads. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-rdfQuads-negative",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "rdfQuads": -1
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/rdfQuads",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "-1 is a negative number, one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/rdfQuads. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-rdfDeepIterations-max-safe-integer",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "rdfDeepIterations": 9007199254740991
+        }
+      },
+      "expectedError": null,
+      "rules": [
+        "unbounded-limits#defaults",
+        "unbounded-limits#overrides",
+        "unbounded-limits#former-values",
+        "unbounded-limits#evidence-and-qualification"
+      ],
+      "sourceFixture": "empty-structural",
+      "expectedCanonical": {
+        "path": "vectors/empty-structural/canonical.json",
+        "sha256": "d20d292b5553f3af1316ec929445b959da5ac829d86751580f80219363b71aae"
+      },
+      "reason": "9007199254740991 is Number.MAX_SAFE_INTEGER, the largest positive safe integer, and the Overrides section admits it for rdfDeepIterations because there is no upper override bound. The input is vectors/empty-structural/source.json, which the pinned amended-policy positive manifest canonicalizes with default options to vectors/empty-structural/canonical.json. With the 9 blank nodes that the baseline records for the fixture, the allowance min(B * B, rdfDeepIterations) that the Overrides section keeps for a finite value is 81, as under the former default of 100000, and under Defaults every other limit imposes no bound, keeps its former default or, like expandedXmlBytes, counts only XML, so no limit is crossed. Evidence and qualification states that the amendment changes admission only and no canonical byte, so canonicalize must succeed with exactly those bytes.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-rdfDeepIterations-above-max-safe-integer",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "rdfDeepIterations": 9007199254740992
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/rdfDeepIterations",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "9007199254740992 is an integer above Number.MAX_SAFE_INTEGER, one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/rdfDeepIterations. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-rdfDeepIterations-fraction",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "rdfDeepIterations": 1.5
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/rdfDeepIterations",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "1.5 is a fraction, one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/rdfDeepIterations. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-rdfDeepIterations-null",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "rdfDeepIterations": null
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/rdfDeepIterations",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "null is one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/rdfDeepIterations. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-deadlineMs-max-safe-integer",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "deadlineMs": 9007199254740991
+        }
+      },
+      "expectedError": null,
+      "rules": [
+        "unbounded-limits#defaults",
+        "unbounded-limits#overrides",
+        "unbounded-limits#former-values",
+        "unbounded-limits#evidence-and-qualification"
+      ],
+      "sourceFixture": "empty-structural",
+      "expectedCanonical": {
+        "path": "vectors/empty-structural/canonical.json",
+        "sha256": "d20d292b5553f3af1316ec929445b959da5ac829d86751580f80219363b71aae"
+      },
+      "reason": "9007199254740991 is Number.MAX_SAFE_INTEGER, the largest positive safe integer, and the Overrides section admits it for deadlineMs because there is no upper override bound. The input is vectors/empty-structural/source.json, which the pinned amended-policy positive manifest canonicalizes with default options to vectors/empty-structural/canonical.json. The value 9007199254740991 is above the former deadlineMs default of 10000, under which that success is recorded, and under Defaults every other limit imposes no bound, keeps its former default or, like expandedXmlBytes, counts only XML, so no limit is crossed. The Overrides section also requires a finite deadline longer than the host's largest timer delay to expire at its actual time, never earlier. Evidence and qualification states that the amendment changes admission only and no canonical byte, so canonicalize must succeed with exactly those bytes.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-deadlineMs-above-max-safe-integer",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "deadlineMs": 9007199254740992
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/deadlineMs",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "9007199254740992 is an integer above Number.MAX_SAFE_INTEGER, one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/deadlineMs. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-deadlineMs-fraction",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "deadlineMs": 1.5
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/deadlineMs",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "1.5 is a fraction, one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/deadlineMs. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-deadlineMs-null",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "deadlineMs": null
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/deadlineMs",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "null is one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/deadlineMs. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-deadlineMs-negative",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "deadlineMs": -1
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/deadlineMs",
+      "rules": [
+        "unbounded-limits#overrides",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "-1 is a negative number, one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/deadlineMs. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-expandedXmlBytes-max-safe-integer",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "expandedXmlBytes": 9007199254740991
+        }
+      },
+      "expectedError": null,
+      "rules": [
+        "unbounded-limits#defaults",
+        "unbounded-limits#overrides",
+        "unbounded-limits#owl-adapter",
+        "unbounded-limits#evidence-and-qualification"
+      ],
+      "sourceFixture": "empty-structural",
+      "expectedCanonical": {
+        "path": "vectors/empty-structural/canonical.json",
+        "sha256": "d20d292b5553f3af1316ec929445b959da5ac829d86751580f80219363b71aae"
+      },
+      "reason": "9007199254740991 is Number.MAX_SAFE_INTEGER, the largest positive safe integer, and the Overrides section admits it for expandedXmlBytes because there is no upper override bound. The input is vectors/empty-structural/source.json, which the pinned amended-policy positive manifest canonicalizes with default options to vectors/empty-structural/canonical.json. The canonicalize operation reads no XML, so under the OWL adapter section it validates the limit like any other and otherwise ignores it, and under Defaults every other limit imposes no bound or keeps its former default, so no limit is crossed. Evidence and qualification states that the amendment changes admission only and no canonical byte, so canonicalize must succeed with exactly those bytes.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-expandedXmlBytes-above-max-safe-integer",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "expandedXmlBytes": 9007199254740992
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/expandedXmlBytes",
+      "rules": [
+        "unbounded-limits#overrides",
+        "unbounded-limits#owl-adapter",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "9007199254740992 is an integer above Number.MAX_SAFE_INTEGER, one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/expandedXmlBytes. The OWL adapter section says that an operation that reads no XML, such as canonicalize, validates this limit like any other and otherwise ignores it, so the value is still rejected. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-expandedXmlBytes-fraction",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "expandedXmlBytes": 1.5
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/expandedXmlBytes",
+      "rules": [
+        "unbounded-limits#overrides",
+        "unbounded-limits#owl-adapter",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "1.5 is a fraction, one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/expandedXmlBytes. The OWL adapter section says that an operation that reads no XML, such as canonicalize, validates this limit like any other and otherwise ignores it, so the value is still rejected. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-expandedXmlBytes-null",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "expandedXmlBytes": null
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/expandedXmlBytes",
+      "rules": [
+        "unbounded-limits#overrides",
+        "unbounded-limits#owl-adapter",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "null is one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/expandedXmlBytes. The OWL adapter section says that an operation that reads no XML, such as canonicalize, validates this limit like any other and otherwise ignores it, so the value is still rejected. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-expandedXmlBytes-negative",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "expandedXmlBytes": -1
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/expandedXmlBytes",
+      "rules": [
+        "unbounded-limits#overrides",
+        "unbounded-limits#owl-adapter",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "-1 is a negative number, one of the values that the Overrides section says fail. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/expandedXmlBytes. The OWL adapter section says that an operation that reads no XML, such as canonicalize, validates this limit like any other and otherwise ignores it, so the value is still rejected. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-expandedXmlBytes-zero",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "expandedXmlBytes": 0
+        }
+      },
+      "expectedError": "OPTION_INVALID",
+      "expectedPointer": "/limits/expandedXmlBytes",
+      "rules": [
+        "unbounded-limits#overrides",
+        "unbounded-limits#owl-adapter",
+        "A7"
+      ],
+      "sourceFixture": "empty-structural",
+      "reason": "0 is not positive, and the Overrides section accepts zero only for rdfDeepIterations. It is neither a positive safe integer nor Infinity, so the option fails with OPTION_INVALID at /limits/expandedXmlBytes. The OWL adapter section says that an operation that reads no XML, such as canonicalize, validates this limit like any other and otherwise ignores it, so the value is still rejected. A7 places option validation at stage 1, before the valid empty-structural input is examined.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    },
+    {
+      "id": "option-expandedXmlBytes-one-ignored",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "options": {
+        "limits": {
+          "expandedXmlBytes": 1
+        }
+      },
+      "expectedError": null,
+      "rules": [
+        "unbounded-limits#defaults",
+        "unbounded-limits#overrides",
+        "unbounded-limits#owl-adapter",
+        "unbounded-limits#evidence-and-qualification"
+      ],
+      "sourceFixture": "empty-structural",
+      "expectedCanonical": {
+        "path": "vectors/empty-structural/canonical.json",
+        "sha256": "d20d292b5553f3af1316ec929445b959da5ac829d86751580f80219363b71aae"
+      },
+      "reason": "1 is a positive safe integer, which the Overrides section admits for expandedXmlBytes. The input is vectors/empty-structural/source.json, which the pinned amended-policy positive manifest canonicalizes with default options to vectors/empty-structural/canonical.json. The canonicalize operation reads no XML, so under the OWL adapter section it validates the limit like any other and otherwise ignores it, and under Defaults every other limit imposes no bound or keeps its former default, so no limit is crossed. Evidence and qualification states that the amendment changes admission only and no canonical byte, so canonicalize must succeed with exactly those bytes.",
+      "status": "independently-derived-pending-review-and-production-execution",
+      "input": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      }
+    }
+  ]
+}

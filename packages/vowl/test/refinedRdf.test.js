@@ -161,7 +161,10 @@ test("refinement rejects its reserved namespace, non-IRI predicates and excessiv
       ],
       { totalStringBytes: 8192 },
     ),
-  ).rejects.toMatchObject({ code: "RDF_RESOURCE_LIMIT" });
+  ).rejects.toMatchObject({
+    code: "MODEL_RESOURCE_LIMIT",
+    details: { limit: "totalStringBytes" },
+  });
 });
 
 const vectors = new URL("../conformance/vectors/", import.meta.url);
@@ -280,10 +283,11 @@ test("symmetric nodes receive identical colors rather than invented input-order 
   );
 });
 
-test("refinement obeys the existing work and quad limits", async () => {
+test("refinement obeys the existing work and quad limits, each with its one code", async () => {
   const source = [quad(blank("a"), "urn:p", blank("b"))];
   await expect(canonical(source, { embeddedValues: 1 })).rejects.toMatchObject({
-    code: "RDF_RESOURCE_LIMIT",
+    code: "MODEL_RESOURCE_LIMIT",
+    details: { limit: "embeddedValues" },
   });
   await expect(canonical(source, { rdfQuads: 1 })).rejects.toMatchObject({
     code: "RDF_RESOURCE_LIMIT",
@@ -312,7 +316,7 @@ test("batched refinement preserves the exact incident-work boundary", async () =
   await expect(
     canonical(source, { embeddedValues: 191 }),
   ).rejects.toMatchObject({
-    code: "RDF_RESOURCE_LIMIT",
+    code: "MODEL_RESOURCE_LIMIT",
     details: { limit: "embeddedValues", maximum: 191, actual: 192 },
   });
   const result = await canonical(source, { embeddedValues: 192 });

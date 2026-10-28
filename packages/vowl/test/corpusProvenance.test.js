@@ -4,12 +4,15 @@ import {
   editingManifest,
   fieldAccounting,
   frozenPins,
+  lexicalPositionNegatives,
   mappingPairs,
   negatives,
   positives,
   prefixNegatives,
   readJson,
   readPinned,
+  unboundedLimitNegatives,
+  unboundedLimitsOverlay,
 } from "./independentCorpus.js";
 
 test("the complete frozen corpus and active overlay inventory retain their recorded identities", () => {
@@ -17,7 +20,7 @@ test("the complete frozen corpus and active overlay inventory retain their recor
     readPinned(pin);
   }
   expect(positives).toHaveLength(859);
-  expect(negatives).toHaveLength(3235);
+  expect(negatives).toHaveLength(3387);
   expect(mappingPairs).toHaveLength(321);
   expect(fieldAccounting.entries).toHaveLength(343);
   expect(
@@ -28,6 +31,9 @@ test("the complete frozen corpus and active overlay inventory retain their recor
   ).toHaveLength(124);
   expect(cameraOverlay.vectors).toHaveLength(5);
   expect(prefixNegatives).toHaveLength(2);
+  expect(lexicalPositionNegatives).toHaveLength(101);
+  expect(unboundedLimitsOverlay.vectors).toHaveLength(60);
+  expect(unboundedLimitNegatives).toHaveLength(51);
   expect(editingManifest.vectors).toHaveLength(6);
 });
 

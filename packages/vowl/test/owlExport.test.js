@@ -77,7 +77,10 @@ test("qualified RDF literals survive export without inventing an OWL category", 
   ).rejects.toMatchObject({ code: "OPTION_INVALID" });
   await expect(
     exportModelRdf(model, { limits: { rdfQuads: 1 } }),
-  ).rejects.toMatchObject({ code: "MODEL_RESOURCE_LIMIT" });
+  ).rejects.toMatchObject({
+    code: "RDF_RESOURCE_LIMIT",
+    details: { limit: "rdfQuads" },
+  });
   const abort = new AbortController();
   abort.abort();
   await expect(

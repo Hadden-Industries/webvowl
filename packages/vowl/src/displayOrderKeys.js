@@ -34,7 +34,7 @@ export function mapDisplayOrder(structural, budget) {
   const dataset = [];
   let blankCount = 0;
   function blank() {
-    budget.charge("embeddedValues", 1, undefined, "RDF_RESOURCE_LIMIT");
+    budget.charge("embeddedValues");
     return { termType: "BlankNode", value: `d${blankCount++}` };
   }
   function required(index, id) {
@@ -45,7 +45,7 @@ export function mapDisplayOrder(structural, budget) {
     return value;
   }
   function emit(subject, field, object) {
-    budget.charge("rdfQuads", 1, undefined, "RDF_RESOURCE_LIMIT");
+    budget.charge("rdfQuads");
     dataset.push({ subject, predicate: named(base + field), object, graph });
   }
   const anchors = new Map();
@@ -60,12 +60,7 @@ export function mapDisplayOrder(structural, budget) {
       const bytes = checkString(subject.iri, undefined, budget, false);
       // Admit JSON escaping and later RDF spelling before allocating either;
       // this conservative allowance also covers the fixed role-kind spelling.
-      budget.charge(
-        "totalStringBytes",
-        1024 + bytes * 8,
-        undefined,
-        "RDF_RESOURCE_LIMIT",
-      );
+      budget.charge("totalStringBytes", 1024 + bytes * 8);
       // Ordered tuple: role kind and complete IRI keep punned anchors distinct.
       const result = literal(JSON.stringify([record.kind, subject.iri]));
       anchors.set(id, result);
@@ -159,12 +154,7 @@ export function mapDisplayOrder(structural, budget) {
           budget,
           false,
         );
-        budget.charge(
-          "totalStringBytes",
-          bytes * 8 + 32,
-          undefined,
-          "RDF_RESOURCE_LIMIT",
-        );
+        budget.charge("totalStringBytes", bytes * 8 + 32);
         emit(vertex, "cardinality", literal(restriction.cardinality));
         break;
       }

@@ -153,10 +153,14 @@ Canonical B4/B5 rules govern migrated selector/display intent; old renderer pixe
 No layout or missing-state defaults are generated.
 Legacy IDs are used only for operation-local correspondence.
 
-All asynchronous operations use finite counters and a monotonic deadline shared across their stages.
+All asynchronous operations share their counters and one monotonic deadline across their stages.
+Each value counts once in an operation, however often the operation copies it: neither a live-model operation nor the canonicalization that an adapter hands its normalized source to counts a value again.
+Under the [unbounded-limits amendment](../../docs/specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md), `operationLimitDefaults` keeps a default only for `depth`, `rdfDeepIterations`, `deadlineMs` and `expandedXmlBytes`; every other limit is unbounded unless the caller sets it.
+Each limit accepts a positive safe integer or `Infinity`, which lifts it, and `rdfDeepIterations` also accepts zero.
 Limits affect acceptance, never successful bytes; cancellation and resource exhaustion yield a `VowlError` with a stable `code` and bounded diagnostic metadata.
+A runtime limit, such as the call stack, yields `HOST_RESOURCE_LIMIT`.
 Unexpected standards-library failures are not replaced by another algorithm.
-The approved [A8 resource-policy amendment](../../docs/specs/2026-09-30-canonical-vowl-resource-policy-amendment.md) uses `min(B * B, rdfDeepIterations)` for RDFC work, retaining finite absolute limits and the same successful canonical bytes.
+The approved [A8 resource-policy amendment](../../docs/specs/2026-09-30-canonical-vowl-resource-policy-amendment.md) uses `min(B * B, rdfDeepIterations)` for finite RDFC work, and the same successful canonical bytes.
 
 The `schema` directory contains the two frozen canonical profile schemas, the experimental compatible-artifact schema and the closed legacy ingress shape, all mechanically generated JSON Schema 2020-12 artifacts.
 Scalar domains, reference kinds, recursive identity, projection, artifact completeness and exact canonicality additionally require the semantic validator.

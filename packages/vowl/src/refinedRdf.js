@@ -20,16 +20,11 @@ const hexBytes = Array.from({ length: 256 }, (_, byte) =>
 function boundedJson(value, budget) {
   function measure(item) {
     if (Array.isArray(item)) {
-      budget.charge(
-        "totalStringBytes",
-        2 + Math.max(0, item.length - 1),
-        undefined,
-        "RDF_RESOURCE_LIMIT",
-      );
+      budget.charge("totalStringBytes", 2 + Math.max(0, item.length - 1));
       item.forEach(measure);
       return;
     }
-    budget.charge("totalStringBytes", 2, undefined, "RDF_RESOURCE_LIMIT");
+    budget.charge("totalStringBytes", 2);
     const available =
       budget.limits.totalStringBytes - (budget.counts.totalStringBytes ?? 0);
     let measuredBytes = 0;
@@ -58,23 +53,13 @@ function boundedJson(value, budget) {
                     : 4;
       measuredBytes += bytes;
       if (measuredBytes > available) {
-        budget.charge(
-          "totalStringBytes",
-          measuredBytes,
-          undefined,
-          "RDF_RESOURCE_LIMIT",
-        );
+        budget.charge("totalStringBytes", measuredBytes);
       }
       if (code > 65535) {
         index++;
       }
     }
-    budget.charge(
-      "totalStringBytes",
-      measuredBytes,
-      undefined,
-      "RDF_RESOURCE_LIMIT",
-    );
+    budget.charge("totalStringBytes", measuredBytes);
   }
   measure(value);
   return JSON.stringify(value);
@@ -175,7 +160,7 @@ export async function refineDataset(dataset, budget) {
         incidents.set(blank, []);
       }
       incidents.get(blank).push(quad);
-      budget.charge("embeddedValues", 1, undefined, "RDF_RESOURCE_LIMIT");
+      budget.charge("embeddedValues");
     }
   }
   await flushGround();
@@ -216,12 +201,7 @@ export async function refineDataset(dataset, budget) {
       // 241 ASCII characters. 2048 bytes per incident conservatively covers
       // UTF-16 entry strings, escaped signature and UTF-8 digest input together.
       const requiredScratchBytes = 1024 + quads.length * 2048;
-      budget.bound(
-        "totalStringBytes",
-        requiredScratchBytes,
-        undefined,
-        "RDF_RESOURCE_LIMIT",
-      );
+      budget.bound("totalStringBytes", requiredScratchBytes);
       // Independent hashes read only the preceding round. Bound their combined
       // scratch space and concurrency rather than suspending once per vertex.
       if (
@@ -233,7 +213,7 @@ export async function refineDataset(dataset, budget) {
       }
       const entries = quads
         .map((quad) => {
-          budget.charge("embeddedValues", 1, undefined, "RDF_RESOURCE_LIMIT");
+          budget.charge("embeddedValues");
           return `[${termKey(quad.subject, id)},${termKey(quad.predicate, id)},${termKey(quad.object, id)}]`;
         })
         .sort();
@@ -261,7 +241,7 @@ export async function refineDataset(dataset, budget) {
   }
   const refined = dataset.slice();
   for (const [id, value] of colors) {
-    budget.charge("rdfQuads", 1, undefined, "RDF_RESOURCE_LIMIT");
+    budget.charge("rdfQuads");
     refined.push({
       subject: { termType: "BlankNode", value: id },
       predicate,

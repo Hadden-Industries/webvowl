@@ -92,6 +92,14 @@ for (const [path, sha256] of [
     "supplemental/negative/manifest.json",
     "b7f6d60f8ba05c2c4a9e3fe6f2fe97f73b5c89a1ad656bf1ed8b06f49e4893a3",
   ],
+  [
+    "supplemental/lexical-position-v1/manifest.json",
+    "336bfd188d3997bcefd2749925f3d32807d34ff752b672718949ffae1c88baf8",
+  ],
+  [
+    "supplemental/unbounded-limits-v1/manifest.json",
+    "e6d24d54ec9cfdf9f40df22c7bafa0e81874cab13a598f528f8ea4d316a10c40",
+  ],
 ]) {
   register({ path, sha256 });
 }
@@ -214,10 +222,56 @@ for (const active of cameraOverlay.vectors) {
   // Replace the active record; historical reasons/rules are never spread into it.
   activeNegatives.set(active.id, active);
 }
+// The unbounded-limits amendment supersedes the nine above-ceiling rejections.
+export const unboundedLimitsOverlay = readJson(
+  "supplemental/unbounded-limits-v1/manifest.json",
+);
+for (const authority of unboundedLimitsOverlay.authorities) {
+  readPinned(authority);
+}
+const limitPredecessor = readJson(unboundedLimitsOverlay.predecessor);
+const limitReplacements = unboundedLimitsOverlay.vectors.filter(
+  ({ replaces }) => replaces,
+);
+assert.equal(limitReplacements.length, 9);
+for (const active of limitReplacements) {
+  assert.deepEqual(
+    active.replaces.manifest,
+    unboundedLimitsOverlay.predecessor,
+    active.id,
+  );
+  assert.equal(active.replaces.vectorId, active.id);
+  const previous = limitPredecessor.vectors.find(({ id }) => id === active.id);
+  assert.ok(previous, active.id);
+  assert.equal(
+    hash(JSON.stringify(previous, null, 2) + "\n"),
+    active.replaces.recordSha256,
+    active.id,
+  );
+  assert.deepEqual(active.historical.predecessorRecord, previous);
+  assert.deepEqual(activeNegatives.get(active.id), previous);
+  assert.deepEqual(active.input, previous.input);
+  assert.deepEqual(active.options, previous.options);
+  assert.equal(active.operation, previous.operation);
+  assert.equal(active.profile, previous.profile);
+  // Replace the active record; historical rules and reasons are never spread into it.
+  activeNegatives.set(active.id, active);
+}
+export const unboundedLimitNegatives = unboundedLimitsOverlay.vectors.filter(
+  ({ replaces }) => !replaces,
+);
 export const prefixNegatives = readJson(
   "supplemental/accepted-protocol-v1/prefix-negative-manifest.json",
 ).vectors;
-export const negatives = [...activeNegatives.values(), ...prefixNegatives];
+export const lexicalPositionNegatives = readJson(
+  "supplemental/lexical-position-v1/manifest.json",
+).vectors;
+export const negatives = [
+  ...activeNegatives.values(),
+  ...prefixNegatives,
+  ...lexicalPositionNegatives,
+  ...unboundedLimitNegatives,
+];
 assert.equal(new Set(negatives.map(({ id }) => id)).size, negatives.length);
 export const editingManifest = readJson(
   "supplemental/editing-v1/manifest.json",

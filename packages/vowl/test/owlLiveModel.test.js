@@ -33,6 +33,29 @@ const insert = [
   },
 ];
 
+test("opening an OWL model counts each record it builds once", async () => {
+  const input = encode(
+    prefix + "<urn:root> a owl:Ontology. <urn:A> a owl:Class.",
+  );
+  const { records, occurrences } = inspectModel(
+    (await openOwl(input, options)).model,
+  );
+  const count = ["subjects", "roles", "expressions", "constructs"].reduce(
+    (sum, key) => sum + records[key].length,
+    occurrences.length,
+  );
+  const open = (primaryRecords) =>
+    openOwl(input, {
+      ...options,
+      limits: { ...options.limits, primaryRecords },
+    });
+  await expect(open(count - 1)).rejects.toMatchObject({
+    code: "MODEL_RESOURCE_LIMIT",
+    details: { limit: "primaryRecords" },
+  });
+  await expect(open(count)).resolves.toBeDefined();
+});
+
 test("native automatic OWL selection retains the same root and extensionless import evidence", async () => {
   const root = encode(
     prefix +
@@ -94,7 +117,10 @@ test("public original-source retrieval survives edits and recovery but never inv
   });
   await expect(
     readModelSource(model, documentId, { limits: { inputBytes: 1 } }),
-  ).rejects.toMatchObject({ code: "MODEL_RESOURCE_LIMIT" });
+  ).rejects.toMatchObject({
+    code: "INPUT_RESOURCE_LIMIT",
+    details: { limit: "inputBytes" },
+  });
   const abort = new AbortController();
   abort.abort();
   await expect(

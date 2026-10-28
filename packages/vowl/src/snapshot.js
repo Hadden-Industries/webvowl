@@ -1,6 +1,20 @@
 import { at, fail } from "./errors.js";
 import { categories } from "./profiles.js";
 
+/** A lone surrogate or a noncharacter that I-JSON prohibits. */
+export function prohibitedScalar(scalar) {
+  return (
+    (scalar >= 0xd800 && scalar <= 0xdfff) ||
+    (scalar >= 0xfdd0 && scalar <= 0xfdef) ||
+    scalar % 65536 >= 65534
+  );
+}
+
+/** The number of bytes that UTF-8 uses for one code point. */
+export function utf8Length(scalar) {
+  return scalar < 0x80 ? 1 : scalar < 0x800 ? 2 : scalar < 0x10000 ? 3 : 4;
+}
+
 /** Validate I-JSON's Unicode domain and count exact UTF-8 bytes without allocating an encoding. */
 export function checkString(value, pointer, budget, charge = true) {
   let bytes = 0;
@@ -10,6 +24,7 @@ export function checkString(value, pointer, budget, charge = true) {
       budget.check();
       nextCheck = index + 1024;
     }
+    // The checks of prohibitedScalar and utf8Length, inlined in this hot loop.
     const scalar = value.codePointAt(index);
     if (
       (scalar >= 0xd800 && scalar <= 0xdfff) ||
@@ -33,17 +48,31 @@ export function checkString(value, pointer, budget, charge = true) {
   return bytes;
 }
 
+// The containers that each operation's snapshots have counted, keyed by the
+// operation's budget, whether the snapshot read them or made them. A value
+// counts once in an operation, however often it is copied (#limits).
+const countedByOperation = new WeakMap();
+
 /** Copy all values synchronously using descriptors; sharing is copied by value, cycles rejected. */
 export function snapshotSource(source, budget, primaryAt = () => false) {
   budget.check();
   if (source === null || typeof source !== "object" || Array.isArray(source)) {
     fail("INPUT_TYPE", "");
   }
+  let counted = countedByOperation.get(budget);
+  if (!counted) {
+    counted = new WeakSet();
+    countedByOperation.set(budget, counted);
+  }
   const ancestors = new Set();
-  function copy(value, pointer, depth, primary = false) {
+  const reached = new Set();
+  // A container that an earlier snapshot counted is copied without counting
+  // it, or its member names and strings, again. Reaching it a second time in
+  // this snapshot is a further occurrence, which counts as a value of its own.
+  function copy(value, pointer, depth, primary = false, uncounted = false) {
     budget.poll();
     if (typeof value === "string") {
-      checkString(value, pointer, budget);
+      checkString(value, pointer, budget, !uncounted);
       return value;
     }
     if (typeof value === "number") {
@@ -68,11 +97,15 @@ export function snapshotSource(source, budget, primaryAt = () => false) {
     ) {
       fail("SOURCE_UNSAFE_VALUE", pointer);
     }
-    budget.charge(
-      primary || primaryAt(pointer) ? "primaryRecords" : "embeddedValues",
-      1,
-      pointer,
-    );
+    const recopied = counted.has(value) && !reached.has(value);
+    reached.add(value);
+    if (!recopied) {
+      budget.charge(
+        primary || primaryAt(pointer) ? "primaryRecords" : "embeddedValues",
+        1,
+        pointer,
+      );
+    }
     const keys = Reflect.ownKeys(value);
     if (keys.some((key) => typeof key !== "string")) {
       fail("SOURCE_UNSAFE_VALUE", pointer);
@@ -113,16 +146,19 @@ export function snapshotSource(source, budget, primaryAt = () => false) {
         fail("SOURCE_UNSAFE_VALUE", childPointer);
       }
       if (!array) {
-        checkString(key, childPointer, budget);
+        checkString(key, childPointer, budget, !recopied);
       }
       result[key] = copy(
         descriptor.value,
         childPointer,
         depth + 1,
         primaryChild,
+        recopied,
       );
     }
     ancestors.delete(value);
+    counted.add(value);
+    counted.add(result);
     return result;
   }
   const result = copy(source, "", 1);
@@ -150,12 +186,13 @@ export function snapshotBytes(value, budget) {
       Object.getPrototypeOf(Uint8Array.prototype),
       "byteLength",
     ).get.call(value);
-    budget.charge("inputBytes", length, "", "INPUT_RESOURCE_LIMIT");
+    budget.charge("inputBytes", length, "");
     return new Uint8Array(value);
   } catch (error) {
     if (error?.code) {
       throw error;
     }
+    budget.reportHostLimit(error);
     fail("INPUT_TYPE", "");
   }
 }

@@ -1,4 +1,4 @@
-import { fail } from "./errors.js";
+import { fail, hostLimitResource, VowlError } from "./errors.js";
 
 const signalAborted = Object.getOwnPropertyDescriptor(
   AbortSignal.prototype,
@@ -8,22 +8,39 @@ const addListener = EventTarget.prototype.addEventListener;
 const removeListener = EventTarget.prototype.removeEventListener;
 
 // A8 units are not wire fields. A larger acceptance budget cannot select other bytes.
-export const operationLimitPolicy = Object.freeze(
-  Object.fromEntries(
-    Object.entries({
-      inputBytes: [33554432, 268435456],
-      primaryRecords: [100000, 1000000],
-      embeddedValues: [1500000, 4000000],
-      depth: [128, 512],
-      stringBytes: [1048576, 16777216],
-      totalStringBytes: [16777216, 134217728],
-      rdfQuads: [1000000, 8000000],
-      rdfDeepIterations: [100000, 1000000],
-      deadlineMs: [10000, 300000],
-    }).map(([name, bounds]) => [name, Object.freeze(bounds)]),
-  ),
-);
-const policy = operationLimitPolicy;
+// The unbounded-limits amendment of 27 October 2026 keeps a default only where an
+// outside authority asks for a bound, and Infinity lifts any limit. A8's former
+// defaults and upper override bounds were: inputBytes 33554432 and 268435456;
+// primaryRecords 100000 and 1000000; embeddedValues 1500000 (500000 before the
+// embedded-work amendment) and 4000000; depth 128 and 512; stringBytes 1048576 and
+// 16777216; totalStringBytes 16777216 and 134217728; rdfQuads 1000000 and 8000000;
+// rdfDeepIterations 100000 and 1000000; deadlineMs 10000 and 300000. fromOwl bounded
+// expanded XML by inputBytes.
+export const operationLimitDefaults = Object.freeze({
+  inputBytes: Infinity,
+  primaryRecords: Infinity,
+  embeddedValues: Infinity,
+  depth: 128,
+  stringBytes: Infinity,
+  totalStringBytes: Infinity,
+  rdfQuads: Infinity,
+  rdfDeepIterations: 100000,
+  deadlineMs: 10000,
+  expandedXmlBytes: 33554432,
+});
+const defaults = operationLimitDefaults;
+// setTimeout's largest delay, a signed 32-bit millisecond count; longer delays fire at once.
+const longestTimerDelay = 2147483647;
+// Each limit fails with this one code wherever it is counted; the rest use MODEL_RESOURCE_LIMIT.
+const limitCodes = Object.freeze({
+  inputBytes: "INPUT_RESOURCE_LIMIT",
+  rdfQuads: "RDF_RESOURCE_LIMIT",
+  rdfDeepIterations: "RDFC_RESOURCE_LIMIT",
+  deadlineMs: "DEADLINE_EXCEEDED",
+});
+
+/** The stable code that crossing a limit raises, in every operation and stage. */
+export const limitCode = (name) => limitCodes[name] ?? "MODEL_RESOURCE_LIMIT";
 
 /** Read option data without invoking user accessors. */
 export function optionRecord(value, allowed, pointer = "") {
@@ -60,21 +77,20 @@ export function validateOperationOptions(options, additionalChecks = {}) {
   const checks = {
     ...additionalChecks,
     limits(value) {
-      const overrides = optionRecord(value, Object.keys(policy), "/limits");
+      const overrides = optionRecord(value, Object.keys(defaults), "/limits");
       limits = {};
-      for (const name of Object.keys(policy).sort()) {
-        const [initial, maximum] = policy[name];
-        const value = Object.hasOwn(overrides, name)
+      for (const name of Object.keys(defaults).sort()) {
+        const limit = Object.hasOwn(overrides, name)
           ? overrides[name]
-          : initial;
+          : defaults[name];
         if (
-          !Number.isInteger(value) ||
-          value < (name === "rdfDeepIterations" ? 0 : 1) ||
-          value > maximum
+          limit !== Infinity &&
+          (!Number.isSafeInteger(limit) ||
+            limit < (name === "rdfDeepIterations" ? 0 : 1))
         ) {
           fail("OPTION_INVALID", `/limits/${name}`);
         }
-        limits[name] = value;
+        limits[name] = limit;
       }
     },
     signal(value) {
@@ -112,10 +128,19 @@ export class ResourceBudget {
         once: true,
       });
     }
-    this.timer = setTimeout(
-      () => this.controller.abort(),
-      Math.max(0, this.deadline - performance.now()),
-    );
+    this.armDeadline();
+  }
+
+  /** Abort at the deadline; an unbounded one arms nothing and a long one re-arms. */
+  armDeadline() {
+    if (this.deadline === Infinity) {
+      return;
+    }
+    const remaining = this.deadline - performance.now();
+    this.timer =
+      remaining > longestTimerDelay
+        ? setTimeout(() => this.armDeadline(), longestTimerDelay)
+        : setTimeout(() => this.controller.abort(), Math.max(0, remaining));
   }
 
   /** Observe cancellation before the next content check, including synchronous stages. */
@@ -139,24 +164,50 @@ export class ResourceBudget {
     }
   }
 
-  /** Charge before allocation; callers select the stage-specific stable resource code. */
-  charge(name, amount = 1, pointer, code = "MODEL_RESOURCE_LIMIT") {
+  /** Charge before allocation; the limit's own code is raised in every stage. */
+  charge(name, amount = 1, pointer) {
     this.poll();
     const actual = (this.counts[name] ?? 0) + amount;
     if (actual > this.limits[name]) {
       this.check();
-      fail(code, pointer, { limit: name, maximum: this.limits[name], actual });
+      fail(limitCode(name), pointer, {
+        limit: name,
+        maximum: this.limits[name],
+        actual,
+      });
     }
     this.counts[name] = actual;
   }
 
   /** Check a non-aggregate bound such as nesting or a single string's UTF-8 length. */
-  bound(name, actual, pointer, code = "MODEL_RESOURCE_LIMIT") {
+  bound(name, actual, pointer) {
     this.poll();
     if (actual > this.limits[name]) {
       this.check();
-      fail(code, pointer, { limit: name, maximum: this.limits[name], actual });
+      fail(limitCode(name), pointer, {
+        limit: name,
+        maximum: this.limits[name],
+        actual,
+      });
     }
+  }
+
+  /** Report runtime exhaustion; cancellation and an expired deadline take precedence. */
+  reportHostLimit(error) {
+    const resource = hostLimitResource(error);
+    if (resource !== undefined) {
+      this.check();
+      fail("HOST_RESOURCE_LIMIT", undefined, { resource });
+    }
+  }
+
+  /** Translate a standards library's failure, keeping runtime exhaustion distinct. */
+  dependencyFailure(cause, message, stage) {
+    this.reportHostLimit(cause);
+    throw new VowlError("DEPENDENCY_FAILURE", message, {
+      details: { stage },
+      cause,
+    });
   }
 
   dispose() {

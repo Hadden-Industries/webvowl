@@ -1,0 +1,449 @@
+{
+  "format": "canonical-vowl-supplement-provenance/1",
+  "supplement": "supplemental/unbounded-limits-v1",
+  "authorities": [
+    {
+      "pinnedBy": "whole file",
+      "path": "docs/specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md",
+      "sha256": "8f5b7dd02ebeefd0f3deced6fe7096b194120090611c58f505123c0c843bc9cc",
+      "byteLength": 8819,
+      "role": "Controlling authority, owner approved on 27 October 2026 and corrected the same day; it wins wherever it differs from the core contract.",
+      "consultedSections": [
+        "complete document"
+      ],
+      "firstRead": {
+        "sha256": "eeddcb4121c6b4b00e0eda990eb9b06c5bdabd0001e52ca28940912a9b7c3e45",
+        "byteLength": 8518,
+        "role": "The amendment as first approved, which the first derivation of this overlay read. derive.mjs reverses the three edits of the correction and requires exactly these bytes, so no other sentence changed.",
+        "edits": [
+          {
+            "corrected": "Status: owner approved on 27 October 2026.\nCorrected the same day at the owner's request: each bound the OWL adapter derives from a limit fails with that limit's code, and operations that read no XML still validate `expandedXmlBytes`.\n",
+            "firstRead": "Status: owner approved on 27 October 2026.\n"
+          },
+          {
+            "corrected": "Operations that read no XML validate the limit like any other and otherwise ignore it.\n",
+            "firstRead": "Operations that read no XML accept the limit and ignore it.\n"
+          },
+          {
+            "corrected": "Crossing it fails with `MODEL_RESOURCE_LIMIT`, the code of `expandedXmlBytes`; each other bound that the adapter derives from a limit fails with the code of that limit.\n",
+            "firstRead": "Crossing it fails with `MODEL_RESOURCE_LIMIT`, like the adapter's other parser limits.\n"
+          }
+        ]
+      }
+    },
+    {
+      "pinnedBy": "whole file",
+      "path": "docs/specs/2026-09-24-canonical-vowl-core-contract.md",
+      "sha256": "711ba30c291cfb0960334328203188600f60a331996e83379267a4a77b87988d",
+      "byteLength": 53207,
+      "role": "Read with the amendment for the A7 error table and validation order and the A8 limit names, units and former values. The amendment supersedes A8's finite defaults, finite upper override bounds, override domain and rule that no operation exposes an unbounded option.",
+      "consultedSections": [
+        "A7 validation precedence and error table",
+        "A8 resource table and its surrounding text"
+      ]
+    }
+  ],
+  "reliedText": [
+    {
+      "document": "docs/specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md",
+      "section": "Overrides",
+      "sentence": "Each limit accepts a positive safe integer or `Infinity`, and `rdfDeepIterations` also accepts zero."
+    },
+    {
+      "document": "docs/specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md",
+      "section": "Overrides",
+      "sentence": "There is no upper override bound."
+    },
+    {
+      "document": "docs/specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md",
+      "section": "Overrides",
+      "sentence": "Any other value, including `null`, a fraction, a negative number, `NaN` and an integer above `Number.MAX_SAFE_INTEGER`, fails with `OPTION_INVALID` at `/limits/<name>`, and an unknown limit name still fails."
+    },
+    {
+      "document": "docs/specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md",
+      "section": "Overrides",
+      "sentence": "`Infinity` removes the package's bound for that limit only; it does not lift another limit."
+    },
+    {
+      "document": "docs/specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md",
+      "section": "Overrides",
+      "sentence": "A finite `rdfDeepIterations` keeps the resource-policy amendment's allowance, `min(B * B, rdfDeepIterations)`."
+    },
+    {
+      "document": "docs/specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md",
+      "section": "Overrides",
+      "sentence": "A finite deadline longer than the host's largest timer delay expires at its actual time, never earlier."
+    },
+    {
+      "document": "docs/specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md",
+      "section": "Defaults",
+      "sentence": "`inputBytes`, `primaryRecords`, `embeddedValues`, `stringBytes`, `totalStringBytes` and `rdfQuads` have no default: without a caller limit, the package imposes none."
+    },
+    {
+      "document": "docs/specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md",
+      "section": "OWL adapter",
+      "sentence": "Operations that read no XML validate the limit like any other and otherwise ignore it."
+    },
+    {
+      "document": "docs/specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md",
+      "section": "Former values",
+      "sentence": "The `embeddedValues` default was 500000 before the embedded-work amendment."
+    },
+    {
+      "document": "docs/specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md",
+      "section": "Evidence and qualification",
+      "sentence": "The nine `option-<limit>-above-ceiling` vectors of the [negative supplement](../../packages/vowl/conformance/supplemental/negative/manifest.json) remain frozen historical evidence of the superseded bounds."
+    },
+    {
+      "document": "docs/specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md",
+      "section": "Evidence and qualification",
+      "sentence": "A versioned overlay, derived from this amendment without production code, supplies their current expectations."
+    },
+    {
+      "document": "docs/specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md",
+      "section": "Evidence and qualification",
+      "sentence": "Qualification covers each limit at `Infinity`, at `Number.MAX_SAFE_INTEGER` and one above its former bound; rejection of the values listed under overrides; the four retained defaults; deadline timing; the deep-iteration bound; `expandedXmlBytes`; the adapter's derived bounds; stack exhaustion; and the application's retained policy."
+    },
+    {
+      "document": "docs/specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md",
+      "section": "Evidence and qualification",
+      "sentence": "This amendment changes admission only."
+    },
+    {
+      "document": "docs/specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md",
+      "section": "Evidence and qualification",
+      "sentence": "No profile, field, canonical byte, cancellation rule or no-fallback rule changes."
+    },
+    {
+      "document": "docs/specs/2026-09-24-canonical-vowl-core-contract.md",
+      "section": "A7. Validation contract and deterministic errors",
+      "sentence": "1. operation/options and already-aborted signal;"
+    },
+    {
+      "document": "docs/specs/2026-09-24-canonical-vowl-core-contract.md",
+      "section": "A8. Resource and worker policy",
+      "sentence": "Each integer override must be between one and its upper bound, except `rdfDeepIterations`, which may be zero."
+    },
+    {
+      "document": "docs/specs/2026-09-24-canonical-vowl-core-contract.md",
+      "section": "A8. Resource and worker policy",
+      "sentence": "These controls apply to `canonicalize` and `decode`;"
+    }
+  ],
+  "predecessor": {
+    "path": "supplemental/negative/manifest.json",
+    "sha256": "b7f6d60f8ba05c2c4a9e3fe6f2fe97f73b5c89a1ad656bf1ed8b06f49e4893a3",
+    "byteLength": 45264,
+    "replacedVectorIds": [
+      "option-inputBytes-above-ceiling",
+      "option-primaryRecords-above-ceiling",
+      "option-embeddedValues-above-ceiling",
+      "option-depth-above-ceiling",
+      "option-stringBytes-above-ceiling",
+      "option-totalStringBytes-above-ceiling",
+      "option-rdfQuads-above-ceiling",
+      "option-rdfDeepIterations-above-ceiling",
+      "option-deadlineMs-above-ceiling"
+    ],
+    "recordHashConvention": "SHA-256 of the UTF-8 bytes of JSON.stringify(record, null, 2) followed by one line feed, where record is the predecessor record as JSON.parse returns it from the predecessor manifest. This is hash(json(record)) of supplemental/field-contract/support.mjs, as accepted-protocol-v1 and accepted-protocol-v2 compute it."
+  },
+  "positiveBaseline": {
+    "path": "supplemental/amended-policy/manifest.json",
+    "sha256": "90f3754316f683a76ad9eecb8341d29a738b3f77b61c13362034de07cee92156",
+    "byteLength": 200161,
+    "fixture": "empty-structural",
+    "role": "Records the fixture's success with default options, its counts and the pins of its files; it pins the same core contract."
+  },
+  "fixtures": [
+    {
+      "path": "vectors/empty-structural/source.json",
+      "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+      "byteLength": 200,
+      "role": "Input bytes of every vector."
+    },
+    {
+      "path": "vectors/empty-structural/canonical.json",
+      "sha256": "d20d292b5553f3af1316ec929445b959da5ac829d86751580f80219363b71aae",
+      "byteLength": 230,
+      "role": "Expected bytes of every successful vector."
+    }
+  ],
+  "inputs": [
+    {
+      "path": "supplemental/negative/vectors/option-inputBytes-above-ceiling/source.json",
+      "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+      "byteLength": 200,
+      "usedBy": [
+        "option-inputBytes-above-ceiling"
+      ]
+    },
+    {
+      "path": "supplemental/negative/vectors/option-primaryRecords-above-ceiling/source.json",
+      "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+      "byteLength": 200,
+      "usedBy": [
+        "option-primaryRecords-above-ceiling"
+      ]
+    },
+    {
+      "path": "supplemental/negative/vectors/option-embeddedValues-above-ceiling/source.json",
+      "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+      "byteLength": 200,
+      "usedBy": [
+        "option-embeddedValues-above-ceiling"
+      ]
+    },
+    {
+      "path": "supplemental/negative/vectors/option-depth-above-ceiling/source.json",
+      "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+      "byteLength": 200,
+      "usedBy": [
+        "option-depth-above-ceiling"
+      ]
+    },
+    {
+      "path": "supplemental/negative/vectors/option-stringBytes-above-ceiling/source.json",
+      "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+      "byteLength": 200,
+      "usedBy": [
+        "option-stringBytes-above-ceiling"
+      ]
+    },
+    {
+      "path": "supplemental/negative/vectors/option-totalStringBytes-above-ceiling/source.json",
+      "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+      "byteLength": 200,
+      "usedBy": [
+        "option-totalStringBytes-above-ceiling"
+      ]
+    },
+    {
+      "path": "supplemental/negative/vectors/option-rdfQuads-above-ceiling/source.json",
+      "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+      "byteLength": 200,
+      "usedBy": [
+        "option-rdfQuads-above-ceiling"
+      ]
+    },
+    {
+      "path": "supplemental/negative/vectors/option-rdfDeepIterations-above-ceiling/source.json",
+      "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+      "byteLength": 200,
+      "usedBy": [
+        "option-rdfDeepIterations-above-ceiling"
+      ]
+    },
+    {
+      "path": "supplemental/negative/vectors/option-deadlineMs-above-ceiling/source.json",
+      "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+      "byteLength": 200,
+      "usedBy": [
+        "option-deadlineMs-above-ceiling"
+      ]
+    },
+    {
+      "path": "vectors/empty-structural/source.json",
+      "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+      "byteLength": 200,
+      "usedBy": [
+        "option-inputBytes-max-safe-integer",
+        "option-inputBytes-above-max-safe-integer",
+        "option-inputBytes-fraction",
+        "option-inputBytes-null",
+        "option-inputBytes-negative",
+        "option-primaryRecords-max-safe-integer",
+        "option-primaryRecords-above-max-safe-integer",
+        "option-primaryRecords-fraction",
+        "option-primaryRecords-null",
+        "option-primaryRecords-negative",
+        "option-embeddedValues-max-safe-integer",
+        "option-embeddedValues-above-max-safe-integer",
+        "option-embeddedValues-fraction",
+        "option-embeddedValues-null",
+        "option-embeddedValues-negative",
+        "option-depth-max-safe-integer",
+        "option-depth-above-max-safe-integer",
+        "option-depth-fraction",
+        "option-depth-null",
+        "option-depth-negative",
+        "option-stringBytes-max-safe-integer",
+        "option-stringBytes-above-max-safe-integer",
+        "option-stringBytes-fraction",
+        "option-stringBytes-null",
+        "option-stringBytes-negative",
+        "option-totalStringBytes-max-safe-integer",
+        "option-totalStringBytes-above-max-safe-integer",
+        "option-totalStringBytes-fraction",
+        "option-totalStringBytes-null",
+        "option-totalStringBytes-negative",
+        "option-rdfQuads-max-safe-integer",
+        "option-rdfQuads-above-max-safe-integer",
+        "option-rdfQuads-fraction",
+        "option-rdfQuads-null",
+        "option-rdfQuads-negative",
+        "option-rdfDeepIterations-max-safe-integer",
+        "option-rdfDeepIterations-above-max-safe-integer",
+        "option-rdfDeepIterations-fraction",
+        "option-rdfDeepIterations-null",
+        "option-deadlineMs-max-safe-integer",
+        "option-deadlineMs-above-max-safe-integer",
+        "option-deadlineMs-fraction",
+        "option-deadlineMs-null",
+        "option-deadlineMs-negative",
+        "option-expandedXmlBytes-max-safe-integer",
+        "option-expandedXmlBytes-above-max-safe-integer",
+        "option-expandedXmlBytes-fraction",
+        "option-expandedXmlBytes-null",
+        "option-expandedXmlBytes-negative",
+        "option-expandedXmlBytes-zero",
+        "option-expandedXmlBytes-one-ignored"
+      ]
+    }
+  ],
+  "producer": {
+    "path": "supplemental/unbounded-limits-v1/derive.mjs",
+    "sha256": "092a00f377b83911393ff68fc479c486b015a232871dea4452a96c2f500cc27b"
+  },
+  "manifest": {
+    "path": "supplemental/unbounded-limits-v1/manifest.json",
+    "sha256": "e6d24d54ec9cfdf9f40df22c7bafa0e81874cab13a598f528f8ea4d316a10c40",
+    "byteLength": 101279
+  },
+  "coveredByPredecessorRecords": [
+    {
+      "id": "option-inputBytes-zero",
+      "covers": "inputBytes 0 fails with OPTION_INVALID, unchanged by the amendment"
+    },
+    {
+      "id": "option-primaryRecords-zero",
+      "covers": "primaryRecords 0 fails with OPTION_INVALID, unchanged by the amendment"
+    },
+    {
+      "id": "option-embeddedValues-zero",
+      "covers": "embeddedValues 0 fails with OPTION_INVALID, unchanged by the amendment"
+    },
+    {
+      "id": "option-depth-zero",
+      "covers": "depth 0 fails with OPTION_INVALID, unchanged by the amendment"
+    },
+    {
+      "id": "option-stringBytes-zero",
+      "covers": "stringBytes 0 fails with OPTION_INVALID, unchanged by the amendment"
+    },
+    {
+      "id": "option-totalStringBytes-zero",
+      "covers": "totalStringBytes 0 fails with OPTION_INVALID, unchanged by the amendment"
+    },
+    {
+      "id": "option-rdfQuads-zero",
+      "covers": "rdfQuads 0 fails with OPTION_INVALID, unchanged by the amendment"
+    },
+    {
+      "id": "option-rdfDeepIterations-negative",
+      "covers": "rdfDeepIterations -1 fails with OPTION_INVALID, unchanged by the amendment"
+    },
+    {
+      "id": "option-deadlineMs-zero",
+      "covers": "deadlineMs 0 fails with OPTION_INVALID, unchanged by the amendment"
+    },
+    {
+      "id": "option-unknown-limit",
+      "covers": "an unknown limit name fails with OPTION_INVALID, unchanged by the amendment"
+    },
+    {
+      "id": "rdf-deep-zero",
+      "covers": "rdfDeepIterations 0 is admitted, so symmetric-anonymous-classes fails with RDFC_RESOURCE_LIMIT rather than OPTION_INVALID, unchanged by the amendment"
+    }
+  ],
+  "consultedConventions": [
+    "packages/vowl/conformance/README.md",
+    "packages/vowl/conformance/STORAGE.md",
+    "packages/vowl/conformance/storage.mjs",
+    "packages/vowl/conformance/manifest.json",
+    "packages/vowl/conformance/supplemental/README.md",
+    "packages/vowl/conformance/supplemental/negative/derive.mjs",
+    "packages/vowl/conformance/supplemental/accepted-protocol-v1/README.md",
+    "packages/vowl/conformance/supplemental/accepted-protocol-v1/camera-corrections-manifest.json",
+    "packages/vowl/conformance/supplemental/accepted-protocol-v1/derive.mjs",
+    "packages/vowl/conformance/supplemental/accepted-protocol-v2/README.md",
+    "packages/vowl/conformance/supplemental/accepted-protocol-v2/camera-corrections-manifest.json",
+    "packages/vowl/conformance/supplemental/accepted-protocol-v2/derive.mjs",
+    "packages/vowl/conformance/supplemental/field-contract/support.mjs",
+    "packages/vowl/conformance/supplemental/lexical-position-v1/README.md",
+    "packages/vowl/conformance/supplemental/lexical-position-v1/derive.mjs",
+    "packages/vowl/conformance/supplemental/lexical-position-v1/provenance.json"
+  ],
+  "alsoRead": [
+    {
+      "path": "docs/specs/2026-09-30-canonical-vowl-resource-policy-amendment.md",
+      "sha256": "9f1b7d96229a06f57e29a52f92325a4256e6f826d7532e239848ef99dc0f47c1",
+      "role": "Context only: the allowance that the amendment restates. Not relied on and not checked."
+    },
+    {
+      "path": "docs/specs/2026-10-03-canonical-vowl-embedded-work-amendment.md",
+      "sha256": "99a0d42e47b88dbe9e2ee0d68951d7622928172d05180803805d30e8bb28e851",
+      "role": "Context only: the embeddedValues default that the amendment's Former values table records. Not relied on and not checked."
+    }
+  ],
+  "notRead": [
+    "packages/vowl/src/",
+    "packages/vowl/test/",
+    "packages/vowl/scripts/",
+    "src/",
+    "util/",
+    "node_modules/",
+    ".json-quality.json",
+    "docs/plans/",
+    "docs/canonical-vowl/",
+    "Every other document in docs/specs/, including the design and the decision record. A text search of docs/specs/ for OPTION_INVALID, HOST_RESOURCE_LIMIT and /limits matched only the amendment and the core contract.",
+    "Git history and diffs"
+  ],
+  "notExecuted": "No module of the vowl package was imported or executed, and no runtime output was used to choose or check an expectation. derive.mjs uses Node.js built-ins and packages/vowl/conformance/storage.mjs, the corpus reader that returns member bytes.",
+  "omittedCases": [
+    {
+      "case": "option-<limit>-infinity, for each of the ten limits",
+      "reason": "Infinity has no JSON spelling, so the manifest cannot pass it as an option value. This leaves untested the Overrides rules that Infinity lifts only its own limit, that rdfDeepIterations Infinity also lifts the B * B term and that deadlineMs Infinity sets no deadline while the caller's signal still cancels, and the OWL adapter rule that expandedXmlBytes Infinity also lifts the parser's internal-entity controls.",
+      "question": "How should a corpus manifest spell an option value that JSON cannot carry, such as Infinity, for example as a reserved marker that a runner converts before the call?"
+    },
+    {
+      "case": "option-<limit>-nan, for each of the ten limits",
+      "reason": "NaN has no JSON spelling either, although the Overrides section decides that it fails with OPTION_INVALID.",
+      "question": "The same spelling question as for Infinity."
+    },
+    {
+      "case": "option-rdfDeepIterations-zero",
+      "reason": "The Overrides section admits zero for rdfDeepIterations, so OPTION_INVALID does not apply, but the result on the empty-structural input depends on whether its canonicalization needs any deep comparison.",
+      "question": "Does canonicalizing empty-structural invoke RDFC-1.0 deep comparison at all, so that a zero allowance is crossed? Neither the authority nor the frozen corpus records the count; the frozen rdf-deep-zero vector already shows that zero is admitted."
+    },
+    {
+      "case": "the four retained defaults",
+      "reason": "Each needs an input that crosses the default, while every vector here reuses the empty-structural source. A depth witness also needs a counting convention, a deep-iteration witness needs a graph whose deep-comparison count only running RDFC-1.0 would show, a deadline witness is a timing outcome, which A7 says is not canonical content, and the expandedXmlBytes default applies only in fromOwl.",
+      "question": "For depth: does the outermost container count as depth 1 or as depth 0? A8 counts embedded JSON containers without saying."
+    },
+    {
+      "case": "deadline timing",
+      "reason": "option-deadlineMs-max-safe-integer shows only that a deadline longer than the host's largest timer delay does not expire early on a small input. Whether a finite deadline expires at its actual time needs an executable timing harness, as the predecessor manifest's notes say of timing controls.",
+      "question": null
+    },
+    {
+      "case": "expandedXmlBytes in fromOwl",
+      "reason": "Crossing the limit in fromOwl fails with MODEL_RESOURCE_LIMIT, which the corrected OWL adapter section names as the code of expandedXmlBytes, but a witness needs RDF/XML or OWL/XML input and the fromOwl operation, outside the canonicalize shape of the predecessor records.",
+      "question": "Is expandedXmlBytes counted per document or summed over the root document and its imports, as A8 aggregates the adapter's other counters? And is a stop by the parser's own internal-entity controls, which apply while the limit is finite, a bound that the adapter derives from expandedXmlBytes, so that it too fails with MODEL_RESOURCE_LIMIT?"
+    },
+    {
+      "case": "the adapter's derived bounds",
+      "reason": "The numeric-literal digit, profile-check work, import count and import depth bounds apply only in fromOwl and need OWL input. The corrected OWL adapter section says that each fails with the code of the limit that it derives from.",
+      "question": "In what unit is profile-check work counted, so that a witness can cross 2 * embeddedValues exactly? And which codes are those of stringBytes, embeddedValues, primaryRecords and depth? The A7 table lists four resource-limit codes under one meaning, and neither A8 nor the amendment assigns one to each limit."
+    },
+    {
+      "case": "host limits",
+      "reason": "Whether an input reaches the call stack or the largest allocation depends on the host and on how an implementation processes it, so no fixed input has a decided outcome, and the manifest format has no field for details.resource.",
+      "question": "Must a conforming implementation process some minimum nesting depth or size before it may fail with HOST_RESOURCE_LIMIT?"
+    },
+    {
+      "case": "the application's retained policy",
+      "reason": "The WebVOWL client's checks against A8's former upper bounds belong to the application, not to the package corpus.",
+      "question": null
+    }
+  ]
+}
