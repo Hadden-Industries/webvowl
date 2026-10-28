@@ -4,6 +4,23 @@ import {
   canonicalLoadingMessage,
 } from "./canonicalVowlFailure.js";
 
+test.each(["expandedXmlBytes", "callStack", "allocation"])(
+  "owned package diagnostic %s survives sanitization",
+  (resource) => {
+    expect(
+      canonicalFailureDetails({
+        details: { resource, actual: 42, maximum: 32, source: "private" },
+      }),
+    ).toEqual({ resource, actual: 42, maximum: 32 });
+    expect(
+      canonicalLoadingMessage({
+        code: "HOST_RESOURCE_LIMIT",
+        details: { resource },
+      }),
+    ).toContain("available stack or memory");
+  },
+);
+
 test("producer budget facts survive as safe application diagnostics", () => {
   expect(
     canonicalFailureDetails({

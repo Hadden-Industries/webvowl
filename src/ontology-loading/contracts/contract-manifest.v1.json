@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "kind": "contract-manifest",
+  "contractId": "hadden-ontology-materialization-cache",
+  "version": "1.0.0-draft.2",
+  "bundleSha256": "871239081809f846d8c0b3ef12f0f0e82cdc3681958e7024c5c57fed87babd75",
+  "status": "DRAFT_UNPUBLISHED",
+  "createdOn": "2026-10-27",
+  "identityRule": "SHA256(UTF8(\"hadden-ontology-cache/contract-bundle/v1\\n\") || JCS({contractId,version,files})); the backslash-n denotes one LF byte.",
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "a284920b471652b3559343c3701ae63d9913c1f90ce7db081e6395b413c34ed8",
+      "byteLength": 8680
+    },
+    {
+      "path": "conformance.v1.md",
+      "sha256": "6bc3f3c8fb0528c30fb31a8b303a4a68c8cc840993ceae0fe73610c3a6f03008",
+      "byteLength": 19987
+    },
+    {
+      "path": "decisions.v1.md",
+      "sha256": "9379a792d3c5852f847dfa21a38d8cde1c9a9cfd1999710f670bd88ff4eb2e61",
+      "byteLength": 22226
+    },
+    {
+      "path": "error-codes.v1.json",
+      "sha256": "18fc52d68d2e20f4697c76054300c62a1cc8159056c0e6686fdc346c893752b3",
+      "byteLength": 5170
+    },
+    {
+      "path": "evidence/inputs/aws-plan-before-draft2.md",
+      "sha256": "eb0567fccddfb5d882cd9f00b609f163f151e1fc90d817b10d3fa1497627d5fe",
+      "byteLength": 295544
+    },
+    {
+      "path": "evidence/inputs/expert-soundness-assessment.md",
+      "sha256": "dea64432dd70a2c50b59bafb80f92960c7dd8e29ecc804830aade514d123f777",
+      "byteLength": 46078
+    },
+    {
+      "path": "evidence/inputs/webvowl-plan-before-draft2.md",
+      "sha256": "f922f988d9e5d42d86362f440abb3de83c7d1afe7653b17b955714920ec0865b",
+      "byteLength": 294664
+    },
+    {
+      "path": "evidence/standards/LICENSE-OpenAPI.txt",
+      "sha256": "4948367c65e1ce06690e2cadc6e86fce1a6a6db55ef874ce4b78c0f472ce5f13",
+      "byteLength": 11345
+    },
+    {
+      "path": "evidence/standards/README.md",
+      "sha256": "54852897e8bc1b363298e23ef819fcf3e2d51f8957780fe86ae4bd5fef7635e9",
+      "byteLength": 1373
+    },
+    {
+      "path": "evidence/standards/oas-3.2-dialect-2026-02-26.json",
+      "sha256": "9375b7042aa0b01848403f0a9ebf12a3425e01a9e24337ce12624f10fea73833",
+      "byteLength": 1029
+    },
+    {
+      "path": "evidence/standards/oas-3.2-meta-2026-02-26.json",
+      "sha256": "f444d02ef7d36f30293983fad8118c823a3c70a49a8e5aa6f1afe21215e35417",
+      "byteLength": 2485
+    },
+    {
+      "path": "evidence/standards/oas-3.2-schema-2026-08-30.json",
+      "sha256": "ec53db6e114b768ff2d273b232bda210f51b70c5e57d57ac8daf7e8496a6e073",
+      "byteLength": 41089
+    },
+    {
+      "path": "evidence/standards/oas-3.2-schema-base-2026-08-30.json",
+      "sha256": "9df52b98a92075a917125364d23a5f70825d6c292c7aeb15c31b822e95f031e9",
+      "byteLength": 721
+    },
+    {
+      "path": "fixtures/identity-vectors.v1.json",
+      "sha256": "c554e7a925f9a3ca1923e4a525b1f5b5828c92578aef73c9bf6e595b130181dc",
+      "byteLength": 42900
+    },
+    {
+      "path": "fixtures/protocol-cases.v1.json",
+      "sha256": "d09fdfd86af11b83eeb521ef36b80337aa22d4b9dfe8a2cfb05264f49861d10d",
+      "byteLength": 84076
+    },
+    {
+      "path": "fixtures/state-transitions.v1.json",
+      "sha256": "4faf7609190ce7b537cbf6be53333ec3db6117b6944328a244cf7614bb1e0461",
+      "byteLength": 13018
+    },
+    {
+      "path": "ontology-catalog-generation.v1.schema.json",
+      "sha256": "ba184d7b8978f0049f8c6f81b94ddccd502a585f73bd1f6a03b9808be40abee8",
+      "byteLength": 1498
+    },
+    {
+      "path": "ontology-contract-common.v1.schema.json",
+      "sha256": "c0b95d9275fa934881d78b18973fb7a987d11dcb9565fd95cc978f559d28352a",
+      "byteLength": 9215
+    },
+    {
+      "path": "ontology-loader-policy.v1.schema.json",
+      "sha256": "6e436e8a87e00ac4e422ceb86f2dbfa7209400ec09a4e77f14ed1a7c374c4ed2",
+      "byteLength": 7985
+    },
+    {
+      "path": "ontology-materialization-error.v1.schema.json",
+      "sha256": "e9ad600f12a927ed5b3f9baf36143daab75e05a737193e5b8089c9ef673df08c",
+      "byteLength": 926
+    },
+    {
+      "path": "ontology-materialization-request.v1.schema.json",
+      "sha256": "82c700662b80d704d04e5915c0cfaaa154812adb27f27a99692c5e2812c5c6c7",
+      "byteLength": 540
+    },
+    {
+      "path": "ontology-materialization-status.v1.schema.json",
+      "sha256": "f94943b4bbd35eda283d6ae44573d70ceb6b0e54c6a672bc6f792db1273759fe",
+      "byteLength": 1183
+    },
+    {
+      "path": "ontology-refresh-request.v1.schema.json",
+      "sha256": "e1b2b8b3d292d91822193be0aae22615bdc9a84afef1d6a02ce3f6fba1586426",
+      "byteLength": 591
+    },
+    {
+      "path": "ontology-refresh-result.v1.schema.json",
+      "sha256": "ccb897b2dd61ad2b287d9b7a0adbd94a285e72870125341ca796cceb664b8753",
+      "byteLength": 9952
+    },
+    {
+      "path": "ontology-resolution.v1.schema.json",
+      "sha256": "2ff5fefa9c206e019c346ad165acb01fe265aad440f37dd5e0f005949260641f",
+      "byteLength": 4064
+    },
+    {
+      "path": "ontology-seed-manifest.v1.schema.json",
+      "sha256": "71e5eefab957e4cdee848246ceba944dee3868497c23d5f5edd7005f26caa16d",
+      "byteLength": 1679
+    },
+    {
+      "path": "ontology-source-pointer.v1.schema.json",
+      "sha256": "a3ea674cd9a1dcbcdd87dfee2c3667e7b19b25796fe004612452a9a5ee052743",
+      "byteLength": 4337
+    },
+    {
+      "path": "ontology-source-version.v1.schema.json",
+      "sha256": "52e48a61539d22f4b7404531f9ffa9ab946667344db9cc4e1bcddd5ad06f581c",
+      "byteLength": 1465
+    },
+    {
+      "path": "ontology-validation.v1.schema.json",
+      "sha256": "6217f2ee4dc8804fe59033fbdb6c5eb4d2637e2f18b401b10b3a1974c63b3ef9",
+      "byteLength": 2488
+    },
+    {
+      "path": "openapi.v1.json",
+      "sha256": "8d36e49261ee45516599bebbf2b6cbd9b75f88de24b64ff95414d0c6e64bd879",
+      "byteLength": 57706
+    },
+    {
+      "path": "protocol.v1.md",
+      "sha256": "d5020ff1f18db9c4ddc58c1321a914252330b97e4e22aa98f47437f75c8f8435",
+      "byteLength": 37033
+    },
+    {
+      "path": "requirements-verification.txt",
+      "sha256": "1cc3b58353e8d62be7e8afb6ef2157acf8cb48f2e6f03d37a59a082502300937",
+      "byteLength": 84
+    },
+    {
+      "path": "review-disposition.v1.md",
+      "sha256": "398e9a348dcd74bd1463a5e71085227a8e651e56d27179d02250d56355b46a6c",
+      "byteLength": 12338
+    },
+    {
+      "path": "trials/universal-ontology-external.v1.json",
+      "sha256": "803b456ab5168ef1bd49054f38f328bc5e53f2a7f82da9073e7c89b180cf7f61",
+      "byteLength": 30939
+    },
+    {
+      "path": "verification.md",
+      "sha256": "c6dc0132a56e4e9816d3aef236799472a97a963492252a11ee07e04e55190d1c",
+      "byteLength": 4405
+    },
+    {
+      "path": "verify_contract.py",
+      "sha256": "403f4a88e3464c477e7b72523daf9f5f0be47c354a5d62d77e81428dd03f4abb",
+      "byteLength": 12654
+    }
+  ]
+}

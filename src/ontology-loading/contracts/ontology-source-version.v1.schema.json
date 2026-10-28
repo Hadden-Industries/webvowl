@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://haddenindustries.com/ontology/contracts/v1/ontology-source-version.v1.schema.json",
+  "title": "Immutable distinct source version",
+  "description": "Draft contract 1.0.0-draft.2; review artifact, not a deployed service promise.",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "kind": {
+      "const": "source-version"
+    },
+    "sourceVersionIdentity": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/digest"
+    },
+    "sourceKey": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/digest"
+    },
+    "requestedDocumentIri": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/requestedIri"
+    },
+    "artifactSha256": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/digest"
+    },
+    "artifactByteLength": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 33554432
+    },
+    "effectiveRetrievalIri": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/requestedIri"
+    },
+    "parserDocumentIri": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/requestedIri"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "kind",
+    "sourceVersionIdentity",
+    "sourceKey",
+    "requestedDocumentIri",
+    "artifactSha256",
+    "artifactByteLength",
+    "effectiveRetrievalIri",
+    "parserDocumentIri"
+  ],
+  "additionalProperties": false
+}

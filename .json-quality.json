@@ -11,6 +11,261 @@
   "exceptions": [
     {
       "paths": [
+        "src/ontology-loading/contracts/contract-manifest.v1.json"
+      ],
+      "formatContract": "preserved-bytes",
+      "allowFormatWrites": false,
+      "normalization": "preserve",
+      "expected": {
+        "sha256": "a23f7bbffa4ef6701055f3009fc3cc3ab5a48a57e0aa7380154f9259ddccce53",
+        "byteLength": "6742",
+        "diagnostics": []
+      },
+      "owner": "Published ontology cache contract provider",
+      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+    },
+    {
+      "paths": [
+        "src/ontology-loading/contracts/error-codes.v1.json"
+      ],
+      "formatContract": "preserved-bytes",
+      "allowFormatWrites": false,
+      "normalization": "preserve",
+      "expected": {
+        "sha256": "18fc52d68d2e20f4697c76054300c62a1cc8159056c0e6686fdc346c893752b3",
+        "byteLength": "5170",
+        "diagnostics": []
+      },
+      "owner": "Published ontology cache contract provider",
+      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+    },
+    {
+      "paths": [
+        "src/ontology-loading/contracts/fixtures/identity-vectors.v1.json"
+      ],
+      "formatContract": "preserved-bytes",
+      "allowFormatWrites": false,
+      "normalization": "preserve",
+      "expected": {
+        "sha256": "c554e7a925f9a3ca1923e4a525b1f5b5828c92578aef73c9bf6e595b130181dc",
+        "byteLength": "42900",
+        "diagnostics": []
+      },
+      "owner": "Published ontology cache contract provider",
+      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+    },
+    {
+      "paths": [
+        "src/ontology-loading/contracts/fixtures/protocol-cases.v1.json"
+      ],
+      "formatContract": "preserved-bytes",
+      "allowFormatWrites": false,
+      "normalization": "preserve",
+      "expected": {
+        "sha256": "d09fdfd86af11b83eeb521ef36b80337aa22d4b9dfe8a2cfb05264f49861d10d",
+        "byteLength": "84076",
+        "diagnostics": []
+      },
+      "owner": "Published ontology cache contract provider",
+      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+    },
+    {
+      "paths": [
+        "src/ontology-loading/contracts/ontology-catalog-generation.v1.schema.json"
+      ],
+      "formatContract": "preserved-bytes",
+      "allowFormatWrites": false,
+      "normalization": "preserve",
+      "expected": {
+        "sha256": "ba184d7b8978f0049f8c6f81b94ddccd502a585f73bd1f6a03b9808be40abee8",
+        "byteLength": "1498",
+        "diagnostics": []
+      },
+      "owner": "Published ontology cache contract provider",
+      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+    },
+    {
+      "paths": [
+        "src/ontology-loading/contracts/ontology-contract-common.v1.schema.json"
+      ],
+      "formatContract": "preserved-bytes",
+      "allowFormatWrites": false,
+      "normalization": "preserve",
+      "expected": {
+        "sha256": "c0b95d9275fa934881d78b18973fb7a987d11dcb9565fd95cc978f559d28352a",
+        "byteLength": "9215",
+        "diagnostics": []
+      },
+      "owner": "Published ontology cache contract provider",
+      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+    },
+    {
+      "paths": [
+        "src/ontology-loading/contracts/ontology-loader-policy.v1.schema.json"
+      ],
+      "formatContract": "preserved-bytes",
+      "allowFormatWrites": false,
+      "normalization": "preserve",
+      "expected": {
+        "sha256": "6e436e8a87e00ac4e422ceb86f2dbfa7209400ec09a4e77f14ed1a7c374c4ed2",
+        "byteLength": "7985",
+        "diagnostics": []
+      },
+      "owner": "Published ontology cache contract provider",
+      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+    },
+    {
+      "paths": [
+        "src/ontology-loading/contracts/ontology-materialization-error.v1.schema.json"
+      ],
+      "formatContract": "preserved-bytes",
+      "allowFormatWrites": false,
+      "normalization": "preserve",
+      "expected": {
+        "sha256": "e9ad600f12a927ed5b3f9baf36143daab75e05a737193e5b8089c9ef673df08c",
+        "byteLength": "926",
+        "diagnostics": []
+      },
+      "owner": "Published ontology cache contract provider",
+      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+    },
+    {
+      "paths": [
+        "src/ontology-loading/contracts/ontology-materialization-request.v1.schema.json"
+      ],
+      "formatContract": "preserved-bytes",
+      "allowFormatWrites": false,
+      "normalization": "preserve",
+      "expected": {
+        "sha256": "82c700662b80d704d04e5915c0cfaaa154812adb27f27a99692c5e2812c5c6c7",
+        "byteLength": "540",
+        "diagnostics": []
+      },
+      "owner": "Published ontology cache contract provider",
+      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+    },
+    {
+      "paths": [
+        "src/ontology-loading/contracts/ontology-materialization-status.v1.schema.json"
+      ],
+      "formatContract": "preserved-bytes",
+      "allowFormatWrites": false,
+      "normalization": "preserve",
+      "expected": {
+        "sha256": "f94943b4bbd35eda283d6ae44573d70ceb6b0e54c6a672bc6f792db1273759fe",
+        "byteLength": "1183",
+        "diagnostics": []
+      },
+      "owner": "Published ontology cache contract provider",
+      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+    },
+    {
+      "paths": [
+        "src/ontology-loading/contracts/ontology-refresh-request.v1.schema.json"
+      ],
+      "formatContract": "preserved-bytes",
+      "allowFormatWrites": false,
+      "normalization": "preserve",
+      "expected": {
+        "sha256": "e1b2b8b3d292d91822193be0aae22615bdc9a84afef1d6a02ce3f6fba1586426",
+        "byteLength": "591",
+        "diagnostics": []
+      },
+      "owner": "Published ontology cache contract provider",
+      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+    },
+    {
+      "paths": [
+        "src/ontology-loading/contracts/ontology-refresh-result.v1.schema.json"
+      ],
+      "formatContract": "preserved-bytes",
+      "allowFormatWrites": false,
+      "normalization": "preserve",
+      "expected": {
+        "sha256": "ccb897b2dd61ad2b287d9b7a0adbd94a285e72870125341ca796cceb664b8753",
+        "byteLength": "9952",
+        "diagnostics": []
+      },
+      "owner": "Published ontology cache contract provider",
+      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+    },
+    {
+      "paths": [
+        "src/ontology-loading/contracts/ontology-resolution.v1.schema.json"
+      ],
+      "formatContract": "preserved-bytes",
+      "allowFormatWrites": false,
+      "normalization": "preserve",
+      "expected": {
+        "sha256": "2ff5fefa9c206e019c346ad165acb01fe265aad440f37dd5e0f005949260641f",
+        "byteLength": "4064",
+        "diagnostics": []
+      },
+      "owner": "Published ontology cache contract provider",
+      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+    },
+    {
+      "paths": [
+        "src/ontology-loading/contracts/ontology-seed-manifest.v1.schema.json"
+      ],
+      "formatContract": "preserved-bytes",
+      "allowFormatWrites": false,
+      "normalization": "preserve",
+      "expected": {
+        "sha256": "71e5eefab957e4cdee848246ceba944dee3868497c23d5f5edd7005f26caa16d",
+        "byteLength": "1679",
+        "diagnostics": []
+      },
+      "owner": "Published ontology cache contract provider",
+      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+    },
+    {
+      "paths": [
+        "src/ontology-loading/contracts/ontology-source-pointer.v1.schema.json"
+      ],
+      "formatContract": "preserved-bytes",
+      "allowFormatWrites": false,
+      "normalization": "preserve",
+      "expected": {
+        "sha256": "a3ea674cd9a1dcbcdd87dfee2c3667e7b19b25796fe004612452a9a5ee052743",
+        "byteLength": "4337",
+        "diagnostics": []
+      },
+      "owner": "Published ontology cache contract provider",
+      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+    },
+    {
+      "paths": [
+        "src/ontology-loading/contracts/ontology-source-version.v1.schema.json"
+      ],
+      "formatContract": "preserved-bytes",
+      "allowFormatWrites": false,
+      "normalization": "preserve",
+      "expected": {
+        "sha256": "52e48a61539d22f4b7404531f9ffa9ab946667344db9cc4e1bcddd5ad06f581c",
+        "byteLength": "1465",
+        "diagnostics": []
+      },
+      "owner": "Published ontology cache contract provider",
+      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+    },
+    {
+      "paths": [
+        "src/ontology-loading/contracts/ontology-validation.v1.schema.json"
+      ],
+      "formatContract": "preserved-bytes",
+      "allowFormatWrites": false,
+      "normalization": "preserve",
+      "expected": {
+        "sha256": "6217f2ee4dc8804fe59033fbdb6c5eb4d2637e2f18b401b10b3a1974c63b3ef9",
+        "byteLength": "2488",
+        "diagnostics": []
+      },
+      "owner": "Published ontology cache contract provider",
+      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+    },
+    {
+      "paths": [
         ".git/**",
         "**/node_modules/**",
         ".venv/**",

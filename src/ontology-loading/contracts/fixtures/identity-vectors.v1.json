@@ -1,0 +1,656 @@
+{
+  "fixtureVersion": 1,
+  "status": "DRAFT_LITERAL_VECTORS",
+  "notice": "Synthetic examples only. Package checksums and enforcement targets are not executable package/runtime evidence. Small unbounded/Unicode inputs test hash primitives, not schema-valid service policies.",
+  "vectors": [
+    {
+      "id": "source-exact",
+      "algorithm": "sha256-utf8",
+      "inputText": "https://ontology.example.test/onto#v1",
+      "canonicalJson": null,
+      "prefixUtf8Hex": "",
+      "expectedSha256": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f"
+    },
+    {
+      "id": "source-case-distinct",
+      "algorithm": "sha256-utf8",
+      "inputText": "https://ONTOLOGY.example.test/onto#v1",
+      "canonicalJson": null,
+      "prefixUtf8Hex": "",
+      "expectedSha256": "10f626d0ebe977d0cbe01b84f237a106499db0357ffca14689465ea7324315ab"
+    },
+    {
+      "id": "source-fragment-distinct",
+      "algorithm": "sha256-utf8",
+      "inputText": "https://ontology.example.test/onto#v2",
+      "canonicalJson": null,
+      "prefixUtf8Hex": "",
+      "expectedSha256": "be1304eaa94eae27536b678ebfdc8d830b2af1fcce96e50601cb674cbc8ae246"
+    },
+    {
+      "id": "artifact-A",
+      "algorithm": "sha256-utf8",
+      "inputText": "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n<> a owl:Ontology ; owl:imports <child.ttl> .\n<#Thing> a owl:Class .\n",
+      "canonicalJson": null,
+      "prefixUtf8Hex": "",
+      "expectedSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c"
+    },
+    {
+      "id": "artifact-B",
+      "algorithm": "sha256-utf8",
+      "inputText": "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n<> a owl:Ontology ; owl:imports <child.ttl> .\n<#Thing> a owl:Class .\n<#Other> a owl:Class .\n",
+      "canonicalJson": null,
+      "prefixUtf8Hex": "",
+      "expectedSha256": "e03b356125a6fc5b805e466dec9af345009123a41b231f5ce84ecc798a0e2295"
+    },
+    {
+      "id": "parser-artifact",
+      "algorithm": "domain-separated-jcs-sha256",
+      "domain": "parser-artifact",
+      "input": {
+        "dependencyName": "owlapi",
+        "packageName": "owlapi",
+        "packageVersion": "0.0.0-contract-fixture",
+        "selector": "synthetic-contract-fixture-only",
+        "sourceCommit": "0000000000000000000000000000000000000000",
+        "archiveSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "installedPayloadSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "dependencyClosureSha256": "3333333333333333333333333333333333333333333333333333333333333333",
+        "runtimeTarget": "synthetic-no-runtime"
+      },
+      "canonicalJson": "{\"archiveSha256\":\"1111111111111111111111111111111111111111111111111111111111111111\",\"dependencyClosureSha256\":\"3333333333333333333333333333333333333333333333333333333333333333\",\"dependencyName\":\"owlapi\",\"installedPayloadSha256\":\"2222222222222222222222222222222222222222222222222222222222222222\",\"packageName\":\"owlapi\",\"packageVersion\":\"0.0.0-contract-fixture\",\"runtimeTarget\":\"synthetic-no-runtime\",\"selector\":\"synthetic-contract-fixture-only\",\"sourceCommit\":\"0000000000000000000000000000000000000000\"}",
+      "prefixUtf8Hex": "68616464656e2d6f6e746f6c6f67792d63616368652f7061727365722d61727469666163742f76310a",
+      "expectedSha256": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619"
+    },
+    {
+      "id": "request-variant",
+      "algorithm": "domain-separated-jcs-sha256",
+      "domain": "request-variant",
+      "input": {
+        "accept": "text/turtle",
+        "acceptEncoding": "identity",
+        "selectionPolicyVersion": 1
+      },
+      "canonicalJson": "{\"accept\":\"text/turtle\",\"acceptEncoding\":\"identity\",\"selectionPolicyVersion\":1}",
+      "prefixUtf8Hex": "68616464656e2d6f6e746f6c6f67792d63616368652f726571756573742d76617269616e742f76310a",
+      "expectedSha256": "dd2c43dfdfce1dd431652d5c47568471230f059d0bd6694d1968a3e0f6e0477c"
+    },
+    {
+      "id": "loader-policy",
+      "algorithm": "domain-separated-jcs-sha256",
+      "domain": "loader-policy",
+      "input": {
+        "validationContractVersion": 1,
+        "validationProfileId": "ontology-source-document-v1",
+        "parseMode": "preserve",
+        "formatSelectionMode": "automatic",
+        "decodingPolicy": "strict-utf8-v1",
+        "parserBasePolicy": "effective-origin-response-v1",
+        "transportPolicy": "https-preferred-original-http-fallback-v1",
+        "remoteImports": false,
+        "remoteJsonLdContexts": false,
+        "externalXmlResources": false,
+        "sourceAssessmentAdmission": "report-only",
+        "formatInventorySha256": "4444444444444444444444444444444444444444444444444444444444444444",
+        "acceptPreferenceSha256": "5555555555555555555555555555555555555555555555555555555555555555",
+        "requestVariant": {
+          "accept": "text/turtle",
+          "acceptEncoding": "identity",
+          "selectionPolicyVersion": 1
+        },
+        "owlapiArtifact": {
+          "dependencyName": "owlapi",
+          "packageName": "owlapi",
+          "packageVersion": "0.0.0-contract-fixture",
+          "selector": "synthetic-contract-fixture-only",
+          "sourceCommit": "0000000000000000000000000000000000000000",
+          "archiveSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+          "installedPayloadSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+          "dependencyClosureSha256": "3333333333333333333333333333333333333333333333333333333333333333",
+          "runtimeTarget": "synthetic-no-runtime"
+        },
+        "limits": {
+          "encodedBytes": 33554432,
+          "decodedBytes": 33554432,
+          "expandedXmlBytes": 33554432,
+          "decompressionRatio": 100,
+          "redirects": 3,
+          "dnsMs": 3000,
+          "connectTlsMs": 5000,
+          "headersMs": 10000,
+          "retrievalMs": 30000,
+          "parseMs": 20000,
+          "workerMs": 60000,
+          "workerMemoryMiB": 2048,
+          "tokenCount": 4000000,
+          "tokenBytes": 1048576,
+          "axiomCount": 200000,
+          "blankNodeCount": 1000000,
+          "rdfQuadCount": 1000000,
+          "rdfListLength": 1000000,
+          "parserDepth": 128,
+          "entityDeclarations": 64,
+          "entityExpansionDepth": 8,
+          "entityReplacementBytes": 65536,
+          "importFetchCount": 0
+        },
+        "dependencyTranslations": [
+          {
+            "gate": "encodedBytes",
+            "enforcementTarget": "fixture-only:encodedBytes",
+            "unit": "bytes",
+            "value": 33554432,
+            "scope": "document",
+            "enforcement": "acquisition-owner"
+          },
+          {
+            "gate": "decodedBytes",
+            "enforcementTarget": "fixture-only:decodedBytes",
+            "unit": "bytes",
+            "value": 33554432,
+            "scope": "document",
+            "enforcement": "acquisition-owner"
+          },
+          {
+            "gate": "expandedXmlBytes",
+            "enforcementTarget": "fixture-only:expandedXmlBytes",
+            "unit": "bytes",
+            "value": 33554432,
+            "scope": "document",
+            "enforcement": "acquisition-owner"
+          },
+          {
+            "gate": "decompressionRatio",
+            "enforcementTarget": "fixture-only:decompressionRatio",
+            "unit": "ratio",
+            "value": 100,
+            "scope": "document",
+            "enforcement": "acquisition-owner"
+          },
+          {
+            "gate": "redirects",
+            "enforcementTarget": "fixture-only:redirects",
+            "unit": "count",
+            "value": 3,
+            "scope": "document",
+            "enforcement": "acquisition-owner"
+          },
+          {
+            "gate": "dnsMs",
+            "enforcementTarget": "fixture-only:dnsMs",
+            "unit": "milliseconds",
+            "value": 3000,
+            "scope": "document",
+            "enforcement": "acquisition-owner"
+          },
+          {
+            "gate": "connectTlsMs",
+            "enforcementTarget": "fixture-only:connectTlsMs",
+            "unit": "milliseconds",
+            "value": 5000,
+            "scope": "document",
+            "enforcement": "acquisition-owner"
+          },
+          {
+            "gate": "headersMs",
+            "enforcementTarget": "fixture-only:headersMs",
+            "unit": "milliseconds",
+            "value": 10000,
+            "scope": "document",
+            "enforcement": "acquisition-owner"
+          },
+          {
+            "gate": "retrievalMs",
+            "enforcementTarget": "fixture-only:retrievalMs",
+            "unit": "milliseconds",
+            "value": 30000,
+            "scope": "document",
+            "enforcement": "acquisition-owner"
+          },
+          {
+            "gate": "parseMs",
+            "enforcementTarget": "fixture-only:parseMs",
+            "unit": "milliseconds",
+            "value": 20000,
+            "scope": "document",
+            "enforcement": "acquisition-owner"
+          },
+          {
+            "gate": "workerMs",
+            "enforcementTarget": "fixture-only:workerMs",
+            "unit": "milliseconds",
+            "value": 60000,
+            "scope": "worker",
+            "enforcement": "worker-isolation"
+          },
+          {
+            "gate": "workerMemoryMiB",
+            "enforcementTarget": "fixture-only:workerMemoryMiB",
+            "unit": "mebibytes",
+            "value": 2048,
+            "scope": "worker",
+            "enforcement": "worker-isolation"
+          },
+          {
+            "gate": "tokenCount",
+            "enforcementTarget": "fixture-only:tokenCount",
+            "unit": "count",
+            "value": 4000000,
+            "scope": "document",
+            "enforcement": "acquisition-owner"
+          },
+          {
+            "gate": "tokenBytes",
+            "enforcementTarget": "fixture-only:tokenBytes",
+            "unit": "bytes",
+            "value": 1048576,
+            "scope": "document",
+            "enforcement": "acquisition-owner"
+          },
+          {
+            "gate": "axiomCount",
+            "enforcementTarget": "fixture-only:axiomCount",
+            "unit": "count",
+            "value": 200000,
+            "scope": "document",
+            "enforcement": "acquisition-owner"
+          },
+          {
+            "gate": "blankNodeCount",
+            "enforcementTarget": "fixture-only:blankNodeCount",
+            "unit": "count",
+            "value": 1000000,
+            "scope": "document",
+            "enforcement": "acquisition-owner"
+          },
+          {
+            "gate": "rdfQuadCount",
+            "enforcementTarget": "fixture-only:rdfQuadCount",
+            "unit": "count",
+            "value": 1000000,
+            "scope": "document",
+            "enforcement": "acquisition-owner"
+          },
+          {
+            "gate": "rdfListLength",
+            "enforcementTarget": "fixture-only:rdfListLength",
+            "unit": "count",
+            "value": 1000000,
+            "scope": "document",
+            "enforcement": "acquisition-owner"
+          },
+          {
+            "gate": "parserDepth",
+            "enforcementTarget": "fixture-only:parserDepth",
+            "unit": "depth",
+            "value": 128,
+            "scope": "document",
+            "enforcement": "acquisition-owner"
+          },
+          {
+            "gate": "entityDeclarations",
+            "enforcementTarget": "fixture-only:entityDeclarations",
+            "unit": "count",
+            "value": 64,
+            "scope": "document",
+            "enforcement": "acquisition-owner"
+          },
+          {
+            "gate": "entityExpansionDepth",
+            "enforcementTarget": "fixture-only:entityExpansionDepth",
+            "unit": "depth",
+            "value": 8,
+            "scope": "document",
+            "enforcement": "acquisition-owner"
+          },
+          {
+            "gate": "entityReplacementBytes",
+            "enforcementTarget": "fixture-only:entityReplacementBytes",
+            "unit": "bytes",
+            "value": 65536,
+            "scope": "document",
+            "enforcement": "acquisition-owner"
+          },
+          {
+            "gate": "importFetchCount",
+            "enforcementTarget": "fixture-only:importFetchCount",
+            "unit": "count",
+            "value": 0,
+            "scope": "document",
+            "enforcement": "acquisition-owner"
+          }
+        ]
+      },
+      "canonicalJson": "{\"acceptPreferenceSha256\":\"5555555555555555555555555555555555555555555555555555555555555555\",\"decodingPolicy\":\"strict-utf8-v1\",\"dependencyTranslations\":[{\"enforcement\":\"acquisition-owner\",\"enforcementTarget\":\"fixture-only:encodedBytes\",\"gate\":\"encodedBytes\",\"scope\":\"document\",\"unit\":\"bytes\",\"value\":33554432},{\"enforcement\":\"acquisition-owner\",\"enforcementTarget\":\"fixture-only:decodedBytes\",\"gate\":\"decodedBytes\",\"scope\":\"document\",\"unit\":\"bytes\",\"value\":33554432},{\"enforcement\":\"acquisition-owner\",\"enforcementTarget\":\"fixture-only:expandedXmlBytes\",\"gate\":\"expandedXmlBytes\",\"scope\":\"document\",\"unit\":\"bytes\",\"value\":33554432},{\"enforcement\":\"acquisition-owner\",\"enforcementTarget\":\"fixture-only:decompressionRatio\",\"gate\":\"decompressionRatio\",\"scope\":\"document\",\"unit\":\"ratio\",\"value\":100},{\"enforcement\":\"acquisition-owner\",\"enforcementTarget\":\"fixture-only:redirects\",\"gate\":\"redirects\",\"scope\":\"document\",\"unit\":\"count\",\"value\":3},{\"enforcement\":\"acquisition-owner\",\"enforcementTarget\":\"fixture-only:dnsMs\",\"gate\":\"dnsMs\",\"scope\":\"document\",\"unit\":\"milliseconds\",\"value\":3000},{\"enforcement\":\"acquisition-owner\",\"enforcementTarget\":\"fixture-only:connectTlsMs\",\"gate\":\"connectTlsMs\",\"scope\":\"document\",\"unit\":\"milliseconds\",\"value\":5000},{\"enforcement\":\"acquisition-owner\",\"enforcementTarget\":\"fixture-only:headersMs\",\"gate\":\"headersMs\",\"scope\":\"document\",\"unit\":\"milliseconds\",\"value\":10000},{\"enforcement\":\"acquisition-owner\",\"enforcementTarget\":\"fixture-only:retrievalMs\",\"gate\":\"retrievalMs\",\"scope\":\"document\",\"unit\":\"milliseconds\",\"value\":30000},{\"enforcement\":\"acquisition-owner\",\"enforcementTarget\":\"fixture-only:parseMs\",\"gate\":\"parseMs\",\"scope\":\"document\",\"unit\":\"milliseconds\",\"value\":20000},{\"enforcement\":\"worker-isolation\",\"enforcementTarget\":\"fixture-only:workerMs\",\"gate\":\"workerMs\",\"scope\":\"worker\",\"unit\":\"milliseconds\",\"value\":60000},{\"enforcement\":\"worker-isolation\",\"enforcementTarget\":\"fixture-only:workerMemoryMiB\",\"gate\":\"workerMemoryMiB\",\"scope\":\"worker\",\"unit\":\"mebibytes\",\"value\":2048},{\"enforcement\":\"acquisition-owner\",\"enforcementTarget\":\"fixture-only:tokenCount\",\"gate\":\"tokenCount\",\"scope\":\"document\",\"unit\":\"count\",\"value\":4000000},{\"enforcement\":\"acquisition-owner\",\"enforcementTarget\":\"fixture-only:tokenBytes\",\"gate\":\"tokenBytes\",\"scope\":\"document\",\"unit\":\"bytes\",\"value\":1048576},{\"enforcement\":\"acquisition-owner\",\"enforcementTarget\":\"fixture-only:axiomCount\",\"gate\":\"axiomCount\",\"scope\":\"document\",\"unit\":\"count\",\"value\":200000},{\"enforcement\":\"acquisition-owner\",\"enforcementTarget\":\"fixture-only:blankNodeCount\",\"gate\":\"blankNodeCount\",\"scope\":\"document\",\"unit\":\"count\",\"value\":1000000},{\"enforcement\":\"acquisition-owner\",\"enforcementTarget\":\"fixture-only:rdfQuadCount\",\"gate\":\"rdfQuadCount\",\"scope\":\"document\",\"unit\":\"count\",\"value\":1000000},{\"enforcement\":\"acquisition-owner\",\"enforcementTarget\":\"fixture-only:rdfListLength\",\"gate\":\"rdfListLength\",\"scope\":\"document\",\"unit\":\"count\",\"value\":1000000},{\"enforcement\":\"acquisition-owner\",\"enforcementTarget\":\"fixture-only:parserDepth\",\"gate\":\"parserDepth\",\"scope\":\"document\",\"unit\":\"depth\",\"value\":128},{\"enforcement\":\"acquisition-owner\",\"enforcementTarget\":\"fixture-only:entityDeclarations\",\"gate\":\"entityDeclarations\",\"scope\":\"document\",\"unit\":\"count\",\"value\":64},{\"enforcement\":\"acquisition-owner\",\"enforcementTarget\":\"fixture-only:entityExpansionDepth\",\"gate\":\"entityExpansionDepth\",\"scope\":\"document\",\"unit\":\"depth\",\"value\":8},{\"enforcement\":\"acquisition-owner\",\"enforcementTarget\":\"fixture-only:entityReplacementBytes\",\"gate\":\"entityReplacementBytes\",\"scope\":\"document\",\"unit\":\"bytes\",\"value\":65536},{\"enforcement\":\"acquisition-owner\",\"enforcementTarget\":\"fixture-only:importFetchCount\",\"gate\":\"importFetchCount\",\"scope\":\"document\",\"unit\":\"count\",\"value\":0}],\"externalXmlResources\":false,\"formatInventorySha256\":\"4444444444444444444444444444444444444444444444444444444444444444\",\"formatSelectionMode\":\"automatic\",\"limits\":{\"axiomCount\":200000,\"blankNodeCount\":1000000,\"connectTlsMs\":5000,\"decodedBytes\":33554432,\"decompressionRatio\":100,\"dnsMs\":3000,\"encodedBytes\":33554432,\"entityDeclarations\":64,\"entityExpansionDepth\":8,\"entityReplacementBytes\":65536,\"expandedXmlBytes\":33554432,\"headersMs\":10000,\"importFetchCount\":0,\"parseMs\":20000,\"parserDepth\":128,\"rdfListLength\":1000000,\"rdfQuadCount\":1000000,\"redirects\":3,\"retrievalMs\":30000,\"tokenBytes\":1048576,\"tokenCount\":4000000,\"workerMemoryMiB\":2048,\"workerMs\":60000},\"owlapiArtifact\":{\"archiveSha256\":\"1111111111111111111111111111111111111111111111111111111111111111\",\"dependencyClosureSha256\":\"3333333333333333333333333333333333333333333333333333333333333333\",\"dependencyName\":\"owlapi\",\"installedPayloadSha256\":\"2222222222222222222222222222222222222222222222222222222222222222\",\"packageName\":\"owlapi\",\"packageVersion\":\"0.0.0-contract-fixture\",\"runtimeTarget\":\"synthetic-no-runtime\",\"selector\":\"synthetic-contract-fixture-only\",\"sourceCommit\":\"0000000000000000000000000000000000000000\"},\"parseMode\":\"preserve\",\"parserBasePolicy\":\"effective-origin-response-v1\",\"remoteImports\":false,\"remoteJsonLdContexts\":false,\"requestVariant\":{\"accept\":\"text/turtle\",\"acceptEncoding\":\"identity\",\"selectionPolicyVersion\":1},\"sourceAssessmentAdmission\":\"report-only\",\"transportPolicy\":\"https-preferred-original-http-fallback-v1\",\"validationContractVersion\":1,\"validationProfileId\":\"ontology-source-document-v1\"}",
+      "prefixUtf8Hex": "68616464656e2d6f6e746f6c6f67792d63616368652f6c6f616465722d706f6c6963792f76310a",
+      "expectedSha256": "dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6"
+    },
+    {
+      "id": "logical-unbounded",
+      "algorithm": "domain-separated-jcs-sha256",
+      "domain": "loader-policy",
+      "input": {
+        "maxInputBytes": {
+          "kind": "unbounded"
+        }
+      },
+      "canonicalJson": "{\"maxInputBytes\":{\"kind\":\"unbounded\"}}",
+      "prefixUtf8Hex": "68616464656e2d6f6e746f6c6f67792d63616368652f6c6f616465722d706f6c6963792f76310a",
+      "expectedSha256": "82a057018bd1705ad9675cf0dd877411129db02d71f0af9d7f5c46a13a4e3ce6"
+    },
+    {
+      "id": "finite-max-safe",
+      "algorithm": "domain-separated-jcs-sha256",
+      "domain": "loader-policy",
+      "input": {
+        "maxInputBytes": 9007199254740991
+      },
+      "canonicalJson": "{\"maxInputBytes\":9007199254740991}",
+      "prefixUtf8Hex": "68616464656e2d6f6e746f6c6f67792d63616368652f6c6f616465722d706f6c6963792f76310a",
+      "expectedSha256": "8f868f484bdb02af747fcd7926464d5dcdc495ec9345fb9715cc97d8f5bb45be"
+    },
+    {
+      "id": "unicode-order",
+      "algorithm": "domain-separated-jcs-sha256",
+      "domain": "request-variant",
+      "input": {
+        "": "private",
+        "😀": "supplementary",
+        "a": null,
+        "A": 0
+      },
+      "canonicalJson": "{\"A\":0,\"a\":null,\"😀\":\"supplementary\",\"\":\"private\"}",
+      "prefixUtf8Hex": "68616464656e2d6f6e746f6c6f67792d63616368652f726571756573742d76617269616e742f76310a",
+      "expectedSha256": "740c25c23af8a810dda1ec34a0a805ef114677b228c1fc156a3e23e185071548"
+    },
+    {
+      "id": "A-version",
+      "algorithm": "domain-separated-jcs-sha256",
+      "domain": "source-version",
+      "input": {
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "effectiveRetrievalIri": "https://origin.example.test/v1/root.ttl",
+        "parserDocumentIri": "https://origin.example.test/v1/root.ttl"
+      },
+      "canonicalJson": "{\"artifactSha256\":\"4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c\",\"effectiveRetrievalIri\":\"https://origin.example.test/v1/root.ttl\",\"parserDocumentIri\":\"https://origin.example.test/v1/root.ttl\",\"sourceKey\":\"2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f\"}",
+      "prefixUtf8Hex": "68616464656e2d6f6e746f6c6f67792d63616368652f736f757263652d76657273696f6e2f76310a",
+      "expectedSha256": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f"
+    },
+    {
+      "id": "A-validation",
+      "algorithm": "domain-separated-jcs-sha256",
+      "domain": "document-validation",
+      "input": {
+        "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+        "formatSelectionMode": "automatic",
+        "explicitFormatId": null,
+        "observedFormatId": "turtle",
+        "owlapiArtifactIdentity": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619",
+        "loaderProfileFingerprint": "dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6",
+        "validationContractVersion": 1
+      },
+      "canonicalJson": "{\"artifactSha256\":\"4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c\",\"explicitFormatId\":null,\"formatSelectionMode\":\"automatic\",\"loaderProfileFingerprint\":\"dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6\",\"observedFormatId\":\"turtle\",\"owlapiArtifactIdentity\":\"9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619\",\"parserDocumentIri\":\"https://origin.example.test/v1/root.ttl\",\"validationContractVersion\":1}",
+      "prefixUtf8Hex": "68616464656e2d6f6e746f6c6f67792d63616368652f646f63756d656e742d76616c69646174696f6e2f76310a",
+      "expectedSha256": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2"
+    },
+    {
+      "id": "B-version",
+      "algorithm": "domain-separated-jcs-sha256",
+      "domain": "source-version",
+      "input": {
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "artifactSha256": "e03b356125a6fc5b805e466dec9af345009123a41b231f5ce84ecc798a0e2295",
+        "effectiveRetrievalIri": "https://origin.example.test/v1/root.ttl",
+        "parserDocumentIri": "https://origin.example.test/v1/root.ttl"
+      },
+      "canonicalJson": "{\"artifactSha256\":\"e03b356125a6fc5b805e466dec9af345009123a41b231f5ce84ecc798a0e2295\",\"effectiveRetrievalIri\":\"https://origin.example.test/v1/root.ttl\",\"parserDocumentIri\":\"https://origin.example.test/v1/root.ttl\",\"sourceKey\":\"2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f\"}",
+      "prefixUtf8Hex": "68616464656e2d6f6e746f6c6f67792d63616368652f736f757263652d76657273696f6e2f76310a",
+      "expectedSha256": "43c0844468875124582d63c66c1f84c5ae9d2f0ff8478ae92e9f200b38a42551"
+    },
+    {
+      "id": "B-validation",
+      "algorithm": "domain-separated-jcs-sha256",
+      "domain": "document-validation",
+      "input": {
+        "artifactSha256": "e03b356125a6fc5b805e466dec9af345009123a41b231f5ce84ecc798a0e2295",
+        "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+        "formatSelectionMode": "automatic",
+        "explicitFormatId": null,
+        "observedFormatId": "turtle",
+        "owlapiArtifactIdentity": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619",
+        "loaderProfileFingerprint": "dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6",
+        "validationContractVersion": 1
+      },
+      "canonicalJson": "{\"artifactSha256\":\"e03b356125a6fc5b805e466dec9af345009123a41b231f5ce84ecc798a0e2295\",\"explicitFormatId\":null,\"formatSelectionMode\":\"automatic\",\"loaderProfileFingerprint\":\"dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6\",\"observedFormatId\":\"turtle\",\"owlapiArtifactIdentity\":\"9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619\",\"parserDocumentIri\":\"https://origin.example.test/v1/root.ttl\",\"validationContractVersion\":1}",
+      "prefixUtf8Hex": "68616464656e2d6f6e746f6c6f67792d63616368652f646f63756d656e742d76616c69646174696f6e2f76310a",
+      "expectedSha256": "d29ccd58cffcbe04b0c17bcde619ad1947a919039014b92f7510992bdfff6283"
+    },
+    {
+      "id": "same-bytes-other-context",
+      "algorithm": "domain-separated-jcs-sha256",
+      "domain": "source-version",
+      "input": {
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "effectiveRetrievalIri": "https://origin.example.test/v2/root.ttl",
+        "parserDocumentIri": "https://origin.example.test/v2/root.ttl"
+      },
+      "canonicalJson": "{\"artifactSha256\":\"4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c\",\"effectiveRetrievalIri\":\"https://origin.example.test/v2/root.ttl\",\"parserDocumentIri\":\"https://origin.example.test/v2/root.ttl\",\"sourceKey\":\"2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f\"}",
+      "prefixUtf8Hex": "68616464656e2d6f6e746f6c6f67792d63616368652f736f757263652d76657273696f6e2f76310a",
+      "expectedSha256": "1da5ef62c5ab32a9298b482f70450d06814600f944bca6332dc75d415f8f18ec"
+    },
+    {
+      "id": "A-resolution",
+      "algorithm": "domain-separated-jcs-sha256",
+      "domain": "resolution",
+      "input": {
+        "schemaVersion": 1,
+        "kind": "resolution",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "generation": 1,
+        "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+        "requestedDocumentIri": "https://ontology.example.test/onto#v1",
+        "retrievalIri": "https://ontology.example.test/onto",
+        "effectiveRetrievalIri": "https://origin.example.test/v1/root.ttl",
+        "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+        "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactByteLength": 117,
+        "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+        "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2.json",
+        "loaderProfileFingerprint": "dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6",
+        "loaderPolicyIri": "https://cache.example.test/ontology/cache/policies/sha256/dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6.json",
+        "owlapiArtifactIdentity": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619",
+        "formatSelectionMode": "automatic",
+        "explicitFormatId": null,
+        "observedFormatId": "turtle",
+        "decodingPolicy": "strict-utf8-v1",
+        "validationContractVersion": 1,
+        "acquiredAt": "2026-10-01T00:00:00.000Z",
+        "checkedAt": "2026-10-01T00:00:00.000Z",
+        "originMetadata": {
+          "status": 200,
+          "contentType": "text/turtle",
+          "contentEncoding": "identity",
+          "cacheControl": "public, max-age=86400",
+          "vary": ["accept"],
+          "validators": {
+            "etag": "\"fixture-A\""
+          }
+        },
+        "requestVariant": {
+          "accept": "text/turtle",
+          "acceptEncoding": "identity",
+          "selectionPolicyVersion": 1
+        },
+        "requestVariantFingerprint": "dd2c43dfdfce1dd431652d5c47568471230f059d0bd6694d1968a3e0f6e0477c",
+        "publicationDisposition": "AUTOMATIC_PUBLIC_ARCHIVE",
+        "sourceAssessment": "valid",
+        "closureQualification": "UNASSESSED"
+      },
+      "canonicalJson": "{\"acquiredAt\":\"2026-10-01T00:00:00.000Z\",\"artifactByteLength\":117,\"artifactIri\":\"https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c\",\"artifactSha256\":\"4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c\",\"checkedAt\":\"2026-10-01T00:00:00.000Z\",\"closureQualification\":\"UNASSESSED\",\"decodingPolicy\":\"strict-utf8-v1\",\"effectiveRetrievalIri\":\"https://origin.example.test/v1/root.ttl\",\"explicitFormatId\":null,\"formatSelectionMode\":\"automatic\",\"generation\":1,\"kind\":\"resolution\",\"loaderPolicyIri\":\"https://cache.example.test/ontology/cache/policies/sha256/dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6.json\",\"loaderProfileFingerprint\":\"dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6\",\"observedFormatId\":\"turtle\",\"originMetadata\":{\"cacheControl\":\"public, max-age=86400\",\"contentEncoding\":\"identity\",\"contentType\":\"text/turtle\",\"status\":200,\"validators\":{\"etag\":\"\\\"fixture-A\\\"\"},\"vary\":[\"accept\"]},\"owlapiArtifactIdentity\":\"9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619\",\"parserDocumentIri\":\"https://origin.example.test/v1/root.ttl\",\"publicationDisposition\":\"AUTOMATIC_PUBLIC_ARCHIVE\",\"requestVariant\":{\"accept\":\"text/turtle\",\"acceptEncoding\":\"identity\",\"selectionPolicyVersion\":1},\"requestVariantFingerprint\":\"dd2c43dfdfce1dd431652d5c47568471230f059d0bd6694d1968a3e0f6e0477c\",\"requestedDocumentIri\":\"https://ontology.example.test/onto#v1\",\"retrievalIri\":\"https://ontology.example.test/onto\",\"schemaVersion\":1,\"sourceAssessment\":\"valid\",\"sourceKey\":\"2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f\",\"sourceVersionIdentity\":\"e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f\",\"validationContractVersion\":1,\"validationIdentity\":\"79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2\",\"validationIri\":\"https://cache.example.test/ontology/cache/validations/sha256/79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2.json\"}",
+      "prefixUtf8Hex": "68616464656e2d6f6e746f6c6f67792d63616368652f7265736f6c7574696f6e2f76310a",
+      "expectedSha256": "2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46"
+    },
+    {
+      "id": "A304-resolution",
+      "algorithm": "domain-separated-jcs-sha256",
+      "domain": "resolution",
+      "input": {
+        "schemaVersion": 1,
+        "kind": "resolution",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "generation": 2,
+        "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+        "requestedDocumentIri": "https://ontology.example.test/onto#v1",
+        "retrievalIri": "https://ontology.example.test/onto",
+        "effectiveRetrievalIri": "https://origin.example.test/v1/root.ttl",
+        "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+        "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactByteLength": 117,
+        "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+        "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2.json",
+        "loaderProfileFingerprint": "dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6",
+        "loaderPolicyIri": "https://cache.example.test/ontology/cache/policies/sha256/dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6.json",
+        "owlapiArtifactIdentity": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619",
+        "formatSelectionMode": "automatic",
+        "explicitFormatId": null,
+        "observedFormatId": "turtle",
+        "decodingPolicy": "strict-utf8-v1",
+        "validationContractVersion": 1,
+        "acquiredAt": "2026-10-01T00:00:00.000Z",
+        "checkedAt": "2026-10-02T00:00:02.000Z",
+        "originMetadata": {
+          "status": 304,
+          "contentType": "text/turtle",
+          "contentEncoding": "identity",
+          "cacheControl": "public, max-age=86400",
+          "vary": ["accept"],
+          "validators": {
+            "etag": "\"fixture-A\""
+          }
+        },
+        "requestVariant": {
+          "accept": "text/turtle",
+          "acceptEncoding": "identity",
+          "selectionPolicyVersion": 1
+        },
+        "requestVariantFingerprint": "dd2c43dfdfce1dd431652d5c47568471230f059d0bd6694d1968a3e0f6e0477c",
+        "publicationDisposition": "AUTOMATIC_PUBLIC_ARCHIVE",
+        "sourceAssessment": "valid",
+        "closureQualification": "UNASSESSED"
+      },
+      "canonicalJson": "{\"acquiredAt\":\"2026-10-01T00:00:00.000Z\",\"artifactByteLength\":117,\"artifactIri\":\"https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c\",\"artifactSha256\":\"4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c\",\"checkedAt\":\"2026-10-02T00:00:02.000Z\",\"closureQualification\":\"UNASSESSED\",\"decodingPolicy\":\"strict-utf8-v1\",\"effectiveRetrievalIri\":\"https://origin.example.test/v1/root.ttl\",\"explicitFormatId\":null,\"formatSelectionMode\":\"automatic\",\"generation\":2,\"kind\":\"resolution\",\"loaderPolicyIri\":\"https://cache.example.test/ontology/cache/policies/sha256/dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6.json\",\"loaderProfileFingerprint\":\"dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6\",\"observedFormatId\":\"turtle\",\"originMetadata\":{\"cacheControl\":\"public, max-age=86400\",\"contentEncoding\":\"identity\",\"contentType\":\"text/turtle\",\"status\":304,\"validators\":{\"etag\":\"\\\"fixture-A\\\"\"},\"vary\":[\"accept\"]},\"owlapiArtifactIdentity\":\"9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619\",\"parserDocumentIri\":\"https://origin.example.test/v1/root.ttl\",\"publicationDisposition\":\"AUTOMATIC_PUBLIC_ARCHIVE\",\"requestVariant\":{\"accept\":\"text/turtle\",\"acceptEncoding\":\"identity\",\"selectionPolicyVersion\":1},\"requestVariantFingerprint\":\"dd2c43dfdfce1dd431652d5c47568471230f059d0bd6694d1968a3e0f6e0477c\",\"requestedDocumentIri\":\"https://ontology.example.test/onto#v1\",\"retrievalIri\":\"https://ontology.example.test/onto\",\"schemaVersion\":1,\"sourceAssessment\":\"valid\",\"sourceKey\":\"2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f\",\"sourceVersionIdentity\":\"e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f\",\"validationContractVersion\":1,\"validationIdentity\":\"79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2\",\"validationIri\":\"https://cache.example.test/ontology/cache/validations/sha256/79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2.json\"}",
+      "prefixUtf8Hex": "68616464656e2d6f6e746f6c6f67792d63616368652f7265736f6c7574696f6e2f76310a",
+      "expectedSha256": "950e443a7ce89a9678fe9255f068a47e4588847489a0fed3385bc0860c2927c0"
+    },
+    {
+      "id": "B-resolution",
+      "algorithm": "domain-separated-jcs-sha256",
+      "domain": "resolution",
+      "input": {
+        "schemaVersion": 1,
+        "kind": "resolution",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "generation": 2,
+        "sourceVersionIdentity": "43c0844468875124582d63c66c1f84c5ae9d2f0ff8478ae92e9f200b38a42551",
+        "requestedDocumentIri": "https://ontology.example.test/onto#v1",
+        "retrievalIri": "https://ontology.example.test/onto",
+        "effectiveRetrievalIri": "https://origin.example.test/v1/root.ttl",
+        "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+        "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/e03b356125a6fc5b805e466dec9af345009123a41b231f5ce84ecc798a0e2295",
+        "artifactSha256": "e03b356125a6fc5b805e466dec9af345009123a41b231f5ce84ecc798a0e2295",
+        "artifactByteLength": 140,
+        "validationIdentity": "d29ccd58cffcbe04b0c17bcde619ad1947a919039014b92f7510992bdfff6283",
+        "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/d29ccd58cffcbe04b0c17bcde619ad1947a919039014b92f7510992bdfff6283.json",
+        "loaderProfileFingerprint": "dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6",
+        "loaderPolicyIri": "https://cache.example.test/ontology/cache/policies/sha256/dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6.json",
+        "owlapiArtifactIdentity": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619",
+        "formatSelectionMode": "automatic",
+        "explicitFormatId": null,
+        "observedFormatId": "turtle",
+        "decodingPolicy": "strict-utf8-v1",
+        "validationContractVersion": 1,
+        "acquiredAt": "2026-10-02T00:00:02.000Z",
+        "checkedAt": "2026-10-02T00:00:02.000Z",
+        "originMetadata": {
+          "status": 200,
+          "contentType": "text/turtle",
+          "contentEncoding": "identity",
+          "cacheControl": "public, max-age=86400",
+          "vary": ["accept"],
+          "validators": {
+            "etag": "\"fixture-B\""
+          }
+        },
+        "requestVariant": {
+          "accept": "text/turtle",
+          "acceptEncoding": "identity",
+          "selectionPolicyVersion": 1
+        },
+        "requestVariantFingerprint": "dd2c43dfdfce1dd431652d5c47568471230f059d0bd6694d1968a3e0f6e0477c",
+        "publicationDisposition": "AUTOMATIC_PUBLIC_ARCHIVE",
+        "sourceAssessment": "valid",
+        "closureQualification": "UNASSESSED"
+      },
+      "canonicalJson": "{\"acquiredAt\":\"2026-10-02T00:00:02.000Z\",\"artifactByteLength\":140,\"artifactIri\":\"https://cache.example.test/ontology/cache/artifacts/sha256/e03b356125a6fc5b805e466dec9af345009123a41b231f5ce84ecc798a0e2295\",\"artifactSha256\":\"e03b356125a6fc5b805e466dec9af345009123a41b231f5ce84ecc798a0e2295\",\"checkedAt\":\"2026-10-02T00:00:02.000Z\",\"closureQualification\":\"UNASSESSED\",\"decodingPolicy\":\"strict-utf8-v1\",\"effectiveRetrievalIri\":\"https://origin.example.test/v1/root.ttl\",\"explicitFormatId\":null,\"formatSelectionMode\":\"automatic\",\"generation\":2,\"kind\":\"resolution\",\"loaderPolicyIri\":\"https://cache.example.test/ontology/cache/policies/sha256/dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6.json\",\"loaderProfileFingerprint\":\"dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6\",\"observedFormatId\":\"turtle\",\"originMetadata\":{\"cacheControl\":\"public, max-age=86400\",\"contentEncoding\":\"identity\",\"contentType\":\"text/turtle\",\"status\":200,\"validators\":{\"etag\":\"\\\"fixture-B\\\"\"},\"vary\":[\"accept\"]},\"owlapiArtifactIdentity\":\"9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619\",\"parserDocumentIri\":\"https://origin.example.test/v1/root.ttl\",\"publicationDisposition\":\"AUTOMATIC_PUBLIC_ARCHIVE\",\"requestVariant\":{\"accept\":\"text/turtle\",\"acceptEncoding\":\"identity\",\"selectionPolicyVersion\":1},\"requestVariantFingerprint\":\"dd2c43dfdfce1dd431652d5c47568471230f059d0bd6694d1968a3e0f6e0477c\",\"requestedDocumentIri\":\"https://ontology.example.test/onto#v1\",\"retrievalIri\":\"https://ontology.example.test/onto\",\"schemaVersion\":1,\"sourceAssessment\":\"valid\",\"sourceKey\":\"2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f\",\"sourceVersionIdentity\":\"43c0844468875124582d63c66c1f84c5ae9d2f0ff8478ae92e9f200b38a42551\",\"validationContractVersion\":1,\"validationIdentity\":\"d29ccd58cffcbe04b0c17bcde619ad1947a919039014b92f7510992bdfff6283\",\"validationIri\":\"https://cache.example.test/ontology/cache/validations/sha256/d29ccd58cffcbe04b0c17bcde619ad1947a919039014b92f7510992bdfff6283.json\"}",
+      "prefixUtf8Hex": "68616464656e2d6f6e746f6c6f67792d63616368652f7265736f6c7574696f6e2f76310a",
+      "expectedSha256": "5f14bf461a8e6ab9f93588827a3ba605245d6f5dbacfafcb3417bb3399c4b212"
+    },
+    {
+      "id": "catalog-generation",
+      "algorithm": "domain-separated-jcs-sha256",
+      "domain": "catalog-generation",
+      "input": {
+        "schemaVersion": 1,
+        "kind": "catalog-generation",
+        "mappings": [
+          {
+            "name": "https://ontology.example.test/onto#v1",
+            "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+            "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+            "resolutionIdentity": "2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46"
+          }
+        ]
+      },
+      "canonicalJson": "{\"kind\":\"catalog-generation\",\"mappings\":[{\"artifactSha256\":\"4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c\",\"name\":\"https://ontology.example.test/onto#v1\",\"resolutionIdentity\":\"2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46\",\"sourceKey\":\"2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f\"}],\"schemaVersion\":1}",
+      "prefixUtf8Hex": "68616464656e2d6f6e746f6c6f67792d63616368652f636174616c6f672d67656e65726174696f6e2f76310a",
+      "expectedSha256": "8e8e275f2f730c58d9d8ffe06bd2b36d42c9e5a439e0e646c88a20d5e540a060"
+    }
+  ],
+  "relations": [
+    {
+      "a": "A-resolution",
+      "operator": "differs",
+      "b": "A304-resolution"
+    },
+    {
+      "a": "A-version",
+      "operator": "differs",
+      "b": "B-version"
+    },
+    {
+      "a": "A-version",
+      "operator": "differs",
+      "b": "same-bytes-other-context"
+    },
+    {
+      "a": "logical-unbounded",
+      "operator": "differs",
+      "b": "finite-max-safe"
+    },
+    {
+      "a": "source-exact",
+      "operator": "differs",
+      "b": "source-case-distinct"
+    },
+    {
+      "a": "source-exact",
+      "operator": "differs",
+      "b": "source-fragment-distinct"
+    }
+  ]
+}

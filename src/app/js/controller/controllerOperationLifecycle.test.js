@@ -41,7 +41,7 @@ test("every actual public member has exactly one document or application classif
   try {
     const document = Object.keys(CONTROLLER_OPERATION_CLASSES);
     const application = Object.keys(CONTROLLER_APPLICATION_MEMBERS);
-    expect(document).toHaveLength(32);
+    expect(document).toHaveLength(34);
     expect(application).toHaveLength(10);
     expect(document.filter((name) => application.includes(name))).toEqual([]);
     expect([...document, ...application].sort()).toEqual(
@@ -51,6 +51,18 @@ test("every actual public member has exactly one document or application classif
     h.controller.dispose();
   }
 });
+
+test.each(["refreshOntologySource", "applyOntologySourceUpdate"])(
+  "%s retains the document read guard during a replacement",
+  (operation) => {
+    const h = harness();
+    const ticket = h.begin("loadOntology");
+    expect(() => h.lifecycle.check(operation)).toThrow(
+      expect.objectContaining({ code: "LOAD_PENDING" }),
+    );
+    ticket.release();
+  },
+);
 
 test("unaccepted scene work does not take the preceding view's ownership", () => {
   const h = harness();

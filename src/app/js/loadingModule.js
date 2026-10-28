@@ -57,6 +57,22 @@ export function createLoadingModule({
   let isSetup = false;
   let fileReadSequence = 0;
   let pendingInput;
+  const cacheSource =
+    typeof document === "undefined"
+      ? null
+      : document.querySelector("#ontologyCacheSource");
+  const cacheStatus =
+    typeof document === "undefined"
+      ? null
+      : document.querySelector("#ontologyCacheSourceStatus");
+  const checkSource =
+    typeof document === "undefined"
+      ? null
+      : document.querySelector("#checkOntologySourceUpdate");
+  const applySource =
+    typeof document === "undefined"
+      ? null
+      : document.querySelector("#applyOntologySourceUpdate");
 
   function supersedeInput() {
     fileReadSequence += 1;
@@ -210,6 +226,27 @@ export function createLoadingModule({
       return;
     }
     isSetup = true;
+    for (const [button, action] of [
+      [checkSource, "refreshOntologySource"],
+      [applySource, "applyOntologySourceUpdate"],
+    ]) {
+      button?.addEventListener(
+        "click",
+        async () => {
+          button.disabled = true;
+          try {
+            await webVowlController[action]();
+          } catch (_error) {
+            if (!lifecycleAbortController.signal.aborted) {
+              loadingModule.renderControllerState(webVowlController.getState());
+              cacheStatus.textContent =
+                "The source check or update could not finish. The current graph remains open.";
+            }
+          }
+        },
+        { signal: lifecycleAbortController.signal },
+      );
+    }
     // create connections for close and details button;
     loadingInfoContainer.classList.toggle("hidden", !showLoadingDetails);
     detailsButton.addEventListener(
@@ -615,6 +652,33 @@ export function createLoadingModule({
   loadingModule.renderControllerState = function (controllerState) {
     if (controllerState === null || typeof controllerState !== "object") {
       return;
+    }
+    const cache = controllerState.source?.cache;
+    if (cacheSource) {
+      cacheSource.hidden =
+        !cache || !["ready", "relaxing"].includes(controllerState.status);
+      if (cache) {
+        const expired =
+          cache.documentRevision !== controllerState.documentRevision ||
+          cache.loadGeneration !== controllerState.loadGeneration;
+        const messages = {
+          archived: "Archived source",
+          checking: "Checking the source for updates…",
+          checked: "Source check completed",
+          "update-available": "Updated source available",
+          "check-failed":
+            "Source check failed; the archived graph remains open",
+        };
+        const dates = cache.sources[0];
+        cacheStatus.textContent = expired
+          ? "This graph has been edited. Reopen its source before applying source updates."
+          : cache.code === "CACHE_OFFER_SUPERSEDED"
+            ? "The offered source has changed. Check the source again."
+            : `${messages[cache.status] ?? "Archived source"}. Saved ${dates.acquiredAt}; last successful check ${dates.checkedAt}.`;
+        checkSource.disabled = expired || cache.status === "checking";
+        applySource.hidden = !cache.hasUpdate;
+        applySource.disabled = expired || cache.status === "checking";
+      }
     }
     if (controllerState.status === "loading") {
       // Every controller load, including an agent input, supersedes a file

@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://haddenindustries.com/ontology/contracts/v1/ontology-validation.v1.schema.json",
+  "title": "Completed context-specific document validation",
+  "description": "Draft contract 1.0.0-draft.2; review artifact, not a deployed service promise.",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "kind": {
+      "const": "document-validation"
+    },
+    "validationIdentity": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/digest"
+    },
+    "identityInputs": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/validationInputs"
+    },
+    "validationProfileId": {
+      "const": "ontology-source-document-v1"
+    },
+    "documentState": {
+      "const": "DOCUMENT_VALIDATED"
+    },
+    "parseMode": {
+      "const": "preserve"
+    },
+    "sourceBytesRetained": {
+      "const": true
+    },
+    "sourceAssessment": {
+      "enum": ["valid", "invalid", "unverified"]
+    },
+    "profileAssessment": {
+      "const": "NOT_EVALUATED"
+    },
+    "closureQualification": {
+      "const": "UNASSESSED"
+    },
+    "consumerAdmission": {
+      "const": "NOT_EVALUATED"
+    },
+    "diagnosticCodes": {
+      "type": "array",
+      "items": {
+        "$ref": "ontology-contract-common.v1.schema.json#/$defs/errorCode"
+      },
+      "uniqueItems": true,
+      "maxItems": 64
+    },
+    "diagnosticsTruncated": {
+      "type": "boolean"
+    },
+    "importDeclarationCount": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "ontologyIris": {
+      "type": "array",
+      "items": {
+        "$ref": "ontology-contract-common.v1.schema.json#/$defs/iri"
+      },
+      "maxItems": 64
+    },
+    "declaredVersionIris": {
+      "type": "array",
+      "items": {
+        "$ref": "ontology-contract-common.v1.schema.json#/$defs/iri"
+      },
+      "maxItems": 64
+    },
+    "identifiersTruncated": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "kind",
+    "validationIdentity",
+    "identityInputs",
+    "validationProfileId",
+    "documentState",
+    "parseMode",
+    "sourceBytesRetained",
+    "sourceAssessment",
+    "profileAssessment",
+    "closureQualification",
+    "consumerAdmission",
+    "diagnosticCodes",
+    "diagnosticsTruncated",
+    "importDeclarationCount",
+    "ontologyIris",
+    "declaredVersionIris",
+    "identifiersTruncated"
+  ],
+  "additionalProperties": false
+}

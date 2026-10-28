@@ -1,0 +1,343 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://haddenindustries.com/ontology/contracts/v1/ontology-contract-common.v1.schema.json",
+  "title": "Ontology cache shared value definitions",
+  "description": "Draft contract 1.0.0-draft.2; review artifact, not a deployed service promise.",
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "attemptId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{32}$"
+    },
+    "generation": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "nonnegativeInteger": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "positiveInteger": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "timestamp": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-([0-2][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\\.[0-9]{3}Z$",
+      "description": "UTC instant with exactly milliseconds. Semantic validation also checks calendar validity; leap seconds are outside this service wire profile."
+    },
+    "requestedIri": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "pattern": "^[hH][tT][tT][pP][sS]?://",
+      "description": "Coarse shape only. Mandatory strict Unicode, <=4096 UTF-8-byte, public IRI, URL, host, port, credential and DNS checks are specified in protocol.v1.md. Never use this regex as URL/SSRF validation."
+    },
+    "httpsIri": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 8192,
+      "pattern": "^https://",
+      "description": "Consumer must also enforce its configured service origin and the exact resource path/digest. This shape permits neither arbitrary fetches nor redirects to foreign origins."
+    },
+    "formatId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Public OWLDocumentFormats key of the exact selected artifact; schema does not reproduce its format catalogue."
+    },
+    "errorCode": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]{2,95}$"
+    },
+    "headerValue": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "pattern": "^[^\\r\\n\\u0000]*$"
+    },
+    "limit": {
+      "oneOf": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "unbounded"
+            }
+          },
+          "required": ["kind"],
+          "additionalProperties": false
+        }
+      ],
+      "description": "Evidence encoding only. Finite-only service policies reject the unbounded alternative."
+    },
+    "error": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/errorCode"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "retryable": {
+          "type": "boolean"
+        }
+      },
+      "required": ["code", "message", "retryable"],
+      "additionalProperties": true
+    },
+    "binding": {
+      "type": "object",
+      "properties": {
+        "sourceVersionIdentity": {
+          "$ref": "#/$defs/digest"
+        },
+        "resolutionIdentity": {
+          "$ref": "#/$defs/digest"
+        },
+        "validationIdentity": {
+          "$ref": "#/$defs/digest"
+        },
+        "artifactSha256": {
+          "$ref": "#/$defs/digest"
+        },
+        "artifactByteLength": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 33554432
+        },
+        "artifactIri": {
+          "$ref": "#/$defs/httpsIri"
+        },
+        "versionIri": {
+          "$ref": "#/$defs/httpsIri"
+        },
+        "resolutionIri": {
+          "$ref": "#/$defs/httpsIri"
+        },
+        "validationIri": {
+          "$ref": "#/$defs/httpsIri"
+        }
+      },
+      "required": [
+        "sourceVersionIdentity",
+        "resolutionIdentity",
+        "validationIdentity",
+        "artifactSha256",
+        "artifactByteLength",
+        "artifactIri",
+        "versionIri",
+        "resolutionIri",
+        "validationIri"
+      ],
+      "additionalProperties": false
+    },
+    "variant": {
+      "type": "object",
+      "properties": {
+        "accept": {
+          "$ref": "#/$defs/headerValue"
+        },
+        "acceptEncoding": {
+          "const": "identity"
+        },
+        "selectionPolicyVersion": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": ["accept", "acceptEncoding", "selectionPolicyVersion"],
+      "additionalProperties": false
+    },
+    "validators": {
+      "type": "object",
+      "properties": {
+        "etag": {
+          "$ref": "#/$defs/headerValue"
+        },
+        "lastModified": {
+          "$ref": "#/$defs/headerValue"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "originMetadata": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "enum": [200, 304]
+        },
+        "contentType": {
+          "$ref": "#/$defs/headerValue"
+        },
+        "contentEncoding": {
+          "enum": ["identity", "gzip", "br", "deflate"]
+        },
+        "cacheControl": {
+          "$ref": "#/$defs/headerValue"
+        },
+        "vary": {
+          "type": "array",
+          "items": {
+            "enum": ["accept", "accept-encoding"]
+          },
+          "uniqueItems": true,
+          "maxItems": 2
+        },
+        "validators": {
+          "$ref": "#/$defs/validators"
+        }
+      },
+      "required": ["status", "contentEncoding", "vary", "validators"],
+      "additionalProperties": false
+    },
+    "packageEvidence": {
+      "type": "object",
+      "properties": {
+        "dependencyName": {
+          "const": "owlapi"
+        },
+        "packageName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "packageVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "selector": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "sourceCommit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "archiveSha256": {
+          "$ref": "#/$defs/digest"
+        },
+        "installedPayloadSha256": {
+          "$ref": "#/$defs/digest"
+        },
+        "dependencyClosureSha256": {
+          "$ref": "#/$defs/digest"
+        },
+        "runtimeTarget": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "dependencyName",
+        "packageName",
+        "packageVersion",
+        "selector",
+        "sourceCommit",
+        "archiveSha256",
+        "installedPayloadSha256",
+        "dependencyClosureSha256",
+        "runtimeTarget"
+      ],
+      "additionalProperties": false
+    },
+    "validationInputs": {
+      "type": "object",
+      "properties": {
+        "artifactSha256": {
+          "$ref": "#/$defs/digest"
+        },
+        "parserDocumentIri": {
+          "$ref": "#/$defs/requestedIri"
+        },
+        "formatSelectionMode": {
+          "enum": ["automatic", "explicit"]
+        },
+        "explicitFormatId": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/formatId"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "observedFormatId": {
+          "$ref": "#/$defs/formatId"
+        },
+        "owlapiArtifactIdentity": {
+          "$ref": "#/$defs/digest"
+        },
+        "loaderProfileFingerprint": {
+          "$ref": "#/$defs/digest"
+        },
+        "validationContractVersion": {
+          "const": 1
+        }
+      },
+      "required": [
+        "artifactSha256",
+        "parserDocumentIri",
+        "formatSelectionMode",
+        "explicitFormatId",
+        "observedFormatId",
+        "owlapiArtifactIdentity",
+        "loaderProfileFingerprint",
+        "validationContractVersion"
+      ],
+      "additionalProperties": false
+    },
+    "sourceVersionInputs": {
+      "type": "object",
+      "properties": {
+        "sourceKey": {
+          "$ref": "#/$defs/digest"
+        },
+        "artifactSha256": {
+          "$ref": "#/$defs/digest"
+        },
+        "effectiveRetrievalIri": {
+          "$ref": "#/$defs/requestedIri"
+        },
+        "parserDocumentIri": {
+          "$ref": "#/$defs/requestedIri"
+        }
+      },
+      "required": [
+        "sourceKey",
+        "artifactSha256",
+        "effectiveRetrievalIri",
+        "parserDocumentIri"
+      ],
+      "additionalProperties": false
+    },
+    "iri": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 8192,
+      "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:",
+      "description": "Absolute logical IRI, including non-HTTP identifiers such as urn:. Validate with the owning public IRI contract. This is metadata, never authority to fetch."
+    }
+  }
+}

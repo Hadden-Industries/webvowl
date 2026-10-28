@@ -1,0 +1,194 @@
+{
+  "schemaVersion": 1,
+  "kind": "error-code-catalog",
+  "contractVersion": "1.0.0-draft.1",
+  "entries": [
+    {
+      "httpStatus": 400,
+      "code": "REQUEST_SCHEMA_INVALID",
+      "retryable": false,
+      "initialBackoffSeconds": null
+    },
+    {
+      "httpStatus": 400,
+      "code": "SOURCE_IRI_INVALID",
+      "retryable": false,
+      "initialBackoffSeconds": null
+    },
+    {
+      "httpStatus": 403,
+      "code": "SOURCE_IRI_FORBIDDEN",
+      "retryable": false,
+      "initialBackoffSeconds": null
+    },
+    {
+      "httpStatus": 403,
+      "code": "MATERIALIZATION_DISABLED",
+      "retryable": false,
+      "initialBackoffSeconds": null
+    },
+    {
+      "httpStatus": 403,
+      "code": "SOURCE_QUARANTINED",
+      "retryable": false,
+      "initialBackoffSeconds": null
+    },
+    {
+      "httpStatus": 404,
+      "code": "MATERIALIZATION_NOT_AVAILABLE",
+      "retryable": false,
+      "initialBackoffSeconds": null
+    },
+    {
+      "httpStatus": 404,
+      "code": "REFRESH_ATTEMPT_NOT_AVAILABLE",
+      "retryable": false,
+      "initialBackoffSeconds": null
+    },
+    {
+      "httpStatus": 405,
+      "code": "METHOD_NOT_ALLOWED",
+      "retryable": false,
+      "initialBackoffSeconds": null
+    },
+    {
+      "httpStatus": 406,
+      "code": "RESPONSE_MEDIA_TYPE_UNSUPPORTED",
+      "retryable": false,
+      "initialBackoffSeconds": null
+    },
+    {
+      "httpStatus": 410,
+      "code": "MATERIALIZATION_STATUS_RETIRED",
+      "retryable": false,
+      "initialBackoffSeconds": null
+    },
+    {
+      "httpStatus": 410,
+      "code": "REFRESH_STATUS_RETIRED",
+      "retryable": false,
+      "initialBackoffSeconds": null
+    },
+    {
+      "httpStatus": 413,
+      "code": "REQUEST_BODY_TOO_LARGE",
+      "retryable": false,
+      "initialBackoffSeconds": null
+    },
+    {
+      "httpStatus": 413,
+      "code": "SOURCE_REPRESENTATION_TOO_LARGE",
+      "retryable": false,
+      "initialBackoffSeconds": 604800
+    },
+    {
+      "httpStatus": 415,
+      "code": "REQUEST_MEDIA_TYPE_UNSUPPORTED",
+      "retryable": false,
+      "initialBackoffSeconds": null
+    },
+    {
+      "httpStatus": 422,
+      "code": "ONTOLOGY_DOCUMENT_INVALID",
+      "retryable": false,
+      "initialBackoffSeconds": 86400
+    },
+    {
+      "httpStatus": 422,
+      "code": "ONTOLOGY_VALIDATION_RESOURCE_LIMIT",
+      "retryable": false,
+      "initialBackoffSeconds": 86400
+    },
+    {
+      "httpStatus": 422,
+      "code": "SOURCE_ENCODING_UNSUPPORTED",
+      "retryable": false,
+      "initialBackoffSeconds": 86400
+    },
+    {
+      "httpStatus": 422,
+      "code": "SOURCE_DECODING_FAILED",
+      "retryable": false,
+      "initialBackoffSeconds": 86400
+    },
+    {
+      "httpStatus": 422,
+      "code": "ONTOLOGY_FORMAT_AMBIGUOUS",
+      "retryable": false,
+      "initialBackoffSeconds": 86400
+    },
+    {
+      "httpStatus": 429,
+      "code": "SOURCE_SUBMISSION_RATE_EXCEEDED",
+      "retryable": true,
+      "initialBackoffSeconds": null
+    },
+    {
+      "httpStatus": 429,
+      "code": "DAILY_NEW_SOURCE_QUOTA_EXCEEDED",
+      "retryable": true,
+      "initialBackoffSeconds": null
+    },
+    {
+      "httpStatus": 429,
+      "code": "DAILY_REFRESH_QUOTA_EXCEEDED",
+      "retryable": true,
+      "initialBackoffSeconds": null
+    },
+    {
+      "httpStatus": 429,
+      "code": "SOURCE_REFRESH_COOLDOWN",
+      "retryable": true,
+      "initialBackoffSeconds": null
+    },
+    {
+      "httpStatus": 429,
+      "code": "API_RATE_EXCEEDED",
+      "retryable": true,
+      "initialBackoffSeconds": null
+    },
+    {
+      "httpStatus": 500,
+      "code": "INTERNAL_ERROR",
+      "retryable": true,
+      "initialBackoffSeconds": null
+    },
+    {
+      "httpStatus": 502,
+      "code": "UPSTREAM_RESPONSE_REJECTED",
+      "retryable": true,
+      "initialBackoffSeconds": 900
+    },
+    {
+      "httpStatus": 502,
+      "code": "UPSTREAM_NETWORK_FAILURE",
+      "retryable": true,
+      "initialBackoffSeconds": 900
+    },
+    {
+      "httpStatus": 503,
+      "code": "VALIDATION_RESOURCE_UNAVAILABLE",
+      "retryable": true,
+      "initialBackoffSeconds": 900
+    },
+    {
+      "httpStatus": 503,
+      "code": "MATERIALIZATION_CAPACITY_UNAVAILABLE",
+      "retryable": true,
+      "initialBackoffSeconds": 30
+    },
+    {
+      "httpStatus": 504,
+      "code": "UPSTREAM_TIMEOUT",
+      "retryable": true,
+      "initialBackoffSeconds": 900
+    }
+  ],
+  "notes": [
+    "HTTP status describes the current API request. Reading a FAILED refresh attempt succeeds with HTTP 200 and embeds that attempt's error.",
+    "retryable is advisory for a later explicit policy-eligible operation, never automatic resubmission. A false value does not forbid a fresh user intent after changed input/policy and all gates.",
+    "Null backoff means operation/state-specific policy, not zero. 429 responses carry Retry-After; daily quotas wait to the next UTC boundary.",
+    "UPSTREAM_RESPONSE_REJECTED uses 3600 seconds for stable upstream 4xx, otherwise 900. No source restriction or quarantine can be bypassed after a timer.",
+    "Edge/origin rejection can occur before the controlled API and need not use this JSON/code catalogue."
+  ]
+}

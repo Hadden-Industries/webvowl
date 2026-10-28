@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://haddenindustries.com/ontology/contracts/v1/ontology-materialization-status.v1.schema.json",
+  "title": "Pending materialization response",
+  "description": "Draft contract 1.0.0-draft.2; review artifact, not a deployed service promise.",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "kind": {
+      "const": "materialization-status"
+    },
+    "materializationId": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/digest"
+    },
+    "state": {
+      "const": "PENDING"
+    },
+    "generation": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/generation"
+    },
+    "admittedAt": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+    },
+    "statusIri": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/httpsIri"
+    },
+    "workState": {
+      "enum": ["QUEUED", "RUNNING", "HELD"]
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "kind",
+    "materializationId",
+    "state",
+    "generation",
+    "admittedAt",
+    "statusIri",
+    "workState"
+  ],
+  "additionalProperties": true
+}

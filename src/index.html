@@ -156,6 +156,30 @@
         </div>
 
         <div id="additionalInformationContainer">
+          <section
+            id="ontologyCacheSource"
+            aria-label="Archived ontology source"
+            hidden
+          >
+            <p id="ontologyCacheSourceStatus" role="status"></p>
+            <div>
+              <button
+                id="checkOntologySourceUpdate"
+                class="ontology-source-action"
+                type="button"
+              >
+                Check source
+              </button>
+              <button
+                id="applyOntologySourceUpdate"
+                class="ontology-source-action"
+                type="button"
+                hidden
+              >
+                Apply source update
+              </button>
+            </div>
+          </section>
           <button id="reloadOntologySource" type="button" class="hidden">
             <svg
               class="bi bi-arrow-clockwise reloadOntologySourceIcon"

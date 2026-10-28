@@ -1,3 +1,4 @@
+import { readBoundedBytes } from "../../../ontology-loading/boundedSourceBytes.js";
 import { IRI } from "owlapi/model";
 import { APPLICATION_LIMITS } from "./canonicalVowlWorkerPolicy.js";
 import {
@@ -73,55 +74,6 @@ const fileNameFromUrl = (url) => {
   const fileName = url.pathname.split("/").filter(Boolean).at(-1);
   return fileName ? decodeURIComponent(fileName) : undefined;
 };
-
-async function readBoundedBytes(response, limit, signal) {
-  if (response.body === null) {
-    return new Uint8Array();
-  }
-  const reader = response.body.getReader();
-  const chunks = [];
-  let length = 0;
-  const cancel = (reason) => {
-    void reader.cancel(reason).catch(() => {});
-  };
-  const abort = () => cancel(signal.reason);
-  signal?.addEventListener("abort", abort, { once: true });
-  try {
-    while (true) {
-      signal?.throwIfAborted();
-      const { done, value } = await reader.read();
-      signal?.throwIfAborted();
-      if (done) {
-        break;
-      }
-      length += value.byteLength;
-      if (length > limit) {
-        throw new ResourceLimitError(
-          "The remote ontology document byte limit was exceeded",
-          {
-            limit,
-            observed: length,
-            resource: "maxRemoteDocumentBytes",
-          },
-        );
-      }
-      chunks.push(value);
-    }
-    const bytes = new Uint8Array(length);
-    let offset = 0;
-    for (const chunk of chunks) {
-      bytes.set(chunk, offset);
-      offset += chunk.byteLength;
-    }
-    return bytes;
-  } catch (error) {
-    cancel(error);
-    throw error;
-  } finally {
-    signal?.removeEventListener("abort", abort);
-    reader.releaseLock();
-  }
-}
 
 export class WebVowlImportResolver {
   #baseUrl;
@@ -245,7 +197,12 @@ export class WebVowlImportResolver {
       let bytes;
       try {
         if (preserveBytes) {
-          bytes = await readBoundedBytes(response, limit, deadline.signal);
+          bytes = await readBoundedBytes(
+            response,
+            limit,
+            deadline.signal,
+            ResourceLimitError,
+          );
         } else {
           text = await response.text();
         }
