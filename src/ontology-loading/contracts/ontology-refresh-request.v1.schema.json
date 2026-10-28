@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://haddenindustries.com/ontology/contracts/v1/ontology-refresh-request.v1.schema.json",
+  "title": "Refresh request",
+  "description": "Draft contract 1.0.0-draft.2; review artifact, not a deployed service promise.",
+  "type": "object",
+  "properties": {
+    "requestedDocumentIri": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/requestedIri"
+    },
+    "mode": {
+      "enum": ["if-due", "check-now"]
+    }
+  },
+  "required": ["requestedDocumentIri", "mode"],
+  "additionalProperties": false
+}

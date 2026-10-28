@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://haddenindustries.com/ontology/contracts/v1/ontology-resolution.v1.schema.json",
+  "title": "Immutable source-generation resolution",
+  "description": "Draft contract 1.0.0-draft.2; review artifact, not a deployed service promise.",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "kind": {
+      "const": "resolution"
+    },
+    "resolutionIdentity": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/digest"
+    },
+    "sourceKey": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/digest"
+    },
+    "generation": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/generation"
+    },
+    "sourceVersionIdentity": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/digest"
+    },
+    "requestedDocumentIri": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/requestedIri"
+    },
+    "retrievalIri": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/requestedIri"
+    },
+    "effectiveRetrievalIri": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/requestedIri"
+    },
+    "parserDocumentIri": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/requestedIri"
+    },
+    "artifactIri": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/httpsIri"
+    },
+    "artifactSha256": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/digest"
+    },
+    "artifactByteLength": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 33554432
+    },
+    "validationIdentity": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/digest"
+    },
+    "validationIri": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/httpsIri"
+    },
+    "loaderProfileFingerprint": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/digest"
+    },
+    "loaderPolicyIri": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/httpsIri"
+    },
+    "owlapiArtifactIdentity": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/digest"
+    },
+    "formatSelectionMode": {
+      "const": "automatic"
+    },
+    "explicitFormatId": {
+      "type": "null"
+    },
+    "observedFormatId": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/formatId"
+    },
+    "decodingPolicy": {
+      "const": "strict-utf8-v1"
+    },
+    "validationContractVersion": {
+      "const": 1
+    },
+    "acquiredAt": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+    },
+    "checkedAt": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+    },
+    "originMetadata": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/originMetadata"
+    },
+    "requestVariant": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/variant"
+    },
+    "requestVariantFingerprint": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/digest"
+    },
+    "publicationDisposition": {
+      "enum": ["AUTOMATIC_PUBLIC_ARCHIVE", "CURATED_PUBLIC_ARCHIVE"]
+    },
+    "sourceAssessment": {
+      "enum": ["valid", "invalid", "unverified"]
+    },
+    "closureQualification": {
+      "const": "UNASSESSED"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "kind",
+    "resolutionIdentity",
+    "sourceKey",
+    "generation",
+    "sourceVersionIdentity",
+    "requestedDocumentIri",
+    "retrievalIri",
+    "effectiveRetrievalIri",
+    "parserDocumentIri",
+    "artifactIri",
+    "artifactSha256",
+    "artifactByteLength",
+    "validationIdentity",
+    "validationIri",
+    "loaderProfileFingerprint",
+    "loaderPolicyIri",
+    "owlapiArtifactIdentity",
+    "formatSelectionMode",
+    "explicitFormatId",
+    "observedFormatId",
+    "decodingPolicy",
+    "validationContractVersion",
+    "acquiredAt",
+    "checkedAt",
+    "originMetadata",
+    "requestVariant",
+    "requestVariantFingerprint",
+    "publicationDisposition",
+    "sourceAssessment",
+    "closureQualification"
+  ],
+  "additionalProperties": false
+}

@@ -116,6 +116,17 @@ describe("controller state presentation", () => {
     expect(presentationSpies.renderViewport).not.toHaveBeenCalled();
   });
 
+  test("an edit refreshes only the active archive offer's source controls", () => {
+    const { presenter, presentationSpies } = mountPresenter();
+    const state = createControllerState({
+      documentRevision: 2,
+      source: { cache: { documentRevision: 1, hasUpdate: true } },
+    });
+    presenter.present(state, ["documentRevision"]);
+    expect(presentationSpies.renderLoadState).toHaveBeenCalledWith(state);
+    expect(presentationSpies.renderViewport).not.toHaveBeenCalled();
+  });
+
   test("refreshes source controls when only cached-view reuse changes", () => {
     const { presenter, presentationSpies } = mountPresenter();
     const state = createControllerState({ hasReusedCachedVisualization: true });

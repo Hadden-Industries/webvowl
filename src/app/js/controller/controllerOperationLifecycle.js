@@ -34,6 +34,8 @@ export const CONTROLLER_OPERATION_CLASSES = Object.freeze({
   getVisualizationArrangement: "read",
   getSelectedVisualizationOccurrence: "read",
   getOriginalSources: "read",
+  refreshOntologySource: "read",
+  applyOntologySourceUpdate: "read",
 });
 
 export const CONTROLLER_APPLICATION_MEMBERS = Object.freeze({

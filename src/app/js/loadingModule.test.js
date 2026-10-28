@@ -512,6 +512,62 @@ describe("loading module controller state presentation", () => {
     loadingModuleContext.document = undefined;
   });
 
+  test.each([
+    [
+      "CACHE_OFFER_SUPERSEDED",
+      "The offered source has changed. Check the source again.",
+    ],
+    [
+      "CACHE_UNAVAILABLE",
+      "Source check failed; the archived graph remains open",
+    ],
+  ])(
+    "source-action failure retains its controller status: %s",
+    async (code, message) => {
+      const state = {
+        status: "ready",
+        loadGeneration: 1,
+        documentRevision: 0,
+        source: {
+          cache: {
+            loadGeneration: 1,
+            documentRevision: 0,
+            status: "check-failed",
+            code,
+            hasUpdate: false,
+            sources: [
+              {
+                acquiredAt: "2026-10-01T00:00:00.000Z",
+                checkedAt: "2026-10-02T00:00:00.000Z",
+              },
+            ],
+          },
+        },
+      };
+      const applyOntologySourceUpdate = jest.fn(async () => {
+        throw new Error("confirmation failed");
+      });
+      loadingModule.dispose();
+      loadingModule = createLoadingModule({
+        webVowlController: {
+          getState: () => state,
+          applyOntologySourceUpdate,
+        },
+      });
+      loadingModule.setup();
+      controls
+        .get("#applyOntologySourceUpdate")
+        .dispatchEvent(new Event("click"));
+      await new Promise((resolve) => setImmediate(resolve));
+      expect(applyOntologySourceUpdate).toHaveBeenCalledTimes(1);
+      expect(controls.get("#ontologyCacheSourceStatus").textContent).toContain(
+        message,
+      );
+      expect(controls.get("#applyOntologySourceUpdate").hidden).toBe(true);
+      expect(controls.get("#checkOntologySourceUpdate").disabled).toBe(false);
+    },
+  );
+
   test("shows layout progress while the controller reports a load", () => {
     loadingModule.renderControllerState({
       status: "loading",

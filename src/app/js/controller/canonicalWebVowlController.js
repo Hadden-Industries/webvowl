@@ -101,6 +101,8 @@ export function createCanonicalWebVowlController({
   let ordinaryPresentation;
   let countLayoutHold;
   let replacementLayoutHold;
+  let cacheObservation;
+  let loadedSource;
   const lifecycle = createControllerOperationLifecycle({
     readIdentity: () => session.identity(),
     retirePresentation: () => clearNeighborhood(),
@@ -372,6 +374,16 @@ export function createCanonicalWebVowlController({
   }
   function current(operation) {
     return lifecycle.check(operation);
+  }
+  function exportSourceProvenance() {
+    // Acquisition status belongs to the live UI, not persisted source provenance.
+    const source = {};
+    for (const field of ["kind", "identity", "displayName", "sha256Hex"]) {
+      if (state.source[field] !== undefined) {
+        source[field] = state.source[field];
+      }
+    }
+    return source;
   }
   function resolveFocusable(ontologyElementReferences) {
     current("getOntologySummary");
@@ -870,12 +882,19 @@ export function createCanonicalWebVowlController({
     },
     async loadOntology(
       { source },
-      { signal, initialVisualization, useAutomaticNodesShown } = {},
+      {
+        signal,
+        initialVisualization,
+        useAutomaticNodesShown,
+        cacheBindings,
+      } = {},
     ) {
       const initial = createInitialVisualizationRequest(
         initialVisualization ?? {},
       );
       const retained = structuredClone(source);
+      cacheObservation?.dispose();
+      cacheObservation = undefined;
       const ticket = lifecycle.prepare("loadOntology", { signal });
       countAdjustment.cancel();
       ticket.prepareScene();
@@ -900,6 +919,7 @@ export function createCanonicalWebVowlController({
           request = await acquisition.remote(retained.documentIri, {
             signal: combined,
             format: retained.format,
+            selectedBindings: cacheBindings,
           });
         } else if (
           ["ontology-text", "ontology-bytes"].includes(retained.kind)
@@ -939,11 +959,13 @@ export function createCanonicalWebVowlController({
         const imports = acquisition.createImportContext?.(
           request.bytes?.byteLength ?? 0,
           {
+            selectedBindings: cacheBindings,
             onFormatRequired: () => {
               awaitingFormat = true;
               attempt?.abort();
             },
             onFailure: (error) => attempt?.abort(error),
+            rootBytes: request.bytes,
           },
         );
         let accepted;
@@ -1043,6 +1065,31 @@ export function createCanonicalWebVowlController({
           },
           editorMode: { isEditorMode: editorOptions.isEditorMode },
         });
+        loadedSource = retained;
+        const observation = await acquisition.observeCache?.(
+          request.bytes,
+          imports,
+          {
+            readIdentity: () => ({
+              loadGeneration: state.loadGeneration,
+              documentRevision: state.documentRevision,
+            }),
+            onStatus: (cache) =>
+              publish({ source: { ...state.source, cache } }),
+          },
+        );
+        if (observation) {
+          if (
+            disposed ||
+            state.loadGeneration !== accepted.loadGeneration ||
+            state.documentRevision !== accepted.documentRevision
+          ) {
+            observation.dispose();
+          } else {
+            cacheObservation = observation;
+            observation.start();
+          }
+        }
         return state;
       } catch (cause) {
         if (ticket.isCurrent()) {
@@ -1633,7 +1680,7 @@ export function createCanonicalWebVowlController({
         artifactService: artifacts,
         renderedGraphRuntime: runtime,
         filename,
-        source: state.source,
+        source: exportSourceProvenance(),
         signal: combined,
       };
       try {
@@ -1652,7 +1699,7 @@ export function createCanonicalWebVowlController({
           waitForBrowserPaint,
           request: { ...request, format },
           loadGeneration: accepted.loadGeneration,
-          source: state.source,
+          source: exportSourceProvenance(),
           view: state.view,
           signal: combined,
           assertCurrent: ticket.assertCurrent,
@@ -1662,6 +1709,35 @@ export function createCanonicalWebVowlController({
       } finally {
         ticket.release();
       }
+    },
+    async refreshOntologySource() {
+      current("refreshOntologySource");
+      if (!cacheObservation) {
+        throw new Error("No archived source is active.");
+      }
+      await cacheObservation.refresh();
+      return state;
+    },
+    async applyOntologySourceUpdate() {
+      current("applyOntologySourceUpdate");
+      if (!cacheObservation || !loadedSource) {
+        throw new Error("No source update is available.");
+      }
+      const identity = {
+        loadGeneration: state.loadGeneration,
+        documentRevision: state.documentRevision,
+      };
+      const cacheBindings = await cacheObservation.selectUpdate();
+      if (
+        disposed ||
+        state.loadGeneration !== identity.loadGeneration ||
+        state.documentRevision !== identity.documentRevision
+      ) {
+        throw new Error(
+          "The source update belongs to an earlier document revision.",
+        );
+      }
+      return this.loadOntology({ source: loadedSource }, { cacheBindings });
     },
     getOriginalSources() {
       current("getOriginalSources");
@@ -1678,7 +1754,7 @@ export function createCanonicalWebVowlController({
           filename,
           signal: combined,
           artifactService: artifacts,
-          source: state.source,
+          source: exportSourceProvenance(),
         });
       } finally {
         ticket.release();
@@ -1689,6 +1765,7 @@ export function createCanonicalWebVowlController({
         return;
       }
       countAdjustment.dispose();
+      cacheObservation?.dispose();
       disposed = true;
       replacementLayoutHold = undefined;
       clearNeighborhood();

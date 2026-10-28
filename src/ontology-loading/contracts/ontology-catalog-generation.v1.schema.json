@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://haddenindustries.com/ontology/contracts/v1/ontology-catalog-generation.v1.schema.json",
+  "title": "Canonical curated mapping model for the catalog generation digest",
+  "description": "Draft contract 1.0.0-draft.2; review artifact, not a deployed service promise.",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "kind": {
+      "const": "catalog-generation"
+    },
+    "mappings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "$ref": "ontology-contract-common.v1.schema.json#/$defs/requestedIri"
+          },
+          "artifactSha256": {
+            "$ref": "ontology-contract-common.v1.schema.json#/$defs/digest"
+          },
+          "sourceKey": {
+            "$ref": "ontology-contract-common.v1.schema.json#/$defs/digest"
+          },
+          "resolutionIdentity": {
+            "$ref": "ontology-contract-common.v1.schema.json#/$defs/digest"
+          }
+        },
+        "required": [
+          "name",
+          "artifactSha256",
+          "sourceKey",
+          "resolutionIdentity"
+        ],
+        "additionalProperties": false
+      },
+      "description": "Bound by the normative serialized/aggregate catalog byte and work limits, not a permanent archive population ceiling."
+    }
+  },
+  "required": ["schemaVersion", "kind", "mappings"],
+  "additionalProperties": false
+}

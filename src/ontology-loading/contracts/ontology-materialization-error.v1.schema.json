@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://haddenindustries.com/ontology/contracts/v1/ontology-materialization-error.v1.schema.json",
+  "title": "API error response",
+  "description": "Draft contract 1.0.0-draft.2; review artifact, not a deployed service promise.",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "kind": {
+      "const": "error"
+    },
+    "error": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/error"
+    },
+    "materializationId": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/digest"
+    },
+    "refreshAttemptId": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/attemptId"
+    },
+    "requestId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{1,128}$"
+    }
+  },
+  "required": ["schemaVersion", "kind", "error", "requestId"],
+  "additionalProperties": true
+}

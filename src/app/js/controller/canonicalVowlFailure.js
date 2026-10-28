@@ -37,6 +37,9 @@ const resources = new Set([
   "maxLiteralLength",
   "maxNumericDigits",
   "maxWork",
+  "expandedXmlBytes",
+  "callStack",
+  "allocation",
 ]);
 
 /** Only owned names and non-negative safe counters cross the worker seam. */
@@ -136,6 +139,8 @@ export function canonicalLoadingMessage(error) {
     }
   }
   const messages = {
+    HOST_RESOURCE_LIMIT:
+      "The ontology exceeded the browser's available stack or memory. Try a smaller document or import closure.",
     DEADLINE_EXCEEDED:
       "Opening the ontology took too long. Try again or open a smaller document.",
     RESOURCE_LIMIT_EXCEEDED: "The ontology exceeds a loading resource limit.",

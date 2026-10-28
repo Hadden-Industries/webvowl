@@ -1,0 +1,1680 @@
+{
+  "fixtureVersion": 1,
+  "status": "SYNTHETIC_DRAFT_NOT_RUNTIME_EVIDENCE",
+  "serviceOrigin": "https://cache.example.test",
+  "ontologySource": {
+    "utf8Text": "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n<> a owl:Ontology ; owl:imports <child.ttl> .\n<#Thing> a owl:Class .\n",
+    "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+    "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+    "expectedResolvedImportIri": "https://origin.example.test/v1/child.ttl"
+  },
+  "packageEvidenceNotice": "Package checksums and fixture-only enforcement targets are synthetic, not a real artifact selection or enforcement mapping. The declared parser outcome has not been executed.",
+  "branches": "A304, B and the terminal refresh outcomes are alternatives from A, not one chronological run. No origin was contacted.",
+  "schemaExamples": [
+    {
+      "id": "materialize-request",
+      "schema": "ontology-materialization-request.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "requestedDocumentIri": "https://ontology.example.test/onto#v1"
+      }
+    },
+    {
+      "id": "refresh-request",
+      "schema": "ontology-refresh-request.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "requestedDocumentIri": "https://ontology.example.test/onto#v1",
+        "mode": "if-due"
+      }
+    },
+    {
+      "id": "pending-materialization",
+      "schema": "ontology-materialization-status.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "materialization-status",
+        "materializationId": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "state": "PENDING",
+        "generation": 1,
+        "admittedAt": "2026-10-01T00:00:00.000Z",
+        "statusIri": "https://cache.example.test/ontology/materializations/2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "workState": "QUEUED"
+      }
+    },
+    {
+      "id": "loader-policy",
+      "schema": "ontology-loader-policy.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "loader-policy",
+        "loaderProfileFingerprint": "dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6",
+        "policy": {
+          "validationContractVersion": 1,
+          "validationProfileId": "ontology-source-document-v1",
+          "parseMode": "preserve",
+          "formatSelectionMode": "automatic",
+          "decodingPolicy": "strict-utf8-v1",
+          "parserBasePolicy": "effective-origin-response-v1",
+          "transportPolicy": "https-preferred-original-http-fallback-v1",
+          "remoteImports": false,
+          "remoteJsonLdContexts": false,
+          "externalXmlResources": false,
+          "sourceAssessmentAdmission": "report-only",
+          "formatInventorySha256": "4444444444444444444444444444444444444444444444444444444444444444",
+          "acceptPreferenceSha256": "5555555555555555555555555555555555555555555555555555555555555555",
+          "requestVariant": {
+            "accept": "text/turtle",
+            "acceptEncoding": "identity",
+            "selectionPolicyVersion": 1
+          },
+          "owlapiArtifact": {
+            "dependencyName": "owlapi",
+            "packageName": "owlapi",
+            "packageVersion": "0.0.0-contract-fixture",
+            "selector": "synthetic-contract-fixture-only",
+            "sourceCommit": "0000000000000000000000000000000000000000",
+            "archiveSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+            "installedPayloadSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+            "dependencyClosureSha256": "3333333333333333333333333333333333333333333333333333333333333333",
+            "runtimeTarget": "synthetic-no-runtime"
+          },
+          "limits": {
+            "encodedBytes": 33554432,
+            "decodedBytes": 33554432,
+            "expandedXmlBytes": 33554432,
+            "decompressionRatio": 100,
+            "redirects": 3,
+            "dnsMs": 3000,
+            "connectTlsMs": 5000,
+            "headersMs": 10000,
+            "retrievalMs": 30000,
+            "parseMs": 20000,
+            "workerMs": 60000,
+            "workerMemoryMiB": 2048,
+            "tokenCount": 4000000,
+            "tokenBytes": 1048576,
+            "axiomCount": 200000,
+            "blankNodeCount": 1000000,
+            "rdfQuadCount": 1000000,
+            "rdfListLength": 1000000,
+            "parserDepth": 128,
+            "entityDeclarations": 64,
+            "entityExpansionDepth": 8,
+            "entityReplacementBytes": 65536,
+            "importFetchCount": 0
+          },
+          "dependencyTranslations": [
+            {
+              "gate": "encodedBytes",
+              "enforcementTarget": "fixture-only:encodedBytes",
+              "unit": "bytes",
+              "value": 33554432,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "decodedBytes",
+              "enforcementTarget": "fixture-only:decodedBytes",
+              "unit": "bytes",
+              "value": 33554432,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "expandedXmlBytes",
+              "enforcementTarget": "fixture-only:expandedXmlBytes",
+              "unit": "bytes",
+              "value": 33554432,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "decompressionRatio",
+              "enforcementTarget": "fixture-only:decompressionRatio",
+              "unit": "ratio",
+              "value": 100,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "redirects",
+              "enforcementTarget": "fixture-only:redirects",
+              "unit": "count",
+              "value": 3,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "dnsMs",
+              "enforcementTarget": "fixture-only:dnsMs",
+              "unit": "milliseconds",
+              "value": 3000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "connectTlsMs",
+              "enforcementTarget": "fixture-only:connectTlsMs",
+              "unit": "milliseconds",
+              "value": 5000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "headersMs",
+              "enforcementTarget": "fixture-only:headersMs",
+              "unit": "milliseconds",
+              "value": 10000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "retrievalMs",
+              "enforcementTarget": "fixture-only:retrievalMs",
+              "unit": "milliseconds",
+              "value": 30000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "parseMs",
+              "enforcementTarget": "fixture-only:parseMs",
+              "unit": "milliseconds",
+              "value": 20000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "workerMs",
+              "enforcementTarget": "fixture-only:workerMs",
+              "unit": "milliseconds",
+              "value": 60000,
+              "scope": "worker",
+              "enforcement": "worker-isolation"
+            },
+            {
+              "gate": "workerMemoryMiB",
+              "enforcementTarget": "fixture-only:workerMemoryMiB",
+              "unit": "mebibytes",
+              "value": 2048,
+              "scope": "worker",
+              "enforcement": "worker-isolation"
+            },
+            {
+              "gate": "tokenCount",
+              "enforcementTarget": "fixture-only:tokenCount",
+              "unit": "count",
+              "value": 4000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "tokenBytes",
+              "enforcementTarget": "fixture-only:tokenBytes",
+              "unit": "bytes",
+              "value": 1048576,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "axiomCount",
+              "enforcementTarget": "fixture-only:axiomCount",
+              "unit": "count",
+              "value": 200000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "blankNodeCount",
+              "enforcementTarget": "fixture-only:blankNodeCount",
+              "unit": "count",
+              "value": 1000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "rdfQuadCount",
+              "enforcementTarget": "fixture-only:rdfQuadCount",
+              "unit": "count",
+              "value": 1000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "rdfListLength",
+              "enforcementTarget": "fixture-only:rdfListLength",
+              "unit": "count",
+              "value": 1000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "parserDepth",
+              "enforcementTarget": "fixture-only:parserDepth",
+              "unit": "depth",
+              "value": 128,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "entityDeclarations",
+              "enforcementTarget": "fixture-only:entityDeclarations",
+              "unit": "count",
+              "value": 64,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "entityExpansionDepth",
+              "enforcementTarget": "fixture-only:entityExpansionDepth",
+              "unit": "depth",
+              "value": 8,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "entityReplacementBytes",
+              "enforcementTarget": "fixture-only:entityReplacementBytes",
+              "unit": "bytes",
+              "value": 65536,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "importFetchCount",
+              "enforcementTarget": "fixture-only:importFetchCount",
+              "unit": "count",
+              "value": 0,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "A-version",
+      "schema": "ontology-source-version.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "source-version",
+        "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "requestedDocumentIri": "https://ontology.example.test/onto#v1",
+        "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactByteLength": 117,
+        "effectiveRetrievalIri": "https://origin.example.test/v1/root.ttl",
+        "parserDocumentIri": "https://origin.example.test/v1/root.ttl"
+      }
+    },
+    {
+      "id": "A-validation",
+      "schema": "ontology-validation.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "document-validation",
+        "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+        "identityInputs": {
+          "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+          "formatSelectionMode": "automatic",
+          "explicitFormatId": null,
+          "observedFormatId": "turtle",
+          "owlapiArtifactIdentity": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619",
+          "loaderProfileFingerprint": "dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6",
+          "validationContractVersion": 1
+        },
+        "validationProfileId": "ontology-source-document-v1",
+        "documentState": "DOCUMENT_VALIDATED",
+        "parseMode": "preserve",
+        "sourceBytesRetained": true,
+        "sourceAssessment": "valid",
+        "profileAssessment": "NOT_EVALUATED",
+        "closureQualification": "UNASSESSED",
+        "consumerAdmission": "NOT_EVALUATED",
+        "diagnosticCodes": [],
+        "diagnosticsTruncated": false,
+        "importDeclarationCount": 1,
+        "ontologyIris": ["https://origin.example.test/v1/root.ttl"],
+        "declaredVersionIris": [],
+        "identifiersTruncated": false
+      }
+    },
+    {
+      "id": "A-resolution",
+      "schema": "ontology-resolution.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "resolution",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "generation": 1,
+        "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+        "requestedDocumentIri": "https://ontology.example.test/onto#v1",
+        "retrievalIri": "https://ontology.example.test/onto",
+        "effectiveRetrievalIri": "https://origin.example.test/v1/root.ttl",
+        "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+        "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactByteLength": 117,
+        "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+        "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2.json",
+        "loaderProfileFingerprint": "dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6",
+        "loaderPolicyIri": "https://cache.example.test/ontology/cache/policies/sha256/dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6.json",
+        "owlapiArtifactIdentity": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619",
+        "formatSelectionMode": "automatic",
+        "explicitFormatId": null,
+        "observedFormatId": "turtle",
+        "decodingPolicy": "strict-utf8-v1",
+        "validationContractVersion": 1,
+        "acquiredAt": "2026-10-01T00:00:00.000Z",
+        "checkedAt": "2026-10-01T00:00:00.000Z",
+        "originMetadata": {
+          "status": 200,
+          "contentType": "text/turtle",
+          "contentEncoding": "identity",
+          "cacheControl": "public, max-age=86400",
+          "vary": ["accept"],
+          "validators": {
+            "etag": "\"fixture-A\""
+          }
+        },
+        "requestVariant": {
+          "accept": "text/turtle",
+          "acceptEncoding": "identity",
+          "selectionPolicyVersion": 1
+        },
+        "requestVariantFingerprint": "dd2c43dfdfce1dd431652d5c47568471230f059d0bd6694d1968a3e0f6e0477c",
+        "publicationDisposition": "AUTOMATIC_PUBLIC_ARCHIVE",
+        "sourceAssessment": "valid",
+        "closureQualification": "UNASSESSED",
+        "resolutionIdentity": "2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46"
+      }
+    },
+    {
+      "id": "A304-version",
+      "schema": "ontology-source-version.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "source-version",
+        "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "requestedDocumentIri": "https://ontology.example.test/onto#v1",
+        "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactByteLength": 117,
+        "effectiveRetrievalIri": "https://origin.example.test/v1/root.ttl",
+        "parserDocumentIri": "https://origin.example.test/v1/root.ttl"
+      }
+    },
+    {
+      "id": "A304-validation",
+      "schema": "ontology-validation.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "document-validation",
+        "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+        "identityInputs": {
+          "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+          "formatSelectionMode": "automatic",
+          "explicitFormatId": null,
+          "observedFormatId": "turtle",
+          "owlapiArtifactIdentity": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619",
+          "loaderProfileFingerprint": "dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6",
+          "validationContractVersion": 1
+        },
+        "validationProfileId": "ontology-source-document-v1",
+        "documentState": "DOCUMENT_VALIDATED",
+        "parseMode": "preserve",
+        "sourceBytesRetained": true,
+        "sourceAssessment": "valid",
+        "profileAssessment": "NOT_EVALUATED",
+        "closureQualification": "UNASSESSED",
+        "consumerAdmission": "NOT_EVALUATED",
+        "diagnosticCodes": [],
+        "diagnosticsTruncated": false,
+        "importDeclarationCount": 1,
+        "ontologyIris": ["https://origin.example.test/v1/root.ttl"],
+        "declaredVersionIris": [],
+        "identifiersTruncated": false
+      }
+    },
+    {
+      "id": "A304-resolution",
+      "schema": "ontology-resolution.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "resolution",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "generation": 2,
+        "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+        "requestedDocumentIri": "https://ontology.example.test/onto#v1",
+        "retrievalIri": "https://ontology.example.test/onto",
+        "effectiveRetrievalIri": "https://origin.example.test/v1/root.ttl",
+        "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+        "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactByteLength": 117,
+        "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+        "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2.json",
+        "loaderProfileFingerprint": "dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6",
+        "loaderPolicyIri": "https://cache.example.test/ontology/cache/policies/sha256/dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6.json",
+        "owlapiArtifactIdentity": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619",
+        "formatSelectionMode": "automatic",
+        "explicitFormatId": null,
+        "observedFormatId": "turtle",
+        "decodingPolicy": "strict-utf8-v1",
+        "validationContractVersion": 1,
+        "acquiredAt": "2026-10-01T00:00:00.000Z",
+        "checkedAt": "2026-10-02T00:00:02.000Z",
+        "originMetadata": {
+          "status": 304,
+          "contentType": "text/turtle",
+          "contentEncoding": "identity",
+          "cacheControl": "public, max-age=86400",
+          "vary": ["accept"],
+          "validators": {
+            "etag": "\"fixture-A\""
+          }
+        },
+        "requestVariant": {
+          "accept": "text/turtle",
+          "acceptEncoding": "identity",
+          "selectionPolicyVersion": 1
+        },
+        "requestVariantFingerprint": "dd2c43dfdfce1dd431652d5c47568471230f059d0bd6694d1968a3e0f6e0477c",
+        "publicationDisposition": "AUTOMATIC_PUBLIC_ARCHIVE",
+        "sourceAssessment": "valid",
+        "closureQualification": "UNASSESSED",
+        "resolutionIdentity": "950e443a7ce89a9678fe9255f068a47e4588847489a0fed3385bc0860c2927c0"
+      }
+    },
+    {
+      "id": "B-version",
+      "schema": "ontology-source-version.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "source-version",
+        "sourceVersionIdentity": "43c0844468875124582d63c66c1f84c5ae9d2f0ff8478ae92e9f200b38a42551",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "requestedDocumentIri": "https://ontology.example.test/onto#v1",
+        "artifactSha256": "e03b356125a6fc5b805e466dec9af345009123a41b231f5ce84ecc798a0e2295",
+        "artifactByteLength": 140,
+        "effectiveRetrievalIri": "https://origin.example.test/v1/root.ttl",
+        "parserDocumentIri": "https://origin.example.test/v1/root.ttl"
+      }
+    },
+    {
+      "id": "B-validation",
+      "schema": "ontology-validation.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "document-validation",
+        "validationIdentity": "d29ccd58cffcbe04b0c17bcde619ad1947a919039014b92f7510992bdfff6283",
+        "identityInputs": {
+          "artifactSha256": "e03b356125a6fc5b805e466dec9af345009123a41b231f5ce84ecc798a0e2295",
+          "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+          "formatSelectionMode": "automatic",
+          "explicitFormatId": null,
+          "observedFormatId": "turtle",
+          "owlapiArtifactIdentity": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619",
+          "loaderProfileFingerprint": "dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6",
+          "validationContractVersion": 1
+        },
+        "validationProfileId": "ontology-source-document-v1",
+        "documentState": "DOCUMENT_VALIDATED",
+        "parseMode": "preserve",
+        "sourceBytesRetained": true,
+        "sourceAssessment": "valid",
+        "profileAssessment": "NOT_EVALUATED",
+        "closureQualification": "UNASSESSED",
+        "consumerAdmission": "NOT_EVALUATED",
+        "diagnosticCodes": [],
+        "diagnosticsTruncated": false,
+        "importDeclarationCount": 1,
+        "ontologyIris": ["https://origin.example.test/v1/root.ttl"],
+        "declaredVersionIris": [],
+        "identifiersTruncated": false
+      }
+    },
+    {
+      "id": "B-resolution",
+      "schema": "ontology-resolution.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "resolution",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "generation": 2,
+        "sourceVersionIdentity": "43c0844468875124582d63c66c1f84c5ae9d2f0ff8478ae92e9f200b38a42551",
+        "requestedDocumentIri": "https://ontology.example.test/onto#v1",
+        "retrievalIri": "https://ontology.example.test/onto",
+        "effectiveRetrievalIri": "https://origin.example.test/v1/root.ttl",
+        "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+        "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/e03b356125a6fc5b805e466dec9af345009123a41b231f5ce84ecc798a0e2295",
+        "artifactSha256": "e03b356125a6fc5b805e466dec9af345009123a41b231f5ce84ecc798a0e2295",
+        "artifactByteLength": 140,
+        "validationIdentity": "d29ccd58cffcbe04b0c17bcde619ad1947a919039014b92f7510992bdfff6283",
+        "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/d29ccd58cffcbe04b0c17bcde619ad1947a919039014b92f7510992bdfff6283.json",
+        "loaderProfileFingerprint": "dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6",
+        "loaderPolicyIri": "https://cache.example.test/ontology/cache/policies/sha256/dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6.json",
+        "owlapiArtifactIdentity": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619",
+        "formatSelectionMode": "automatic",
+        "explicitFormatId": null,
+        "observedFormatId": "turtle",
+        "decodingPolicy": "strict-utf8-v1",
+        "validationContractVersion": 1,
+        "acquiredAt": "2026-10-02T00:00:02.000Z",
+        "checkedAt": "2026-10-02T00:00:02.000Z",
+        "originMetadata": {
+          "status": 200,
+          "contentType": "text/turtle",
+          "contentEncoding": "identity",
+          "cacheControl": "public, max-age=86400",
+          "vary": ["accept"],
+          "validators": {
+            "etag": "\"fixture-B\""
+          }
+        },
+        "requestVariant": {
+          "accept": "text/turtle",
+          "acceptEncoding": "identity",
+          "selectionPolicyVersion": 1
+        },
+        "requestVariantFingerprint": "dd2c43dfdfce1dd431652d5c47568471230f059d0bd6694d1968a3e0f6e0477c",
+        "publicationDisposition": "AUTOMATIC_PUBLIC_ARCHIVE",
+        "sourceAssessment": "valid",
+        "closureQualification": "UNASSESSED",
+        "resolutionIdentity": "5f14bf461a8e6ab9f93588827a3ba605245d6f5dbacfafcb3417bb3399c4b212"
+      }
+    },
+    {
+      "id": "refresh-skipped",
+      "schema": "ontology-refresh-result.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "refresh-status",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "state": "SKIPPED_FRESH",
+        "observedAt": "2026-10-01T01:00:00.000Z",
+        "freshUntil": "2026-10-02T00:00:00.000Z",
+        "nextCheckAllowedAt": "2026-10-01T00:05:00.000Z",
+        "currentBinding": {
+          "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+          "resolutionIdentity": "2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46",
+          "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+          "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "artifactByteLength": 117,
+          "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "versionIri": "https://cache.example.test/ontology/cache/versions/sha256/e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f.json",
+          "resolutionIri": "https://cache.example.test/ontology/cache/resolutions/sha256/2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46.json",
+          "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2.json"
+        }
+      }
+    },
+    {
+      "id": "refresh-pending",
+      "schema": "ontology-refresh-result.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "refresh-status",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "refreshAttemptId": "11111111111111111111111111111111",
+        "generation": 2,
+        "mode": "if-due",
+        "admittedAt": "2026-10-02T00:00:00.000Z",
+        "baselineBinding": {
+          "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+          "resolutionIdentity": "2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46",
+          "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+          "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "artifactByteLength": 117,
+          "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "versionIri": "https://cache.example.test/ontology/cache/versions/sha256/e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f.json",
+          "resolutionIri": "https://cache.example.test/ontology/cache/resolutions/sha256/2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46.json",
+          "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2.json"
+        },
+        "statusIri": "https://cache.example.test/ontology/materializations/2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f/refreshes/11111111111111111111111111111111",
+        "state": "PENDING",
+        "workState": "RUNNING",
+        "startedAt": "2026-10-02T00:00:01.000Z"
+      }
+    },
+    {
+      "id": "refresh-unchanged",
+      "schema": "ontology-refresh-result.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "refresh-status",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "refreshAttemptId": "11111111111111111111111111111111",
+        "generation": 2,
+        "mode": "if-due",
+        "admittedAt": "2026-10-02T00:00:00.000Z",
+        "baselineBinding": {
+          "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+          "resolutionIdentity": "2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46",
+          "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+          "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "artifactByteLength": 117,
+          "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "versionIri": "https://cache.example.test/ontology/cache/versions/sha256/e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f.json",
+          "resolutionIri": "https://cache.example.test/ontology/cache/resolutions/sha256/2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46.json",
+          "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2.json"
+        },
+        "statusIri": "https://cache.example.test/ontology/materializations/2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f/refreshes/11111111111111111111111111111111",
+        "startedAt": "2026-10-02T00:00:01.000Z",
+        "finishedAt": "2026-10-02T00:00:02.000Z",
+        "discoveryState": "PENDING",
+        "lastSuccessfullyCheckedAt": "2026-10-02T00:00:02.000Z",
+        "freshUntil": "2026-10-03T00:00:02.000Z",
+        "nextCheckAllowedAt": "2026-10-02T00:05:00.000Z",
+        "state": "UNCHANGED",
+        "upstreamStatus": 304,
+        "resultBinding": {
+          "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+          "resolutionIdentity": "950e443a7ce89a9678fe9255f068a47e4588847489a0fed3385bc0860c2927c0",
+          "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+          "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "artifactByteLength": 117,
+          "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "versionIri": "https://cache.example.test/ontology/cache/versions/sha256/e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f.json",
+          "resolutionIri": "https://cache.example.test/ontology/cache/resolutions/sha256/950e443a7ce89a9678fe9255f068a47e4588847489a0fed3385bc0860c2927c0.json",
+          "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2.json"
+        }
+      }
+    },
+    {
+      "id": "refresh-changed",
+      "schema": "ontology-refresh-result.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "refresh-status",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "refreshAttemptId": "11111111111111111111111111111111",
+        "generation": 2,
+        "mode": "if-due",
+        "admittedAt": "2026-10-02T00:00:00.000Z",
+        "baselineBinding": {
+          "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+          "resolutionIdentity": "2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46",
+          "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+          "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "artifactByteLength": 117,
+          "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "versionIri": "https://cache.example.test/ontology/cache/versions/sha256/e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f.json",
+          "resolutionIri": "https://cache.example.test/ontology/cache/resolutions/sha256/2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46.json",
+          "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2.json"
+        },
+        "statusIri": "https://cache.example.test/ontology/materializations/2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f/refreshes/11111111111111111111111111111111",
+        "startedAt": "2026-10-02T00:00:01.000Z",
+        "finishedAt": "2026-10-02T00:00:02.000Z",
+        "discoveryState": "PENDING",
+        "lastSuccessfullyCheckedAt": "2026-10-02T00:00:02.000Z",
+        "freshUntil": "2026-10-03T00:00:02.000Z",
+        "nextCheckAllowedAt": "2026-10-02T00:05:00.000Z",
+        "state": "CHANGED",
+        "upstreamStatus": 200,
+        "resultBinding": {
+          "sourceVersionIdentity": "43c0844468875124582d63c66c1f84c5ae9d2f0ff8478ae92e9f200b38a42551",
+          "resolutionIdentity": "5f14bf461a8e6ab9f93588827a3ba605245d6f5dbacfafcb3417bb3399c4b212",
+          "validationIdentity": "d29ccd58cffcbe04b0c17bcde619ad1947a919039014b92f7510992bdfff6283",
+          "artifactSha256": "e03b356125a6fc5b805e466dec9af345009123a41b231f5ce84ecc798a0e2295",
+          "artifactByteLength": 140,
+          "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/e03b356125a6fc5b805e466dec9af345009123a41b231f5ce84ecc798a0e2295",
+          "versionIri": "https://cache.example.test/ontology/cache/versions/sha256/43c0844468875124582d63c66c1f84c5ae9d2f0ff8478ae92e9f200b38a42551.json",
+          "resolutionIri": "https://cache.example.test/ontology/cache/resolutions/sha256/5f14bf461a8e6ab9f93588827a3ba605245d6f5dbacfafcb3417bb3399c4b212.json",
+          "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/d29ccd58cffcbe04b0c17bcde619ad1947a919039014b92f7510992bdfff6283.json"
+        }
+      }
+    },
+    {
+      "id": "refresh-failed",
+      "schema": "ontology-refresh-result.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "refresh-status",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "refreshAttemptId": "11111111111111111111111111111111",
+        "generation": 2,
+        "mode": "if-due",
+        "admittedAt": "2026-10-02T00:00:00.000Z",
+        "baselineBinding": {
+          "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+          "resolutionIdentity": "2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46",
+          "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+          "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "artifactByteLength": 117,
+          "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "versionIri": "https://cache.example.test/ontology/cache/versions/sha256/e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f.json",
+          "resolutionIri": "https://cache.example.test/ontology/cache/resolutions/sha256/2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46.json",
+          "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2.json"
+        },
+        "statusIri": "https://cache.example.test/ontology/materializations/2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f/refreshes/11111111111111111111111111111111",
+        "state": "FAILED",
+        "startedAt": "2026-10-02T00:00:01.000Z",
+        "finishedAt": "2026-10-02T00:00:02.000Z",
+        "error": {
+          "code": "UPSTREAM_TIMEOUT",
+          "message": "The origin check timed out.",
+          "retryable": true
+        },
+        "nextCheckAllowedAt": "2026-10-02T00:15:02.000Z"
+      }
+    },
+    {
+      "id": "refresh-superseded",
+      "schema": "ontology-refresh-result.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "refresh-status",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "refreshAttemptId": "11111111111111111111111111111111",
+        "generation": 2,
+        "mode": "if-due",
+        "admittedAt": "2026-10-02T00:00:00.000Z",
+        "baselineBinding": {
+          "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+          "resolutionIdentity": "2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46",
+          "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+          "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "artifactByteLength": 117,
+          "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "versionIri": "https://cache.example.test/ontology/cache/versions/sha256/e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f.json",
+          "resolutionIri": "https://cache.example.test/ontology/cache/resolutions/sha256/2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46.json",
+          "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2.json"
+        },
+        "statusIri": "https://cache.example.test/ontology/materializations/2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f/refreshes/11111111111111111111111111111111",
+        "state": "SUPERSEDED",
+        "finishedAt": "2026-10-02T00:00:02.000Z",
+        "supersedingGeneration": 3
+      }
+    },
+    {
+      "id": "source-current",
+      "schema": "ontology-source-pointer.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "source-pointer",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "requestedDocumentIri": "https://ontology.example.test/onto#v1",
+        "generation": 1,
+        "accessState": "ELIGIBLE",
+        "currentBinding": {
+          "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+          "resolutionIdentity": "2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46",
+          "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+          "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "artifactByteLength": 117,
+          "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "versionIri": "https://cache.example.test/ontology/cache/versions/sha256/e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f.json",
+          "resolutionIri": "https://cache.example.test/ontology/cache/resolutions/sha256/2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46.json",
+          "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2.json"
+        },
+        "acquiredAt": "2026-10-01T00:00:00.000Z",
+        "lastAttemptedAt": "2026-10-01T00:00:00.000Z",
+        "lastSuccessfullyCheckedAt": "2026-10-01T00:00:00.000Z",
+        "lastChangedAt": "2026-10-01T00:00:00.000Z",
+        "freshUntil": "2026-10-02T00:00:00.000Z",
+        "nextCheckAllowedAt": "2026-10-01T00:05:00.000Z"
+      }
+    },
+    {
+      "id": "source-withdrawn",
+      "schema": "ontology-source-pointer.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "source-pointer",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "generation": 3,
+        "accessState": "WITHDRAWN",
+        "withdrawnAt": "2026-10-02T00:00:02.000Z",
+        "reasonCode": "SOURCE_WITHDRAWN"
+      }
+    },
+    {
+      "id": "error-unknown",
+      "schema": "ontology-materialization-error.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "error",
+        "requestId": "synthetic-request-001",
+        "error": {
+          "code": "MATERIALIZATION_NOT_AVAILABLE",
+          "message": "The requested status is not available.",
+          "retryable": false
+        }
+      }
+    },
+    {
+      "id": "catalog-generation",
+      "schema": "ontology-catalog-generation.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "catalog-generation",
+        "mappings": [
+          {
+            "name": "https://ontology.example.test/onto#v1",
+            "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+            "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+            "resolutionIdentity": "2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46"
+          }
+        ]
+      }
+    },
+    {
+      "id": "seed-manifest",
+      "schema": "ontology-seed-manifest.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "seed-manifest",
+        "entries": [
+          {
+            "requestedDocumentIri": "https://ontology.example.test/onto#v1",
+            "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+            "resolutionIdentity": "2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46",
+            "rightsDecisionReference": "synthetic-only-not-publication-approval",
+            "reviewedAt": "2026-10-01T00:00:00.000Z"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reject-request-extra",
+      "schema": "ontology-materialization-request.v1.schema.json",
+      "expectedSchemaValid": false,
+      "value": {
+        "requestedDocumentIri": "https://ontology.example.test/onto#v1",
+        "parseMode": "compatible"
+      }
+    },
+    {
+      "id": "reject-wire-major",
+      "schema": "ontology-materialization-status.v1.schema.json",
+      "expectedSchemaValid": false,
+      "value": {
+        "schemaVersion": 2,
+        "kind": "materialization-status",
+        "materializationId": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "state": "PENDING",
+        "generation": 1,
+        "admittedAt": "2026-10-01T00:00:00.000Z",
+        "statusIri": "https://cache.example.test/ontology/materializations/2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "workState": "QUEUED"
+      }
+    },
+    {
+      "id": "reject-bad-digest",
+      "schema": "ontology-source-pointer.v1.schema.json",
+      "expectedSchemaValid": false,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "source-pointer",
+        "sourceKey": "not-a-digest",
+        "requestedDocumentIri": "https://ontology.example.test/onto#v1",
+        "generation": 1,
+        "accessState": "ELIGIBLE",
+        "currentBinding": {
+          "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+          "resolutionIdentity": "2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46",
+          "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+          "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "artifactByteLength": 117,
+          "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "versionIri": "https://cache.example.test/ontology/cache/versions/sha256/e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f.json",
+          "resolutionIri": "https://cache.example.test/ontology/cache/resolutions/sha256/2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46.json",
+          "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2.json"
+        },
+        "acquiredAt": "2026-10-01T00:00:00.000Z",
+        "lastAttemptedAt": "2026-10-01T00:00:00.000Z",
+        "lastSuccessfullyCheckedAt": "2026-10-01T00:00:00.000Z",
+        "lastChangedAt": "2026-10-01T00:00:00.000Z",
+        "freshUntil": "2026-10-02T00:00:00.000Z",
+        "nextCheckAllowedAt": "2026-10-01T00:05:00.000Z"
+      }
+    },
+    {
+      "id": "reject-unbounded-service",
+      "schema": "ontology-loader-policy.v1.schema.json",
+      "expectedSchemaValid": false,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "loader-policy",
+        "loaderProfileFingerprint": "dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6",
+        "policy": {
+          "validationContractVersion": 1,
+          "validationProfileId": "ontology-source-document-v1",
+          "parseMode": "preserve",
+          "formatSelectionMode": "automatic",
+          "decodingPolicy": "strict-utf8-v1",
+          "parserBasePolicy": "effective-origin-response-v1",
+          "transportPolicy": "https-preferred-original-http-fallback-v1",
+          "remoteImports": false,
+          "remoteJsonLdContexts": false,
+          "externalXmlResources": false,
+          "sourceAssessmentAdmission": "report-only",
+          "formatInventorySha256": "4444444444444444444444444444444444444444444444444444444444444444",
+          "acceptPreferenceSha256": "5555555555555555555555555555555555555555555555555555555555555555",
+          "requestVariant": {
+            "accept": "text/turtle",
+            "acceptEncoding": "identity",
+            "selectionPolicyVersion": 1
+          },
+          "owlapiArtifact": {
+            "dependencyName": "owlapi",
+            "packageName": "owlapi",
+            "packageVersion": "0.0.0-contract-fixture",
+            "selector": "synthetic-contract-fixture-only",
+            "sourceCommit": "0000000000000000000000000000000000000000",
+            "archiveSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+            "installedPayloadSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+            "dependencyClosureSha256": "3333333333333333333333333333333333333333333333333333333333333333",
+            "runtimeTarget": "synthetic-no-runtime"
+          },
+          "limits": {
+            "encodedBytes": 33554432,
+            "decodedBytes": {
+              "kind": "unbounded"
+            },
+            "expandedXmlBytes": 33554432,
+            "decompressionRatio": 100,
+            "redirects": 3,
+            "dnsMs": 3000,
+            "connectTlsMs": 5000,
+            "headersMs": 10000,
+            "retrievalMs": 30000,
+            "parseMs": 20000,
+            "workerMs": 60000,
+            "workerMemoryMiB": 2048,
+            "tokenCount": 4000000,
+            "tokenBytes": 1048576,
+            "axiomCount": 200000,
+            "blankNodeCount": 1000000,
+            "rdfQuadCount": 1000000,
+            "rdfListLength": 1000000,
+            "parserDepth": 128,
+            "entityDeclarations": 64,
+            "entityExpansionDepth": 8,
+            "entityReplacementBytes": 65536,
+            "importFetchCount": 0
+          },
+          "dependencyTranslations": [
+            {
+              "gate": "encodedBytes",
+              "enforcementTarget": "fixture-only:encodedBytes",
+              "unit": "bytes",
+              "value": 33554432,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "decodedBytes",
+              "enforcementTarget": "fixture-only:decodedBytes",
+              "unit": "bytes",
+              "value": 33554432,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "expandedXmlBytes",
+              "enforcementTarget": "fixture-only:expandedXmlBytes",
+              "unit": "bytes",
+              "value": 33554432,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "decompressionRatio",
+              "enforcementTarget": "fixture-only:decompressionRatio",
+              "unit": "ratio",
+              "value": 100,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "redirects",
+              "enforcementTarget": "fixture-only:redirects",
+              "unit": "count",
+              "value": 3,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "dnsMs",
+              "enforcementTarget": "fixture-only:dnsMs",
+              "unit": "milliseconds",
+              "value": 3000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "connectTlsMs",
+              "enforcementTarget": "fixture-only:connectTlsMs",
+              "unit": "milliseconds",
+              "value": 5000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "headersMs",
+              "enforcementTarget": "fixture-only:headersMs",
+              "unit": "milliseconds",
+              "value": 10000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "retrievalMs",
+              "enforcementTarget": "fixture-only:retrievalMs",
+              "unit": "milliseconds",
+              "value": 30000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "parseMs",
+              "enforcementTarget": "fixture-only:parseMs",
+              "unit": "milliseconds",
+              "value": 20000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "workerMs",
+              "enforcementTarget": "fixture-only:workerMs",
+              "unit": "milliseconds",
+              "value": 60000,
+              "scope": "worker",
+              "enforcement": "worker-isolation"
+            },
+            {
+              "gate": "workerMemoryMiB",
+              "enforcementTarget": "fixture-only:workerMemoryMiB",
+              "unit": "mebibytes",
+              "value": 2048,
+              "scope": "worker",
+              "enforcement": "worker-isolation"
+            },
+            {
+              "gate": "tokenCount",
+              "enforcementTarget": "fixture-only:tokenCount",
+              "unit": "count",
+              "value": 4000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "tokenBytes",
+              "enforcementTarget": "fixture-only:tokenBytes",
+              "unit": "bytes",
+              "value": 1048576,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "axiomCount",
+              "enforcementTarget": "fixture-only:axiomCount",
+              "unit": "count",
+              "value": 200000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "blankNodeCount",
+              "enforcementTarget": "fixture-only:blankNodeCount",
+              "unit": "count",
+              "value": 1000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "rdfQuadCount",
+              "enforcementTarget": "fixture-only:rdfQuadCount",
+              "unit": "count",
+              "value": 1000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "rdfListLength",
+              "enforcementTarget": "fixture-only:rdfListLength",
+              "unit": "count",
+              "value": 1000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "parserDepth",
+              "enforcementTarget": "fixture-only:parserDepth",
+              "unit": "depth",
+              "value": 128,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "entityDeclarations",
+              "enforcementTarget": "fixture-only:entityDeclarations",
+              "unit": "count",
+              "value": 64,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "entityExpansionDepth",
+              "enforcementTarget": "fixture-only:entityExpansionDepth",
+              "unit": "depth",
+              "value": 8,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "entityReplacementBytes",
+              "enforcementTarget": "fixture-only:entityReplacementBytes",
+              "unit": "bytes",
+              "value": 65536,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "importFetchCount",
+              "enforcementTarget": "fixture-only:importFetchCount",
+              "unit": "count",
+              "value": 0,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "reject-skipped-attempt",
+      "schema": "ontology-refresh-result.v1.schema.json",
+      "expectedSchemaValid": false,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "refresh-status",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "state": "SKIPPED_FRESH",
+        "observedAt": "2026-10-01T01:00:00.000Z",
+        "freshUntil": "2026-10-02T00:00:00.000Z",
+        "nextCheckAllowedAt": "2026-10-01T00:05:00.000Z",
+        "currentBinding": {
+          "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+          "resolutionIdentity": "2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46",
+          "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+          "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "artifactByteLength": 117,
+          "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "versionIri": "https://cache.example.test/ontology/cache/versions/sha256/e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f.json",
+          "resolutionIri": "https://cache.example.test/ontology/cache/resolutions/sha256/2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46.json",
+          "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2.json"
+        },
+        "refreshAttemptId": "11111111111111111111111111111111"
+      }
+    },
+    {
+      "id": "reject-pending-terminal",
+      "schema": "ontology-refresh-result.v1.schema.json",
+      "expectedSchemaValid": false,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "refresh-status",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "refreshAttemptId": "11111111111111111111111111111111",
+        "generation": 2,
+        "mode": "if-due",
+        "admittedAt": "2026-10-02T00:00:00.000Z",
+        "baselineBinding": {
+          "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+          "resolutionIdentity": "2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46",
+          "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+          "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "artifactByteLength": 117,
+          "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "versionIri": "https://cache.example.test/ontology/cache/versions/sha256/e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f.json",
+          "resolutionIri": "https://cache.example.test/ontology/cache/resolutions/sha256/2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46.json",
+          "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2.json"
+        },
+        "statusIri": "https://cache.example.test/ontology/materializations/2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f/refreshes/11111111111111111111111111111111",
+        "state": "PENDING",
+        "workState": "RUNNING",
+        "startedAt": "2026-10-02T00:00:01.000Z",
+        "finishedAt": "2026-10-02T00:00:02.000Z"
+      }
+    },
+    {
+      "id": "reject-failed-binding",
+      "schema": "ontology-refresh-result.v1.schema.json",
+      "expectedSchemaValid": false,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "refresh-status",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "refreshAttemptId": "11111111111111111111111111111111",
+        "generation": 2,
+        "mode": "if-due",
+        "admittedAt": "2026-10-02T00:00:00.000Z",
+        "baselineBinding": {
+          "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+          "resolutionIdentity": "2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46",
+          "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+          "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "artifactByteLength": 117,
+          "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "versionIri": "https://cache.example.test/ontology/cache/versions/sha256/e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f.json",
+          "resolutionIri": "https://cache.example.test/ontology/cache/resolutions/sha256/2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46.json",
+          "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2.json"
+        },
+        "statusIri": "https://cache.example.test/ontology/materializations/2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f/refreshes/11111111111111111111111111111111",
+        "state": "FAILED",
+        "startedAt": "2026-10-02T00:00:01.000Z",
+        "finishedAt": "2026-10-02T00:00:02.000Z",
+        "error": {
+          "code": "UPSTREAM_TIMEOUT",
+          "message": "The origin check timed out.",
+          "retryable": true
+        },
+        "nextCheckAllowedAt": "2026-10-02T00:15:02.000Z",
+        "resultBinding": {
+          "sourceVersionIdentity": "43c0844468875124582d63c66c1f84c5ae9d2f0ff8478ae92e9f200b38a42551",
+          "resolutionIdentity": "5f14bf461a8e6ab9f93588827a3ba605245d6f5dbacfafcb3417bb3399c4b212",
+          "validationIdentity": "d29ccd58cffcbe04b0c17bcde619ad1947a919039014b92f7510992bdfff6283",
+          "artifactSha256": "e03b356125a6fc5b805e466dec9af345009123a41b231f5ce84ecc798a0e2295",
+          "artifactByteLength": 140,
+          "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/e03b356125a6fc5b805e466dec9af345009123a41b231f5ce84ecc798a0e2295",
+          "versionIri": "https://cache.example.test/ontology/cache/versions/sha256/43c0844468875124582d63c66c1f84c5ae9d2f0ff8478ae92e9f200b38a42551.json",
+          "resolutionIri": "https://cache.example.test/ontology/cache/resolutions/sha256/5f14bf461a8e6ab9f93588827a3ba605245d6f5dbacfafcb3417bb3399c4b212.json",
+          "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/d29ccd58cffcbe04b0c17bcde619ad1947a919039014b92f7510992bdfff6283.json"
+        }
+      }
+    },
+    {
+      "id": "reject-terminal-no-binding",
+      "schema": "ontology-refresh-result.v1.schema.json",
+      "expectedSchemaValid": false,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "refresh-status",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "refreshAttemptId": "11111111111111111111111111111111",
+        "generation": 2,
+        "mode": "if-due",
+        "admittedAt": "2026-10-02T00:00:00.000Z",
+        "baselineBinding": {
+          "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+          "resolutionIdentity": "2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46",
+          "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+          "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "artifactByteLength": 117,
+          "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "versionIri": "https://cache.example.test/ontology/cache/versions/sha256/e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f.json",
+          "resolutionIri": "https://cache.example.test/ontology/cache/resolutions/sha256/2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46.json",
+          "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2.json"
+        },
+        "statusIri": "https://cache.example.test/ontology/materializations/2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f/refreshes/11111111111111111111111111111111",
+        "startedAt": "2026-10-02T00:00:01.000Z",
+        "finishedAt": "2026-10-02T00:00:02.000Z",
+        "discoveryState": "PENDING",
+        "lastSuccessfullyCheckedAt": "2026-10-02T00:00:02.000Z",
+        "freshUntil": "2026-10-03T00:00:02.000Z",
+        "nextCheckAllowedAt": "2026-10-02T00:05:00.000Z",
+        "state": "CHANGED",
+        "upstreamStatus": 200
+      }
+    },
+    {
+      "id": "reject-withdrawn-links",
+      "schema": "ontology-source-pointer.v1.schema.json",
+      "expectedSchemaValid": false,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "source-pointer",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "generation": 3,
+        "accessState": "WITHDRAWN",
+        "withdrawnAt": "2026-10-02T00:00:02.000Z",
+        "reasonCode": "SOURCE_WITHDRAWN",
+        "currentBinding": {
+          "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+          "resolutionIdentity": "2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46",
+          "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+          "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "artifactByteLength": 117,
+          "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "versionIri": "https://cache.example.test/ontology/cache/versions/sha256/e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f.json",
+          "resolutionIri": "https://cache.example.test/ontology/cache/resolutions/sha256/2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46.json",
+          "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2.json"
+        }
+      }
+    },
+    {
+      "id": "reject-version-observation",
+      "schema": "ontology-source-version.v1.schema.json",
+      "expectedSchemaValid": false,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "source-version",
+        "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "requestedDocumentIri": "https://ontology.example.test/onto#v1",
+        "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactByteLength": 117,
+        "effectiveRetrievalIri": "https://origin.example.test/v1/root.ttl",
+        "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+        "checkedAt": "2026-10-01T00:00:00.000Z"
+      }
+    }
+  ],
+  "semanticExamples": [
+    {
+      "id": "reject-wrong-source-hash",
+      "schema": "ontology-resolution.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "resolution",
+        "sourceKey": "0000000000000000000000000000000000000000000000000000000000000000",
+        "generation": 1,
+        "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+        "requestedDocumentIri": "https://ontology.example.test/onto#v1",
+        "retrievalIri": "https://ontology.example.test/onto",
+        "effectiveRetrievalIri": "https://origin.example.test/v1/root.ttl",
+        "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+        "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactByteLength": 117,
+        "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+        "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2.json",
+        "loaderProfileFingerprint": "dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6",
+        "loaderPolicyIri": "https://cache.example.test/ontology/cache/policies/sha256/dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6.json",
+        "owlapiArtifactIdentity": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619",
+        "formatSelectionMode": "automatic",
+        "explicitFormatId": null,
+        "observedFormatId": "turtle",
+        "decodingPolicy": "strict-utf8-v1",
+        "validationContractVersion": 1,
+        "acquiredAt": "2026-10-01T00:00:00.000Z",
+        "checkedAt": "2026-10-01T00:00:00.000Z",
+        "originMetadata": {
+          "status": 200,
+          "contentType": "text/turtle",
+          "contentEncoding": "identity",
+          "cacheControl": "public, max-age=86400",
+          "vary": ["accept"],
+          "validators": {
+            "etag": "\"fixture-A\""
+          }
+        },
+        "requestVariant": {
+          "accept": "text/turtle",
+          "acceptEncoding": "identity",
+          "selectionPolicyVersion": 1
+        },
+        "requestVariantFingerprint": "dd2c43dfdfce1dd431652d5c47568471230f059d0bd6694d1968a3e0f6e0477c",
+        "publicationDisposition": "AUTOMATIC_PUBLIC_ARCHIVE",
+        "sourceAssessment": "valid",
+        "closureQualification": "UNASSESSED",
+        "resolutionIdentity": "2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46"
+      },
+      "expectedSemanticOutcome": "REJECT_SOURCE_IDENTITY"
+    },
+    {
+      "id": "reject-foreign-evidence-link",
+      "schema": "ontology-resolution.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "resolution",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "generation": 1,
+        "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+        "requestedDocumentIri": "https://ontology.example.test/onto#v1",
+        "retrievalIri": "https://ontology.example.test/onto",
+        "effectiveRetrievalIri": "https://origin.example.test/v1/root.ttl",
+        "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+        "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactByteLength": 117,
+        "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+        "validationIri": "https://foreign.example.test/evidence",
+        "loaderProfileFingerprint": "dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6",
+        "loaderPolicyIri": "https://cache.example.test/ontology/cache/policies/sha256/dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6.json",
+        "owlapiArtifactIdentity": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619",
+        "formatSelectionMode": "automatic",
+        "explicitFormatId": null,
+        "observedFormatId": "turtle",
+        "decodingPolicy": "strict-utf8-v1",
+        "validationContractVersion": 1,
+        "acquiredAt": "2026-10-01T00:00:00.000Z",
+        "checkedAt": "2026-10-01T00:00:00.000Z",
+        "originMetadata": {
+          "status": 200,
+          "contentType": "text/turtle",
+          "contentEncoding": "identity",
+          "cacheControl": "public, max-age=86400",
+          "vary": ["accept"],
+          "validators": {
+            "etag": "\"fixture-A\""
+          }
+        },
+        "requestVariant": {
+          "accept": "text/turtle",
+          "acceptEncoding": "identity",
+          "selectionPolicyVersion": 1
+        },
+        "requestVariantFingerprint": "dd2c43dfdfce1dd431652d5c47568471230f059d0bd6694d1968a3e0f6e0477c",
+        "publicationDisposition": "AUTOMATIC_PUBLIC_ARCHIVE",
+        "sourceAssessment": "valid",
+        "closureQualification": "UNASSESSED",
+        "resolutionIdentity": "2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46"
+      },
+      "expectedSemanticOutcome": "REJECT_SERVICE_LINK"
+    },
+    {
+      "id": "reject-changed-304",
+      "schema": "ontology-refresh-result.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "refresh-status",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "refreshAttemptId": "11111111111111111111111111111111",
+        "generation": 2,
+        "mode": "if-due",
+        "admittedAt": "2026-10-02T00:00:00.000Z",
+        "baselineBinding": {
+          "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+          "resolutionIdentity": "2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46",
+          "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+          "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "artifactByteLength": 117,
+          "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "versionIri": "https://cache.example.test/ontology/cache/versions/sha256/e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f.json",
+          "resolutionIri": "https://cache.example.test/ontology/cache/resolutions/sha256/2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46.json",
+          "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2.json"
+        },
+        "statusIri": "https://cache.example.test/ontology/materializations/2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f/refreshes/11111111111111111111111111111111",
+        "startedAt": "2026-10-02T00:00:01.000Z",
+        "finishedAt": "2026-10-02T00:00:02.000Z",
+        "discoveryState": "PENDING",
+        "lastSuccessfullyCheckedAt": "2026-10-02T00:00:02.000Z",
+        "freshUntil": "2026-10-03T00:00:02.000Z",
+        "nextCheckAllowedAt": "2026-10-02T00:05:00.000Z",
+        "state": "CHANGED",
+        "upstreamStatus": 304,
+        "resultBinding": {
+          "sourceVersionIdentity": "43c0844468875124582d63c66c1f84c5ae9d2f0ff8478ae92e9f200b38a42551",
+          "resolutionIdentity": "5f14bf461a8e6ab9f93588827a3ba605245d6f5dbacfafcb3417bb3399c4b212",
+          "validationIdentity": "d29ccd58cffcbe04b0c17bcde619ad1947a919039014b92f7510992bdfff6283",
+          "artifactSha256": "e03b356125a6fc5b805e466dec9af345009123a41b231f5ce84ecc798a0e2295",
+          "artifactByteLength": 140,
+          "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/e03b356125a6fc5b805e466dec9af345009123a41b231f5ce84ecc798a0e2295",
+          "versionIri": "https://cache.example.test/ontology/cache/versions/sha256/43c0844468875124582d63c66c1f84c5ae9d2f0ff8478ae92e9f200b38a42551.json",
+          "resolutionIri": "https://cache.example.test/ontology/cache/resolutions/sha256/5f14bf461a8e6ab9f93588827a3ba605245d6f5dbacfafcb3417bb3399c4b212.json",
+          "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/d29ccd58cffcbe04b0c17bcde619ad1947a919039014b92f7510992bdfff6283.json"
+        }
+      },
+      "expectedSemanticOutcome": "REJECT_REFRESH_SEMANTICS"
+    },
+    {
+      "id": "reject-time-reversal",
+      "schema": "ontology-refresh-result.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "refresh-status",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "refreshAttemptId": "11111111111111111111111111111111",
+        "generation": 2,
+        "mode": "if-due",
+        "admittedAt": "2026-10-02T00:00:00.000Z",
+        "baselineBinding": {
+          "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+          "resolutionIdentity": "2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46",
+          "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+          "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "artifactByteLength": 117,
+          "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "versionIri": "https://cache.example.test/ontology/cache/versions/sha256/e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f.json",
+          "resolutionIri": "https://cache.example.test/ontology/cache/resolutions/sha256/2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46.json",
+          "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2.json"
+        },
+        "statusIri": "https://cache.example.test/ontology/materializations/2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f/refreshes/11111111111111111111111111111111",
+        "startedAt": "2026-10-02T00:00:01.000Z",
+        "finishedAt": "2026-10-01T00:00:00.000Z",
+        "discoveryState": "PENDING",
+        "lastSuccessfullyCheckedAt": "2026-10-02T00:00:02.000Z",
+        "freshUntil": "2026-10-03T00:00:02.000Z",
+        "nextCheckAllowedAt": "2026-10-02T00:05:00.000Z",
+        "state": "UNCHANGED",
+        "upstreamStatus": 304,
+        "resultBinding": {
+          "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+          "resolutionIdentity": "950e443a7ce89a9678fe9255f068a47e4588847489a0fed3385bc0860c2927c0",
+          "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+          "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "artifactByteLength": 117,
+          "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "versionIri": "https://cache.example.test/ontology/cache/versions/sha256/e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f.json",
+          "resolutionIri": "https://cache.example.test/ontology/cache/resolutions/sha256/950e443a7ce89a9678fe9255f068a47e4588847489a0fed3385bc0860c2927c0.json",
+          "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2.json"
+        }
+      },
+      "expectedSemanticOutcome": "REJECT_TIME_ORDER"
+    },
+    {
+      "id": "reject-invalid-calendar",
+      "schema": "ontology-source-pointer.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "source-pointer",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "requestedDocumentIri": "https://ontology.example.test/onto#v1",
+        "generation": 1,
+        "accessState": "ELIGIBLE",
+        "currentBinding": {
+          "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+          "resolutionIdentity": "2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46",
+          "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+          "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "artifactByteLength": 117,
+          "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "versionIri": "https://cache.example.test/ontology/cache/versions/sha256/e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f.json",
+          "resolutionIri": "https://cache.example.test/ontology/cache/resolutions/sha256/2a4f7f28bd55655dfb7c0f0b4c3bdd2faa338c017ebbcfae9311790e923abc46.json",
+          "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2.json"
+        },
+        "acquiredAt": "2026-10-01T00:00:00.000Z",
+        "lastAttemptedAt": "2026-10-01T00:00:00.000Z",
+        "lastSuccessfullyCheckedAt": "2026-10-01T00:00:00.000Z",
+        "lastChangedAt": "2026-10-01T00:00:00.000Z",
+        "freshUntil": "2026-02-31T00:00:00.000Z",
+        "nextCheckAllowedAt": "2026-10-01T00:05:00.000Z"
+      },
+      "expectedSemanticOutcome": "REJECT_TIMESTAMP"
+    },
+    {
+      "id": "reject-implicit-format-key",
+      "schema": "ontology-validation.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "document-validation",
+        "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+        "identityInputs": {
+          "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+          "formatSelectionMode": "automatic",
+          "explicitFormatId": "turtle",
+          "observedFormatId": "turtle",
+          "owlapiArtifactIdentity": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619",
+          "loaderProfileFingerprint": "dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6",
+          "validationContractVersion": 1
+        },
+        "validationProfileId": "ontology-source-document-v1",
+        "documentState": "DOCUMENT_VALIDATED",
+        "parseMode": "preserve",
+        "sourceBytesRetained": true,
+        "sourceAssessment": "valid",
+        "profileAssessment": "NOT_EVALUATED",
+        "closureQualification": "UNASSESSED",
+        "consumerAdmission": "NOT_EVALUATED",
+        "diagnosticCodes": [],
+        "diagnosticsTruncated": false,
+        "importDeclarationCount": 1,
+        "ontologyIris": ["https://origin.example.test/v1/root.ttl"],
+        "declaredVersionIris": [],
+        "identifiersTruncated": false
+      },
+      "expectedSemanticOutcome": "REJECT_SELECTION_MODE"
+    }
+  ],
+  "rawAdmissionCases": [
+    {
+      "id": "duplicate-member",
+      "rawJson": "{\"requestedDocumentIri\":\"https://example.test/a\",\"requestedDocumentIri\":\"https://example.test/b\"}",
+      "expected": "REJECT_BEFORE_JSON_OBJECT_PARSE"
+    },
+    {
+      "id": "iri-utf8-byte-limit",
+      "construction": {
+        "prefix": "https://example.test/",
+        "repeatCodePoint": "é",
+        "repeatCount": 2041
+      },
+      "expected": "REJECT_IRI_EXCEEDS_4096_UTF8_BYTES"
+    },
+    {
+      "id": "malformed-unicode",
+      "rawJson": "{\"requestedDocumentIri\":\"https://example.test/\\ud800\"}",
+      "expected": "REJECT_UNICODE_SCALAR_VALUE"
+    },
+    {
+      "id": "unsupported-content-encoding",
+      "contentEncoding": "gzip",
+      "expected": "HTTP_415_REQUEST_MEDIA_TYPE_UNSUPPORTED"
+    }
+  ]
+}

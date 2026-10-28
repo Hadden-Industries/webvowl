@@ -1,0 +1,284 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://haddenindustries.com/ontology/contracts/v1/ontology-loader-policy.v1.schema.json",
+  "title": "Finite document validation policy evidence",
+  "description": "Draft contract 1.0.0-draft.2; review artifact, not a deployed service promise.",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "kind": {
+      "const": "loader-policy"
+    },
+    "loaderProfileFingerprint": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/digest"
+    },
+    "policy": {
+      "type": "object",
+      "properties": {
+        "validationContractVersion": {
+          "const": 1
+        },
+        "validationProfileId": {
+          "const": "ontology-source-document-v1"
+        },
+        "parseMode": {
+          "const": "preserve"
+        },
+        "formatSelectionMode": {
+          "const": "automatic"
+        },
+        "decodingPolicy": {
+          "const": "strict-utf8-v1"
+        },
+        "parserBasePolicy": {
+          "const": "effective-origin-response-v1"
+        },
+        "transportPolicy": {
+          "const": "https-preferred-original-http-fallback-v1"
+        },
+        "remoteImports": {
+          "const": false
+        },
+        "remoteJsonLdContexts": {
+          "const": false
+        },
+        "externalXmlResources": {
+          "const": false
+        },
+        "sourceAssessmentAdmission": {
+          "const": "report-only"
+        },
+        "formatInventorySha256": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/digest"
+        },
+        "acceptPreferenceSha256": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/digest"
+        },
+        "requestVariant": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/variant"
+        },
+        "owlapiArtifact": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/packageEvidence"
+        },
+        "limits": {
+          "type": "object",
+          "properties": {
+            "encodedBytes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 33554432
+            },
+            "decodedBytes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 33554432
+            },
+            "expandedXmlBytes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 33554432
+            },
+            "decompressionRatio": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "redirects": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 3
+            },
+            "dnsMs": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 3000
+            },
+            "connectTlsMs": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5000
+            },
+            "headersMs": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000
+            },
+            "retrievalMs": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 30000
+            },
+            "parseMs": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20000
+            },
+            "workerMs": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 60000
+            },
+            "workerMemoryMiB": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2048
+            },
+            "tokenCount": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 4000000
+            },
+            "tokenBytes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1048576
+            },
+            "axiomCount": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200000
+            },
+            "blankNodeCount": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000000
+            },
+            "rdfQuadCount": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000000
+            },
+            "rdfListLength": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000000
+            },
+            "parserDepth": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 128
+            },
+            "entityDeclarations": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 64
+            },
+            "entityExpansionDepth": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 8
+            },
+            "entityReplacementBytes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65536
+            },
+            "importFetchCount": {
+              "const": 0
+            }
+          },
+          "required": [
+            "encodedBytes",
+            "decodedBytes",
+            "expandedXmlBytes",
+            "decompressionRatio",
+            "redirects",
+            "dnsMs",
+            "connectTlsMs",
+            "headersMs",
+            "retrievalMs",
+            "parseMs",
+            "workerMs",
+            "workerMemoryMiB",
+            "tokenCount",
+            "tokenBytes",
+            "axiomCount",
+            "blankNodeCount",
+            "rdfQuadCount",
+            "rdfListLength",
+            "parserDepth",
+            "entityDeclarations",
+            "entityExpansionDepth",
+            "entityReplacementBytes",
+            "importFetchCount"
+          ],
+          "additionalProperties": false
+        },
+        "dependencyTranslations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "gate": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "unit": {
+                "enum": [
+                  "bytes",
+                  "count",
+                  "depth",
+                  "milliseconds",
+                  "ratio",
+                  "mebibytes"
+                ]
+              },
+              "value": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "scope": {
+                "enum": ["document", "attempt", "worker"]
+              },
+              "enforcement": {
+                "enum": ["public-api", "acquisition-owner", "worker-isolation"]
+              },
+              "enforcementTarget": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              }
+            },
+            "required": [
+              "gate",
+              "enforcementTarget",
+              "unit",
+              "value",
+              "scope",
+              "enforcement"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "maxItems": 64
+        }
+      },
+      "required": [
+        "validationContractVersion",
+        "validationProfileId",
+        "parseMode",
+        "formatSelectionMode",
+        "decodingPolicy",
+        "parserBasePolicy",
+        "transportPolicy",
+        "remoteImports",
+        "remoteJsonLdContexts",
+        "externalXmlResources",
+        "sourceAssessmentAdmission",
+        "formatInventorySha256",
+        "acceptPreferenceSha256",
+        "requestVariant",
+        "owlapiArtifact",
+        "limits",
+        "dependencyTranslations"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": ["schemaVersion", "kind", "loaderProfileFingerprint", "policy"],
+  "additionalProperties": false
+}

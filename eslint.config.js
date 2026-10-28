@@ -5,6 +5,9 @@ import globals from "globals";
 import { jsonQualityEslint } from "./tooling/json/public-api.mjs";
 
 export default defineConfig([
+  // Native Ajv output is checked by deterministic regeneration and protocol fixtures.
+  // Its compiler-owned variable/control-flow conventions are not authored app code.
+  { ignores: ["src/ontology-loading/ontologyCacheValidators.js"] },
   { linterOptions: { reportUnusedDisableDirectives: "error" } },
   {
     files: ["**/*.{js,mjs,cjs}"],

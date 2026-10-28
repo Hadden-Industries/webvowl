@@ -14,9 +14,12 @@ import { createCanonicalFactsDialog } from "./ui/canonicalFactsDialog.js";
 import { canonicalExampleSource } from "./canonicalExamples.js";
 import { requestCanonicalSceneReconciliation } from "./ui/canonicalMergePresentation.js";
 import { createCanonicalVowlSourceAcquisition } from "./controller/canonicalVowlSourceAcquisition.js";
+import { ONTOLOGY_CACHE_CONFIGURATION } from "../../ontology-loading/ontologyLoadingConfiguration.js";
 
 /** Canonical composition shared by production and isolated qualification builds. */
-export function createCanonicalWebVowlApplication() {
+export function createCanonicalWebVowlApplication({
+  ontologyLoadingConfiguration = ONTOLOGY_CACHE_CONFIGURATION,
+} = {}) {
   return createWebVowlApplication({
     selectLocalSource: selectCanonicalLocalSource,
     createOntologySource: createCanonicalOntologySource,
@@ -27,6 +30,7 @@ export function createCanonicalWebVowlApplication() {
         ...dependencies,
         sourceAcquisition: createCanonicalVowlSourceAcquisition({
           requestFormat: requestCanonicalRemoteFormat,
+          cache: ontologyLoadingConfiguration,
         }),
         requestOntologyCreation: requestCanonicalCreation,
         reconcileScene: requestCanonicalSceneReconciliation,

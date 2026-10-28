@@ -128,7 +128,12 @@ export function createControllerStatePresenter(dependencies, frameClock = {}) {
       }
 
       if (
-        LOAD_STATE_FIELD_NAMES.some((fieldName) => changedFields.has(fieldName))
+        LOAD_STATE_FIELD_NAMES.some((fieldName) =>
+          changedFields.has(fieldName),
+        ) ||
+        // Source update controls must invalidate their offer after an edit;
+        // ordinary edits continue to avoid presenting a source load.
+        (changedFields.has("documentRevision") && controllerState.source?.cache)
       ) {
         renderLoadState(controllerState);
       }

@@ -1,0 +1,370 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://haddenindustries.com/ontology/contracts/v1/ontology-refresh-result.v1.schema.json",
+  "title": "Refresh disposition or exact attempt",
+  "description": "Draft contract 1.0.0-draft.2; review artifact, not a deployed service promise.",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "kind": {
+          "const": "refresh-status"
+        },
+        "sourceKey": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/digest"
+        },
+        "state": {
+          "const": "SKIPPED_FRESH"
+        },
+        "observedAt": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+        },
+        "freshUntil": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+        },
+        "nextCheckAllowedAt": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+        },
+        "currentBinding": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/binding"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "kind",
+        "sourceKey",
+        "state",
+        "observedAt",
+        "freshUntil",
+        "nextCheckAllowedAt",
+        "currentBinding"
+      ],
+      "additionalProperties": true
+    },
+    {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "kind": {
+          "const": "refresh-status"
+        },
+        "sourceKey": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/digest"
+        },
+        "refreshAttemptId": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/attemptId"
+        },
+        "generation": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/generation"
+        },
+        "mode": {
+          "enum": ["if-due", "check-now"]
+        },
+        "admittedAt": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+        },
+        "baselineBinding": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/binding"
+        },
+        "statusIri": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/httpsIri"
+        },
+        "state": {
+          "const": "PENDING"
+        },
+        "workState": {
+          "enum": ["QUEUED", "RUNNING", "HELD"]
+        },
+        "startedAt": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "kind",
+        "sourceKey",
+        "refreshAttemptId",
+        "generation",
+        "mode",
+        "admittedAt",
+        "baselineBinding",
+        "statusIri",
+        "state",
+        "workState"
+      ],
+      "additionalProperties": true
+    },
+    {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "kind": {
+          "const": "refresh-status"
+        },
+        "sourceKey": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/digest"
+        },
+        "refreshAttemptId": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/attemptId"
+        },
+        "generation": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/generation"
+        },
+        "mode": {
+          "enum": ["if-due", "check-now"]
+        },
+        "admittedAt": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+        },
+        "baselineBinding": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/binding"
+        },
+        "statusIri": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/httpsIri"
+        },
+        "state": {
+          "enum": ["UNCHANGED", "CHANGED"]
+        },
+        "startedAt": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+        },
+        "finishedAt": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+        },
+        "upstreamStatus": {
+          "enum": [200, 304]
+        },
+        "resultBinding": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/binding"
+        },
+        "discoveryState": {
+          "enum": ["PENDING", "PUBLISHED"]
+        },
+        "lastSuccessfullyCheckedAt": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+        },
+        "freshUntil": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+        },
+        "nextCheckAllowedAt": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "kind",
+        "sourceKey",
+        "refreshAttemptId",
+        "generation",
+        "mode",
+        "admittedAt",
+        "baselineBinding",
+        "statusIri",
+        "state",
+        "startedAt",
+        "finishedAt",
+        "upstreamStatus",
+        "resultBinding",
+        "discoveryState",
+        "lastSuccessfullyCheckedAt",
+        "freshUntil",
+        "nextCheckAllowedAt"
+      ],
+      "additionalProperties": true
+    },
+    {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "kind": {
+          "const": "refresh-status"
+        },
+        "sourceKey": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/digest"
+        },
+        "refreshAttemptId": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/attemptId"
+        },
+        "generation": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/generation"
+        },
+        "mode": {
+          "enum": ["if-due", "check-now"]
+        },
+        "admittedAt": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+        },
+        "baselineBinding": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/binding"
+        },
+        "statusIri": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/httpsIri"
+        },
+        "state": {
+          "const": "FAILED"
+        },
+        "startedAt": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+        },
+        "finishedAt": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+        },
+        "error": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/error"
+        },
+        "nextCheckAllowedAt": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "kind",
+        "sourceKey",
+        "refreshAttemptId",
+        "generation",
+        "mode",
+        "admittedAt",
+        "baselineBinding",
+        "statusIri",
+        "state",
+        "finishedAt",
+        "error",
+        "nextCheckAllowedAt"
+      ],
+      "additionalProperties": true
+    },
+    {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "kind": {
+          "const": "refresh-status"
+        },
+        "sourceKey": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/digest"
+        },
+        "refreshAttemptId": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/attemptId"
+        },
+        "generation": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/generation"
+        },
+        "mode": {
+          "enum": ["if-due", "check-now"]
+        },
+        "admittedAt": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+        },
+        "baselineBinding": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/binding"
+        },
+        "statusIri": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/httpsIri"
+        },
+        "state": {
+          "const": "SUPERSEDED"
+        },
+        "startedAt": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+        },
+        "finishedAt": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+        },
+        "supersedingGeneration": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/generation"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "kind",
+        "sourceKey",
+        "refreshAttemptId",
+        "generation",
+        "mode",
+        "admittedAt",
+        "baselineBinding",
+        "statusIri",
+        "state",
+        "finishedAt",
+        "supersedingGeneration"
+      ],
+      "additionalProperties": true
+    }
+  ],
+  "allOf": [
+    {
+      "if": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "const": "SKIPPED_FRESH"
+          }
+        },
+        "required": ["state"]
+      },
+      "then": {
+        "not": {
+          "anyOf": [
+            {
+              "required": ["refreshAttemptId"],
+              "type": "object"
+            },
+            {
+              "required": ["generation"],
+              "type": "object"
+            },
+            {
+              "required": ["resultBinding"],
+              "type": "object"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "enum": ["FAILED", "SUPERSEDED", "PENDING"]
+          }
+        },
+        "required": ["state"]
+      },
+      "then": {
+        "not": {
+          "required": ["resultBinding"],
+          "type": "object"
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "const": "PENDING"
+          }
+        },
+        "required": ["state"]
+      },
+      "then": {
+        "not": {
+          "required": ["finishedAt"],
+          "type": "object"
+        }
+      }
+    }
+  ]
+}

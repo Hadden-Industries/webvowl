@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://haddenindustries.com/ontology/contracts/v1/ontology-source-pointer.v1.schema.json",
+  "title": "Mutable exact-source pointer or withdrawal tombstone",
+  "description": "Draft contract 1.0.0-draft.2; review artifact, not a deployed service promise.",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "kind": {
+          "const": "source-pointer"
+        },
+        "sourceKey": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/digest"
+        },
+        "requestedDocumentIri": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/requestedIri"
+        },
+        "generation": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/generation"
+        },
+        "accessState": {
+          "const": "ELIGIBLE"
+        },
+        "currentBinding": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/binding"
+        },
+        "acquiredAt": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+        },
+        "lastAttemptedAt": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+        },
+        "lastSuccessfullyCheckedAt": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+        },
+        "lastChangedAt": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+        },
+        "freshUntil": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+        },
+        "nextCheckAllowedAt": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+        },
+        "latestRefresh": {
+          "type": "object",
+          "properties": {
+            "refreshAttemptId": {
+              "$ref": "ontology-contract-common.v1.schema.json#/$defs/attemptId"
+            },
+            "state": {
+              "enum": [
+                "PENDING",
+                "UNCHANGED",
+                "CHANGED",
+                "FAILED",
+                "SUPERSEDED"
+              ]
+            },
+            "admittedAt": {
+              "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+            },
+            "startedAt": {
+              "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+            },
+            "finishedAt": {
+              "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+            },
+            "errorCode": {
+              "$ref": "ontology-contract-common.v1.schema.json#/$defs/errorCode"
+            },
+            "statusIri": {
+              "$ref": "ontology-contract-common.v1.schema.json#/$defs/httpsIri"
+            }
+          },
+          "required": ["refreshAttemptId", "state", "admittedAt", "statusIri"],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "kind",
+        "sourceKey",
+        "requestedDocumentIri",
+        "generation",
+        "accessState",
+        "currentBinding",
+        "acquiredAt",
+        "lastAttemptedAt",
+        "lastSuccessfullyCheckedAt",
+        "lastChangedAt",
+        "freshUntil",
+        "nextCheckAllowedAt"
+      ],
+      "additionalProperties": true
+    },
+    {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "kind": {
+          "const": "source-pointer"
+        },
+        "sourceKey": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/digest"
+        },
+        "generation": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/generation"
+        },
+        "accessState": {
+          "enum": ["WITHDRAWN", "QUARANTINED"]
+        },
+        "withdrawnAt": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+        },
+        "reasonCode": {
+          "enum": [
+            "SOURCE_WITHDRAWN",
+            "SOURCE_QUARANTINED",
+            "CONTENT_QUARANTINED"
+          ]
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "kind",
+        "sourceKey",
+        "generation",
+        "accessState",
+        "withdrawnAt",
+        "reasonCode"
+      ],
+      "additionalProperties": false
+    }
+  ]
+}

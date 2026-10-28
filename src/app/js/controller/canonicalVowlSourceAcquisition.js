@@ -1,6 +1,8 @@
 import { OWLDocumentFormats } from "owlapi/formats";
 import { OWLOntologyLoaderConfiguration } from "owlapi/model";
 import { WebVowlImportResolver } from "./importResolver.js";
+import { ONTOLOGY_CACHE_CONFIGURATION } from "../../../ontology-loading/ontologyLoadingConfiguration.js";
+import { waitForOntologyAcquisition } from "../../../ontology-loading/boundedSourceBytes.js";
 
 function formatRequired(candidates) {
   const error = new Error(
@@ -60,7 +62,25 @@ export function selectCanonicalOwlMediaType({
 export function createCanonicalVowlSourceAcquisition({
   resolver = new WebVowlImportResolver(),
   requestFormat,
+  cache: cacheConfiguration = ONTOLOGY_CACHE_CONFIGURATION,
 } = {}) {
+  let client;
+  const sourceEvidence = new WeakMap();
+  const loadContexts = new WeakMap();
+  async function cachedClient() {
+    client ??= (async () => {
+      if (cacheConfiguration.createClient) {
+        return cacheConfiguration.createClient();
+      }
+      const { createCachedOntologySourceAcquisition } =
+        await import("../../../ontology-loading/cachedOntologySourceAcquisition.js");
+      return createCachedOntologySourceAcquisition({
+        ...cacheConfiguration,
+        resolver,
+      });
+    })();
+    return client;
+  }
   function options(signal) {
     return { signal, config: new OWLOntologyLoaderConfiguration({ signal }) };
   }
@@ -78,20 +98,66 @@ export function createCanonicalVowlSourceAcquisition({
     }
     return bytes.slice();
   }
-  async function acquireBytes(documentIri, signal) {
+  async function acquireBytes(
+    documentIri,
+    signal,
+    useCache = true,
+    selectedBindings,
+    context,
+  ) {
+    signal =
+      useCache && cacheConfiguration.enabled === true
+        ? AbortSignal.any([
+            ...(signal ? [signal] : []),
+            AbortSignal.timeout(cacheConfiguration.deadlineMs ?? 60000),
+          ])
+        : signal;
     signal?.throwIfAborted();
-    const acquired = await resolver.loadBytes(documentIri, options(signal));
+    const acquired =
+      useCache && cacheConfiguration.enabled === true
+        ? await (
+            await waitForOntologyAcquisition(cachedClient(), signal)
+          ).acquire(documentIri, {
+            ...options(signal),
+            selectedBindings,
+            context,
+          })
+        : await resolver.loadBytes(documentIri, options(signal));
     signal?.throwIfAborted();
-    return { ...acquired, bytes: ownedBytes(acquired.bytes) };
+    const result = { ...acquired, bytes: ownedBytes(acquired.bytes) };
+    if (acquired.resolution) {
+      sourceEvidence.set(result.bytes, {
+        requestedDocumentIri: documentIri,
+        resolution: acquired.resolution,
+        pointer: acquired.pointer,
+      });
+    }
+    return result;
   }
-  async function acquire(documentIri, signal, format) {
-    const acquired = await acquireBytes(documentIri, signal);
+  async function acquire(
+    documentIri,
+    signal,
+    format,
+    selectedBindings,
+    context,
+  ) {
+    // Reject an unsupported explicit choice before acquisition can admit proxy work.
+    const mediaType =
+      format === undefined
+        ? undefined
+        : selectCanonicalOwlMediaType({ format });
+    const acquired = await acquireBytes(
+      documentIri,
+      signal,
+      true,
+      selectedBindings,
+      context,
+    );
     if (format === undefined) {
       // Server/filename hints do not force a parser. Native loading selects
       // syntax from these bytes once, including extensionless imports.
       return { bytes: acquired.bytes, documentIri: acquired.documentIri };
     }
-    const mediaType = selectCanonicalOwlMediaType({ format });
     return {
       bytes: acquired.bytes,
       documentIri: acquired.documentIri,
@@ -99,15 +165,53 @@ export function createCanonicalVowlSourceAcquisition({
     };
   }
   async function resolveImport(importIri, { signal } = {}) {
-    const documentIri = resolver.getDocumentIRI(importIri).value;
+    const documentIri =
+      cacheConfiguration.enabled === true
+        ? importIri
+        : resolver.getDocumentIRI(importIri).value;
     return acquire(documentIri, signal);
   }
   return Object.freeze({
     resolveImport,
-    createImportContext(rootByteLength, { onFormatRequired, onFailure } = {}) {
+    async observeCache(rootBytes, imports, options) {
+      if (cacheConfiguration.enabled !== true) {
+        return undefined;
+      }
+      const sources = new Map(
+        (imports?.cacheEvidence?.() ?? []).map((entry) => [
+          entry.requestedDocumentIri,
+          entry,
+        ]),
+      );
+      const root = sourceEvidence.get(rootBytes);
+      if (root) {
+        sources.set(root.requestedDocumentIri, root);
+      }
+      if (sources.size === 0) {
+        return undefined;
+      }
+      const { createOntologyRefreshObservation } =
+        await import("../../../ontology-loading/ontologyRefreshObservation.js");
+      return createOntologyRefreshObservation({
+        ...options,
+        sources: [...sources.values()],
+        client: await cachedClient(),
+      });
+    },
+    createImportContext(
+      rootByteLength,
+      { onFormatRequired, onFailure, selectedBindings, rootBytes } = {},
+    ) {
       const limits = OWLOntologyLoaderConfiguration.defaults();
       const cache = new Map();
       const pending = new Set();
+      const evidence = new Map();
+      const context = loadContexts.get(rootBytes) ?? {};
+      // An exact logical root requested again by a cycle is already accounted.
+      const initialBindings = context.bindings?.size ?? 0;
+      for (const [iri, acquired] of context.bindings ?? []) {
+        cache.set(iri, Promise.resolve(acquired));
+      }
       let totalBytes = rootByteLength;
       if (
         !Number.isSafeInteger(totalBytes) ||
@@ -117,10 +221,14 @@ export function createCanonicalVowlSourceAcquisition({
         throw new RangeError("Invalid import acquisition byte budget.");
       }
       return Object.freeze({
+        cacheEvidence: () => [...evidence.values()],
         async resolveImport(importIri, { signal } = {}) {
-          const documentIri = resolver.getDocumentIRI(importIri).value;
+          const documentIri =
+            cacheConfiguration.enabled === true
+              ? importIri
+              : resolver.getDocumentIRI(importIri).value;
           if (!cache.has(documentIri)) {
-            if (cache.size >= limits.maxImportCount) {
+            if (cache.size - initialBindings >= limits.maxImportCount) {
               const error = resourceLimit(
                 "The import count limit was exceeded.",
                 "maxImportCount",
@@ -128,18 +236,26 @@ export function createCanonicalVowlSourceAcquisition({
               onFailure?.(error);
               throw error;
             }
-            const acquisition = acquireBytes(documentIri, signal).then(
-              (acquired) => {
-                totalBytes += acquired.bytes.byteLength;
-                if (totalBytes > limits.maxInputBytes) {
-                  throw resourceLimit(
-                    "The aggregate import byte limit was exceeded.",
-                    "maxInputBytes",
-                  );
-                }
-                return acquired;
-              },
-            );
+            const acquisition = acquireBytes(
+              documentIri,
+              signal,
+              true,
+              selectedBindings,
+              context,
+            ).then((acquired) => {
+              totalBytes += acquired.bytes.byteLength;
+              if (totalBytes > limits.maxInputBytes) {
+                throw resourceLimit(
+                  "The aggregate import byte limit was exceeded.",
+                  "maxInputBytes",
+                );
+              }
+              const entry = sourceEvidence.get(acquired.bytes);
+              if (entry) {
+                evidence.set(documentIri, entry);
+              }
+              return acquired;
+            });
             cache.set(documentIri, acquisition);
             acquisition.catch((error) => {
               if (cache.get(documentIri) === acquisition) {
@@ -205,7 +321,7 @@ export function createCanonicalVowlSourceAcquisition({
       });
     },
     async canonicalRemote(documentIri, { signal } = {}) {
-      const acquired = await acquireBytes(documentIri, signal);
+      const acquired = await acquireBytes(documentIri, signal, false);
       return { operation: "open-canonical-model", bytes: acquired.bytes };
     },
     canonicalLocal(bytes) {
@@ -232,9 +348,17 @@ export function createCanonicalVowlSourceAcquisition({
           : { resolutions: structuredClone(resolutions) }),
       };
     },
-    async remote(documentIri, { signal, format } = {}) {
+    async remote(documentIri, { signal, format, selectedBindings } = {}) {
       // Human input precedes worker admission; it cannot consume its parse deadline.
-      const acquired = await acquire(documentIri, signal, format);
+      const context = {};
+      const acquired = await acquire(
+        documentIri,
+        signal,
+        format,
+        selectedBindings,
+        context,
+      );
+      loadContexts.set(acquired.bytes, context);
       return { operation: "open-owl-model", ...acquired };
     },
     local(bytes, { documentIri, format } = {}) {
