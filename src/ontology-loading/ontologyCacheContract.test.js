@@ -18,7 +18,7 @@ test("acquired provider data agrees with the exact immutable contract bundle", (
     )
     .digest("hex");
   expect(digest).toBe(
-    "786d69d25cd233fc1feabb59ff5a8daa9ab759e33523bb5f99bdb8c5a829e6f7",
+    "5e5d1e35a52b8fac7803caf3eee54e5db349162da509866730f74ab158e26b02",
   );
   for (const entry of files.filter(
     ({ path }) =>

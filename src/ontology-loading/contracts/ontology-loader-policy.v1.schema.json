@@ -36,7 +36,10 @@
           "const": "effective-origin-response-v1"
         },
         "transportPolicy": {
-          "const": "https-preferred-original-http-fallback-v1"
+          "enum": [
+            "https-preferred-original-http-fallback-v1",
+            "https-preferred-anonymous-public-snapshots-v2"
+          ]
         },
         "remoteImports": {
           "const": false
@@ -280,6 +283,24 @@
       "allOf": [
         {
           "$ref": "ontology-contract-common.v1.schema.json#/$defs/documentValidationProfile"
+        },
+        {
+          "if": {
+            "properties": {
+              "transportPolicy": {
+                "const": "https-preferred-anonymous-public-snapshots-v2"
+              }
+            },
+            "required": ["transportPolicy"]
+          },
+          "then": {
+            "properties": {
+              "requestVariant": {
+                "type": "object",
+                "properties": { "selectionPolicyVersion": { "const": 2 } }
+              }
+            }
+          }
         }
       ]
     }
