@@ -3,6 +3,15 @@ import { isIri } from "@hyperjump/uri";
 
 const encoder = new TextEncoder();
 
+/** Import metadata uses logical IRIs; lexer failures are not wire error details. */
+export function isOntologyImportIri(value) {
+  try {
+    return typeof value === "string" && value.isWellFormed() && isIri(value);
+  } catch {
+    return false;
+  }
+}
+
 /** Stable, bounded consumer failures never expose remote messages or source excerpts. */
 export class OntologyCacheError extends Error {
   constructor(code = "CACHE_PROTOCOL_INVALID") {

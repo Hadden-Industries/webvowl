@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://haddenindustries.com/ontology/contracts/v1/ontology-resolution.v1.schema.json",
   "title": "Immutable source-generation resolution",
-  "description": "Draft contract 1.0.0-draft.2; review artifact, not a deployed service promise.",
+  "description": "Draft contract 1.0.0-draft.6; review artifact, not a deployed service promise.",
   "type": "object",
   "properties": {
     "schemaVersion": {
@@ -99,6 +99,9 @@
     },
     "closureQualification": {
       "const": "UNASSESSED"
+    },
+    "declaredImports": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/declaredImports"
     }
   },
   "required": [

@@ -200,12 +200,26 @@ export function createCanonicalVowlSourceAcquisition({
     },
     createImportContext(
       rootByteLength,
-      { onFormatRequired, onFailure, selectedBindings, rootBytes } = {},
+      {
+        onFormatRequired,
+        onFailure,
+        selectedBindings,
+        rootBytes,
+        owlMappingStrategy,
+      } = {},
     ) {
       const limits = OWLOntologyLoaderConfiguration.defaults();
       const cache = new Map();
       const pending = new Set();
       const evidence = new Map();
+      const parents = new Map();
+      const rootEvidence = sourceEvidence.get(rootBytes);
+      if (rootEvidence) {
+        parents.set(
+          rootEvidence.resolution.parserDocumentIri,
+          rootEvidence.resolution,
+        );
+      }
       const context = loadContexts.get(rootBytes) ?? {};
       // An exact logical root requested again by a cycle is already accounted.
       const initialBindings = context.bindings?.size ?? 0;
@@ -220,29 +234,25 @@ export function createCanonicalVowlSourceAcquisition({
       ) {
         throw new RangeError("Invalid import acquisition byte budget.");
       }
-      return Object.freeze({
-        cacheEvidence: () => [...evidence.values()],
-        async resolveImport(importIri, { signal } = {}) {
-          const documentIri =
-            cacheConfiguration.enabled === true
-              ? importIri
-              : resolver.getDocumentIRI(importIri).value;
-          if (!cache.has(documentIri)) {
-            if (cache.size - initialBindings >= limits.maxImportCount) {
-              const error = resourceLimit(
-                "The import count limit was exceeded.",
-                "maxImportCount",
+      // Only byte acquisition overlaps. The worker still requests/parses/adopts
+      // documents in its native order, with at most one speculative sibling.
+      let active = 0;
+      let speculating = false;
+      const queue = [];
+      function dispatch() {
+        while (active < 2 && queue.length) {
+          const job = queue.shift();
+          active++;
+          (async () => {
+            try {
+              job.signal?.throwIfAborted();
+              const acquired = await acquireBytes(
+                job.documentIri,
+                job.signal,
+                true,
+                selectedBindings,
+                context,
               );
-              onFailure?.(error);
-              throw error;
-            }
-            const acquisition = acquireBytes(
-              documentIri,
-              signal,
-              true,
-              selectedBindings,
-              context,
-            ).then((acquired) => {
               totalBytes += acquired.bytes.byteLength;
               if (totalBytes > limits.maxInputBytes) {
                 throw resourceLimit(
@@ -252,22 +262,110 @@ export function createCanonicalVowlSourceAcquisition({
               }
               const entry = sourceEvidence.get(acquired.bytes);
               if (entry) {
-                evidence.set(documentIri, entry);
+                parents.set(acquired.documentIri, entry.resolution);
               }
-              return acquired;
-            });
-            cache.set(documentIri, acquisition);
-            acquisition.catch((error) => {
-              if (cache.get(documentIri) === acquisition) {
-                cache.delete(documentIri);
-              }
-              if (error.code === "RESOURCE_LIMIT_EXCEEDED") {
-                onFailure?.(error);
-              }
-            });
+              job.resolve(acquired);
+            } catch (error) {
+              job.reject(error);
+            } finally {
+              active--;
+              dispatch();
+            }
+          })();
+        }
+      }
+      function importBytes(documentIri, signal) {
+        if (!cache.has(documentIri)) {
+          if (cache.size - initialBindings >= limits.maxImportCount) {
+            const error = resourceLimit(
+              "The import count limit was exceeded.",
+              "maxImportCount",
+            );
+            onFailure?.(error);
+            throw error;
           }
-          const acquired = await cache.get(documentIri);
+          const acquisition = new Promise((resolve, reject) => {
+            const job = { documentIri, signal, resolve, reject };
+            queue.push(job);
+            // A queued demand must settle on cancellation even if both active
+            // transports are still waiting. Running work owns its own signal.
+            const abort = () => {
+              const index = queue.indexOf(job);
+              if (index !== -1) {
+                queue.splice(index, 1);
+                reject(signal.reason);
+              }
+            };
+            signal?.addEventListener("abort", abort, { once: true });
+            const removeListener = () =>
+              signal?.removeEventListener("abort", abort);
+            job.resolve = (value) => {
+              removeListener();
+              resolve(value);
+            };
+            job.reject = (error) => {
+              removeListener();
+              reject(error);
+            };
+          });
+          cache.set(documentIri, acquisition);
+          acquisition.catch((error) => {
+            // Keep ordinary failures coalesced, including speculative failures.
+            // Cancelled work may be retried by an explicit format continuation.
+            if (signal?.aborted && cache.get(documentIri) === acquisition) {
+              cache.delete(documentIri);
+            }
+            if (error?.code === "RESOURCE_LIMIT_EXCEEDED") {
+              onFailure?.(error);
+            }
+          });
+          dispatch();
+        }
+        return cache.get(documentIri);
+      }
+      function prefetchSibling(importIri, importingDocumentIri, signal) {
+        const hints = parents.get(importingDocumentIri)?.declaredImports;
+        if (
+          cacheConfiguration.enabled !== true ||
+          !owlMappingStrategy ||
+          hints?.owlMappingStrategy !== owlMappingStrategy ||
+          !hints.iris.includes(importIri) ||
+          speculating ||
+          active >= 2 ||
+          queue.length ||
+          cache.size - initialBindings >= limits.maxImportCount ||
+          signal?.aborted
+        ) {
+          return;
+        }
+        const sibling = hints.iris.find(
+          (iri) => !cache.has(iri) && /^https?:\/\//iu.test(iri),
+        );
+        if (!sibling) {
+          return;
+        }
+        speculating = true;
+        const settled = () => {
+          speculating = false;
+        };
+        importBytes(sibling, signal).then(settled, settled);
+      }
+      return Object.freeze({
+        cacheEvidence: () => [...evidence.values()],
+        async resolveImport(importIri, { signal, importingDocumentIri } = {}) {
           signal?.throwIfAborted();
+          const documentIri =
+            cacheConfiguration.enabled === true
+              ? importIri
+              : resolver.getDocumentIRI(importIri).value;
+          const acquisition = importBytes(documentIri, signal);
+          prefetchSibling(importIri, importingDocumentIri, signal);
+          const acquired = await acquisition;
+          signal?.throwIfAborted();
+          const entry = sourceEvidence.get(acquired.bytes);
+          if (entry) {
+            evidence.set(documentIri, entry);
+          }
           if (acquired.format !== undefined && !acquired.selectedMediaType) {
             try {
               acquired.selectedMediaType = selectCanonicalOwlMediaType({

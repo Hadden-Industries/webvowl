@@ -1,10 +1,12 @@
 import * as validate from "./ontologyCacheValidators.js";
+import { owlMappingDefinitions } from "./owlMappingDefinitions.js";
 import {
   ontologyDigest,
   ontologyRecordIdentity,
   ontologySourceIri,
   ontologySourceKey,
   OntologyCacheError,
+  isOntologyImportIri,
 } from "./ontologySourceIdentity.js";
 
 /** Native generated schemas own shapes. Consumers add cross-record/context and integrity checks. */
@@ -170,5 +172,29 @@ export async function verifyOntologyResolution({
     ),
     resolution.requestVariantFingerprint,
   );
+  if (resolution.declaredImports) {
+    if (
+      resolution.declaredImports.iris.some((iri) => !isOntologyImportIri(iri))
+    ) {
+      throw new OntologyCacheError();
+    }
+    same(
+      resolution.declaredImports.owlMappingStrategy,
+      owlMappingDefinitions.choices.find(
+        ({ parseMode }) => parseMode === validation.parseMode,
+      )?.id,
+    );
+    same(
+      resolution.declaredImports.iris.length,
+      validation.importDeclarationCount,
+    );
+    same(
+      resolution.declaredImports.iris.reduce(
+        (size, iri) => size + new TextEncoder().encode(iri).byteLength,
+        0,
+      ),
+      resolution.declaredImports.iriByteLength,
+    );
+  }
   return Object.freeze(resolution);
 }

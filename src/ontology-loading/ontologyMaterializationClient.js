@@ -233,19 +233,28 @@ export function createOntologyMaterializationClient({
       const delay = /^\d+$/u.test(retry ?? "")
         ? Number(retry) * 1000
         : Date.parse(retry) - now();
-      if (!Number.isFinite(delay) || delay < 0 || now() + delay >= end) {
+      // A ready-to-run producer need not impose a multi-second floor. Keep
+      // zero hints bounded, progressively back off, and honor longer hints.
+      const pollingDelay = Math.max(
+        delay,
+        Math.min(4000, 100 * 2 ** count + Math.random() * 50),
+      );
+      if (!Number.isFinite(delay) || delay < 0 || now() + pollingDelay >= end) {
         throw new OntologyCacheError("CACHE_PENDING");
       }
       if (response.headers.get("location") !== expectedUrl) {
         throw new OntologyCacheError();
       }
-      await wait(Math.max(1, delay), signal);
+      await wait(pollingDelay, signal);
       response = await request(expectedUrl, {
         signal,
         redirect: "follow",
         cache: "no-store",
         ...(background ? { priority: "low" } : {}),
       });
+    }
+    if (response.status !== 202) {
+      return response;
     }
     await response.body?.cancel();
     throw new OntologyCacheError("CACHE_PENDING");

@@ -1,6 +1,7 @@
 import { jest } from "@jest/globals";
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
+import canonicalize from "canonicalize";
 import {
   MissingImportError,
   ResourceLimitError,
@@ -521,6 +522,230 @@ test("first caller polls one admitted generation and never submits it again", as
     fetchImpl.mock.calls.filter(([, options]) => options.method === "POST"),
   ).toHaveLength(1);
 });
+
+test.each([
+  [0, 6],
+  [2, 6],
+  [0, 20],
+])(
+  "pending polling honors hint %i and accepts completion on GET %i",
+  async (hint, terminalPoll) => {
+    const pending = example("pending-materialization");
+    const originalTimer = globalThis.setTimeout;
+    const delays = [];
+    const timer = jest
+      .spyOn(globalThis, "setTimeout")
+      .mockImplementation((callback, milliseconds) => {
+        delays.push(milliseconds);
+        return originalTimer(callback, 0);
+      });
+    const random = jest.spyOn(Math, "random").mockReturnValue(0);
+    let polls = 0;
+    try {
+      const { client, fetchImpl } = harness({
+        api({ url, options, response, pointer }) {
+          if (options.method !== "POST" && ++polls === terminalPoll) {
+            return response(
+              encoder.encode(fixtures.ontologySource.utf8Text),
+              `${pointer.currentBinding.artifactIri}?source=${pointer.sourceKey}&binding=${pointer.currentBinding.resolutionIdentity}`,
+            );
+          }
+          return response(JSON.stringify(pending), url, 202, {
+            "content-type": "application/json",
+            location: pending.statusIri,
+            "retry-after": String(hint),
+          });
+        },
+      });
+      await client.materialize(source);
+      expect(delays).toEqual(
+        hint === 0
+          ? [
+              100,
+              200,
+              400,
+              800,
+              1600,
+              3200,
+              ...Array(terminalPoll - 6).fill(4000),
+            ]
+          : [2000, 2000, 2000, 2000, 2000, 3200],
+      );
+      expect(
+        fetchImpl.mock.calls.filter(([, options]) => options.method === "POST"),
+      ).toHaveLength(1);
+    } finally {
+      timer.mockRestore();
+      random.mockRestore();
+    }
+  },
+);
+
+test("a pending observation never schedules a wait beyond its remaining deadline", async () => {
+  const pending = example("pending-materialization");
+  const { options, fetchImpl } = harness({
+    api({ url, response }) {
+      return response(JSON.stringify(pending), url, 202, {
+        "content-type": "application/json",
+        location: pending.statusIri,
+        "retry-after": "0",
+      });
+    },
+  });
+  const client = createOntologyMaterializationClient({
+    ...options,
+    deadlineMs: 50,
+  });
+  await expect(client.materialize(source)).rejects.toHaveProperty(
+    "code",
+    "CACHE_PENDING",
+  );
+  expect(fetchImpl).toHaveBeenCalledTimes(1);
+});
+
+test("slow work completing after thirty-six seconds remains observable within the deadline and request ceiling", async () => {
+  const originalTimer = globalThis.setTimeout;
+  let elapsed = 0;
+  const timer = jest
+    .spyOn(globalThis, "setTimeout")
+    .mockImplementation((callback, milliseconds) => {
+      elapsed += milliseconds;
+      return originalTimer(callback, 0);
+    });
+  const random = jest.spyOn(Math, "random").mockReturnValue(0);
+  try {
+    const pending = example("pending-materialization");
+    const { options, fetchImpl } = harness({
+      api({ url, response, pointer }) {
+        if (elapsed >= 36000) {
+          return response(
+            encoder.encode(fixtures.ontologySource.utf8Text),
+            `${pointer.currentBinding.artifactIri}?source=${pointer.sourceKey}&binding=${pointer.currentBinding.resolutionIdentity}`,
+          );
+        }
+        return response(JSON.stringify(pending), url, 202, {
+          "content-type": "application/json",
+          location: pending.statusIri,
+          "retry-after": "0",
+        });
+      },
+    });
+    const client = createOntologyMaterializationClient({
+      ...options,
+      now: () => elapsed,
+    });
+    expect((await client.materialize(source)).bytes).toEqual(
+      encoder.encode(fixtures.ontologySource.utf8Text),
+    );
+    expect(elapsed).toBeLessThan(60000);
+    expect(
+      fetchImpl.mock.calls.filter(
+        ([url, options]) =>
+          url.includes("/materializations/") && options.method !== "POST",
+      ).length,
+    ).toBeLessThanOrEqual(20);
+    expect(
+      fetchImpl.mock.calls.filter(([, options]) => options.method === "POST"),
+    ).toHaveLength(1);
+  } finally {
+    timer.mockRestore();
+    random.mockRestore();
+  }
+});
+
+test("perpetually pending work stops after twenty bounded observations", async () => {
+  const originalTimer = globalThis.setTimeout;
+  const timer = jest
+    .spyOn(globalThis, "setTimeout")
+    .mockImplementation((callback) => originalTimer(callback, 0));
+  try {
+    const pending = example("pending-materialization");
+    const { client, fetchImpl } = harness({
+      api({ url, response }) {
+        return response(JSON.stringify(pending), url, 202, {
+          "content-type": "application/json",
+          location: pending.statusIri,
+          "retry-after": "0",
+        });
+      },
+    });
+    await expect(client.materialize(source)).rejects.toHaveProperty(
+      "code",
+      "CACHE_PENDING",
+    );
+    expect(fetchImpl).toHaveBeenCalledTimes(21);
+  } finally {
+    timer.mockRestore();
+  }
+});
+
+test("cancellation interrupts polling before another status request", async () => {
+  const abort = new AbortController();
+  const pending = example("pending-materialization");
+  const { client, fetchImpl } = harness({
+    api({ url, response, options }) {
+      if (options.method !== "POST") {
+        abort.abort();
+      }
+      return response(JSON.stringify(pending), url, 202, {
+        "content-type": "application/json",
+        location: pending.statusIri,
+        "retry-after": "0",
+      });
+    },
+  });
+  await expect(
+    client.materialize(source, { signal: abort.signal }),
+  ).rejects.toHaveProperty("name", "AbortError");
+  expect(fetchImpl).toHaveBeenCalledTimes(2);
+});
+
+test.each(["valid", "count", "mode", "bytes", "invalid-iri", "throwing-iri"])(
+  "direct-import hints %s are checked before artifact acquisition",
+  async (variant) => {
+    const { client, fetchImpl } = harness({
+      mutate(records, pointer) {
+        const oldIri = pointer.currentBinding.resolutionIri;
+        const resolution = records.get(oldIri);
+        const iri =
+          variant === "invalid-iri"
+            ? "https://example.test/space here"
+            : variant === "throwing-iri"
+              ? "https://[v1.a]/child"
+              : fixtures.ontologySource.expectedResolvedImportIri;
+        resolution.declaredImports = {
+          owlMappingStrategy: variant === "mode" ? "heuristic" : "unambiguous",
+          iris: variant === "count" ? [] : [iri],
+          iriByteLength:
+            variant === "bytes" ? 0 : encoder.encode(iri).byteLength,
+        };
+        const { resolutionIdentity: ignored, ...input } = resolution;
+        expect(ignored).toBeDefined();
+        resolution.resolutionIdentity = createHash("sha256")
+          .update("hadden-ontology-cache/resolution/v1\n" + canonicalize(input))
+          .digest("hex");
+        pointer.currentBinding.resolutionIdentity =
+          resolution.resolutionIdentity;
+        pointer.currentBinding.resolutionIri = `${origin}/ontology/cache/resolutions/sha256/${resolution.resolutionIdentity}.json`;
+        records.delete(oldIri);
+        records.set(pointer.currentBinding.resolutionIri, resolution);
+      },
+    });
+    if (variant === "valid") {
+      expect(
+        (await client.lookup(source)).resolution.declaredImports.iris,
+      ).toEqual([fixtures.ontologySource.expectedResolvedImportIri]);
+    } else {
+      await expect(client.lookup(source)).rejects.toHaveProperty(
+        "code",
+        "CACHE_PROTOCOL_INVALID",
+      );
+      expect(
+        fetchImpl.mock.calls.some(([url]) => url.includes("/artifacts/")),
+      ).toBe(false);
+    }
+  },
+);
 
 test("uncached apply confirmation rejects a superseded candidate and preserves the offered identity", async () => {
   const { client, fetchImpl } = harness({

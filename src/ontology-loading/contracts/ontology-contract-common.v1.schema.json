@@ -383,6 +383,30 @@
         }
       ],
       "required": ["validationProfileId", "parseMode"]
+    },
+    "declaredImports": {
+      "type": "object",
+      "description": "Complete bounded direct import hints under the validated mapping; not a closure or consumer admission.",
+      "properties": {
+        "owlMappingStrategy": {
+          "enum": ["heuristic", "unambiguous"]
+        },
+        "iris": {
+          "type": "array",
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/iri"
+          }
+        },
+        "iriByteLength": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 16384
+        }
+      },
+      "required": ["owlMappingStrategy", "iris", "iriByteLength"],
+      "additionalProperties": false
     }
   }
 }

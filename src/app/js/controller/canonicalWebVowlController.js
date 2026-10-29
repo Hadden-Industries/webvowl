@@ -974,6 +974,7 @@ export function createCanonicalWebVowlController({
           request.bytes?.byteLength ?? 0,
           {
             selectedBindings: cacheBindings,
+            owlMappingStrategy: selectedOwlMappingStrategy,
             onFormatRequired: () => {
               awaitingFormat = true;
               attempt?.abort();

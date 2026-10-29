@@ -210,3 +210,233 @@ test("canonical and named legacy acquisition never infer JSON dialects", async (
   expect(legacy.resolutions.context).toEqual(["original"]);
   expect(() => source.legacyLocal(bytes)).toThrow("explicit dialect");
 });
+
+async function siblingHarness({
+  strategy = "heuristic",
+  hintedStrategy = "heuristic",
+  rootLength = 1,
+} = {}) {
+  const rootIri = "https://example.org/root";
+  const iris = ["a", "b", "c"].map((name) => `https://example.org/${name}`);
+  const waiting = new Map();
+  const calls = [];
+  let active = 0;
+  let peak = 0;
+  const source = createCanonicalVowlSourceAcquisition({
+    cache: {
+      enabled: true,
+      createClient: () => ({
+        async acquire(iri, { signal, context }) {
+          context.bindings ??= new Map();
+          let value;
+          if (iri === rootIri) {
+            value = {
+              bytes: new Uint8Array(rootLength),
+              documentIri: rootIri,
+              resolution: {
+                parserDocumentIri: rootIri,
+                declaredImports: { owlMappingStrategy: hintedStrategy, iris },
+              },
+            };
+          } else {
+            calls.push(iri);
+            active++;
+            peak = Math.max(peak, active);
+            try {
+              value = await new Promise((resolve, reject) => {
+                const abort = () => reject(signal.reason);
+                signal.addEventListener("abort", abort, { once: true });
+                waiting.set(iri, {
+                  resolve(bytes = new Uint8Array([1])) {
+                    signal.removeEventListener("abort", abort);
+                    resolve({ bytes, documentIri: iri });
+                  },
+                  reject(error) {
+                    signal.removeEventListener("abort", abort);
+                    reject(error);
+                  },
+                });
+              });
+            } finally {
+              active--;
+            }
+          }
+          context.bindings.set(iri, value);
+          return value;
+        },
+      }),
+    },
+  });
+  const root = await source.remote(rootIri);
+  const onFailure = jest.fn();
+  const imports = source.createImportContext(root.bytes.length, {
+    rootBytes: root.bytes,
+    owlMappingStrategy: strategy === "none" ? undefined : strategy,
+    onFailure,
+  });
+  const abort = new AbortController();
+  const options = { importingDocumentIri: rootIri, signal: abort.signal };
+  // Drain promise composition without wall-clock performance assumptions.
+  const flush = async () => {
+    for (let index = 0; index < 20; index++) {
+      await Promise.resolve();
+    }
+  };
+  return {
+    imports,
+    iris,
+    calls,
+    waiting,
+    options,
+    abort,
+    flush,
+    peak: () => peak,
+    onFailure,
+  };
+}
+
+test("a worker-requested import overlaps one verified sibling, coalesces demand and bounds concurrency", async () => {
+  const h = await siblingHarness();
+  const first = h.imports.resolveImport(h.iris[0], h.options);
+  await h.flush();
+  expect(h.calls).toEqual(h.iris.slice(0, 2));
+  const second = h.imports.resolveImport(h.iris[1], h.options);
+  const third = h.imports.resolveImport(h.iris[2], h.options);
+  await h.flush();
+  expect(h.calls).toHaveLength(2);
+  h.waiting.get(h.iris[0]).resolve();
+  await first;
+  await h.flush();
+  expect(h.calls).toEqual(h.iris);
+  h.waiting.get(h.iris[1]).resolve();
+  h.waiting.get(h.iris[2]).resolve();
+  await Promise.all([second, third]);
+  expect(h.peak()).toBe(2);
+});
+
+test.each(["unambiguous", "none"])(
+  "mismatched or absent consumer mapping %s never speculates",
+  async (strategy) => {
+    const h = await siblingHarness({ strategy });
+    const first = h.imports.resolveImport(h.iris[0], h.options);
+    await h.flush();
+    expect(h.calls).toEqual([h.iris[0]]);
+    h.waiting.get(h.iris[0]).resolve();
+    await first;
+  },
+);
+
+test("speculation requires a matching actual parent declaration and never recursively follows hints", async () => {
+  const h = await siblingHarness();
+  const first = h.imports.resolveImport(h.iris[2], {
+    ...h.options,
+    importingDocumentIri: h.iris[0],
+  });
+  await h.flush();
+  expect(h.calls).toEqual([h.iris[2]]);
+  h.waiting.get(h.iris[2]).resolve();
+  await first;
+});
+
+test.each([undefined, null])(
+  "cancellation reason %s settles active and queued imports without starting queued transport",
+  async (reason) => {
+    const h = await siblingHarness();
+    const first = h.imports.resolveImport(h.iris[0], h.options);
+    const third = h.imports.resolveImport(h.iris[2], h.options);
+    const settled = Promise.allSettled([first, third]);
+    await h.flush();
+    h.abort.abort(reason);
+    expect(
+      (await settled).every((result) => result.status === "rejected"),
+    ).toBe(true);
+    expect(h.calls).toEqual(h.iris.slice(0, 2));
+  },
+);
+
+test("speculative failures remain coalesced and only surface when that import is demanded", async () => {
+  const h = await siblingHarness();
+  const first = h.imports.resolveImport(h.iris[0], h.options);
+  await h.flush();
+  h.waiting.get(h.iris[1]).reject(new Error("missing sibling"));
+  h.waiting.get(h.iris[0]).resolve();
+  await first;
+  await expect(h.imports.resolveImport(h.iris[1], h.options)).rejects.toThrow(
+    "missing sibling",
+  );
+  expect(h.calls.filter((iri) => iri === h.iris[1])).toHaveLength(1);
+  h.abort.abort();
+});
+
+test("speculative bytes count towards the aggregate bound and report resource failure", async () => {
+  const h = await siblingHarness({
+    rootLength: OWLOntologyLoaderConfiguration.defaults().maxInputBytes - 1,
+  });
+  const first = h.imports.resolveImport(h.iris[0], h.options);
+  await h.flush();
+  h.waiting.get(h.iris[0]).resolve();
+  await first;
+  h.waiting.get(h.iris[1]).resolve(new Uint8Array([1, 2]));
+  await h.flush();
+  expect(h.onFailure).toHaveBeenCalledWith(
+    expect.objectContaining({
+      code: "RESOURCE_LIMIT_EXCEEDED",
+      resource: "maxInputBytes",
+    }),
+  );
+});
+
+test("speculative siblings consume the same finite import-count allowance as demand", async () => {
+  const defaults = OWLOntologyLoaderConfiguration.defaults();
+  const scoped = jest
+    .spyOn(OWLOntologyLoaderConfiguration, "defaults")
+    .mockReturnValue({ ...defaults, maxImportCount: 2 });
+  let h;
+  try {
+    h = await siblingHarness();
+  } finally {
+    scoped.mockRestore();
+  }
+  const first = h.imports.resolveImport(h.iris[0], h.options);
+  await h.flush();
+  await expect(
+    h.imports.resolveImport(h.iris[2], h.options),
+  ).rejects.toMatchObject({
+    code: "RESOURCE_LIMIT_EXCEEDED",
+    resource: "maxImportCount",
+  });
+  expect(h.calls).toEqual(h.iris.slice(0, 2));
+  h.waiting.get(h.iris[0]).resolve();
+  h.waiting.get(h.iris[1]).resolve();
+  await first;
+});
+
+test("disabled cache never speculates even when a transport supplies import metadata", async () => {
+  const root = "https://example.org/root",
+    child = "https://example.org/child";
+  const resolver = {
+    getDocumentIRI: (iri) => ({ value: iri }),
+    loadBytes: jest.fn(async (documentIri) => ({
+      documentIri,
+      bytes: new Uint8Array([1]),
+      resolution: {
+        parserDocumentIri: documentIri,
+        declaredImports: {
+          owlMappingStrategy: "heuristic",
+          iris: [child, "https://example.org/sibling"],
+        },
+      },
+    })),
+  };
+  const source = createCanonicalVowlSourceAcquisition({ resolver });
+  const request = await source.remote(root);
+  const imports = source.createImportContext(1, {
+    rootBytes: request.bytes,
+    owlMappingStrategy: "heuristic",
+  });
+  await imports.resolveImport(child, { importingDocumentIri: root });
+  expect(resolver.loadBytes.mock.calls.map(([iri]) => iri)).toEqual([
+    root,
+    child,
+  ]);
+});

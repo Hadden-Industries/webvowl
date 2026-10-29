@@ -10,7 +10,7 @@ const schema31 = {
   $id: "https://haddenindustries.com/ontology/contracts/v1/ontology-resolution.v1.schema.json",
   title: "Immutable source-generation resolution",
   description:
-    "Draft contract 1.0.0-draft.2; review artifact, not a deployed service promise.",
+    "Draft contract 1.0.0-draft.6; review artifact, not a deployed service promise.",
   type: "object",
   properties: {
     schemaVersion: { const: 1 },
@@ -88,6 +88,9 @@ const schema31 = {
     },
     sourceAssessment: { enum: ["valid", "invalid", "unverified"] },
     closureQualification: { const: "UNASSESSED" },
+    declaredImports: {
+      $ref: "ontology-contract-common.v1.schema.json#/$defs/declaredImports",
+    },
   },
   required: [
     "schemaVersion",
@@ -1029,6 +1032,329 @@ function validate26(
   return errors === 0;
 }
 validate26.evaluated = {
+  props: true,
+  dynamicProps: false,
+  dynamicItems: false,
+};
+
+const schema60 = {
+  type: "object",
+  description:
+    "Complete bounded direct import hints under the validated mapping; not a closure or consumer admission.",
+  properties: {
+    owlMappingStrategy: { enum: ["heuristic", "unambiguous"] },
+    iris: {
+      type: "array",
+      maxItems: 32,
+      uniqueItems: true,
+      items: { $ref: "#/$defs/iri" },
+    },
+    iriByteLength: { type: "integer", minimum: 0, maximum: 16384 },
+  },
+  required: ["owlMappingStrategy", "iris", "iriByteLength"],
+  additionalProperties: false,
+};
+const schema61 = {
+  type: "string",
+  minLength: 1,
+  maxLength: 8192,
+  pattern: "^[A-Za-z][A-Za-z0-9+.-]*:",
+  description:
+    "Absolute logical IRI, including non-HTTP identifiers such as urn:. Validate with the owning public IRI contract. This is metadata, never authority to fetch.",
+};
+const pattern27 = new RegExp("^[A-Za-z][A-Za-z0-9+.-]*:", "u");
+
+function validate28(
+  data,
+  {
+    instancePath = "",
+    parentData,
+    parentDataProperty,
+    rootData = data,
+    dynamicAnchors = {},
+  } = {},
+) {
+  let vErrors = null;
+  let errors = 0;
+  const evaluated0 = validate28.evaluated;
+  if (evaluated0.dynamicProps) {
+    evaluated0.props = undefined;
+  }
+  if (evaluated0.dynamicItems) {
+    evaluated0.items = undefined;
+  }
+  if (errors === 0) {
+    if (data && typeof data == "object" && !Array.isArray(data)) {
+      let missing0;
+      if (
+        (data.owlMappingStrategy === undefined &&
+          (missing0 = "owlMappingStrategy")) ||
+        (data.iris === undefined && (missing0 = "iris")) ||
+        (data.iriByteLength === undefined && (missing0 = "iriByteLength"))
+      ) {
+        validate28.errors = [
+          {
+            instancePath,
+            schemaPath: "#/required",
+            keyword: "required",
+            params: { missingProperty: missing0 },
+            message: "must have required property '" + missing0 + "'",
+          },
+        ];
+        return false;
+      } else {
+        const _errs1 = errors;
+        for (const key0 in data) {
+          if (!(
+            key0 === "owlMappingStrategy" ||
+            key0 === "iris" ||
+            key0 === "iriByteLength"
+          )) {
+            validate28.errors = [
+              {
+                instancePath,
+                schemaPath: "#/additionalProperties",
+                keyword: "additionalProperties",
+                params: { additionalProperty: key0 },
+                message: "must NOT have additional properties",
+              },
+            ];
+            return false;
+            break;
+          }
+        }
+        if (_errs1 === errors) {
+          if (data.owlMappingStrategy !== undefined) {
+            let data0 = data.owlMappingStrategy;
+            const _errs2 = errors;
+            if (!(data0 === "heuristic" || data0 === "unambiguous")) {
+              validate28.errors = [
+                {
+                  instancePath: instancePath + "/owlMappingStrategy",
+                  schemaPath: "#/properties/owlMappingStrategy/enum",
+                  keyword: "enum",
+                  params: {
+                    allowedValues: schema60.properties.owlMappingStrategy.enum,
+                  },
+                  message: "must be equal to one of the allowed values",
+                },
+              ];
+              return false;
+            }
+            var valid0 = _errs2 === errors;
+          } else {
+            var valid0 = true;
+          }
+          if (valid0) {
+            if (data.iris !== undefined) {
+              let data1 = data.iris;
+              const _errs3 = errors;
+              if (errors === _errs3) {
+                if (Array.isArray(data1)) {
+                  if (data1.length > 32) {
+                    validate28.errors = [
+                      {
+                        instancePath: instancePath + "/iris",
+                        schemaPath: "#/properties/iris/maxItems",
+                        keyword: "maxItems",
+                        params: { limit: 32 },
+                        message: "must NOT have more than 32 items",
+                      },
+                    ];
+                    return false;
+                  } else {
+                    var valid1 = true;
+                    const len0 = data1.length;
+                    for (let i0 = 0; i0 < len0; i0++) {
+                      let data2 = data1[i0];
+                      const _errs5 = errors;
+                      const _errs6 = errors;
+                      if (errors === _errs6) {
+                        if (typeof data2 === "string") {
+                          if (func2(data2) > 8192) {
+                            validate28.errors = [
+                              {
+                                instancePath: instancePath + "/iris/" + i0,
+                                schemaPath: "#/$defs/iri/maxLength",
+                                keyword: "maxLength",
+                                params: { limit: 8192 },
+                                message:
+                                  "must NOT have more than 8192 characters",
+                              },
+                            ];
+                            return false;
+                          } else {
+                            if (func2(data2) < 1) {
+                              validate28.errors = [
+                                {
+                                  instancePath: instancePath + "/iris/" + i0,
+                                  schemaPath: "#/$defs/iri/minLength",
+                                  keyword: "minLength",
+                                  params: { limit: 1 },
+                                  message:
+                                    "must NOT have fewer than 1 characters",
+                                },
+                              ];
+                              return false;
+                            } else {
+                              if (!pattern27.test(data2)) {
+                                validate28.errors = [
+                                  {
+                                    instancePath: instancePath + "/iris/" + i0,
+                                    schemaPath: "#/$defs/iri/pattern",
+                                    keyword: "pattern",
+                                    params: {
+                                      pattern: "^[A-Za-z][A-Za-z0-9+.-]*:",
+                                    },
+                                    message:
+                                      'must match pattern "' +
+                                      "^[A-Za-z][A-Za-z0-9+.-]*:" +
+                                      '"',
+                                  },
+                                ];
+                                return false;
+                              }
+                            }
+                          }
+                        } else {
+                          validate28.errors = [
+                            {
+                              instancePath: instancePath + "/iris/" + i0,
+                              schemaPath: "#/$defs/iri/type",
+                              keyword: "type",
+                              params: { type: "string" },
+                              message: "must be string",
+                            },
+                          ];
+                          return false;
+                        }
+                      }
+                      var valid1 = _errs5 === errors;
+                      if (!valid1) {
+                        break;
+                      }
+                    }
+                    if (valid1) {
+                      let i1 = data1.length;
+                      let j0;
+                      if (i1 > 1) {
+                        outer0: for (; i1--;) {
+                          for (j0 = i1; j0--;) {
+                            if (func0(data1[i1], data1[j0])) {
+                              validate28.errors = [
+                                {
+                                  instancePath: instancePath + "/iris",
+                                  schemaPath: "#/properties/iris/uniqueItems",
+                                  keyword: "uniqueItems",
+                                  params: { i: i1, j: j0 },
+                                  message:
+                                    "must NOT have duplicate items (items ## " +
+                                    j0 +
+                                    " and " +
+                                    i1 +
+                                    " are identical)",
+                                },
+                              ];
+                              return false;
+                              break outer0;
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                } else {
+                  validate28.errors = [
+                    {
+                      instancePath: instancePath + "/iris",
+                      schemaPath: "#/properties/iris/type",
+                      keyword: "type",
+                      params: { type: "array" },
+                      message: "must be array",
+                    },
+                  ];
+                  return false;
+                }
+              }
+              var valid0 = _errs3 === errors;
+            } else {
+              var valid0 = true;
+            }
+            if (valid0) {
+              if (data.iriByteLength !== undefined) {
+                let data3 = data.iriByteLength;
+                const _errs8 = errors;
+                if (!(
+                  typeof data3 == "number" &&
+                  !(data3 % 1) &&
+                  !isNaN(data3) &&
+                  isFinite(data3)
+                )) {
+                  validate28.errors = [
+                    {
+                      instancePath: instancePath + "/iriByteLength",
+                      schemaPath: "#/properties/iriByteLength/type",
+                      keyword: "type",
+                      params: { type: "integer" },
+                      message: "must be integer",
+                    },
+                  ];
+                  return false;
+                }
+                if (errors === _errs8) {
+                  if (typeof data3 == "number" && isFinite(data3)) {
+                    if (data3 > 16384 || isNaN(data3)) {
+                      validate28.errors = [
+                        {
+                          instancePath: instancePath + "/iriByteLength",
+                          schemaPath: "#/properties/iriByteLength/maximum",
+                          keyword: "maximum",
+                          params: { comparison: "<=", limit: 16384 },
+                          message: "must be <= 16384",
+                        },
+                      ];
+                      return false;
+                    } else {
+                      if (data3 < 0 || isNaN(data3)) {
+                        validate28.errors = [
+                          {
+                            instancePath: instancePath + "/iriByteLength",
+                            schemaPath: "#/properties/iriByteLength/minimum",
+                            keyword: "minimum",
+                            params: { comparison: ">=", limit: 0 },
+                            message: "must be >= 0",
+                          },
+                        ];
+                        return false;
+                      }
+                    }
+                  }
+                }
+                var valid0 = _errs8 === errors;
+              } else {
+                var valid0 = true;
+              }
+            }
+          }
+        }
+      }
+    } else {
+      validate28.errors = [
+        {
+          instancePath,
+          schemaPath: "#/type",
+          keyword: "type",
+          params: { type: "object" },
+          message: "must be object",
+        },
+      ];
+      return false;
+    }
+  }
+  validate28.errors = vErrors;
+  return errors === 0;
+}
+validate28.evaluated = {
   props: true,
   dynamicProps: false,
   dynamicItems: false,
@@ -2850,6 +3176,48 @@ function validate20(
                                                                       } else {
                                                                         var valid0 = true;
                                                                       }
+                                                                      if (
+                                                                        valid0
+                                                                      ) {
+                                                                        if (
+                                                                          data.declaredImports !==
+                                                                          undefined
+                                                                        ) {
+                                                                          const _errs73 =
+                                                                            errors;
+                                                                          if (
+                                                                            !validate28(
+                                                                              data.declaredImports,
+                                                                              {
+                                                                                instancePath:
+                                                                                  instancePath +
+                                                                                  "/declaredImports",
+                                                                                parentData:
+                                                                                  data,
+                                                                                parentDataProperty:
+                                                                                  "declaredImports",
+                                                                                rootData,
+                                                                                dynamicAnchors,
+                                                                              },
+                                                                            )
+                                                                          ) {
+                                                                            vErrors =
+                                                                              vErrors ===
+                                                                              null
+                                                                                ? validate28.errors
+                                                                                : vErrors.concat(
+                                                                                    validate28.errors,
+                                                                                  );
+                                                                            errors =
+                                                                              vErrors.length;
+                                                                          }
+                                                                          var valid0 =
+                                                                            _errs73 ===
+                                                                            errors;
+                                                                        } else {
+                                                                          var valid0 = true;
+                                                                        }
+                                                                      }
                                                                     }
                                                                   }
                                                                 }
@@ -2904,8 +3272,8 @@ validate20.evaluated = {
   dynamicItems: false,
 };
 
-export const pointer = validate28;
-const schema60 = {
+export const pointer = validate30;
+const schema62 = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
   $id: "https://haddenindustries.com/ontology/contracts/v1/ontology-source-pointer.v1.schema.json",
   title: "Mutable exact-source pointer or withdrawal tombstone",
@@ -3030,11 +3398,11 @@ const schema60 = {
     },
   ],
 };
-const schema79 = { type: "string", pattern: "^[0-9a-f]{32}$" };
-const schema83 = { type: "string", pattern: "^[A-Z][A-Z0-9_]{2,95}$" };
-const pattern43 = new RegExp("^[0-9a-f]{32}$", "u");
-const pattern47 = new RegExp("^[A-Z][A-Z0-9_]{2,95}$", "u");
-const schema64 = {
+const schema81 = { type: "string", pattern: "^[0-9a-f]{32}$" };
+const schema85 = { type: "string", pattern: "^[A-Z][A-Z0-9_]{2,95}$" };
+const pattern44 = new RegExp("^[0-9a-f]{32}$", "u");
+const pattern48 = new RegExp("^[A-Z][A-Z0-9_]{2,95}$", "u");
+const schema66 = {
   type: "object",
   properties: {
     sourceVersionIdentity: { $ref: "#/$defs/digest" },
@@ -3061,7 +3429,7 @@ const schema64 = {
   additionalProperties: false,
 };
 
-function validate29(
+function validate31(
   data,
   {
     instancePath = "",
@@ -3073,7 +3441,7 @@ function validate29(
 ) {
   let vErrors = null;
   let errors = 0;
-  const evaluated0 = validate29.evaluated;
+  const evaluated0 = validate31.evaluated;
   if (evaluated0.dynamicProps) {
     evaluated0.props = undefined;
   }
@@ -3098,7 +3466,7 @@ function validate29(
         (data.resolutionIri === undefined && (missing0 = "resolutionIri")) ||
         (data.validationIri === undefined && (missing0 = "validationIri"))
       ) {
-        validate29.errors = [
+        validate31.errors = [
           {
             instancePath,
             schemaPath: "#/required",
@@ -3111,8 +3479,8 @@ function validate29(
       } else {
         const _errs1 = errors;
         for (const key0 in data) {
-          if (!func1.call(schema64.properties, key0)) {
-            validate29.errors = [
+          if (!func1.call(schema66.properties, key0)) {
+            validate31.errors = [
               {
                 instancePath,
                 schemaPath: "#/additionalProperties",
@@ -3133,7 +3501,7 @@ function validate29(
             if (errors === _errs3) {
               if (typeof data0 === "string") {
                 if (!pattern4.test(data0)) {
-                  validate29.errors = [
+                  validate31.errors = [
                     {
                       instancePath: instancePath + "/sourceVersionIdentity",
                       schemaPath: "#/$defs/digest/pattern",
@@ -3145,7 +3513,7 @@ function validate29(
                   return false;
                 }
               } else {
-                validate29.errors = [
+                validate31.errors = [
                   {
                     instancePath: instancePath + "/sourceVersionIdentity",
                     schemaPath: "#/$defs/digest/type",
@@ -3169,7 +3537,7 @@ function validate29(
               if (errors === _errs6) {
                 if (typeof data1 === "string") {
                   if (!pattern4.test(data1)) {
-                    validate29.errors = [
+                    validate31.errors = [
                       {
                         instancePath: instancePath + "/resolutionIdentity",
                         schemaPath: "#/$defs/digest/pattern",
@@ -3182,7 +3550,7 @@ function validate29(
                     return false;
                   }
                 } else {
-                  validate29.errors = [
+                  validate31.errors = [
                     {
                       instancePath: instancePath + "/resolutionIdentity",
                       schemaPath: "#/$defs/digest/type",
@@ -3206,7 +3574,7 @@ function validate29(
                 if (errors === _errs9) {
                   if (typeof data2 === "string") {
                     if (!pattern4.test(data2)) {
-                      validate29.errors = [
+                      validate31.errors = [
                         {
                           instancePath: instancePath + "/validationIdentity",
                           schemaPath: "#/$defs/digest/pattern",
@@ -3219,7 +3587,7 @@ function validate29(
                       return false;
                     }
                   } else {
-                    validate29.errors = [
+                    validate31.errors = [
                       {
                         instancePath: instancePath + "/validationIdentity",
                         schemaPath: "#/$defs/digest/type",
@@ -3243,7 +3611,7 @@ function validate29(
                   if (errors === _errs12) {
                     if (typeof data3 === "string") {
                       if (!pattern4.test(data3)) {
-                        validate29.errors = [
+                        validate31.errors = [
                           {
                             instancePath: instancePath + "/artifactSha256",
                             schemaPath: "#/$defs/digest/pattern",
@@ -3256,7 +3624,7 @@ function validate29(
                         return false;
                       }
                     } else {
-                      validate29.errors = [
+                      validate31.errors = [
                         {
                           instancePath: instancePath + "/artifactSha256",
                           schemaPath: "#/$defs/digest/type",
@@ -3282,7 +3650,7 @@ function validate29(
                       !isNaN(data4) &&
                       isFinite(data4)
                     )) {
-                      validate29.errors = [
+                      validate31.errors = [
                         {
                           instancePath: instancePath + "/artifactByteLength",
                           schemaPath: "#/properties/artifactByteLength/type",
@@ -3296,7 +3664,7 @@ function validate29(
                     if (errors === _errs14) {
                       if (typeof data4 == "number" && isFinite(data4)) {
                         if (data4 > 33554432 || isNaN(data4)) {
-                          validate29.errors = [
+                          validate31.errors = [
                             {
                               instancePath:
                                 instancePath + "/artifactByteLength",
@@ -3310,7 +3678,7 @@ function validate29(
                           return false;
                         } else {
                           if (data4 < 1 || isNaN(data4)) {
-                            validate29.errors = [
+                            validate31.errors = [
                               {
                                 instancePath:
                                   instancePath + "/artifactByteLength",
@@ -3338,7 +3706,7 @@ function validate29(
                       if (errors === _errs17) {
                         if (typeof data5 === "string") {
                           if (func2(data5) > 8192) {
-                            validate29.errors = [
+                            validate31.errors = [
                               {
                                 instancePath: instancePath + "/artifactIri",
                                 schemaPath: "#/$defs/httpsIri/maxLength",
@@ -3351,7 +3719,7 @@ function validate29(
                             return false;
                           } else {
                             if (func2(data5) < 1) {
-                              validate29.errors = [
+                              validate31.errors = [
                                 {
                                   instancePath: instancePath + "/artifactIri",
                                   schemaPath: "#/$defs/httpsIri/minLength",
@@ -3364,7 +3732,7 @@ function validate29(
                               return false;
                             } else {
                               if (!pattern11.test(data5)) {
-                                validate29.errors = [
+                                validate31.errors = [
                                   {
                                     instancePath: instancePath + "/artifactIri",
                                     schemaPath: "#/$defs/httpsIri/pattern",
@@ -3381,7 +3749,7 @@ function validate29(
                             }
                           }
                         } else {
-                          validate29.errors = [
+                          validate31.errors = [
                             {
                               instancePath: instancePath + "/artifactIri",
                               schemaPath: "#/$defs/httpsIri/type",
@@ -3405,7 +3773,7 @@ function validate29(
                         if (errors === _errs20) {
                           if (typeof data6 === "string") {
                             if (func2(data6) > 8192) {
-                              validate29.errors = [
+                              validate31.errors = [
                                 {
                                   instancePath: instancePath + "/versionIri",
                                   schemaPath: "#/$defs/httpsIri/maxLength",
@@ -3418,7 +3786,7 @@ function validate29(
                               return false;
                             } else {
                               if (func2(data6) < 1) {
-                                validate29.errors = [
+                                validate31.errors = [
                                   {
                                     instancePath: instancePath + "/versionIri",
                                     schemaPath: "#/$defs/httpsIri/minLength",
@@ -3431,7 +3799,7 @@ function validate29(
                                 return false;
                               } else {
                                 if (!pattern11.test(data6)) {
-                                  validate29.errors = [
+                                  validate31.errors = [
                                     {
                                       instancePath:
                                         instancePath + "/versionIri",
@@ -3449,7 +3817,7 @@ function validate29(
                               }
                             }
                           } else {
-                            validate29.errors = [
+                            validate31.errors = [
                               {
                                 instancePath: instancePath + "/versionIri",
                                 schemaPath: "#/$defs/httpsIri/type",
@@ -3473,7 +3841,7 @@ function validate29(
                           if (errors === _errs23) {
                             if (typeof data7 === "string") {
                               if (func2(data7) > 8192) {
-                                validate29.errors = [
+                                validate31.errors = [
                                   {
                                     instancePath:
                                       instancePath + "/resolutionIri",
@@ -3487,7 +3855,7 @@ function validate29(
                                 return false;
                               } else {
                                 if (func2(data7) < 1) {
-                                  validate29.errors = [
+                                  validate31.errors = [
                                     {
                                       instancePath:
                                         instancePath + "/resolutionIri",
@@ -3501,7 +3869,7 @@ function validate29(
                                   return false;
                                 } else {
                                   if (!pattern11.test(data7)) {
-                                    validate29.errors = [
+                                    validate31.errors = [
                                       {
                                         instancePath:
                                           instancePath + "/resolutionIri",
@@ -3519,7 +3887,7 @@ function validate29(
                                 }
                               }
                             } else {
-                              validate29.errors = [
+                              validate31.errors = [
                                 {
                                   instancePath: instancePath + "/resolutionIri",
                                   schemaPath: "#/$defs/httpsIri/type",
@@ -3543,7 +3911,7 @@ function validate29(
                             if (errors === _errs26) {
                               if (typeof data8 === "string") {
                                 if (func2(data8) > 8192) {
-                                  validate29.errors = [
+                                  validate31.errors = [
                                     {
                                       instancePath:
                                         instancePath + "/validationIri",
@@ -3557,7 +3925,7 @@ function validate29(
                                   return false;
                                 } else {
                                   if (func2(data8) < 1) {
-                                    validate29.errors = [
+                                    validate31.errors = [
                                       {
                                         instancePath:
                                           instancePath + "/validationIri",
@@ -3572,7 +3940,7 @@ function validate29(
                                     return false;
                                   } else {
                                     if (!pattern11.test(data8)) {
-                                      validate29.errors = [
+                                      validate31.errors = [
                                         {
                                           instancePath:
                                             instancePath + "/validationIri",
@@ -3591,7 +3959,7 @@ function validate29(
                                   }
                                 }
                               } else {
-                                validate29.errors = [
+                                validate31.errors = [
                                   {
                                     instancePath:
                                       instancePath + "/validationIri",
@@ -3619,7 +3987,7 @@ function validate29(
         }
       }
     } else {
-      validate29.errors = [
+      validate31.errors = [
         {
           instancePath,
           schemaPath: "#/type",
@@ -3631,16 +3999,16 @@ function validate29(
       return false;
     }
   }
-  validate29.errors = vErrors;
+  validate31.errors = vErrors;
   return errors === 0;
 }
-validate29.evaluated = {
+validate31.evaluated = {
   props: true,
   dynamicProps: false,
   dynamicItems: false,
 };
 
-function validate28(
+function validate30(
   data,
   {
     instancePath = "",
@@ -3653,7 +4021,7 @@ function validate28(
   /*# sourceURL="https://haddenindustries.com/ontology/contracts/v1/ontology-source-pointer.v1.schema.json" */ let vErrors =
     null;
   let errors = 0;
-  const evaluated0 = validate28.evaluated;
+  const evaluated0 = validate30.evaluated;
   if (evaluated0.dynamicProps) {
     evaluated0.props = undefined;
   }
@@ -3962,7 +4330,7 @@ function validate28(
                     if (data.currentBinding !== undefined) {
                       const _errs16 = errors;
                       if (
-                        !validate29(data.currentBinding, {
+                        !validate31(data.currentBinding, {
                           instancePath: instancePath + "/currentBinding",
                           parentData: data,
                           parentDataProperty: "currentBinding",
@@ -3972,8 +4340,8 @@ function validate28(
                       ) {
                         vErrors =
                           vErrors === null
-                            ? validate29.errors
-                            : vErrors.concat(validate29.errors);
+                            ? validate31.errors
+                            : vErrors.concat(validate31.errors);
                         errors = vErrors.length;
                       }
                       var valid1 = _errs16 === errors;
@@ -4380,7 +4748,7 @@ function validate28(
                                                 if (
                                                   typeof data14 === "string"
                                                 ) {
-                                                  if (!pattern43.test(data14)) {
+                                                  if (!pattern44.test(data14)) {
                                                     const err27 = {
                                                       instancePath:
                                                         instancePath +
@@ -4447,7 +4815,7 @@ function validate28(
                                                     keyword: "enum",
                                                     params: {
                                                       allowedValues:
-                                                        schema60.oneOf[0]
+                                                        schema62.oneOf[0]
                                                           .properties
                                                           .latestRefresh
                                                           .properties.state
@@ -4698,7 +5066,7 @@ function validate28(
                                                             "string"
                                                           ) {
                                                             if (
-                                                              !pattern47.test(
+                                                              !pattern48.test(
                                                                 data19,
                                                               )
                                                             ) {
@@ -5206,7 +5574,7 @@ function validate28(
                         keyword: "enum",
                         params: {
                           allowedValues:
-                            schema60.oneOf[1].properties.accessState.enum,
+                            schema62.oneOf[1].properties.accessState.enum,
                         },
                         message: "must be equal to one of the allowed values",
                       };
@@ -5286,7 +5654,7 @@ function validate28(
                             keyword: "enum",
                             params: {
                               allowedValues:
-                                schema60.oneOf[1].properties.reasonCode.enum,
+                                schema62.oneOf[1].properties.reasonCode.enum,
                             },
                             message:
                               "must be equal to one of the allowed values",
@@ -5353,7 +5721,7 @@ function validate28(
       vErrors.push(err58);
     }
     errors++;
-    validate28.errors = vErrors;
+    validate30.errors = vErrors;
     return false;
   } else {
     errors = _errs0;
@@ -5365,14 +5733,14 @@ function validate28(
       }
     }
   }
-  validate28.errors = vErrors;
+  validate30.errors = vErrors;
   evaluated0.props = props0;
   return errors === 0;
 }
-validate28.evaluated = { dynamicProps: true, dynamicItems: false };
+validate30.evaluated = { dynamicProps: true, dynamicItems: false };
 
-export const version = validate31;
-const schema88 = {
+export const version = validate33;
+const schema90 = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
   $id: "https://haddenindustries.com/ontology/contracts/v1/ontology-source-version.v1.schema.json",
   title: "Immutable distinct source version",
@@ -5416,7 +5784,7 @@ const schema88 = {
   additionalProperties: false,
 };
 
-function validate31(
+function validate33(
   data,
   {
     instancePath = "",
@@ -5429,7 +5797,7 @@ function validate31(
   /*# sourceURL="https://haddenindustries.com/ontology/contracts/v1/ontology-source-version.v1.schema.json" */ let vErrors =
     null;
   let errors = 0;
-  const evaluated0 = validate31.evaluated;
+  const evaluated0 = validate33.evaluated;
   if (evaluated0.dynamicProps) {
     evaluated0.props = undefined;
   }
@@ -5455,7 +5823,7 @@ function validate31(
         (data.parserDocumentIri === undefined &&
           (missing0 = "parserDocumentIri"))
       ) {
-        validate31.errors = [
+        validate33.errors = [
           {
             instancePath,
             schemaPath: "#/required",
@@ -5468,8 +5836,8 @@ function validate31(
       } else {
         const _errs1 = errors;
         for (const key0 in data) {
-          if (!func1.call(schema88.properties, key0)) {
-            validate31.errors = [
+          if (!func1.call(schema90.properties, key0)) {
+            validate33.errors = [
               {
                 instancePath,
                 schemaPath: "#/additionalProperties",
@@ -5486,7 +5854,7 @@ function validate31(
           if (data.schemaVersion !== undefined) {
             const _errs2 = errors;
             if (1 !== data.schemaVersion) {
-              validate31.errors = [
+              validate33.errors = [
                 {
                   instancePath: instancePath + "/schemaVersion",
                   schemaPath: "#/properties/schemaVersion/const",
@@ -5505,7 +5873,7 @@ function validate31(
             if (data.kind !== undefined) {
               const _errs3 = errors;
               if ("source-version" !== data.kind) {
-                validate31.errors = [
+                validate33.errors = [
                   {
                     instancePath: instancePath + "/kind",
                     schemaPath: "#/properties/kind/const",
@@ -5528,7 +5896,7 @@ function validate31(
                 if (errors === _errs5) {
                   if (typeof data2 === "string") {
                     if (!pattern4.test(data2)) {
-                      validate31.errors = [
+                      validate33.errors = [
                         {
                           instancePath: instancePath + "/sourceVersionIdentity",
                           schemaPath:
@@ -5542,7 +5910,7 @@ function validate31(
                       return false;
                     }
                   } else {
-                    validate31.errors = [
+                    validate33.errors = [
                       {
                         instancePath: instancePath + "/sourceVersionIdentity",
                         schemaPath:
@@ -5567,7 +5935,7 @@ function validate31(
                   if (errors === _errs8) {
                     if (typeof data3 === "string") {
                       if (!pattern4.test(data3)) {
-                        validate31.errors = [
+                        validate33.errors = [
                           {
                             instancePath: instancePath + "/sourceKey",
                             schemaPath:
@@ -5581,7 +5949,7 @@ function validate31(
                         return false;
                       }
                     } else {
-                      validate31.errors = [
+                      validate33.errors = [
                         {
                           instancePath: instancePath + "/sourceKey",
                           schemaPath:
@@ -5606,7 +5974,7 @@ function validate31(
                     if (errors === _errs11) {
                       if (typeof data4 === "string") {
                         if (func2(data4) > 4096) {
-                          validate31.errors = [
+                          validate33.errors = [
                             {
                               instancePath:
                                 instancePath + "/requestedDocumentIri",
@@ -5621,7 +5989,7 @@ function validate31(
                           return false;
                         } else {
                           if (func2(data4) < 1) {
-                            validate31.errors = [
+                            validate33.errors = [
                               {
                                 instancePath:
                                   instancePath + "/requestedDocumentIri",
@@ -5636,7 +6004,7 @@ function validate31(
                             return false;
                           } else {
                             if (!pattern7.test(data4)) {
-                              validate31.errors = [
+                              validate33.errors = [
                                 {
                                   instancePath:
                                     instancePath + "/requestedDocumentIri",
@@ -5657,7 +6025,7 @@ function validate31(
                           }
                         }
                       } else {
-                        validate31.errors = [
+                        validate33.errors = [
                           {
                             instancePath:
                               instancePath + "/requestedDocumentIri",
@@ -5683,7 +6051,7 @@ function validate31(
                       if (errors === _errs14) {
                         if (typeof data5 === "string") {
                           if (!pattern4.test(data5)) {
-                            validate31.errors = [
+                            validate33.errors = [
                               {
                                 instancePath: instancePath + "/artifactSha256",
                                 schemaPath:
@@ -5699,7 +6067,7 @@ function validate31(
                             return false;
                           }
                         } else {
-                          validate31.errors = [
+                          validate33.errors = [
                             {
                               instancePath: instancePath + "/artifactSha256",
                               schemaPath:
@@ -5726,7 +6094,7 @@ function validate31(
                           !isNaN(data6) &&
                           isFinite(data6)
                         )) {
-                          validate31.errors = [
+                          validate33.errors = [
                             {
                               instancePath:
                                 instancePath + "/artifactByteLength",
@@ -5742,7 +6110,7 @@ function validate31(
                         if (errors === _errs16) {
                           if (typeof data6 == "number" && isFinite(data6)) {
                             if (data6 > 33554432 || isNaN(data6)) {
-                              validate31.errors = [
+                              validate33.errors = [
                                 {
                                   instancePath:
                                     instancePath + "/artifactByteLength",
@@ -5756,7 +6124,7 @@ function validate31(
                               return false;
                             } else {
                               if (data6 < 1 || isNaN(data6)) {
-                                validate31.errors = [
+                                validate33.errors = [
                                   {
                                     instancePath:
                                       instancePath + "/artifactByteLength",
@@ -5784,7 +6152,7 @@ function validate31(
                           if (errors === _errs19) {
                             if (typeof data7 === "string") {
                               if (func2(data7) > 4096) {
-                                validate31.errors = [
+                                validate33.errors = [
                                   {
                                     instancePath:
                                       instancePath + "/effectiveRetrievalIri",
@@ -5799,7 +6167,7 @@ function validate31(
                                 return false;
                               } else {
                                 if (func2(data7) < 1) {
-                                  validate31.errors = [
+                                  validate33.errors = [
                                     {
                                       instancePath:
                                         instancePath + "/effectiveRetrievalIri",
@@ -5814,7 +6182,7 @@ function validate31(
                                   return false;
                                 } else {
                                   if (!pattern7.test(data7)) {
-                                    validate31.errors = [
+                                    validate33.errors = [
                                       {
                                         instancePath:
                                           instancePath +
@@ -5836,7 +6204,7 @@ function validate31(
                                 }
                               }
                             } else {
-                              validate31.errors = [
+                              validate33.errors = [
                                 {
                                   instancePath:
                                     instancePath + "/effectiveRetrievalIri",
@@ -5862,7 +6230,7 @@ function validate31(
                             if (errors === _errs22) {
                               if (typeof data8 === "string") {
                                 if (func2(data8) > 4096) {
-                                  validate31.errors = [
+                                  validate33.errors = [
                                     {
                                       instancePath:
                                         instancePath + "/parserDocumentIri",
@@ -5877,7 +6245,7 @@ function validate31(
                                   return false;
                                 } else {
                                   if (func2(data8) < 1) {
-                                    validate31.errors = [
+                                    validate33.errors = [
                                       {
                                         instancePath:
                                           instancePath + "/parserDocumentIri",
@@ -5892,7 +6260,7 @@ function validate31(
                                     return false;
                                   } else {
                                     if (!pattern7.test(data8)) {
-                                      validate31.errors = [
+                                      validate33.errors = [
                                         {
                                           instancePath:
                                             instancePath + "/parserDocumentIri",
@@ -5914,7 +6282,7 @@ function validate31(
                                   }
                                 }
                               } else {
-                                validate31.errors = [
+                                validate33.errors = [
                                   {
                                     instancePath:
                                       instancePath + "/parserDocumentIri",
@@ -5943,7 +6311,7 @@ function validate31(
         }
       }
     } else {
-      validate31.errors = [
+      validate33.errors = [
         {
           instancePath,
           schemaPath: "#/type",
@@ -5955,17 +6323,17 @@ function validate31(
       return false;
     }
   }
-  validate31.errors = vErrors;
+  validate33.errors = vErrors;
   return errors === 0;
 }
-validate31.evaluated = {
+validate33.evaluated = {
   props: true,
   dynamicProps: false,
   dynamicItems: false,
 };
 
-export const validation = validate32;
-const schema95 = {
+export const validation = validate34;
+const schema97 = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
   $id: "https://haddenindustries.com/ontology/contracts/v1/ontology-validation.v1.schema.json",
   title: "Completed context-specific document validation",
@@ -6042,7 +6410,7 @@ const schema95 = {
     },
   ],
 };
-const schema96 = {
+const schema98 = {
   type: "object",
   description:
     "Operator-approved OWL mapping strategies. Labels describe behavior; parseMode records the actual dependency token.",
@@ -6074,16 +6442,7 @@ const schema96 = {
   ],
   required: ["validationProfileId", "parseMode"],
 };
-const schema106 = {
-  type: "string",
-  minLength: 1,
-  maxLength: 8192,
-  pattern: "^[A-Za-z][A-Za-z0-9+.-]*:",
-  description:
-    "Absolute logical IRI, including non-HTTP identifiers such as urn:. Validate with the owning public IRI contract. This is metadata, never authority to fetch.",
-};
-const pattern65 = new RegExp("^[A-Za-z][A-Za-z0-9+.-]*:", "u");
-const schema98 = {
+const schema100 = {
   type: "object",
   properties: {
     artifactSha256: { $ref: "#/$defs/digest" },
@@ -6110,7 +6469,7 @@ const schema98 = {
   additionalProperties: false,
 };
 
-function validate33(
+function validate35(
   data,
   {
     instancePath = "",
@@ -6122,7 +6481,7 @@ function validate33(
 ) {
   let vErrors = null;
   let errors = 0;
-  const evaluated0 = validate33.evaluated;
+  const evaluated0 = validate35.evaluated;
   if (evaluated0.dynamicProps) {
     evaluated0.props = undefined;
   }
@@ -6149,7 +6508,7 @@ function validate33(
         (data.validationContractVersion === undefined &&
           (missing0 = "validationContractVersion"))
       ) {
-        validate33.errors = [
+        validate35.errors = [
           {
             instancePath,
             schemaPath: "#/required",
@@ -6172,7 +6531,7 @@ function validate33(
             key0 === "loaderProfileFingerprint" ||
             key0 === "validationContractVersion"
           )) {
-            validate33.errors = [
+            validate35.errors = [
               {
                 instancePath,
                 schemaPath: "#/additionalProperties",
@@ -6193,7 +6552,7 @@ function validate33(
             if (errors === _errs3) {
               if (typeof data0 === "string") {
                 if (!pattern4.test(data0)) {
-                  validate33.errors = [
+                  validate35.errors = [
                     {
                       instancePath: instancePath + "/artifactSha256",
                       schemaPath: "#/$defs/digest/pattern",
@@ -6205,7 +6564,7 @@ function validate33(
                   return false;
                 }
               } else {
-                validate33.errors = [
+                validate35.errors = [
                   {
                     instancePath: instancePath + "/artifactSha256",
                     schemaPath: "#/$defs/digest/type",
@@ -6229,7 +6588,7 @@ function validate33(
               if (errors === _errs6) {
                 if (typeof data1 === "string") {
                   if (func2(data1) > 4096) {
-                    validate33.errors = [
+                    validate35.errors = [
                       {
                         instancePath: instancePath + "/parserDocumentIri",
                         schemaPath: "#/$defs/requestedIri/maxLength",
@@ -6241,7 +6600,7 @@ function validate33(
                     return false;
                   } else {
                     if (func2(data1) < 1) {
-                      validate33.errors = [
+                      validate35.errors = [
                         {
                           instancePath: instancePath + "/parserDocumentIri",
                           schemaPath: "#/$defs/requestedIri/minLength",
@@ -6253,7 +6612,7 @@ function validate33(
                       return false;
                     } else {
                       if (!pattern7.test(data1)) {
-                        validate33.errors = [
+                        validate35.errors = [
                           {
                             instancePath: instancePath + "/parserDocumentIri",
                             schemaPath: "#/$defs/requestedIri/pattern",
@@ -6270,7 +6629,7 @@ function validate33(
                     }
                   }
                 } else {
-                  validate33.errors = [
+                  validate35.errors = [
                     {
                       instancePath: instancePath + "/parserDocumentIri",
                       schemaPath: "#/$defs/requestedIri/type",
@@ -6291,14 +6650,14 @@ function validate33(
                 let data2 = data.formatSelectionMode;
                 const _errs8 = errors;
                 if (!(data2 === "automatic" || data2 === "explicit")) {
-                  validate33.errors = [
+                  validate35.errors = [
                     {
                       instancePath: instancePath + "/formatSelectionMode",
                       schemaPath: "#/properties/formatSelectionMode/enum",
                       keyword: "enum",
                       params: {
                         allowedValues:
-                          schema98.properties.formatSelectionMode.enum,
+                          schema100.properties.formatSelectionMode.enum,
                       },
                       message: "must be equal to one of the allowed values",
                     },
@@ -6431,7 +6790,7 @@ function validate33(
                       vErrors.push(err5);
                     }
                     errors++;
-                    validate33.errors = vErrors;
+                    validate35.errors = vErrors;
                     return false;
                   } else {
                     errors = _errs10;
@@ -6455,7 +6814,7 @@ function validate33(
                     if (errors === _errs17) {
                       if (typeof data4 === "string") {
                         if (func2(data4) > 128) {
-                          validate33.errors = [
+                          validate35.errors = [
                             {
                               instancePath: instancePath + "/observedFormatId",
                               schemaPath: "#/$defs/formatId/maxLength",
@@ -6467,7 +6826,7 @@ function validate33(
                           return false;
                         } else {
                           if (func2(data4) < 1) {
-                            validate33.errors = [
+                            validate35.errors = [
                               {
                                 instancePath:
                                   instancePath + "/observedFormatId",
@@ -6481,7 +6840,7 @@ function validate33(
                             return false;
                           } else {
                             if (!pattern18.test(data4)) {
-                              validate33.errors = [
+                              validate35.errors = [
                                 {
                                   instancePath:
                                     instancePath + "/observedFormatId",
@@ -6499,7 +6858,7 @@ function validate33(
                           }
                         }
                       } else {
-                        validate33.errors = [
+                        validate35.errors = [
                           {
                             instancePath: instancePath + "/observedFormatId",
                             schemaPath: "#/$defs/formatId/type",
@@ -6523,7 +6882,7 @@ function validate33(
                       if (errors === _errs20) {
                         if (typeof data5 === "string") {
                           if (!pattern4.test(data5)) {
-                            validate33.errors = [
+                            validate35.errors = [
                               {
                                 instancePath:
                                   instancePath + "/owlapiArtifactIdentity",
@@ -6539,7 +6898,7 @@ function validate33(
                             return false;
                           }
                         } else {
-                          validate33.errors = [
+                          validate35.errors = [
                             {
                               instancePath:
                                 instancePath + "/owlapiArtifactIdentity",
@@ -6564,7 +6923,7 @@ function validate33(
                         if (errors === _errs23) {
                           if (typeof data6 === "string") {
                             if (!pattern4.test(data6)) {
-                              validate33.errors = [
+                              validate35.errors = [
                                 {
                                   instancePath:
                                     instancePath + "/loaderProfileFingerprint",
@@ -6580,7 +6939,7 @@ function validate33(
                               return false;
                             }
                           } else {
-                            validate33.errors = [
+                            validate35.errors = [
                               {
                                 instancePath:
                                   instancePath + "/loaderProfileFingerprint",
@@ -6601,7 +6960,7 @@ function validate33(
                         if (data.validationContractVersion !== undefined) {
                           const _errs25 = errors;
                           if (1 !== data.validationContractVersion) {
-                            validate33.errors = [
+                            validate35.errors = [
                               {
                                 instancePath:
                                   instancePath + "/validationContractVersion",
@@ -6628,7 +6987,7 @@ function validate33(
         }
       }
     } else {
-      validate33.errors = [
+      validate35.errors = [
         {
           instancePath,
           schemaPath: "#/type",
@@ -6640,16 +6999,16 @@ function validate33(
       return false;
     }
   }
-  validate33.errors = vErrors;
+  validate35.errors = vErrors;
   return errors === 0;
 }
-validate33.evaluated = {
+validate35.evaluated = {
   props: true,
   dynamicProps: false,
   dynamicItems: false,
 };
 
-function validate32(
+function validate34(
   data,
   {
     instancePath = "",
@@ -6662,7 +7021,7 @@ function validate32(
   /*# sourceURL="https://haddenindustries.com/ontology/contracts/v1/ontology-validation.v1.schema.json" */ let vErrors =
     null;
   let errors = 0;
-  const evaluated0 = validate32.evaluated;
+  const evaluated0 = validate34.evaluated;
   if (evaluated0.dynamicProps) {
     evaluated0.props = undefined;
   }
@@ -6815,7 +7174,7 @@ function validate32(
       vErrors.push(err4);
     }
     errors++;
-    validate32.errors = vErrors;
+    validate34.errors = vErrors;
     return false;
   } else {
     errors = _errs4;
@@ -6835,7 +7194,7 @@ function validate32(
           (missing0 = "validationProfileId")) ||
         (data.parseMode === undefined && (missing0 = "parseMode"))
       ) {
-        validate32.errors = [
+        validate34.errors = [
           {
             instancePath,
             schemaPath:
@@ -6848,7 +7207,7 @@ function validate32(
         return false;
       }
     } else {
-      validate32.errors = [
+      validate34.errors = [
         {
           instancePath,
           schemaPath:
@@ -6896,7 +7255,7 @@ function validate32(
         (data.identifiersTruncated === undefined &&
           (missing1 = "identifiersTruncated"))
       ) {
-        validate32.errors = [
+        validate34.errors = [
           {
             instancePath,
             schemaPath: "#/required",
@@ -6909,8 +7268,8 @@ function validate32(
       } else {
         const _errs13 = errors;
         for (const key0 in data) {
-          if (!func1.call(schema95.properties, key0)) {
-            validate32.errors = [
+          if (!func1.call(schema97.properties, key0)) {
+            validate34.errors = [
               {
                 instancePath,
                 schemaPath: "#/additionalProperties",
@@ -6927,7 +7286,7 @@ function validate32(
           if (data.schemaVersion !== undefined) {
             const _errs14 = errors;
             if (1 !== data.schemaVersion) {
-              validate32.errors = [
+              validate34.errors = [
                 {
                   instancePath: instancePath + "/schemaVersion",
                   schemaPath: "#/properties/schemaVersion/const",
@@ -6946,7 +7305,7 @@ function validate32(
             if (data.kind !== undefined) {
               const _errs15 = errors;
               if ("document-validation" !== data.kind) {
-                validate32.errors = [
+                validate34.errors = [
                   {
                     instancePath: instancePath + "/kind",
                     schemaPath: "#/properties/kind/const",
@@ -6969,7 +7328,7 @@ function validate32(
                 if (errors === _errs17) {
                   if (typeof data6 === "string") {
                     if (!pattern4.test(data6)) {
-                      validate32.errors = [
+                      validate34.errors = [
                         {
                           instancePath: instancePath + "/validationIdentity",
                           schemaPath:
@@ -6983,7 +7342,7 @@ function validate32(
                       return false;
                     }
                   } else {
-                    validate32.errors = [
+                    validate34.errors = [
                       {
                         instancePath: instancePath + "/validationIdentity",
                         schemaPath:
@@ -7004,7 +7363,7 @@ function validate32(
                 if (data.identityInputs !== undefined) {
                   const _errs19 = errors;
                   if (
-                    !validate33(data.identityInputs, {
+                    !validate35(data.identityInputs, {
                       instancePath: instancePath + "/identityInputs",
                       parentData: data,
                       parentDataProperty: "identityInputs",
@@ -7014,8 +7373,8 @@ function validate32(
                   ) {
                     vErrors =
                       vErrors === null
-                        ? validate33.errors
-                        : vErrors.concat(validate33.errors);
+                        ? validate35.errors
+                        : vErrors.concat(validate35.errors);
                     errors = vErrors.length;
                   }
                   var valid5 = _errs19 === errors;
@@ -7026,7 +7385,7 @@ function validate32(
                   if (data.validationProfileId !== undefined) {
                     const _errs20 = errors;
                     if (typeof data.validationProfileId !== "string") {
-                      validate32.errors = [
+                      validate34.errors = [
                         {
                           instancePath: instancePath + "/validationProfileId",
                           schemaPath: "#/properties/validationProfileId/type",
@@ -7045,7 +7404,7 @@ function validate32(
                     if (data.documentState !== undefined) {
                       const _errs22 = errors;
                       if ("DOCUMENT_VALIDATED" !== data.documentState) {
-                        validate32.errors = [
+                        validate34.errors = [
                           {
                             instancePath: instancePath + "/documentState",
                             schemaPath: "#/properties/documentState/const",
@@ -7064,7 +7423,7 @@ function validate32(
                       if (data.parseMode !== undefined) {
                         const _errs23 = errors;
                         if (typeof data.parseMode !== "string") {
-                          validate32.errors = [
+                          validate34.errors = [
                             {
                               instancePath: instancePath + "/parseMode",
                               schemaPath: "#/properties/parseMode/type",
@@ -7083,7 +7442,7 @@ function validate32(
                         if (data.sourceBytesRetained !== undefined) {
                           const _errs25 = errors;
                           if (true !== data.sourceBytesRetained) {
-                            validate32.errors = [
+                            validate34.errors = [
                               {
                                 instancePath:
                                   instancePath + "/sourceBytesRetained",
@@ -7109,7 +7468,7 @@ function validate32(
                               data12 === "invalid" ||
                               data12 === "unverified"
                             )) {
-                              validate32.errors = [
+                              validate34.errors = [
                                 {
                                   instancePath:
                                     instancePath + "/sourceAssessment",
@@ -7118,7 +7477,7 @@ function validate32(
                                   keyword: "enum",
                                   params: {
                                     allowedValues:
-                                      schema95.properties.sourceAssessment.enum,
+                                      schema97.properties.sourceAssessment.enum,
                                   },
                                   message:
                                     "must be equal to one of the allowed values",
@@ -7134,7 +7493,7 @@ function validate32(
                             if (data.profileAssessment !== undefined) {
                               const _errs27 = errors;
                               if ("NOT_EVALUATED" !== data.profileAssessment) {
-                                validate32.errors = [
+                                validate34.errors = [
                                   {
                                     instancePath:
                                       instancePath + "/profileAssessment",
@@ -7157,7 +7516,7 @@ function validate32(
                                 if (
                                   "UNASSESSED" !== data.closureQualification
                                 ) {
-                                  validate32.errors = [
+                                  validate34.errors = [
                                     {
                                       instancePath:
                                         instancePath + "/closureQualification",
@@ -7180,7 +7539,7 @@ function validate32(
                                   if (
                                     "NOT_EVALUATED" !== data.consumerAdmission
                                   ) {
-                                    validate32.errors = [
+                                    validate34.errors = [
                                       {
                                         instancePath:
                                           instancePath + "/consumerAdmission",
@@ -7206,7 +7565,7 @@ function validate32(
                                     if (errors === _errs30) {
                                       if (Array.isArray(data16)) {
                                         if (data16.length > 64) {
-                                          validate32.errors = [
+                                          validate34.errors = [
                                             {
                                               instancePath:
                                                 instancePath +
@@ -7229,8 +7588,8 @@ function validate32(
                                             const _errs33 = errors;
                                             if (errors === _errs33) {
                                               if (typeof data17 === "string") {
-                                                if (!pattern47.test(data17)) {
-                                                  validate32.errors = [
+                                                if (!pattern48.test(data17)) {
+                                                  validate34.errors = [
                                                     {
                                                       instancePath:
                                                         instancePath +
@@ -7252,7 +7611,7 @@ function validate32(
                                                   return false;
                                                 }
                                               } else {
-                                                validate32.errors = [
+                                                validate34.errors = [
                                                   {
                                                     instancePath:
                                                       instancePath +
@@ -7285,7 +7644,7 @@ function validate32(
                                                       data16[j0],
                                                     )
                                                   ) {
-                                                    validate32.errors = [
+                                                    validate34.errors = [
                                                       {
                                                         instancePath:
                                                           instancePath +
@@ -7314,7 +7673,7 @@ function validate32(
                                           }
                                         }
                                       } else {
-                                        validate32.errors = [
+                                        validate34.errors = [
                                           {
                                             instancePath:
                                               instancePath + "/diagnosticCodes",
@@ -7341,7 +7700,7 @@ function validate32(
                                         typeof data.diagnosticsTruncated !==
                                         "boolean"
                                       ) {
-                                        validate32.errors = [
+                                        validate34.errors = [
                                           {
                                             instancePath:
                                               instancePath +
@@ -7373,7 +7732,7 @@ function validate32(
                                           !isNaN(data19) &&
                                           isFinite(data19)
                                         )) {
-                                          validate32.errors = [
+                                          validate34.errors = [
                                             {
                                               instancePath:
                                                 instancePath +
@@ -7396,7 +7755,7 @@ function validate32(
                                               data19 > 9007199254740991 ||
                                               isNaN(data19)
                                             ) {
-                                              validate32.errors = [
+                                              validate34.errors = [
                                                 {
                                                   instancePath:
                                                     instancePath +
@@ -7415,7 +7774,7 @@ function validate32(
                                               return false;
                                             } else {
                                               if (data19 < 0 || isNaN(data19)) {
-                                                validate32.errors = [
+                                                validate34.errors = [
                                                   {
                                                     instancePath:
                                                       instancePath +
@@ -7446,7 +7805,7 @@ function validate32(
                                           if (errors === _errs39) {
                                             if (Array.isArray(data20)) {
                                               if (data20.length > 64) {
-                                                validate32.errors = [
+                                                validate34.errors = [
                                                   {
                                                     instancePath:
                                                       instancePath +
@@ -7478,7 +7837,7 @@ function validate32(
                                                       if (
                                                         func2(data21) > 8192
                                                       ) {
-                                                        validate32.errors = [
+                                                        validate34.errors = [
                                                           {
                                                             instancePath:
                                                               instancePath +
@@ -7498,7 +7857,7 @@ function validate32(
                                                         return false;
                                                       } else {
                                                         if (func2(data21) < 1) {
-                                                          validate32.errors = [
+                                                          validate34.errors = [
                                                             {
                                                               instancePath:
                                                                 instancePath +
@@ -7518,11 +7877,11 @@ function validate32(
                                                           return false;
                                                         } else {
                                                           if (
-                                                            !pattern65.test(
+                                                            !pattern27.test(
                                                               data21,
                                                             )
                                                           ) {
-                                                            validate32.errors =
+                                                            validate34.errors =
                                                               [
                                                                 {
                                                                   instancePath:
@@ -7548,7 +7907,7 @@ function validate32(
                                                         }
                                                       }
                                                     } else {
-                                                      validate32.errors = [
+                                                      validate34.errors = [
                                                         {
                                                           instancePath:
                                                             instancePath +
@@ -7575,7 +7934,7 @@ function validate32(
                                                 }
                                               }
                                             } else {
-                                              validate32.errors = [
+                                              validate34.errors = [
                                                 {
                                                   instancePath:
                                                     instancePath +
@@ -7605,7 +7964,7 @@ function validate32(
                                             if (errors === _errs44) {
                                               if (Array.isArray(data22)) {
                                                 if (data22.length > 64) {
-                                                  validate32.errors = [
+                                                  validate34.errors = [
                                                     {
                                                       instancePath:
                                                         instancePath +
@@ -7638,7 +7997,7 @@ function validate32(
                                                         if (
                                                           func2(data23) > 8192
                                                         ) {
-                                                          validate32.errors = [
+                                                          validate34.errors = [
                                                             {
                                                               instancePath:
                                                                 instancePath +
@@ -7660,7 +8019,7 @@ function validate32(
                                                           if (
                                                             func2(data23) < 1
                                                           ) {
-                                                            validate32.errors =
+                                                            validate34.errors =
                                                               [
                                                                 {
                                                                   instancePath:
@@ -7681,11 +8040,11 @@ function validate32(
                                                             return false;
                                                           } else {
                                                             if (
-                                                              !pattern65.test(
+                                                              !pattern27.test(
                                                                 data23,
                                                               )
                                                             ) {
-                                                              validate32.errors =
+                                                              validate34.errors =
                                                                 [
                                                                   {
                                                                     instancePath:
@@ -7711,7 +8070,7 @@ function validate32(
                                                           }
                                                         }
                                                       } else {
-                                                        validate32.errors = [
+                                                        validate34.errors = [
                                                           {
                                                             instancePath:
                                                               instancePath +
@@ -7738,7 +8097,7 @@ function validate32(
                                                   }
                                                 }
                                               } else {
-                                                validate32.errors = [
+                                                validate34.errors = [
                                                   {
                                                     instancePath:
                                                       instancePath +
@@ -7767,7 +8126,7 @@ function validate32(
                                                 typeof data.identifiersTruncated !==
                                                 "boolean"
                                               ) {
-                                                validate32.errors = [
+                                                validate34.errors = [
                                                   {
                                                     instancePath:
                                                       instancePath +
@@ -7805,7 +8164,7 @@ function validate32(
         }
       }
     } else {
-      validate32.errors = [
+      validate34.errors = [
         {
           instancePath,
           schemaPath: "#/type",
@@ -7817,17 +8176,17 @@ function validate32(
       return false;
     }
   }
-  validate32.errors = vErrors;
+  validate34.errors = vErrors;
   return errors === 0;
 }
-validate32.evaluated = {
+validate34.evaluated = {
   props: true,
   dynamicProps: false,
   dynamicItems: false,
 };
 
-export const policy = validate35;
-const schema108 = {
+export const policy = validate37;
+const schema110 = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
   $id: "https://haddenindustries.com/ontology/contracts/v1/ontology-loader-policy.v1.schema.json",
   title: "Finite document validation policy evidence",
@@ -8042,7 +8401,7 @@ const schema108 = {
   additionalProperties: false,
 };
 
-function validate36(
+function validate38(
   data,
   {
     instancePath = "",
@@ -8054,7 +8413,7 @@ function validate36(
 ) {
   let vErrors = null;
   let errors = 0;
-  const evaluated0 = validate36.evaluated;
+  const evaluated0 = validate38.evaluated;
   if (evaluated0.dynamicProps) {
     evaluated0.props = undefined;
   }
@@ -8070,7 +8429,7 @@ function validate36(
         (data.selectionPolicyVersion === undefined &&
           (missing0 = "selectionPolicyVersion"))
       ) {
-        validate36.errors = [
+        validate38.errors = [
           {
             instancePath,
             schemaPath: "#/required",
@@ -8088,7 +8447,7 @@ function validate36(
             key0 === "acceptEncoding" ||
             key0 === "selectionPolicyVersion"
           )) {
-            validate36.errors = [
+            validate38.errors = [
               {
                 instancePath,
                 schemaPath: "#/additionalProperties",
@@ -8109,7 +8468,7 @@ function validate36(
             if (errors === _errs3) {
               if (typeof data0 === "string") {
                 if (func2(data0) > 4096) {
-                  validate36.errors = [
+                  validate38.errors = [
                     {
                       instancePath: instancePath + "/accept",
                       schemaPath: "#/$defs/headerValue/maxLength",
@@ -8121,7 +8480,7 @@ function validate36(
                   return false;
                 } else {
                   if (func2(data0) < 1) {
-                    validate36.errors = [
+                    validate38.errors = [
                       {
                         instancePath: instancePath + "/accept",
                         schemaPath: "#/$defs/headerValue/minLength",
@@ -8133,7 +8492,7 @@ function validate36(
                     return false;
                   } else {
                     if (!pattern21.test(data0)) {
-                      validate36.errors = [
+                      validate38.errors = [
                         {
                           instancePath: instancePath + "/accept",
                           schemaPath: "#/$defs/headerValue/pattern",
@@ -8150,7 +8509,7 @@ function validate36(
                   }
                 }
               } else {
-                validate36.errors = [
+                validate38.errors = [
                   {
                     instancePath: instancePath + "/accept",
                     schemaPath: "#/$defs/headerValue/type",
@@ -8170,7 +8529,7 @@ function validate36(
             if (data.acceptEncoding !== undefined) {
               const _errs5 = errors;
               if ("identity" !== data.acceptEncoding) {
-                validate36.errors = [
+                validate38.errors = [
                   {
                     instancePath: instancePath + "/acceptEncoding",
                     schemaPath: "#/properties/acceptEncoding/const",
@@ -8195,7 +8554,7 @@ function validate36(
                   !isNaN(data2) &&
                   isFinite(data2)
                 )) {
-                  validate36.errors = [
+                  validate38.errors = [
                     {
                       instancePath: instancePath + "/selectionPolicyVersion",
                       schemaPath: "#/properties/selectionPolicyVersion/type",
@@ -8209,7 +8568,7 @@ function validate36(
                 if (errors === _errs6) {
                   if (typeof data2 == "number" && isFinite(data2)) {
                     if (data2 > 9007199254740991 || isNaN(data2)) {
-                      validate36.errors = [
+                      validate38.errors = [
                         {
                           instancePath:
                             instancePath + "/selectionPolicyVersion",
@@ -8223,7 +8582,7 @@ function validate36(
                       return false;
                     } else {
                       if (data2 < 1 || isNaN(data2)) {
-                        validate36.errors = [
+                        validate38.errors = [
                           {
                             instancePath:
                               instancePath + "/selectionPolicyVersion",
@@ -8248,7 +8607,7 @@ function validate36(
         }
       }
     } else {
-      validate36.errors = [
+      validate38.errors = [
         {
           instancePath,
           schemaPath: "#/type",
@@ -8260,16 +8619,16 @@ function validate36(
       return false;
     }
   }
-  validate36.errors = vErrors;
+  validate38.errors = vErrors;
   return errors === 0;
 }
-validate36.evaluated = {
+validate38.evaluated = {
   props: true,
   dynamicProps: false,
   dynamicItems: false,
 };
 
-const schema115 = {
+const schema117 = {
   type: "object",
   properties: {
     dependencyName: { const: "owlapi" },
@@ -8295,9 +8654,9 @@ const schema115 = {
   ],
   additionalProperties: false,
 };
-const pattern71 = new RegExp("^[0-9a-f]{40}$", "u");
+const pattern72 = new RegExp("^[0-9a-f]{40}$", "u");
 
-function validate38(
+function validate40(
   data,
   {
     instancePath = "",
@@ -8309,7 +8668,7 @@ function validate38(
 ) {
   let vErrors = null;
   let errors = 0;
-  const evaluated0 = validate38.evaluated;
+  const evaluated0 = validate40.evaluated;
   if (evaluated0.dynamicProps) {
     evaluated0.props = undefined;
   }
@@ -8332,7 +8691,7 @@ function validate38(
           (missing0 = "dependencyClosureSha256")) ||
         (data.runtimeTarget === undefined && (missing0 = "runtimeTarget"))
       ) {
-        validate38.errors = [
+        validate40.errors = [
           {
             instancePath,
             schemaPath: "#/required",
@@ -8345,8 +8704,8 @@ function validate38(
       } else {
         const _errs1 = errors;
         for (const key0 in data) {
-          if (!func1.call(schema115.properties, key0)) {
-            validate38.errors = [
+          if (!func1.call(schema117.properties, key0)) {
+            validate40.errors = [
               {
                 instancePath,
                 schemaPath: "#/additionalProperties",
@@ -8363,7 +8722,7 @@ function validate38(
           if (data.dependencyName !== undefined) {
             const _errs2 = errors;
             if ("owlapi" !== data.dependencyName) {
-              validate38.errors = [
+              validate40.errors = [
                 {
                   instancePath: instancePath + "/dependencyName",
                   schemaPath: "#/properties/dependencyName/const",
@@ -8385,7 +8744,7 @@ function validate38(
               if (errors === _errs3) {
                 if (typeof data1 === "string") {
                   if (func2(data1) > 200) {
-                    validate38.errors = [
+                    validate40.errors = [
                       {
                         instancePath: instancePath + "/packageName",
                         schemaPath: "#/properties/packageName/maxLength",
@@ -8397,7 +8756,7 @@ function validate38(
                     return false;
                   } else {
                     if (func2(data1) < 1) {
-                      validate38.errors = [
+                      validate40.errors = [
                         {
                           instancePath: instancePath + "/packageName",
                           schemaPath: "#/properties/packageName/minLength",
@@ -8410,7 +8769,7 @@ function validate38(
                     }
                   }
                 } else {
-                  validate38.errors = [
+                  validate40.errors = [
                     {
                       instancePath: instancePath + "/packageName",
                       schemaPath: "#/properties/packageName/type",
@@ -8433,7 +8792,7 @@ function validate38(
                 if (errors === _errs5) {
                   if (typeof data2 === "string") {
                     if (func2(data2) > 128) {
-                      validate38.errors = [
+                      validate40.errors = [
                         {
                           instancePath: instancePath + "/packageVersion",
                           schemaPath: "#/properties/packageVersion/maxLength",
@@ -8445,7 +8804,7 @@ function validate38(
                       return false;
                     } else {
                       if (func2(data2) < 1) {
-                        validate38.errors = [
+                        validate40.errors = [
                           {
                             instancePath: instancePath + "/packageVersion",
                             schemaPath: "#/properties/packageVersion/minLength",
@@ -8458,7 +8817,7 @@ function validate38(
                       }
                     }
                   } else {
-                    validate38.errors = [
+                    validate40.errors = [
                       {
                         instancePath: instancePath + "/packageVersion",
                         schemaPath: "#/properties/packageVersion/type",
@@ -8481,7 +8840,7 @@ function validate38(
                   if (errors === _errs7) {
                     if (typeof data3 === "string") {
                       if (func2(data3) > 1024) {
-                        validate38.errors = [
+                        validate40.errors = [
                           {
                             instancePath: instancePath + "/selector",
                             schemaPath: "#/properties/selector/maxLength",
@@ -8493,7 +8852,7 @@ function validate38(
                         return false;
                       } else {
                         if (func2(data3) < 1) {
-                          validate38.errors = [
+                          validate40.errors = [
                             {
                               instancePath: instancePath + "/selector",
                               schemaPath: "#/properties/selector/minLength",
@@ -8506,7 +8865,7 @@ function validate38(
                         }
                       }
                     } else {
-                      validate38.errors = [
+                      validate40.errors = [
                         {
                           instancePath: instancePath + "/selector",
                           schemaPath: "#/properties/selector/type",
@@ -8528,8 +8887,8 @@ function validate38(
                     const _errs9 = errors;
                     if (errors === _errs9) {
                       if (typeof data4 === "string") {
-                        if (!pattern71.test(data4)) {
-                          validate38.errors = [
+                        if (!pattern72.test(data4)) {
+                          validate40.errors = [
                             {
                               instancePath: instancePath + "/sourceCommit",
                               schemaPath: "#/properties/sourceCommit/pattern",
@@ -8542,7 +8901,7 @@ function validate38(
                           return false;
                         }
                       } else {
-                        validate38.errors = [
+                        validate40.errors = [
                           {
                             instancePath: instancePath + "/sourceCommit",
                             schemaPath: "#/properties/sourceCommit/type",
@@ -8566,7 +8925,7 @@ function validate38(
                       if (errors === _errs12) {
                         if (typeof data5 === "string") {
                           if (!pattern4.test(data5)) {
-                            validate38.errors = [
+                            validate40.errors = [
                               {
                                 instancePath: instancePath + "/archiveSha256",
                                 schemaPath: "#/$defs/digest/pattern",
@@ -8581,7 +8940,7 @@ function validate38(
                             return false;
                           }
                         } else {
-                          validate38.errors = [
+                          validate40.errors = [
                             {
                               instancePath: instancePath + "/archiveSha256",
                               schemaPath: "#/$defs/digest/type",
@@ -8605,7 +8964,7 @@ function validate38(
                         if (errors === _errs15) {
                           if (typeof data6 === "string") {
                             if (!pattern4.test(data6)) {
-                              validate38.errors = [
+                              validate40.errors = [
                                 {
                                   instancePath:
                                     instancePath + "/installedPayloadSha256",
@@ -8621,7 +8980,7 @@ function validate38(
                               return false;
                             }
                           } else {
-                            validate38.errors = [
+                            validate40.errors = [
                               {
                                 instancePath:
                                   instancePath + "/installedPayloadSha256",
@@ -8646,7 +9005,7 @@ function validate38(
                           if (errors === _errs18) {
                             if (typeof data7 === "string") {
                               if (!pattern4.test(data7)) {
-                                validate38.errors = [
+                                validate40.errors = [
                                   {
                                     instancePath:
                                       instancePath + "/dependencyClosureSha256",
@@ -8662,7 +9021,7 @@ function validate38(
                                 return false;
                               }
                             } else {
-                              validate38.errors = [
+                              validate40.errors = [
                                 {
                                   instancePath:
                                     instancePath + "/dependencyClosureSha256",
@@ -8686,7 +9045,7 @@ function validate38(
                             if (errors === _errs20) {
                               if (typeof data8 === "string") {
                                 if (func2(data8) > 128) {
-                                  validate38.errors = [
+                                  validate40.errors = [
                                     {
                                       instancePath:
                                         instancePath + "/runtimeTarget",
@@ -8701,7 +9060,7 @@ function validate38(
                                   return false;
                                 } else {
                                   if (func2(data8) < 1) {
-                                    validate38.errors = [
+                                    validate40.errors = [
                                       {
                                         instancePath:
                                           instancePath + "/runtimeTarget",
@@ -8717,7 +9076,7 @@ function validate38(
                                   }
                                 }
                               } else {
-                                validate38.errors = [
+                                validate40.errors = [
                                   {
                                     instancePath:
                                       instancePath + "/runtimeTarget",
@@ -8746,7 +9105,7 @@ function validate38(
         }
       }
     } else {
-      validate38.errors = [
+      validate40.errors = [
         {
           instancePath,
           schemaPath: "#/type",
@@ -8758,16 +9117,16 @@ function validate38(
       return false;
     }
   }
-  validate38.errors = vErrors;
+  validate40.errors = vErrors;
   return errors === 0;
 }
-validate38.evaluated = {
+validate40.evaluated = {
   props: true,
   dynamicProps: false,
   dynamicItems: false,
 };
 
-function validate35(
+function validate37(
   data,
   {
     instancePath = "",
@@ -8780,7 +9139,7 @@ function validate35(
   /*# sourceURL="https://haddenindustries.com/ontology/contracts/v1/ontology-loader-policy.v1.schema.json" */ let vErrors =
     null;
   let errors = 0;
-  const evaluated0 = validate35.evaluated;
+  const evaluated0 = validate37.evaluated;
   if (evaluated0.dynamicProps) {
     evaluated0.props = undefined;
   }
@@ -8797,7 +9156,7 @@ function validate35(
           (missing0 = "loaderProfileFingerprint")) ||
         (data.policy === undefined && (missing0 = "policy"))
       ) {
-        validate35.errors = [
+        validate37.errors = [
           {
             instancePath,
             schemaPath: "#/required",
@@ -8816,7 +9175,7 @@ function validate35(
             key0 === "loaderProfileFingerprint" ||
             key0 === "policy"
           )) {
-            validate35.errors = [
+            validate37.errors = [
               {
                 instancePath,
                 schemaPath: "#/additionalProperties",
@@ -8833,7 +9192,7 @@ function validate35(
           if (data.schemaVersion !== undefined) {
             const _errs2 = errors;
             if (1 !== data.schemaVersion) {
-              validate35.errors = [
+              validate37.errors = [
                 {
                   instancePath: instancePath + "/schemaVersion",
                   schemaPath: "#/properties/schemaVersion/const",
@@ -8852,7 +9211,7 @@ function validate35(
             if (data.kind !== undefined) {
               const _errs3 = errors;
               if ("loader-policy" !== data.kind) {
-                validate35.errors = [
+                validate37.errors = [
                   {
                     instancePath: instancePath + "/kind",
                     schemaPath: "#/properties/kind/const",
@@ -8875,7 +9234,7 @@ function validate35(
                 if (errors === _errs5) {
                   if (typeof data2 === "string") {
                     if (!pattern4.test(data2)) {
-                      validate35.errors = [
+                      validate37.errors = [
                         {
                           instancePath:
                             instancePath + "/loaderProfileFingerprint",
@@ -8890,7 +9249,7 @@ function validate35(
                       return false;
                     }
                   } else {
-                    validate35.errors = [
+                    validate37.errors = [
                       {
                         instancePath:
                           instancePath + "/loaderProfileFingerprint",
@@ -9078,7 +9437,7 @@ function validate35(
                       vErrors.push(err4);
                     }
                     errors++;
-                    validate35.errors = vErrors;
+                    validate37.errors = vErrors;
                     return false;
                   } else {
                     errors = _errs12;
@@ -9103,7 +9462,7 @@ function validate35(
                         (data3.parseMode === undefined &&
                           (missing1 = "parseMode"))
                       ) {
-                        validate35.errors = [
+                        validate37.errors = [
                           {
                             instancePath: instancePath + "/policy",
                             schemaPath:
@@ -9117,7 +9476,7 @@ function validate35(
                         return false;
                       }
                     } else {
-                      validate35.errors = [
+                      validate37.errors = [
                         {
                           instancePath: instancePath + "/policy",
                           schemaPath:
@@ -9197,7 +9556,7 @@ function validate35(
                             ) {
                               if (data9.selectionPolicyVersion !== undefined) {
                                 if (2 !== data9.selectionPolicyVersion) {
-                                  validate35.errors = [
+                                  validate37.errors = [
                                     {
                                       instancePath:
                                         instancePath +
@@ -9213,7 +9572,7 @@ function validate35(
                                 }
                               }
                             } else {
-                              validate35.errors = [
+                              validate37.errors = [
                                 {
                                   instancePath:
                                     instancePath + "/policy/requestVariant",
@@ -9251,7 +9610,7 @@ function validate35(
                         vErrors.push(err7);
                       }
                       errors++;
-                      validate35.errors = vErrors;
+                      validate37.errors = vErrors;
                       return false;
                     }
                     var valid2 = _errs21 === errors;
@@ -9331,7 +9690,7 @@ function validate35(
                                   data12.selectionPolicyVersion !== undefined
                                 ) {
                                   if (3 !== data12.selectionPolicyVersion) {
-                                    validate35.errors = [
+                                    validate37.errors = [
                                       {
                                         instancePath:
                                           instancePath +
@@ -9347,7 +9706,7 @@ function validate35(
                                   }
                                 }
                               } else {
-                                validate35.errors = [
+                                validate37.errors = [
                                   {
                                     instancePath:
                                       instancePath + "/policy/requestVariant",
@@ -9385,7 +9744,7 @@ function validate35(
                           vErrors.push(err10);
                         }
                         errors++;
-                        validate35.errors = vErrors;
+                        validate37.errors = vErrors;
                         return false;
                       }
                       var valid2 = _errs29 === errors;
@@ -9443,7 +9802,7 @@ function validate35(
                         (data3.dependencyTranslations === undefined &&
                           (missing4 = "dependencyTranslations"))
                       ) {
-                        validate35.errors = [
+                        validate37.errors = [
                           {
                             instancePath: instancePath + "/policy",
                             schemaPath: "#/properties/policy/required",
@@ -9459,11 +9818,11 @@ function validate35(
                         for (const key1 in data3) {
                           if (
                             !func1.call(
-                              schema108.properties.policy.properties,
+                              schema110.properties.policy.properties,
                               key1,
                             )
                           ) {
-                            validate35.errors = [
+                            validate37.errors = [
                               {
                                 instancePath: instancePath + "/policy",
                                 schemaPath:
@@ -9481,7 +9840,7 @@ function validate35(
                           if (data3.validationContractVersion !== undefined) {
                             const _errs38 = errors;
                             if (1 !== data3.validationContractVersion) {
-                              validate35.errors = [
+                              validate37.errors = [
                                 {
                                   instancePath:
                                     instancePath +
@@ -9505,7 +9864,7 @@ function validate35(
                               if (
                                 typeof data3.validationProfileId !== "string"
                               ) {
-                                validate35.errors = [
+                                validate37.errors = [
                                   {
                                     instancePath:
                                       instancePath +
@@ -9527,7 +9886,7 @@ function validate35(
                               if (data3.parseMode !== undefined) {
                                 const _errs41 = errors;
                                 if (typeof data3.parseMode !== "string") {
-                                  validate35.errors = [
+                                  validate37.errors = [
                                     {
                                       instancePath:
                                         instancePath + "/policy/parseMode",
@@ -9550,7 +9909,7 @@ function validate35(
                                   if (
                                     "automatic" !== data3.formatSelectionMode
                                   ) {
-                                    validate35.errors = [
+                                    validate37.errors = [
                                       {
                                         instancePath:
                                           instancePath +
@@ -9574,7 +9933,7 @@ function validate35(
                                     if (
                                       "strict-utf8-v1" !== data3.decodingPolicy
                                     ) {
-                                      validate35.errors = [
+                                      validate37.errors = [
                                         {
                                           instancePath:
                                             instancePath +
@@ -9601,7 +9960,7 @@ function validate35(
                                         "effective-origin-response-v1" !==
                                         data3.parserBasePolicy
                                       ) {
-                                        validate35.errors = [
+                                        validate37.errors = [
                                           {
                                             instancePath:
                                               instancePath +
@@ -9635,7 +9994,7 @@ function validate35(
                                           data20 ===
                                             "https-preferred-anonymous-public-snapshots-v3"
                                         )) {
-                                          validate35.errors = [
+                                          validate37.errors = [
                                             {
                                               instancePath:
                                                 instancePath +
@@ -9645,7 +10004,7 @@ function validate35(
                                               keyword: "enum",
                                               params: {
                                                 allowedValues:
-                                                  schema108.properties.policy
+                                                  schema110.properties.policy
                                                     .properties.transportPolicy
                                                     .enum,
                                               },
@@ -9663,7 +10022,7 @@ function validate35(
                                         if (data3.remoteImports !== undefined) {
                                           const _errs47 = errors;
                                           if (false !== data3.remoteImports) {
-                                            validate35.errors = [
+                                            validate37.errors = [
                                               {
                                                 instancePath:
                                                   instancePath +
@@ -9692,7 +10051,7 @@ function validate35(
                                               false !==
                                               data3.remoteJsonLdContexts
                                             ) {
-                                              validate35.errors = [
+                                              validate37.errors = [
                                                 {
                                                   instancePath:
                                                     instancePath +
@@ -9723,7 +10082,7 @@ function validate35(
                                                 false !==
                                                 data3.externalXmlResources
                                               ) {
-                                                validate35.errors = [
+                                                validate37.errors = [
                                                   {
                                                     instancePath:
                                                       instancePath +
@@ -9754,7 +10113,7 @@ function validate35(
                                                   "report-only" !==
                                                   data3.sourceAssessmentAdmission
                                                 ) {
-                                                  validate35.errors = [
+                                                  validate37.errors = [
                                                     {
                                                       instancePath:
                                                         instancePath +
@@ -9793,7 +10152,7 @@ function validate35(
                                                       if (
                                                         !pattern4.test(data25)
                                                       ) {
-                                                        validate35.errors = [
+                                                        validate37.errors = [
                                                           {
                                                             instancePath:
                                                               instancePath +
@@ -9814,7 +10173,7 @@ function validate35(
                                                         return false;
                                                       }
                                                     } else {
-                                                      validate35.errors = [
+                                                      validate37.errors = [
                                                         {
                                                           instancePath:
                                                             instancePath +
@@ -9854,7 +10213,7 @@ function validate35(
                                                         if (
                                                           !pattern4.test(data26)
                                                         ) {
-                                                          validate35.errors = [
+                                                          validate37.errors = [
                                                             {
                                                               instancePath:
                                                                 instancePath +
@@ -9876,7 +10235,7 @@ function validate35(
                                                           return false;
                                                         }
                                                       } else {
-                                                        validate35.errors = [
+                                                        validate37.errors = [
                                                           {
                                                             instancePath:
                                                               instancePath +
@@ -9906,7 +10265,7 @@ function validate35(
                                                     ) {
                                                       const _errs57 = errors;
                                                       if (
-                                                        !validate36(
+                                                        !validate38(
                                                           data3.requestVariant,
                                                           {
                                                             instancePath:
@@ -9922,9 +10281,9 @@ function validate35(
                                                       ) {
                                                         vErrors =
                                                           vErrors === null
-                                                            ? validate36.errors
+                                                            ? validate38.errors
                                                             : vErrors.concat(
-                                                                validate36.errors,
+                                                                validate38.errors,
                                                               );
                                                         errors = vErrors.length;
                                                       }
@@ -9940,7 +10299,7 @@ function validate35(
                                                       ) {
                                                         const _errs58 = errors;
                                                         if (
-                                                          !validate38(
+                                                          !validate40(
                                                             data3.owlapiArtifact,
                                                             {
                                                               instancePath:
@@ -9956,9 +10315,9 @@ function validate35(
                                                         ) {
                                                           vErrors =
                                                             vErrors === null
-                                                              ? validate38.errors
+                                                              ? validate40.errors
                                                               : vErrors.concat(
-                                                                  validate38.errors,
+                                                                  validate40.errors,
                                                                 );
                                                           errors =
                                                             vErrors.length;
@@ -10083,7 +10442,7 @@ function validate35(
                                                                   (missing5 =
                                                                     "importFetchCount"))
                                                               ) {
-                                                                validate35.errors =
+                                                                validate37.errors =
                                                                   [
                                                                     {
                                                                       instancePath:
@@ -10110,7 +10469,7 @@ function validate35(
                                                                 for (const key2 in data29) {
                                                                   if (
                                                                     !func1.call(
-                                                                      schema108
+                                                                      schema110
                                                                         .properties
                                                                         .policy
                                                                         .properties
@@ -10119,7 +10478,7 @@ function validate35(
                                                                       key2,
                                                                     )
                                                                   ) {
-                                                                    validate35.errors =
+                                                                    validate37.errors =
                                                                       [
                                                                         {
                                                                           instancePath:
@@ -10168,7 +10527,7 @@ function validate35(
                                                                         data30,
                                                                       )
                                                                     )) {
-                                                                      validate35.errors =
+                                                                      validate37.errors =
                                                                         [
                                                                           {
                                                                             instancePath:
@@ -10206,7 +10565,7 @@ function validate35(
                                                                             data30,
                                                                           )
                                                                         ) {
-                                                                          validate35.errors =
+                                                                          validate37.errors =
                                                                             [
                                                                               {
                                                                                 instancePath:
@@ -10235,7 +10594,7 @@ function validate35(
                                                                               data30,
                                                                             )
                                                                           ) {
-                                                                            validate35.errors =
+                                                                            validate37.errors =
                                                                               [
                                                                                 {
                                                                                   instancePath:
@@ -10289,7 +10648,7 @@ function validate35(
                                                                           data31,
                                                                         )
                                                                       )) {
-                                                                        validate35.errors =
+                                                                        validate37.errors =
                                                                           [
                                                                             {
                                                                               instancePath:
@@ -10327,7 +10686,7 @@ function validate35(
                                                                               data31,
                                                                             )
                                                                           ) {
-                                                                            validate35.errors =
+                                                                            validate37.errors =
                                                                               [
                                                                                 {
                                                                                   instancePath:
@@ -10356,7 +10715,7 @@ function validate35(
                                                                                 data31,
                                                                               )
                                                                             ) {
-                                                                              validate35.errors =
+                                                                              validate37.errors =
                                                                                 [
                                                                                   {
                                                                                     instancePath:
@@ -10412,7 +10771,7 @@ function validate35(
                                                                             data32,
                                                                           )
                                                                         )) {
-                                                                          validate35.errors =
+                                                                          validate37.errors =
                                                                             [
                                                                               {
                                                                                 instancePath:
@@ -10450,7 +10809,7 @@ function validate35(
                                                                                 data32,
                                                                               )
                                                                             ) {
-                                                                              validate35.errors =
+                                                                              validate37.errors =
                                                                                 [
                                                                                   {
                                                                                     instancePath:
@@ -10479,7 +10838,7 @@ function validate35(
                                                                                   data32,
                                                                                 )
                                                                               ) {
-                                                                                validate35.errors =
+                                                                                validate37.errors =
                                                                                   [
                                                                                     {
                                                                                       instancePath:
@@ -10535,7 +10894,7 @@ function validate35(
                                                                               data33,
                                                                             )
                                                                           )) {
-                                                                            validate35.errors =
+                                                                            validate37.errors =
                                                                               [
                                                                                 {
                                                                                   instancePath:
@@ -10573,7 +10932,7 @@ function validate35(
                                                                                   data33,
                                                                                 )
                                                                               ) {
-                                                                                validate35.errors =
+                                                                                validate37.errors =
                                                                                   [
                                                                                     {
                                                                                       instancePath:
@@ -10602,7 +10961,7 @@ function validate35(
                                                                                     data33,
                                                                                   )
                                                                                 ) {
-                                                                                  validate35.errors =
+                                                                                  validate37.errors =
                                                                                     [
                                                                                       {
                                                                                         instancePath:
@@ -10658,7 +11017,7 @@ function validate35(
                                                                                 data34,
                                                                               )
                                                                             )) {
-                                                                              validate35.errors =
+                                                                              validate37.errors =
                                                                                 [
                                                                                   {
                                                                                     instancePath:
@@ -10696,7 +11055,7 @@ function validate35(
                                                                                     data34,
                                                                                   )
                                                                                 ) {
-                                                                                  validate35.errors =
+                                                                                  validate37.errors =
                                                                                     [
                                                                                       {
                                                                                         instancePath:
@@ -10725,7 +11084,7 @@ function validate35(
                                                                                       data34,
                                                                                     )
                                                                                   ) {
-                                                                                    validate35.errors =
+                                                                                    validate37.errors =
                                                                                       [
                                                                                         {
                                                                                           instancePath:
@@ -10781,7 +11140,7 @@ function validate35(
                                                                                   data35,
                                                                                 )
                                                                               )) {
-                                                                                validate35.errors =
+                                                                                validate37.errors =
                                                                                   [
                                                                                     {
                                                                                       instancePath:
@@ -10819,7 +11178,7 @@ function validate35(
                                                                                       data35,
                                                                                     )
                                                                                   ) {
-                                                                                    validate35.errors =
+                                                                                    validate37.errors =
                                                                                       [
                                                                                         {
                                                                                           instancePath:
@@ -10848,7 +11207,7 @@ function validate35(
                                                                                         data35,
                                                                                       )
                                                                                     ) {
-                                                                                      validate35.errors =
+                                                                                      validate37.errors =
                                                                                         [
                                                                                           {
                                                                                             instancePath:
@@ -10904,7 +11263,7 @@ function validate35(
                                                                                     data36,
                                                                                   )
                                                                                 )) {
-                                                                                  validate35.errors =
+                                                                                  validate37.errors =
                                                                                     [
                                                                                       {
                                                                                         instancePath:
@@ -10942,7 +11301,7 @@ function validate35(
                                                                                         data36,
                                                                                       )
                                                                                     ) {
-                                                                                      validate35.errors =
+                                                                                      validate37.errors =
                                                                                         [
                                                                                           {
                                                                                             instancePath:
@@ -10971,7 +11330,7 @@ function validate35(
                                                                                           data36,
                                                                                         )
                                                                                       ) {
-                                                                                        validate35.errors =
+                                                                                        validate37.errors =
                                                                                           [
                                                                                             {
                                                                                               instancePath:
@@ -11027,7 +11386,7 @@ function validate35(
                                                                                       data37,
                                                                                     )
                                                                                   )) {
-                                                                                    validate35.errors =
+                                                                                    validate37.errors =
                                                                                       [
                                                                                         {
                                                                                           instancePath:
@@ -11065,7 +11424,7 @@ function validate35(
                                                                                           data37,
                                                                                         )
                                                                                       ) {
-                                                                                        validate35.errors =
+                                                                                        validate37.errors =
                                                                                           [
                                                                                             {
                                                                                               instancePath:
@@ -11094,7 +11453,7 @@ function validate35(
                                                                                             data37,
                                                                                           )
                                                                                         ) {
-                                                                                          validate35.errors =
+                                                                                          validate37.errors =
                                                                                             [
                                                                                               {
                                                                                                 instancePath:
@@ -11150,7 +11509,7 @@ function validate35(
                                                                                         data38,
                                                                                       )
                                                                                     )) {
-                                                                                      validate35.errors =
+                                                                                      validate37.errors =
                                                                                         [
                                                                                           {
                                                                                             instancePath:
@@ -11188,7 +11547,7 @@ function validate35(
                                                                                             data38,
                                                                                           )
                                                                                         ) {
-                                                                                          validate35.errors =
+                                                                                          validate37.errors =
                                                                                             [
                                                                                               {
                                                                                                 instancePath:
@@ -11217,7 +11576,7 @@ function validate35(
                                                                                               data38,
                                                                                             )
                                                                                           ) {
-                                                                                            validate35.errors =
+                                                                                            validate37.errors =
                                                                                               [
                                                                                                 {
                                                                                                   instancePath:
@@ -11273,7 +11632,7 @@ function validate35(
                                                                                           data39,
                                                                                         )
                                                                                       )) {
-                                                                                        validate35.errors =
+                                                                                        validate37.errors =
                                                                                           [
                                                                                             {
                                                                                               instancePath:
@@ -11311,7 +11670,7 @@ function validate35(
                                                                                               data39,
                                                                                             )
                                                                                           ) {
-                                                                                            validate35.errors =
+                                                                                            validate37.errors =
                                                                                               [
                                                                                                 {
                                                                                                   instancePath:
@@ -11340,7 +11699,7 @@ function validate35(
                                                                                                 data39,
                                                                                               )
                                                                                             ) {
-                                                                                              validate35.errors =
+                                                                                              validate37.errors =
                                                                                                 [
                                                                                                   {
                                                                                                     instancePath:
@@ -11396,7 +11755,7 @@ function validate35(
                                                                                             data40,
                                                                                           )
                                                                                         )) {
-                                                                                          validate35.errors =
+                                                                                          validate37.errors =
                                                                                             [
                                                                                               {
                                                                                                 instancePath:
@@ -11434,7 +11793,7 @@ function validate35(
                                                                                                 data40,
                                                                                               )
                                                                                             ) {
-                                                                                              validate35.errors =
+                                                                                              validate37.errors =
                                                                                                 [
                                                                                                   {
                                                                                                     instancePath:
@@ -11463,7 +11822,7 @@ function validate35(
                                                                                                   data40,
                                                                                                 )
                                                                                               ) {
-                                                                                                validate35.errors =
+                                                                                                validate37.errors =
                                                                                                   [
                                                                                                     {
                                                                                                       instancePath:
@@ -11519,7 +11878,7 @@ function validate35(
                                                                                               data41,
                                                                                             )
                                                                                           )) {
-                                                                                            validate35.errors =
+                                                                                            validate37.errors =
                                                                                               [
                                                                                                 {
                                                                                                   instancePath:
@@ -11557,7 +11916,7 @@ function validate35(
                                                                                                   data41,
                                                                                                 )
                                                                                               ) {
-                                                                                                validate35.errors =
+                                                                                                validate37.errors =
                                                                                                   [
                                                                                                     {
                                                                                                       instancePath:
@@ -11586,7 +11945,7 @@ function validate35(
                                                                                                     data41,
                                                                                                   )
                                                                                                 ) {
-                                                                                                  validate35.errors =
+                                                                                                  validate37.errors =
                                                                                                     [
                                                                                                       {
                                                                                                         instancePath:
@@ -11642,7 +12001,7 @@ function validate35(
                                                                                                 data42,
                                                                                               )
                                                                                             )) {
-                                                                                              validate35.errors =
+                                                                                              validate37.errors =
                                                                                                 [
                                                                                                   {
                                                                                                     instancePath:
@@ -11680,7 +12039,7 @@ function validate35(
                                                                                                     data42,
                                                                                                   )
                                                                                                 ) {
-                                                                                                  validate35.errors =
+                                                                                                  validate37.errors =
                                                                                                     [
                                                                                                       {
                                                                                                         instancePath:
@@ -11709,7 +12068,7 @@ function validate35(
                                                                                                       data42,
                                                                                                     )
                                                                                                   ) {
-                                                                                                    validate35.errors =
+                                                                                                    validate37.errors =
                                                                                                       [
                                                                                                         {
                                                                                                           instancePath:
@@ -11765,7 +12124,7 @@ function validate35(
                                                                                                   data43,
                                                                                                 )
                                                                                               )) {
-                                                                                                validate35.errors =
+                                                                                                validate37.errors =
                                                                                                   [
                                                                                                     {
                                                                                                       instancePath:
@@ -11803,7 +12162,7 @@ function validate35(
                                                                                                       data43,
                                                                                                     )
                                                                                                   ) {
-                                                                                                    validate35.errors =
+                                                                                                    validate37.errors =
                                                                                                       [
                                                                                                         {
                                                                                                           instancePath:
@@ -11832,7 +12191,7 @@ function validate35(
                                                                                                         data43,
                                                                                                       )
                                                                                                     ) {
-                                                                                                      validate35.errors =
+                                                                                                      validate37.errors =
                                                                                                         [
                                                                                                           {
                                                                                                             instancePath:
@@ -11888,7 +12247,7 @@ function validate35(
                                                                                                     data44,
                                                                                                   )
                                                                                                 )) {
-                                                                                                  validate35.errors =
+                                                                                                  validate37.errors =
                                                                                                     [
                                                                                                       {
                                                                                                         instancePath:
@@ -11926,7 +12285,7 @@ function validate35(
                                                                                                         data44,
                                                                                                       )
                                                                                                     ) {
-                                                                                                      validate35.errors =
+                                                                                                      validate37.errors =
                                                                                                         [
                                                                                                           {
                                                                                                             instancePath:
@@ -11955,7 +12314,7 @@ function validate35(
                                                                                                           data44,
                                                                                                         )
                                                                                                       ) {
-                                                                                                        validate35.errors =
+                                                                                                        validate37.errors =
                                                                                                           [
                                                                                                             {
                                                                                                               instancePath:
@@ -12011,7 +12370,7 @@ function validate35(
                                                                                                       data45,
                                                                                                     )
                                                                                                   )) {
-                                                                                                    validate35.errors =
+                                                                                                    validate37.errors =
                                                                                                       [
                                                                                                         {
                                                                                                           instancePath:
@@ -12049,7 +12408,7 @@ function validate35(
                                                                                                           data45,
                                                                                                         )
                                                                                                       ) {
-                                                                                                        validate35.errors =
+                                                                                                        validate37.errors =
                                                                                                           [
                                                                                                             {
                                                                                                               instancePath:
@@ -12078,7 +12437,7 @@ function validate35(
                                                                                                             data45,
                                                                                                           )
                                                                                                         ) {
-                                                                                                          validate35.errors =
+                                                                                                          validate37.errors =
                                                                                                             [
                                                                                                               {
                                                                                                                 instancePath:
@@ -12134,7 +12493,7 @@ function validate35(
                                                                                                         data46,
                                                                                                       )
                                                                                                     )) {
-                                                                                                      validate35.errors =
+                                                                                                      validate37.errors =
                                                                                                         [
                                                                                                           {
                                                                                                             instancePath:
@@ -12172,7 +12531,7 @@ function validate35(
                                                                                                             data46,
                                                                                                           )
                                                                                                         ) {
-                                                                                                          validate35.errors =
+                                                                                                          validate37.errors =
                                                                                                             [
                                                                                                               {
                                                                                                                 instancePath:
@@ -12201,7 +12560,7 @@ function validate35(
                                                                                                               data46,
                                                                                                             )
                                                                                                           ) {
-                                                                                                            validate35.errors =
+                                                                                                            validate37.errors =
                                                                                                               [
                                                                                                                 {
                                                                                                                   instancePath:
@@ -12257,7 +12616,7 @@ function validate35(
                                                                                                           data47,
                                                                                                         )
                                                                                                       )) {
-                                                                                                        validate35.errors =
+                                                                                                        validate37.errors =
                                                                                                           [
                                                                                                             {
                                                                                                               instancePath:
@@ -12295,7 +12654,7 @@ function validate35(
                                                                                                               data47,
                                                                                                             )
                                                                                                           ) {
-                                                                                                            validate35.errors =
+                                                                                                            validate37.errors =
                                                                                                               [
                                                                                                                 {
                                                                                                                   instancePath:
@@ -12324,7 +12683,7 @@ function validate35(
                                                                                                                 data47,
                                                                                                               )
                                                                                                             ) {
-                                                                                                              validate35.errors =
+                                                                                                              validate37.errors =
                                                                                                                 [
                                                                                                                   {
                                                                                                                     instancePath:
@@ -12380,7 +12739,7 @@ function validate35(
                                                                                                             data48,
                                                                                                           )
                                                                                                         )) {
-                                                                                                          validate35.errors =
+                                                                                                          validate37.errors =
                                                                                                             [
                                                                                                               {
                                                                                                                 instancePath:
@@ -12418,7 +12777,7 @@ function validate35(
                                                                                                                 data48,
                                                                                                               )
                                                                                                             ) {
-                                                                                                              validate35.errors =
+                                                                                                              validate37.errors =
                                                                                                                 [
                                                                                                                   {
                                                                                                                     instancePath:
@@ -12447,7 +12806,7 @@ function validate35(
                                                                                                                   data48,
                                                                                                                 )
                                                                                                               ) {
-                                                                                                                validate35.errors =
+                                                                                                                validate37.errors =
                                                                                                                   [
                                                                                                                     {
                                                                                                                       instancePath:
@@ -12503,7 +12862,7 @@ function validate35(
                                                                                                               data49,
                                                                                                             )
                                                                                                           )) {
-                                                                                                            validate35.errors =
+                                                                                                            validate37.errors =
                                                                                                               [
                                                                                                                 {
                                                                                                                   instancePath:
@@ -12541,7 +12900,7 @@ function validate35(
                                                                                                                   data49,
                                                                                                                 )
                                                                                                               ) {
-                                                                                                                validate35.errors =
+                                                                                                                validate37.errors =
                                                                                                                   [
                                                                                                                     {
                                                                                                                       instancePath:
@@ -12570,7 +12929,7 @@ function validate35(
                                                                                                                     data49,
                                                                                                                   )
                                                                                                                 ) {
-                                                                                                                  validate35.errors =
+                                                                                                                  validate37.errors =
                                                                                                                     [
                                                                                                                       {
                                                                                                                         instancePath:
@@ -12626,7 +12985,7 @@ function validate35(
                                                                                                                 data50,
                                                                                                               )
                                                                                                             )) {
-                                                                                                              validate35.errors =
+                                                                                                              validate37.errors =
                                                                                                                 [
                                                                                                                   {
                                                                                                                     instancePath:
@@ -12664,7 +13023,7 @@ function validate35(
                                                                                                                     data50,
                                                                                                                   )
                                                                                                                 ) {
-                                                                                                                  validate35.errors =
+                                                                                                                  validate37.errors =
                                                                                                                     [
                                                                                                                       {
                                                                                                                         instancePath:
@@ -12693,7 +13052,7 @@ function validate35(
                                                                                                                       data50,
                                                                                                                     )
                                                                                                                   ) {
-                                                                                                                    validate35.errors =
+                                                                                                                    validate37.errors =
                                                                                                                       [
                                                                                                                         {
                                                                                                                           instancePath:
@@ -12749,7 +13108,7 @@ function validate35(
                                                                                                                   data51,
                                                                                                                 )
                                                                                                               )) {
-                                                                                                                validate35.errors =
+                                                                                                                validate37.errors =
                                                                                                                   [
                                                                                                                     {
                                                                                                                       instancePath:
@@ -12787,7 +13146,7 @@ function validate35(
                                                                                                                       data51,
                                                                                                                     )
                                                                                                                   ) {
-                                                                                                                    validate35.errors =
+                                                                                                                    validate37.errors =
                                                                                                                       [
                                                                                                                         {
                                                                                                                           instancePath:
@@ -12816,7 +13175,7 @@ function validate35(
                                                                                                                         data51,
                                                                                                                       )
                                                                                                                     ) {
-                                                                                                                      validate35.errors =
+                                                                                                                      validate37.errors =
                                                                                                                         [
                                                                                                                           {
                                                                                                                             instancePath:
@@ -12860,7 +13219,7 @@ function validate35(
                                                                                                                   0 !==
                                                                                                                   data29.importFetchCount
                                                                                                                 ) {
-                                                                                                                  validate35.errors =
+                                                                                                                  validate37.errors =
                                                                                                                     [
                                                                                                                       {
                                                                                                                         instancePath:
@@ -12911,7 +13270,7 @@ function validate35(
                                                                 }
                                                               }
                                                             } else {
-                                                              validate35.errors =
+                                                              validate37.errors =
                                                                 [
                                                                   {
                                                                     instancePath:
@@ -12958,7 +13317,7 @@ function validate35(
                                                                   data53.length >
                                                                   64
                                                                 ) {
-                                                                  validate35.errors =
+                                                                  validate37.errors =
                                                                     [
                                                                       {
                                                                         instancePath:
@@ -12982,7 +13341,7 @@ function validate35(
                                                                     data53.length <
                                                                     1
                                                                   ) {
-                                                                    validate35.errors =
+                                                                    validate37.errors =
                                                                       [
                                                                         {
                                                                           instancePath:
@@ -13055,7 +13414,7 @@ function validate35(
                                                                               (missing6 =
                                                                                 "enforcement"))
                                                                           ) {
-                                                                            validate35.errors =
+                                                                            validate37.errors =
                                                                               [
                                                                                 {
                                                                                   instancePath:
@@ -13096,7 +13455,7 @@ function validate35(
                                                                                 key3 ===
                                                                                   "enforcementTarget"
                                                                               )) {
-                                                                                validate35.errors =
+                                                                                validate37.errors =
                                                                                   [
                                                                                     {
                                                                                       instancePath:
@@ -13146,7 +13505,7 @@ function validate35(
                                                                                       ) >
                                                                                       128
                                                                                     ) {
-                                                                                      validate35.errors =
+                                                                                      validate37.errors =
                                                                                         [
                                                                                           {
                                                                                             instancePath:
@@ -13174,7 +13533,7 @@ function validate35(
                                                                                         ) <
                                                                                         1
                                                                                       ) {
-                                                                                        validate35.errors =
+                                                                                        validate37.errors =
                                                                                           [
                                                                                             {
                                                                                               instancePath:
@@ -13198,7 +13557,7 @@ function validate35(
                                                                                       }
                                                                                     }
                                                                                   } else {
-                                                                                    validate35.errors =
+                                                                                    validate37.errors =
                                                                                       [
                                                                                         {
                                                                                           instancePath:
@@ -13252,7 +13611,7 @@ function validate35(
                                                                                     data56 ===
                                                                                       "mebibytes"
                                                                                   )) {
-                                                                                    validate35.errors =
+                                                                                    validate37.errors =
                                                                                       [
                                                                                         {
                                                                                           instancePath:
@@ -13267,7 +13626,7 @@ function validate35(
                                                                                           params:
                                                                                             {
                                                                                               allowedValues:
-                                                                                                schema108
+                                                                                                schema110
                                                                                                   .properties
                                                                                                   .policy
                                                                                                   .properties
@@ -13314,7 +13673,7 @@ function validate35(
                                                                                         data57,
                                                                                       )
                                                                                     )) {
-                                                                                      validate35.errors =
+                                                                                      validate37.errors =
                                                                                         [
                                                                                           {
                                                                                             instancePath:
@@ -13354,7 +13713,7 @@ function validate35(
                                                                                             data57,
                                                                                           )
                                                                                         ) {
-                                                                                          validate35.errors =
+                                                                                          validate37.errors =
                                                                                             [
                                                                                               {
                                                                                                 instancePath:
@@ -13385,7 +13744,7 @@ function validate35(
                                                                                               data57,
                                                                                             )
                                                                                           ) {
-                                                                                            validate35.errors =
+                                                                                            validate37.errors =
                                                                                               [
                                                                                                 {
                                                                                                   instancePath:
@@ -13437,7 +13796,7 @@ function validate35(
                                                                                         data58 ===
                                                                                           "worker"
                                                                                       )) {
-                                                                                        validate35.errors =
+                                                                                        validate37.errors =
                                                                                           [
                                                                                             {
                                                                                               instancePath:
@@ -13452,7 +13811,7 @@ function validate35(
                                                                                               params:
                                                                                                 {
                                                                                                   allowedValues:
-                                                                                                    schema108
+                                                                                                    schema110
                                                                                                       .properties
                                                                                                       .policy
                                                                                                       .properties
@@ -13493,7 +13852,7 @@ function validate35(
                                                                                           data59 ===
                                                                                             "worker-isolation"
                                                                                         )) {
-                                                                                          validate35.errors =
+                                                                                          validate37.errors =
                                                                                             [
                                                                                               {
                                                                                                 instancePath:
@@ -13508,7 +13867,7 @@ function validate35(
                                                                                                 params:
                                                                                                   {
                                                                                                     allowedValues:
-                                                                                                      schema108
+                                                                                                      schema110
                                                                                                         .properties
                                                                                                         .policy
                                                                                                         .properties
@@ -13555,7 +13914,7 @@ function validate35(
                                                                                                 ) >
                                                                                                 160
                                                                                               ) {
-                                                                                                validate35.errors =
+                                                                                                validate37.errors =
                                                                                                   [
                                                                                                     {
                                                                                                       instancePath:
@@ -13583,7 +13942,7 @@ function validate35(
                                                                                                   ) <
                                                                                                   1
                                                                                                 ) {
-                                                                                                  validate35.errors =
+                                                                                                  validate37.errors =
                                                                                                     [
                                                                                                       {
                                                                                                         instancePath:
@@ -13607,7 +13966,7 @@ function validate35(
                                                                                                 }
                                                                                               }
                                                                                             } else {
-                                                                                              validate35.errors =
+                                                                                              validate37.errors =
                                                                                                 [
                                                                                                   {
                                                                                                     instancePath:
@@ -13644,7 +14003,7 @@ function validate35(
                                                                             }
                                                                           }
                                                                         } else {
-                                                                          validate35.errors =
+                                                                          validate37.errors =
                                                                             [
                                                                               {
                                                                                 instancePath:
@@ -13678,7 +14037,7 @@ function validate35(
                                                                   }
                                                                 }
                                                               } else {
-                                                                validate35.errors =
+                                                                validate37.errors =
                                                                   [
                                                                     {
                                                                       instancePath:
@@ -13723,7 +14082,7 @@ function validate35(
                         }
                       }
                     } else {
-                      validate35.errors = [
+                      validate37.errors = [
                         {
                           instancePath: instancePath + "/policy",
                           schemaPath: "#/properties/policy/type",
@@ -13745,7 +14104,7 @@ function validate35(
         }
       }
     } else {
-      validate35.errors = [
+      validate37.errors = [
         {
           instancePath,
           schemaPath: "#/type",
@@ -13757,17 +14116,17 @@ function validate35(
       return false;
     }
   }
-  validate35.errors = vErrors;
+  validate37.errors = vErrors;
   return errors === 0;
 }
-validate35.evaluated = {
+validate37.evaluated = {
   props: true,
   dynamicProps: false,
   dynamicItems: false,
 };
 
-export const materialization = validate40;
-const schema119 = {
+export const materialization = validate42;
+const schema121 = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
   $id: "https://haddenindustries.com/ontology/contracts/v1/ontology-materialization-status.v1.schema.json",
   title: "Pending materialization response",
@@ -13805,7 +14164,7 @@ const schema119 = {
   additionalProperties: true,
 };
 
-function validate40(
+function validate42(
   data,
   {
     instancePath = "",
@@ -13818,7 +14177,7 @@ function validate40(
   /*# sourceURL="https://haddenindustries.com/ontology/contracts/v1/ontology-materialization-status.v1.schema.json" */ let vErrors =
     null;
   let errors = 0;
-  const evaluated0 = validate40.evaluated;
+  const evaluated0 = validate42.evaluated;
   if (evaluated0.dynamicProps) {
     evaluated0.props = undefined;
   }
@@ -13839,7 +14198,7 @@ function validate40(
         (data.statusIri === undefined && (missing0 = "statusIri")) ||
         (data.workState === undefined && (missing0 = "workState"))
       ) {
-        validate40.errors = [
+        validate42.errors = [
           {
             instancePath,
             schemaPath: "#/required",
@@ -13853,7 +14212,7 @@ function validate40(
         if (data.schemaVersion !== undefined) {
           const _errs2 = errors;
           if (1 !== data.schemaVersion) {
-            validate40.errors = [
+            validate42.errors = [
               {
                 instancePath: instancePath + "/schemaVersion",
                 schemaPath: "#/properties/schemaVersion/const",
@@ -13872,7 +14231,7 @@ function validate40(
           if (data.kind !== undefined) {
             const _errs3 = errors;
             if ("materialization-status" !== data.kind) {
-              validate40.errors = [
+              validate42.errors = [
                 {
                   instancePath: instancePath + "/kind",
                   schemaPath: "#/properties/kind/const",
@@ -13895,7 +14254,7 @@ function validate40(
               if (errors === _errs5) {
                 if (typeof data2 === "string") {
                   if (!pattern4.test(data2)) {
-                    validate40.errors = [
+                    validate42.errors = [
                       {
                         instancePath: instancePath + "/materializationId",
                         schemaPath:
@@ -13909,7 +14268,7 @@ function validate40(
                     return false;
                   }
                 } else {
-                  validate40.errors = [
+                  validate42.errors = [
                     {
                       instancePath: instancePath + "/materializationId",
                       schemaPath:
@@ -13930,7 +14289,7 @@ function validate40(
               if (data.state !== undefined) {
                 const _errs7 = errors;
                 if ("PENDING" !== data.state) {
-                  validate40.errors = [
+                  validate42.errors = [
                     {
                       instancePath: instancePath + "/state",
                       schemaPath: "#/properties/state/const",
@@ -13956,7 +14315,7 @@ function validate40(
                     !isNaN(data4) &&
                     isFinite(data4)
                   )) {
-                    validate40.errors = [
+                    validate42.errors = [
                       {
                         instancePath: instancePath + "/generation",
                         schemaPath:
@@ -13971,7 +14330,7 @@ function validate40(
                   if (errors === _errs9) {
                     if (typeof data4 == "number" && isFinite(data4)) {
                       if (data4 > 9007199254740991 || isNaN(data4)) {
-                        validate40.errors = [
+                        validate42.errors = [
                           {
                             instancePath: instancePath + "/generation",
                             schemaPath:
@@ -13987,7 +14346,7 @@ function validate40(
                         return false;
                       } else {
                         if (data4 < 1 || isNaN(data4)) {
-                          validate40.errors = [
+                          validate42.errors = [
                             {
                               instancePath: instancePath + "/generation",
                               schemaPath:
@@ -14014,7 +14373,7 @@ function validate40(
                     if (errors === _errs12) {
                       if (typeof data5 === "string") {
                         if (!pattern19.test(data5)) {
-                          validate40.errors = [
+                          validate42.errors = [
                             {
                               instancePath: instancePath + "/admittedAt",
                               schemaPath:
@@ -14033,7 +14392,7 @@ function validate40(
                           return false;
                         }
                       } else {
-                        validate40.errors = [
+                        validate42.errors = [
                           {
                             instancePath: instancePath + "/admittedAt",
                             schemaPath:
@@ -14058,7 +14417,7 @@ function validate40(
                       if (errors === _errs15) {
                         if (typeof data6 === "string") {
                           if (func2(data6) > 8192) {
-                            validate40.errors = [
+                            validate42.errors = [
                               {
                                 instancePath: instancePath + "/statusIri",
                                 schemaPath:
@@ -14072,7 +14431,7 @@ function validate40(
                             return false;
                           } else {
                             if (func2(data6) < 1) {
-                              validate40.errors = [
+                              validate42.errors = [
                                 {
                                   instancePath: instancePath + "/statusIri",
                                   schemaPath:
@@ -14086,7 +14445,7 @@ function validate40(
                               return false;
                             } else {
                               if (!pattern11.test(data6)) {
-                                validate40.errors = [
+                                validate42.errors = [
                                   {
                                     instancePath: instancePath + "/statusIri",
                                     schemaPath:
@@ -14104,7 +14463,7 @@ function validate40(
                             }
                           }
                         } else {
-                          validate40.errors = [
+                          validate42.errors = [
                             {
                               instancePath: instancePath + "/statusIri",
                               schemaPath:
@@ -14130,14 +14489,14 @@ function validate40(
                           data7 === "RUNNING" ||
                           data7 === "HELD"
                         )) {
-                          validate40.errors = [
+                          validate42.errors = [
                             {
                               instancePath: instancePath + "/workState",
                               schemaPath: "#/properties/workState/enum",
                               keyword: "enum",
                               params: {
                                 allowedValues:
-                                  schema119.properties.workState.enum,
+                                  schema121.properties.workState.enum,
                               },
                               message:
                                 "must be equal to one of the allowed values",
@@ -14158,7 +14517,7 @@ function validate40(
         }
       }
     } else {
-      validate40.errors = [
+      validate42.errors = [
         {
           instancePath,
           schemaPath: "#/type",
@@ -14170,17 +14529,17 @@ function validate40(
       return false;
     }
   }
-  validate40.errors = vErrors;
+  validate42.errors = vErrors;
   return errors === 0;
 }
-validate40.evaluated = {
+validate42.evaluated = {
   props: true,
   dynamicProps: false,
   dynamicItems: false,
 };
 
-export const refresh = validate41;
-const schema124 = {
+export const refresh = validate43;
+const schema126 = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
   $id: "https://haddenindustries.com/ontology/contracts/v1/ontology-refresh-result.v1.schema.json",
   title: "Refresh disposition or exact attempt",
@@ -14475,7 +14834,7 @@ const schema124 = {
   ],
 };
 
-function validate42(
+function validate44(
   data,
   {
     instancePath = "",
@@ -14487,7 +14846,7 @@ function validate42(
 ) {
   let vErrors = null;
   let errors = 0;
-  const evaluated0 = validate42.evaluated;
+  const evaluated0 = validate44.evaluated;
   if (evaluated0.dynamicProps) {
     evaluated0.props = undefined;
   }
@@ -14512,7 +14871,7 @@ function validate42(
         (data.resolutionIri === undefined && (missing0 = "resolutionIri")) ||
         (data.validationIri === undefined && (missing0 = "validationIri"))
       ) {
-        validate42.errors = [
+        validate44.errors = [
           {
             instancePath,
             schemaPath: "#/required",
@@ -14525,8 +14884,8 @@ function validate42(
       } else {
         const _errs1 = errors;
         for (const key0 in data) {
-          if (!func1.call(schema64.properties, key0)) {
-            validate42.errors = [
+          if (!func1.call(schema66.properties, key0)) {
+            validate44.errors = [
               {
                 instancePath,
                 schemaPath: "#/additionalProperties",
@@ -14547,7 +14906,7 @@ function validate42(
             if (errors === _errs3) {
               if (typeof data0 === "string") {
                 if (!pattern4.test(data0)) {
-                  validate42.errors = [
+                  validate44.errors = [
                     {
                       instancePath: instancePath + "/sourceVersionIdentity",
                       schemaPath: "#/$defs/digest/pattern",
@@ -14559,7 +14918,7 @@ function validate42(
                   return false;
                 }
               } else {
-                validate42.errors = [
+                validate44.errors = [
                   {
                     instancePath: instancePath + "/sourceVersionIdentity",
                     schemaPath: "#/$defs/digest/type",
@@ -14583,7 +14942,7 @@ function validate42(
               if (errors === _errs6) {
                 if (typeof data1 === "string") {
                   if (!pattern4.test(data1)) {
-                    validate42.errors = [
+                    validate44.errors = [
                       {
                         instancePath: instancePath + "/resolutionIdentity",
                         schemaPath: "#/$defs/digest/pattern",
@@ -14596,7 +14955,7 @@ function validate42(
                     return false;
                   }
                 } else {
-                  validate42.errors = [
+                  validate44.errors = [
                     {
                       instancePath: instancePath + "/resolutionIdentity",
                       schemaPath: "#/$defs/digest/type",
@@ -14620,7 +14979,7 @@ function validate42(
                 if (errors === _errs9) {
                   if (typeof data2 === "string") {
                     if (!pattern4.test(data2)) {
-                      validate42.errors = [
+                      validate44.errors = [
                         {
                           instancePath: instancePath + "/validationIdentity",
                           schemaPath: "#/$defs/digest/pattern",
@@ -14633,7 +14992,7 @@ function validate42(
                       return false;
                     }
                   } else {
-                    validate42.errors = [
+                    validate44.errors = [
                       {
                         instancePath: instancePath + "/validationIdentity",
                         schemaPath: "#/$defs/digest/type",
@@ -14657,7 +15016,7 @@ function validate42(
                   if (errors === _errs12) {
                     if (typeof data3 === "string") {
                       if (!pattern4.test(data3)) {
-                        validate42.errors = [
+                        validate44.errors = [
                           {
                             instancePath: instancePath + "/artifactSha256",
                             schemaPath: "#/$defs/digest/pattern",
@@ -14670,7 +15029,7 @@ function validate42(
                         return false;
                       }
                     } else {
-                      validate42.errors = [
+                      validate44.errors = [
                         {
                           instancePath: instancePath + "/artifactSha256",
                           schemaPath: "#/$defs/digest/type",
@@ -14696,7 +15055,7 @@ function validate42(
                       !isNaN(data4) &&
                       isFinite(data4)
                     )) {
-                      validate42.errors = [
+                      validate44.errors = [
                         {
                           instancePath: instancePath + "/artifactByteLength",
                           schemaPath: "#/properties/artifactByteLength/type",
@@ -14710,7 +15069,7 @@ function validate42(
                     if (errors === _errs14) {
                       if (typeof data4 == "number" && isFinite(data4)) {
                         if (data4 > 33554432 || isNaN(data4)) {
-                          validate42.errors = [
+                          validate44.errors = [
                             {
                               instancePath:
                                 instancePath + "/artifactByteLength",
@@ -14724,7 +15083,7 @@ function validate42(
                           return false;
                         } else {
                           if (data4 < 1 || isNaN(data4)) {
-                            validate42.errors = [
+                            validate44.errors = [
                               {
                                 instancePath:
                                   instancePath + "/artifactByteLength",
@@ -14752,7 +15111,7 @@ function validate42(
                       if (errors === _errs17) {
                         if (typeof data5 === "string") {
                           if (func2(data5) > 8192) {
-                            validate42.errors = [
+                            validate44.errors = [
                               {
                                 instancePath: instancePath + "/artifactIri",
                                 schemaPath: "#/$defs/httpsIri/maxLength",
@@ -14765,7 +15124,7 @@ function validate42(
                             return false;
                           } else {
                             if (func2(data5) < 1) {
-                              validate42.errors = [
+                              validate44.errors = [
                                 {
                                   instancePath: instancePath + "/artifactIri",
                                   schemaPath: "#/$defs/httpsIri/minLength",
@@ -14778,7 +15137,7 @@ function validate42(
                               return false;
                             } else {
                               if (!pattern11.test(data5)) {
-                                validate42.errors = [
+                                validate44.errors = [
                                   {
                                     instancePath: instancePath + "/artifactIri",
                                     schemaPath: "#/$defs/httpsIri/pattern",
@@ -14795,7 +15154,7 @@ function validate42(
                             }
                           }
                         } else {
-                          validate42.errors = [
+                          validate44.errors = [
                             {
                               instancePath: instancePath + "/artifactIri",
                               schemaPath: "#/$defs/httpsIri/type",
@@ -14819,7 +15178,7 @@ function validate42(
                         if (errors === _errs20) {
                           if (typeof data6 === "string") {
                             if (func2(data6) > 8192) {
-                              validate42.errors = [
+                              validate44.errors = [
                                 {
                                   instancePath: instancePath + "/versionIri",
                                   schemaPath: "#/$defs/httpsIri/maxLength",
@@ -14832,7 +15191,7 @@ function validate42(
                               return false;
                             } else {
                               if (func2(data6) < 1) {
-                                validate42.errors = [
+                                validate44.errors = [
                                   {
                                     instancePath: instancePath + "/versionIri",
                                     schemaPath: "#/$defs/httpsIri/minLength",
@@ -14845,7 +15204,7 @@ function validate42(
                                 return false;
                               } else {
                                 if (!pattern11.test(data6)) {
-                                  validate42.errors = [
+                                  validate44.errors = [
                                     {
                                       instancePath:
                                         instancePath + "/versionIri",
@@ -14863,7 +15222,7 @@ function validate42(
                               }
                             }
                           } else {
-                            validate42.errors = [
+                            validate44.errors = [
                               {
                                 instancePath: instancePath + "/versionIri",
                                 schemaPath: "#/$defs/httpsIri/type",
@@ -14887,7 +15246,7 @@ function validate42(
                           if (errors === _errs23) {
                             if (typeof data7 === "string") {
                               if (func2(data7) > 8192) {
-                                validate42.errors = [
+                                validate44.errors = [
                                   {
                                     instancePath:
                                       instancePath + "/resolutionIri",
@@ -14901,7 +15260,7 @@ function validate42(
                                 return false;
                               } else {
                                 if (func2(data7) < 1) {
-                                  validate42.errors = [
+                                  validate44.errors = [
                                     {
                                       instancePath:
                                         instancePath + "/resolutionIri",
@@ -14915,7 +15274,7 @@ function validate42(
                                   return false;
                                 } else {
                                   if (!pattern11.test(data7)) {
-                                    validate42.errors = [
+                                    validate44.errors = [
                                       {
                                         instancePath:
                                           instancePath + "/resolutionIri",
@@ -14933,7 +15292,7 @@ function validate42(
                                 }
                               }
                             } else {
-                              validate42.errors = [
+                              validate44.errors = [
                                 {
                                   instancePath: instancePath + "/resolutionIri",
                                   schemaPath: "#/$defs/httpsIri/type",
@@ -14957,7 +15316,7 @@ function validate42(
                             if (errors === _errs26) {
                               if (typeof data8 === "string") {
                                 if (func2(data8) > 8192) {
-                                  validate42.errors = [
+                                  validate44.errors = [
                                     {
                                       instancePath:
                                         instancePath + "/validationIri",
@@ -14971,7 +15330,7 @@ function validate42(
                                   return false;
                                 } else {
                                   if (func2(data8) < 1) {
-                                    validate42.errors = [
+                                    validate44.errors = [
                                       {
                                         instancePath:
                                           instancePath + "/validationIri",
@@ -14986,7 +15345,7 @@ function validate42(
                                     return false;
                                   } else {
                                     if (!pattern11.test(data8)) {
-                                      validate42.errors = [
+                                      validate44.errors = [
                                         {
                                           instancePath:
                                             instancePath + "/validationIri",
@@ -15005,7 +15364,7 @@ function validate42(
                                   }
                                 }
                               } else {
-                                validate42.errors = [
+                                validate44.errors = [
                                   {
                                     instancePath:
                                       instancePath + "/validationIri",
@@ -15033,7 +15392,7 @@ function validate42(
         }
       }
     } else {
-      validate42.errors = [
+      validate44.errors = [
         {
           instancePath,
           schemaPath: "#/type",
@@ -15045,16 +15404,16 @@ function validate42(
       return false;
     }
   }
-  validate42.errors = vErrors;
+  validate44.errors = vErrors;
   return errors === 0;
 }
-validate42.evaluated = {
+validate44.evaluated = {
   props: true,
   dynamicProps: false,
   dynamicItems: false,
 };
 
-const schema161 = {
+const schema163 = {
   type: "object",
   properties: {
     code: { $ref: "#/$defs/errorCode" },
@@ -15065,7 +15424,7 @@ const schema161 = {
   additionalProperties: true,
 };
 
-function validate48(
+function validate50(
   data,
   {
     instancePath = "",
@@ -15077,7 +15436,7 @@ function validate48(
 ) {
   let vErrors = null;
   let errors = 0;
-  const evaluated0 = validate48.evaluated;
+  const evaluated0 = validate50.evaluated;
   if (evaluated0.dynamicProps) {
     evaluated0.props = undefined;
   }
@@ -15092,7 +15451,7 @@ function validate48(
         (data.message === undefined && (missing0 = "message")) ||
         (data.retryable === undefined && (missing0 = "retryable"))
       ) {
-        validate48.errors = [
+        validate50.errors = [
           {
             instancePath,
             schemaPath: "#/required",
@@ -15109,8 +15468,8 @@ function validate48(
           const _errs3 = errors;
           if (errors === _errs3) {
             if (typeof data0 === "string") {
-              if (!pattern47.test(data0)) {
-                validate48.errors = [
+              if (!pattern48.test(data0)) {
+                validate50.errors = [
                   {
                     instancePath: instancePath + "/code",
                     schemaPath: "#/$defs/errorCode/pattern",
@@ -15123,7 +15482,7 @@ function validate48(
                 return false;
               }
             } else {
-              validate48.errors = [
+              validate50.errors = [
                 {
                   instancePath: instancePath + "/code",
                   schemaPath: "#/$defs/errorCode/type",
@@ -15146,7 +15505,7 @@ function validate48(
             if (errors === _errs5) {
               if (typeof data1 === "string") {
                 if (func2(data1) > 256) {
-                  validate48.errors = [
+                  validate50.errors = [
                     {
                       instancePath: instancePath + "/message",
                       schemaPath: "#/properties/message/maxLength",
@@ -15158,7 +15517,7 @@ function validate48(
                   return false;
                 } else {
                   if (func2(data1) < 1) {
-                    validate48.errors = [
+                    validate50.errors = [
                       {
                         instancePath: instancePath + "/message",
                         schemaPath: "#/properties/message/minLength",
@@ -15171,7 +15530,7 @@ function validate48(
                   }
                 }
               } else {
-                validate48.errors = [
+                validate50.errors = [
                   {
                     instancePath: instancePath + "/message",
                     schemaPath: "#/properties/message/type",
@@ -15191,7 +15550,7 @@ function validate48(
             if (data.retryable !== undefined) {
               const _errs7 = errors;
               if (typeof data.retryable !== "boolean") {
-                validate48.errors = [
+                validate50.errors = [
                   {
                     instancePath: instancePath + "/retryable",
                     schemaPath: "#/properties/retryable/type",
@@ -15210,7 +15569,7 @@ function validate48(
         }
       }
     } else {
-      validate48.errors = [
+      validate50.errors = [
         {
           instancePath,
           schemaPath: "#/type",
@@ -15222,16 +15581,16 @@ function validate48(
       return false;
     }
   }
-  validate48.errors = vErrors;
+  validate50.errors = vErrors;
   return errors === 0;
 }
-validate48.evaluated = {
+validate50.evaluated = {
   props: true,
   dynamicProps: false,
   dynamicItems: false,
 };
 
-function validate41(
+function validate43(
   data,
   {
     instancePath = "",
@@ -15244,7 +15603,7 @@ function validate41(
   /*# sourceURL="https://haddenindustries.com/ontology/contracts/v1/ontology-refresh-result.v1.schema.json" */ let vErrors =
     null;
   let errors = 0;
-  const evaluated0 = validate41.evaluated;
+  const evaluated0 = validate43.evaluated;
   if (evaluated0.dynamicProps) {
     evaluated0.props = undefined;
   }
@@ -15547,7 +15906,7 @@ function validate41(
                       if (data.currentBinding !== undefined) {
                         const _errs19 = errors;
                         if (
-                          !validate42(data.currentBinding, {
+                          !validate44(data.currentBinding, {
                             instancePath: instancePath + "/currentBinding",
                             parentData: data,
                             parentDataProperty: "currentBinding",
@@ -15557,8 +15916,8 @@ function validate41(
                         ) {
                           vErrors =
                             vErrors === null
-                              ? validate42.errors
-                              : vErrors.concat(validate42.errors);
+                              ? validate44.errors
+                              : vErrors.concat(validate44.errors);
                           errors = vErrors.length;
                         }
                         var valid1 = _errs19 === errors;
@@ -15722,7 +16081,7 @@ function validate41(
                 const _errs29 = errors;
                 if (errors === _errs29) {
                   if (typeof data11 === "string") {
-                    if (!pattern43.test(data11)) {
+                    if (!pattern44.test(data11)) {
                       const err18 = {
                         instancePath: instancePath + "/refreshAttemptId",
                         schemaPath:
@@ -15838,7 +16197,7 @@ function validate41(
                         keyword: "enum",
                         params: {
                           allowedValues:
-                            schema124.oneOf[1].properties.mode.enum,
+                            schema126.oneOf[1].properties.mode.enum,
                         },
                         message: "must be equal to one of the allowed values",
                       };
@@ -15907,7 +16266,7 @@ function validate41(
                       if (data.baselineBinding !== undefined) {
                         const _errs38 = errors;
                         if (
-                          !validate42(data.baselineBinding, {
+                          !validate44(data.baselineBinding, {
                             instancePath: instancePath + "/baselineBinding",
                             parentData: data,
                             parentDataProperty: "baselineBinding",
@@ -15917,8 +16276,8 @@ function validate41(
                         ) {
                           vErrors =
                             vErrors === null
-                              ? validate42.errors
-                              : vErrors.concat(validate42.errors);
+                              ? validate44.errors
+                              : vErrors.concat(validate44.errors);
                           errors = vErrors.length;
                         }
                         var valid6 = _errs38 === errors;
@@ -16046,7 +16405,7 @@ function validate41(
                                   keyword: "enum",
                                   params: {
                                     allowedValues:
-                                      schema124.oneOf[1].properties.workState
+                                      schema126.oneOf[1].properties.workState
                                         .enum,
                                   },
                                   message:
@@ -16293,7 +16652,7 @@ function validate41(
                   const _errs56 = errors;
                   if (errors === _errs56) {
                     if (typeof data23 === "string") {
-                      if (!pattern43.test(data23)) {
+                      if (!pattern44.test(data23)) {
                         const err40 = {
                           instancePath: instancePath + "/refreshAttemptId",
                           schemaPath:
@@ -16412,7 +16771,7 @@ function validate41(
                           keyword: "enum",
                           params: {
                             allowedValues:
-                              schema124.oneOf[2].properties.mode.enum,
+                              schema126.oneOf[2].properties.mode.enum,
                           },
                           message: "must be equal to one of the allowed values",
                         };
@@ -16481,7 +16840,7 @@ function validate41(
                         if (data.baselineBinding !== undefined) {
                           const _errs65 = errors;
                           if (
-                            !validate42(data.baselineBinding, {
+                            !validate44(data.baselineBinding, {
                               instancePath: instancePath + "/baselineBinding",
                               parentData: data,
                               parentDataProperty: "baselineBinding",
@@ -16491,8 +16850,8 @@ function validate41(
                           ) {
                             vErrors =
                               vErrors === null
-                                ? validate42.errors
-                                : vErrors.concat(validate42.errors);
+                                ? validate44.errors
+                                : vErrors.concat(validate44.errors);
                             errors = vErrors.length;
                           }
                           var valid13 = _errs65 === errors;
@@ -16596,7 +16955,7 @@ function validate41(
                                   keyword: "enum",
                                   params: {
                                     allowedValues:
-                                      schema124.oneOf[2].properties.state.enum,
+                                      schema126.oneOf[2].properties.state.enum,
                                   },
                                   message:
                                     "must be equal to one of the allowed values",
@@ -16728,7 +17087,7 @@ function validate41(
                                         keyword: "enum",
                                         params: {
                                           allowedValues:
-                                            schema124.oneOf[2].properties
+                                            schema126.oneOf[2].properties
                                               .upstreamStatus.enum,
                                         },
                                         message:
@@ -16749,7 +17108,7 @@ function validate41(
                                     if (data.resultBinding !== undefined) {
                                       const _errs77 = errors;
                                       if (
-                                        !validate42(data.resultBinding, {
+                                        !validate44(data.resultBinding, {
                                           instancePath:
                                             instancePath + "/resultBinding",
                                           parentData: data,
@@ -16760,8 +17119,8 @@ function validate41(
                                       ) {
                                         vErrors =
                                           vErrors === null
-                                            ? validate42.errors
-                                            : vErrors.concat(validate42.errors);
+                                            ? validate44.errors
+                                            : vErrors.concat(validate44.errors);
                                         errors = vErrors.length;
                                       }
                                       var valid13 = _errs77 === errors;
@@ -16784,7 +17143,7 @@ function validate41(
                                             keyword: "enum",
                                             params: {
                                               allowedValues:
-                                                schema124.oneOf[2].properties
+                                                schema126.oneOf[2].properties
                                                   .discoveryState.enum,
                                             },
                                             message:
@@ -17151,7 +17510,7 @@ function validate41(
                     const _errs97 = errors;
                     if (errors === _errs97) {
                       if (typeof data41 === "string") {
-                        if (!pattern43.test(data41)) {
+                        if (!pattern44.test(data41)) {
                           const err71 = {
                             instancePath: instancePath + "/refreshAttemptId",
                             schemaPath:
@@ -17270,7 +17629,7 @@ function validate41(
                             keyword: "enum",
                             params: {
                               allowedValues:
-                                schema124.oneOf[3].properties.mode.enum,
+                                schema126.oneOf[3].properties.mode.enum,
                             },
                             message:
                               "must be equal to one of the allowed values",
@@ -17340,7 +17699,7 @@ function validate41(
                           if (data.baselineBinding !== undefined) {
                             const _errs106 = errors;
                             if (
-                              !validate42(data.baselineBinding, {
+                              !validate44(data.baselineBinding, {
                                 instancePath: instancePath + "/baselineBinding",
                                 parentData: data,
                                 parentDataProperty: "baselineBinding",
@@ -17350,8 +17709,8 @@ function validate41(
                             ) {
                               vErrors =
                                 vErrors === null
-                                  ? validate42.errors
-                                  : vErrors.concat(validate42.errors);
+                                  ? validate44.errors
+                                  : vErrors.concat(validate44.errors);
                               errors = vErrors.length;
                             }
                             var valid24 = _errs106 === errors;
@@ -17574,7 +17933,7 @@ function validate41(
                                     if (data.error !== undefined) {
                                       const _errs117 = errors;
                                       if (
-                                        !validate48(data.error, {
+                                        !validate50(data.error, {
                                           instancePath: instancePath + "/error",
                                           parentData: data,
                                           parentDataProperty: "error",
@@ -17584,8 +17943,8 @@ function validate41(
                                       ) {
                                         vErrors =
                                           vErrors === null
-                                            ? validate48.errors
-                                            : vErrors.concat(validate48.errors);
+                                            ? validate50.errors
+                                            : vErrors.concat(validate50.errors);
                                         errors = vErrors.length;
                                       }
                                       var valid24 = _errs117 === errors;
@@ -17821,7 +18180,7 @@ function validate41(
                       const _errs130 = errors;
                       if (errors === _errs130) {
                         if (typeof data55 === "string") {
-                          if (!pattern43.test(data55)) {
+                          if (!pattern44.test(data55)) {
                             const err96 = {
                               instancePath: instancePath + "/refreshAttemptId",
                               schemaPath:
@@ -17942,7 +18301,7 @@ function validate41(
                               keyword: "enum",
                               params: {
                                 allowedValues:
-                                  schema124.oneOf[4].properties.mode.enum,
+                                  schema126.oneOf[4].properties.mode.enum,
                               },
                               message:
                                 "must be equal to one of the allowed values",
@@ -18012,7 +18371,7 @@ function validate41(
                             if (data.baselineBinding !== undefined) {
                               const _errs139 = errors;
                               if (
-                                !validate42(data.baselineBinding, {
+                                !validate44(data.baselineBinding, {
                                   instancePath:
                                     instancePath + "/baselineBinding",
                                   parentData: data,
@@ -18023,8 +18382,8 @@ function validate41(
                               ) {
                                 vErrors =
                                   vErrors === null
-                                    ? validate42.errors
-                                    : vErrors.concat(validate42.errors);
+                                    ? validate44.errors
+                                    : vErrors.concat(validate44.errors);
                                 errors = vErrors.length;
                               }
                               var valid33 = _errs139 === errors;
@@ -18391,7 +18750,7 @@ function validate41(
       vErrors.push(err117);
     }
     errors++;
-    validate41.errors = vErrors;
+    validate43.errors = vErrors;
     return false;
   } else {
     errors = _errs0;
@@ -18556,7 +18915,7 @@ function validate41(
       }
       var valid45 = _errs160 === errors;
       if (valid45) {
-        validate41.errors = [
+        validate43.errors = [
           {
             instancePath,
             schemaPath: "#/allOf/0/then/not",
@@ -18593,7 +18952,7 @@ function validate41(
         vErrors.push(err128);
       }
       errors++;
-      validate41.errors = vErrors;
+      validate43.errors = vErrors;
       return false;
     }
     var valid42 = _errs153 === errors;
@@ -18685,7 +19044,7 @@ function validate41(
         }
         var valid49 = _errs175 === errors;
         if (valid49) {
-          validate41.errors = [
+          validate43.errors = [
             {
               instancePath,
               schemaPath: "#/allOf/1/then/not",
@@ -18722,7 +19081,7 @@ function validate41(
           vErrors.push(err134);
         }
         errors++;
-        validate41.errors = vErrors;
+        validate43.errors = vErrors;
         return false;
       }
       var valid42 = _errs168 === errors;
@@ -18806,7 +19165,7 @@ function validate41(
           }
           var valid52 = _errs184 === errors;
           if (valid52) {
-            validate41.errors = [
+            validate43.errors = [
               {
                 instancePath,
                 schemaPath: "#/allOf/2/then/not",
@@ -18843,7 +19202,7 @@ function validate41(
             vErrors.push(err140);
           }
           errors++;
-          validate41.errors = vErrors;
+          validate43.errors = vErrors;
           return false;
         }
         var valid42 = _errs177 === errors;
@@ -18856,14 +19215,14 @@ function validate41(
       }
     }
   }
-  validate41.errors = vErrors;
+  validate43.errors = vErrors;
   evaluated0.props = props0;
   return errors === 0;
 }
-validate41.evaluated = { dynamicProps: true, dynamicItems: false };
+validate43.evaluated = { dynamicProps: true, dynamicItems: false };
 
-export const error = validate51;
-const schema172 = {
+export const error = validate53;
+const schema174 = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
   $id: "https://haddenindustries.com/ontology/contracts/v1/ontology-materialization-error.v1.schema.json",
   title: "API error response",
@@ -18886,7 +19245,7 @@ const schema172 = {
   additionalProperties: true,
 };
 
-function validate52(
+function validate54(
   data,
   {
     instancePath = "",
@@ -18898,7 +19257,7 @@ function validate52(
 ) {
   let vErrors = null;
   let errors = 0;
-  const evaluated0 = validate52.evaluated;
+  const evaluated0 = validate54.evaluated;
   if (evaluated0.dynamicProps) {
     evaluated0.props = undefined;
   }
@@ -18913,7 +19272,7 @@ function validate52(
         (data.message === undefined && (missing0 = "message")) ||
         (data.retryable === undefined && (missing0 = "retryable"))
       ) {
-        validate52.errors = [
+        validate54.errors = [
           {
             instancePath,
             schemaPath: "#/required",
@@ -18930,8 +19289,8 @@ function validate52(
           const _errs3 = errors;
           if (errors === _errs3) {
             if (typeof data0 === "string") {
-              if (!pattern47.test(data0)) {
-                validate52.errors = [
+              if (!pattern48.test(data0)) {
+                validate54.errors = [
                   {
                     instancePath: instancePath + "/code",
                     schemaPath: "#/$defs/errorCode/pattern",
@@ -18944,7 +19303,7 @@ function validate52(
                 return false;
               }
             } else {
-              validate52.errors = [
+              validate54.errors = [
                 {
                   instancePath: instancePath + "/code",
                   schemaPath: "#/$defs/errorCode/type",
@@ -18967,7 +19326,7 @@ function validate52(
             if (errors === _errs5) {
               if (typeof data1 === "string") {
                 if (func2(data1) > 256) {
-                  validate52.errors = [
+                  validate54.errors = [
                     {
                       instancePath: instancePath + "/message",
                       schemaPath: "#/properties/message/maxLength",
@@ -18979,7 +19338,7 @@ function validate52(
                   return false;
                 } else {
                   if (func2(data1) < 1) {
-                    validate52.errors = [
+                    validate54.errors = [
                       {
                         instancePath: instancePath + "/message",
                         schemaPath: "#/properties/message/minLength",
@@ -18992,7 +19351,7 @@ function validate52(
                   }
                 }
               } else {
-                validate52.errors = [
+                validate54.errors = [
                   {
                     instancePath: instancePath + "/message",
                     schemaPath: "#/properties/message/type",
@@ -19012,7 +19371,7 @@ function validate52(
             if (data.retryable !== undefined) {
               const _errs7 = errors;
               if (typeof data.retryable !== "boolean") {
-                validate52.errors = [
+                validate54.errors = [
                   {
                     instancePath: instancePath + "/retryable",
                     schemaPath: "#/properties/retryable/type",
@@ -19031,7 +19390,7 @@ function validate52(
         }
       }
     } else {
-      validate52.errors = [
+      validate54.errors = [
         {
           instancePath,
           schemaPath: "#/type",
@@ -19043,18 +19402,18 @@ function validate52(
       return false;
     }
   }
-  validate52.errors = vErrors;
+  validate54.errors = vErrors;
   return errors === 0;
 }
-validate52.evaluated = {
+validate54.evaluated = {
   props: true,
   dynamicProps: false,
   dynamicItems: false,
 };
 
-const pattern121 = new RegExp("^[A-Za-z0-9_-]{1,128}$", "u");
+const pattern122 = new RegExp("^[A-Za-z0-9_-]{1,128}$", "u");
 
-function validate51(
+function validate53(
   data,
   {
     instancePath = "",
@@ -19067,7 +19426,7 @@ function validate51(
   /*# sourceURL="https://haddenindustries.com/ontology/contracts/v1/ontology-materialization-error.v1.schema.json" */ let vErrors =
     null;
   let errors = 0;
-  const evaluated0 = validate51.evaluated;
+  const evaluated0 = validate53.evaluated;
   if (evaluated0.dynamicProps) {
     evaluated0.props = undefined;
   }
@@ -19083,7 +19442,7 @@ function validate51(
         (data.error === undefined && (missing0 = "error")) ||
         (data.requestId === undefined && (missing0 = "requestId"))
       ) {
-        validate51.errors = [
+        validate53.errors = [
           {
             instancePath,
             schemaPath: "#/required",
@@ -19097,7 +19456,7 @@ function validate51(
         if (data.schemaVersion !== undefined) {
           const _errs2 = errors;
           if (1 !== data.schemaVersion) {
-            validate51.errors = [
+            validate53.errors = [
               {
                 instancePath: instancePath + "/schemaVersion",
                 schemaPath: "#/properties/schemaVersion/const",
@@ -19116,7 +19475,7 @@ function validate51(
           if (data.kind !== undefined) {
             const _errs3 = errors;
             if ("error" !== data.kind) {
-              validate51.errors = [
+              validate53.errors = [
                 {
                   instancePath: instancePath + "/kind",
                   schemaPath: "#/properties/kind/const",
@@ -19135,7 +19494,7 @@ function validate51(
             if (data.error !== undefined) {
               const _errs4 = errors;
               if (
-                !validate52(data.error, {
+                !validate54(data.error, {
                   instancePath: instancePath + "/error",
                   parentData: data,
                   parentDataProperty: "error",
@@ -19145,8 +19504,8 @@ function validate51(
               ) {
                 vErrors =
                   vErrors === null
-                    ? validate52.errors
-                    : vErrors.concat(validate52.errors);
+                    ? validate54.errors
+                    : vErrors.concat(validate54.errors);
                 errors = vErrors.length;
               }
               var valid0 = _errs4 === errors;
@@ -19161,7 +19520,7 @@ function validate51(
                 if (errors === _errs6) {
                   if (typeof data3 === "string") {
                     if (!pattern4.test(data3)) {
-                      validate51.errors = [
+                      validate53.errors = [
                         {
                           instancePath: instancePath + "/materializationId",
                           schemaPath:
@@ -19175,7 +19534,7 @@ function validate51(
                       return false;
                     }
                   } else {
-                    validate51.errors = [
+                    validate53.errors = [
                       {
                         instancePath: instancePath + "/materializationId",
                         schemaPath:
@@ -19199,8 +19558,8 @@ function validate51(
                   const _errs9 = errors;
                   if (errors === _errs9) {
                     if (typeof data4 === "string") {
-                      if (!pattern43.test(data4)) {
-                        validate51.errors = [
+                      if (!pattern44.test(data4)) {
+                        validate53.errors = [
                           {
                             instancePath: instancePath + "/refreshAttemptId",
                             schemaPath:
@@ -19214,7 +19573,7 @@ function validate51(
                         return false;
                       }
                     } else {
-                      validate51.errors = [
+                      validate53.errors = [
                         {
                           instancePath: instancePath + "/refreshAttemptId",
                           schemaPath:
@@ -19237,8 +19596,8 @@ function validate51(
                     const _errs11 = errors;
                     if (errors === _errs11) {
                       if (typeof data5 === "string") {
-                        if (!pattern121.test(data5)) {
-                          validate51.errors = [
+                        if (!pattern122.test(data5)) {
+                          validate53.errors = [
                             {
                               instancePath: instancePath + "/requestId",
                               schemaPath: "#/properties/requestId/pattern",
@@ -19253,7 +19612,7 @@ function validate51(
                           return false;
                         }
                       } else {
-                        validate51.errors = [
+                        validate53.errors = [
                           {
                             instancePath: instancePath + "/requestId",
                             schemaPath: "#/properties/requestId/type",
@@ -19276,7 +19635,7 @@ function validate51(
         }
       }
     } else {
-      validate51.errors = [
+      validate53.errors = [
         {
           instancePath,
           schemaPath: "#/type",
@@ -19288,10 +19647,10 @@ function validate51(
       return false;
     }
   }
-  validate51.errors = vErrors;
+  validate53.errors = vErrors;
   return errors === 0;
 }
-validate51.evaluated = {
+validate53.evaluated = {
   props: true,
   dynamicProps: false,
   dynamicItems: false,
