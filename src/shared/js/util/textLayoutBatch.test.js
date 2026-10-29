@@ -169,4 +169,31 @@ describe("synchronous SVG text layout", () => {
     positionAbsoluteTextLine(label, 2);
     expect(label.attributes.y).toBe("8px");
   });
+
+  test("does not measure or position text removed during the same draw", () => {
+    const { documentObject, element, events } = layoutFixture();
+    const replaced = element("replaced", 12, NaN);
+    const visible = element("visible", 20, 15);
+    replaced.isConnected = true;
+    visible.isConnected = true;
+
+    withTextLayoutBatch(documentObject, () => {
+      positionCenteredTextLine(replaced, 0);
+      centerTextBlock(replaced);
+      // Drawing can replace a label after its initial placement was queued.
+      // Chromium exposes no computed font size for this detached span.
+      replaced.isConnected = false;
+      positionCenteredTextLine(visible, 1);
+      centerTextBlock(visible);
+    });
+
+    expect(replaced.attributes).toEqual({});
+    expect(visible.attributes).toEqual({ dy: "16px", y: "-10px" });
+    expect(events).toEqual([
+      "font:visible",
+      "dy:visible",
+      "box:visible",
+      "y:visible",
+    ]);
+  });
 });

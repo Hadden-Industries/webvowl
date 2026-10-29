@@ -2,6 +2,7 @@ import { createTextTools } from "./textTools.js";
 
 const activeBatches = new WeakMap();
 const textTools = createTextTools();
+const isConnected = (node) => node.isConnected !== false;
 
 /**
  * Complete one synchronous SVG draw before publishing it. Font reads precede
@@ -22,18 +23,24 @@ export function withTextLayoutBatch(documentObject, draw) {
       documentObject,
     );
     batch.texts.forEach(({ apply }, index) => apply(texts[index]));
-    const lines = Array.from(batch.lines, ([span, placement]) => ({
-      span,
-      attribute: placement.attribute,
-      value: placement.factor * fontSize(span) + placement.offset + "px",
-    }));
+    // A draw may replace queued labels. Detached nodes have no usable computed
+    // font size in Chromium and no placement left to publish.
+    const lines = Array.from(batch.lines)
+      .filter(([span]) => isConnected(span))
+      .map(([span, placement]) => ({
+        span,
+        attribute: placement.attribute,
+        value: placement.factor * fontSize(span) + placement.offset + "px",
+      }));
     for (const { span, attribute, value } of lines) {
       span.setAttribute(attribute, value);
     }
-    const blocks = Array.from(batch.blocks, (block) => ({
-      block,
-      y: -block.getBBox().height * 0.5 + "px",
-    }));
+    const blocks = Array.from(batch.blocks)
+      .filter(isConnected)
+      .map((block) => ({
+        block,
+        y: -block.getBBox().height * 0.5 + "px",
+      }));
     for (const { block, y } of blocks) {
       block.setAttribute("y", y);
     }

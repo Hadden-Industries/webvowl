@@ -236,6 +236,12 @@ export default defineConfig(({ mode }) => {
     root: "src",
     publicDir: false,
 
+    // The linked core and lazy OWL entry share module-owned model identities.
+    // Prebundle both before the first worker load, including a fresh dev cache.
+    optimizeDeps: {
+      include: ["vowl", "vowl/owl"],
+    },
+
     // Native dynamic imports keep OWL parsers out of canonical-only worker jobs.
     worker: {
       format: "es",
