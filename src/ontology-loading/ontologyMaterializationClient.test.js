@@ -9,6 +9,7 @@ import {
 import { createOntologyMaterializationClient } from "./ontologyMaterializationClient.js";
 import { createCachedOntologySourceAcquisition } from "./cachedOntologySourceAcquisition.js";
 import { validateOntologyCacheRecord } from "./ontologyResolutionEvidence.js";
+import { ontologyRecordIdentity } from "./ontologySourceIdentity.js";
 
 const fixtures = JSON.parse(
   readFileSync(
@@ -110,6 +111,75 @@ test("static hit verifies the complete chain, exact bytes and origin parser cont
     expect(options.redirect).toBe("error");
   }
 });
+
+test.each(["heuristic", "unambiguous"])(
+  "a %s policy accepts its matching validation and rejects relabelled mapping evidence before artifact fetch",
+  async (owlMappingStrategy) => {
+    const h = harness();
+    const resolution = example("A-resolution");
+    const policy = example("loader-policy");
+    const validation = example("A-validation");
+    if (owlMappingStrategy === "heuristic") {
+      policy.policy.validationProfileId =
+        "ontology-source-document-heuristic-v1";
+      policy.policy.parseMode = "compatible";
+    }
+    policy.loaderProfileFingerprint = await ontologyRecordIdentity(
+      "loader-policy",
+      policy.policy,
+    );
+    validation.identityInputs.loaderProfileFingerprint =
+      policy.loaderProfileFingerprint;
+    validation.validationProfileId = policy.policy.validationProfileId;
+    validation.parseMode = policy.policy.parseMode;
+    validation.validationIdentity = await ontologyRecordIdentity(
+      "document-validation",
+      validation.identityInputs,
+    );
+    resolution.loaderProfileFingerprint = policy.loaderProfileFingerprint;
+    resolution.loaderPolicyIri = `${origin}/ontology/cache/policies/sha256/${policy.loaderProfileFingerprint}.json`;
+    resolution.validationIdentity = validation.validationIdentity;
+    resolution.validationIri = `${origin}/ontology/cache/validations/sha256/${validation.validationIdentity}.json`;
+    const resolutionInput = { ...resolution };
+    delete resolutionInput.resolutionIdentity;
+    resolution.resolutionIdentity = await ontologyRecordIdentity(
+      "resolution",
+      resolutionInput,
+    );
+    const resolutionIri = `${origin}/ontology/cache/resolutions/sha256/${resolution.resolutionIdentity}.json`;
+    Object.assign(h.pointer.currentBinding, {
+      resolutionIdentity: resolution.resolutionIdentity,
+      resolutionIri,
+      validationIdentity: validation.validationIdentity,
+      validationIri: resolution.validationIri,
+    });
+    h.records.set(resolutionIri, resolution);
+    h.records.set(resolution.loaderPolicyIri, policy);
+    h.records.set(resolution.validationIri, validation);
+    const client = createOntologyMaterializationClient({
+      ...h.options,
+      approvedPolicyFingerprints: [policy.loaderProfileFingerprint],
+    });
+    await expect(client.lookup(source)).resolves.toHaveProperty("bytes");
+    validation.validationProfileId =
+      owlMappingStrategy === "heuristic"
+        ? "ontology-source-document-v1"
+        : "ontology-source-document-heuristic-v1";
+    validation.parseMode =
+      owlMappingStrategy === "heuristic" ? "preserve" : "compatible";
+    expect(() =>
+      validateOntologyCacheRecord("validation", validation),
+    ).not.toThrow();
+    h.fetchImpl.mockClear();
+    await expect(client.lookup(source)).rejects.toHaveProperty(
+      "code",
+      "CACHE_PROTOCOL_INVALID",
+    );
+    expect(
+      h.fetchImpl.mock.calls.some(([url]) => url.includes("/artifacts/")),
+    ).toBe(false);
+  },
+);
 
 test.each([
   [

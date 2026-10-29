@@ -338,6 +338,43 @@
       "maxLength": 8192,
       "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:",
       "description": "Absolute logical IRI, including non-HTTP identifiers such as urn:. Validate with the owning public IRI contract. This is metadata, never authority to fetch."
+    },
+    "documentValidationProfile": {
+      "type": "object",
+      "description": "Operator-approved OWL mapping strategies. Labels describe behavior; parseMode records the actual dependency token.",
+      "default": {
+        "validationProfileId": "ontology-source-document-heuristic-v1",
+        "parseMode": "compatible"
+      },
+      "oneOf": [
+        {
+          "$anchor": "heuristic",
+          "title": "Heuristic OWL mapping",
+          "description": "Constructs an OWL model using parser heuristics where source information is underspecified, while reporting detected repairs and mapping issues.",
+          "properties": {
+            "validationProfileId": {
+              "const": "ontology-source-document-heuristic-v1"
+            },
+            "parseMode": {
+              "const": "compatible"
+            }
+          }
+        },
+        {
+          "$anchor": "unambiguous",
+          "title": "Unambiguous OWL mapping",
+          "description": "Determines property uses from explicit roles or unambiguous source structure, rejecting unresolved interpretations.",
+          "properties": {
+            "validationProfileId": {
+              "const": "ontology-source-document-v1"
+            },
+            "parseMode": {
+              "const": "preserve"
+            }
+          }
+        }
+      ],
+      "required": ["validationProfileId", "parseMode"]
     }
   }
 }

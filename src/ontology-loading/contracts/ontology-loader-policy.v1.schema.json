@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://haddenindustries.com/ontology/contracts/v1/ontology-loader-policy.v1.schema.json",
   "title": "Finite document validation policy evidence",
-  "description": "Draft contract 1.0.0-draft.2; review artifact, not a deployed service promise.",
+  "description": "Draft contract 1.0.0-draft.3; review artifact, not a deployed service promise.",
   "type": "object",
   "properties": {
     "schemaVersion": {
@@ -21,10 +21,10 @@
           "const": 1
         },
         "validationProfileId": {
-          "const": "ontology-source-document-v1"
+          "type": "string"
         },
         "parseMode": {
-          "const": "preserve"
+          "type": "string"
         },
         "formatSelectionMode": {
           "const": "automatic"
@@ -276,7 +276,12 @@
         "limits",
         "dependencyTranslations"
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/documentValidationProfile"
+        }
+      ]
     }
   },
   "required": ["schemaVersion", "kind", "loaderProfileFingerprint", "policy"],

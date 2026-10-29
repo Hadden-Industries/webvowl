@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://haddenindustries.com/ontology/contracts/v1/ontology-validation.v1.schema.json",
   "title": "Completed context-specific document validation",
-  "description": "Draft contract 1.0.0-draft.2; review artifact, not a deployed service promise.",
+  "description": "Draft contract 1.0.0-draft.3; review artifact, not a deployed service promise.",
   "type": "object",
   "properties": {
     "schemaVersion": {
@@ -18,13 +18,13 @@
       "$ref": "ontology-contract-common.v1.schema.json#/$defs/validationInputs"
     },
     "validationProfileId": {
-      "const": "ontology-source-document-v1"
+      "type": "string"
     },
     "documentState": {
       "const": "DOCUMENT_VALIDATED"
     },
     "parseMode": {
-      "const": "preserve"
+      "type": "string"
     },
     "sourceBytesRetained": {
       "const": true
@@ -95,5 +95,10 @@
     "declaredVersionIris",
     "identifiersTruncated"
   ],
-  "additionalProperties": false
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/documentValidationProfile"
+    }
+  ]
 }

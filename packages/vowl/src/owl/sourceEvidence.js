@@ -134,6 +134,7 @@ export async function retainCompatibleEvidence(prepared, budget) {
   const evidence = deepFreeze(
     snapshotSource(
       {
+        parsingMode: prepared.owlMappingParserMode,
         documents,
         imports: importEvidence(prepared, documents, budget),
         diagnostics: copyEvidence(prepared.diagnostics, budget),

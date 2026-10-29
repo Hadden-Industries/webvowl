@@ -2,6 +2,7 @@ import { fail } from "./errors.js";
 import { optionRecord } from "./resourceBudget.js";
 import { snapshotBytes, snapshotSource, deepFreeze } from "./snapshot.js";
 import { validateFields } from "./typedValues.js";
+import { isOwlMappingParserMode } from "./owlMappingStrategy.js";
 
 const ontologyIdentity = {
   fields: { iri: "IRI", versionIri: "IRI" },
@@ -39,7 +40,17 @@ async function hash(bytes, budget) {
 
 /** Validate archive references and declared bytes; these historical reports are not admission authority. */
 function validateEvidence(evidence, budget) {
-  exact(evidence, evidenceFields);
+  const hasParsingMode =
+    evidence !== null &&
+    evidence !== undefined &&
+    Object.hasOwn(evidence, "parsingMode");
+  exact(
+    evidence,
+    hasParsingMode ? [...evidenceFields, "parsingMode"] : evidenceFields,
+  );
+  if (hasParsingMode && !isOwlMappingParserMode(evidence.parsingMode)) {
+    fail("CHECKPOINT_INVALID");
+  }
   for (const name of [
     "documents",
     "imports",

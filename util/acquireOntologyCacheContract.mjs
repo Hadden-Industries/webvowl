@@ -4,10 +4,10 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-// The published provider revision owns these data. Never edit the acquired copies.
-export const PROVIDER_REVISION = "646e018dbe440735284990e08ca629e1d8bd2c43";
+// This immutable provider source revision owns these data. Never edit the acquired copies.
+export const PROVIDER_REVISION = "287c33ae3418a236d357ace623c7f6c262380022";
 export const PROVIDER_BUNDLE =
-  "871239081809f846d8c0b3ef12f0f0e82cdc3681958e7024c5c57fed87babd75";
+  "786d69d25cd233fc1feabb59ff5a8daa9ab759e33523bb5f99bdb8c5a829e6f7";
 const prefix = "validated-ontology-cache/contracts/";
 const destination = fileURLToPath(
   new URL("../src/ontology-loading/contracts/", import.meta.url),
@@ -15,7 +15,7 @@ const destination = fileURLToPath(
 const repository = process.argv[2];
 if (!repository) {
   throw new Error(
-    "Supply a provider Git repository containing the immutable published revision.",
+    "Supply a provider Git repository containing the immutable source revision.",
   );
 }
 const read = (name) =>

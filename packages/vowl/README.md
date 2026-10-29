@@ -75,7 +75,13 @@ The application selects this purpose for its versioned connected/fair node order
 
 The visualization field is required for artifact capture and forbidden for structural-content capture.
 Failed editing, recovery or capture leaves the previous model usable.
-`openOwl(bytes, {documentIri, mediaType, resolveImport, signal, limits})` on `vowl/owl` now admits a compatible live model and returns `{model, correspondence}` without RDFC.
+`openOwl(bytes, {documentIri, mediaType, owlMappingStrategy, resolveImport, signal, limits})` on `vowl/owl` admits a diagnostic live model and returns `{model, correspondence}` without RDFC.
+`owlMappingStrategy` defaults to `heuristic`, allowing the owning parser's heuristic OWL mapping.
+The explicit `unambiguous` strategy instead requires unambiguous OWL mapping and rejects unresolved interpretations.
+Only the dependency adapter translates these strategies to OwlAPI's native `compatible` and `preserve` tokens; those tokens are not accepted as strategy aliases.
+The selected mode applies to the root and its imported documents; both modes retain the original acquired bytes and diagnostic view/profile assessments.
+Neither mode guarantees OWL 2 DL validity or exhaustive projection of the source into VOWL.
+Historical checkpoint evidence records the actual native mode; older checkpoints without that field retain their implicit `compatible` interpretation.
 For live opening, `mediaType` is optional: omission delegates format recognition to the public OwlAPI loader, once, using the acquired bytes.
 An explicit media type still selects exactly one owning parser; document/base identity remains required independently of format.
 Live import responses likewise allow `{bytes, documentIri}` without a media type.

@@ -9,7 +9,7 @@ const directory = new URL("./contracts/", import.meta.url);
 const read = (name) => readFileSync(new URL(name, directory));
 const manifest = JSON.parse(read("contract-manifest.v1.json"));
 
-test("acquired provider data agrees with the exact published contract bundle", () => {
+test("acquired provider data agrees with the exact immutable contract bundle", () => {
   const { contractId, version, files } = manifest;
   const digest = createHash("sha256")
     .update(
@@ -18,7 +18,7 @@ test("acquired provider data agrees with the exact published contract bundle", (
     )
     .digest("hex");
   expect(digest).toBe(
-    "871239081809f846d8c0b3ef12f0f0e82cdc3681958e7024c5c57fed87babd75",
+    "786d69d25cd233fc1feabb59ff5a8daa9ab759e33523bb5f99bdb8c5a829e6f7",
   );
   for (const entry of files.filter(
     ({ path }) =>
@@ -45,6 +45,7 @@ test("generated browser validators reproduce their authoritative source schemas"
 
 test("native schemas and generated browser validators retain the provider's positive and negative fixtures", () => {
   const ajv = new Ajv2020({ strict: true, validateFormats: false });
+  ajv.addKeyword({ keyword: "$anchor", schemaType: "string" });
   for (const name of readdirSync(directory).filter((name) =>
     name.endsWith(".schema.json"),
   )) {

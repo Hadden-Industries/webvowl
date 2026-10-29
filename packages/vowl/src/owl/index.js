@@ -1,6 +1,7 @@
 import { canonicalize, profiles, inspectModel } from "../index.js";
 import { admitOwlModel } from "../modelAdmission.js";
 import { prepareCompatibleView } from "./compatibleLoading.js";
+import { selectOwlMappingStrategy } from "../owlMappingStrategy.js";
 import { fail, VowlError } from "../errors.js";
 import { optionRecord, ResourceBudget } from "../resourceBudget.js";
 import { canonicalizeWithBudget } from "../operationBudget.js";
@@ -49,11 +50,13 @@ export async function openOwl(input, options) {
   const opts = optionRecord(options, [
     "documentIri",
     "mediaType",
+    "owlMappingStrategy",
     "resolveImport",
     "signal",
     "limits",
   ]);
   const checks = {
+    owlMappingStrategy: selectOwlMappingStrategy,
     documentIri: optionChecks.documentIri,
     mediaType(value) {
       if (value !== undefined) {

@@ -5954,7 +5954,7 @@ const schema95 = {
   $id: "https://haddenindustries.com/ontology/contracts/v1/ontology-validation.v1.schema.json",
   title: "Completed context-specific document validation",
   description:
-    "Draft contract 1.0.0-draft.2; review artifact, not a deployed service promise.",
+    "Draft contract 1.0.0-draft.3; review artifact, not a deployed service promise.",
   type: "object",
   properties: {
     schemaVersion: { const: 1 },
@@ -5965,9 +5965,9 @@ const schema95 = {
     identityInputs: {
       $ref: "ontology-contract-common.v1.schema.json#/$defs/validationInputs",
     },
-    validationProfileId: { const: "ontology-source-document-v1" },
+    validationProfileId: { type: "string" },
     documentState: { const: "DOCUMENT_VALIDATED" },
-    parseMode: { const: "preserve" },
+    parseMode: { type: "string" },
     sourceBytesRetained: { const: true },
     sourceAssessment: { enum: ["valid", "invalid", "unverified"] },
     profileAssessment: { const: "NOT_EVALUATED" },
@@ -6020,8 +6020,45 @@ const schema95 = {
     "identifiersTruncated",
   ],
   additionalProperties: false,
+  allOf: [
+    {
+      $ref: "ontology-contract-common.v1.schema.json#/$defs/documentValidationProfile",
+    },
+  ],
 };
-const schema105 = {
+const schema96 = {
+  type: "object",
+  description:
+    "Operator-approved OWL mapping strategies. Labels describe behavior; parseMode records the actual dependency token.",
+  default: {
+    validationProfileId: "ontology-source-document-heuristic-v1",
+    parseMode: "compatible",
+  },
+  oneOf: [
+    {
+      $anchor: "heuristic",
+      title: "Heuristic OWL mapping",
+      description:
+        "Constructs an OWL model using parser heuristics where source information is underspecified, while reporting detected repairs and mapping issues.",
+      properties: {
+        validationProfileId: { const: "ontology-source-document-heuristic-v1" },
+        parseMode: { const: "compatible" },
+      },
+    },
+    {
+      $anchor: "unambiguous",
+      title: "Unambiguous OWL mapping",
+      description:
+        "Determines property uses from explicit roles or unambiguous source structure, rejecting unresolved interpretations.",
+      properties: {
+        validationProfileId: { const: "ontology-source-document-v1" },
+        parseMode: { const: "preserve" },
+      },
+    },
+  ],
+  required: ["validationProfileId", "parseMode"],
+};
+const schema106 = {
   type: "string",
   minLength: 1,
   maxLength: 8192,
@@ -6030,7 +6067,7 @@ const schema105 = {
     "Absolute logical IRI, including non-HTTP identifiers such as urn:. Validate with the owning public IRI contract. This is metadata, never authority to fetch.",
 };
 const pattern65 = new RegExp("^[A-Za-z][A-Za-z0-9+.-]*:", "u");
-const schema97 = {
+const schema98 = {
   type: "object",
   properties: {
     artifactSha256: { $ref: "#/$defs/digest" },
@@ -6245,7 +6282,7 @@ function validate33(
                       keyword: "enum",
                       params: {
                         allowedValues:
-                          schema97.properties.formatSelectionMode.enum,
+                          schema98.properties.formatSelectionMode.enum,
                       },
                       message: "must be equal to one of the allowed values",
                     },
@@ -6616,53 +6653,245 @@ function validate32(
   if (evaluated0.dynamicItems) {
     evaluated0.items = undefined;
   }
-  if (errors === 0) {
+  const _errs2 = errors;
+  const _errs4 = errors;
+  let valid2 = false;
+  let passing0 = null;
+  const _errs5 = errors;
+  if (errors === _errs5) {
+    if (data && typeof data == "object" && !Array.isArray(data)) {
+      if (data.validationProfileId !== undefined) {
+        const _errs7 = errors;
+        if (
+          "ontology-source-document-heuristic-v1" !== data.validationProfileId
+        ) {
+          const err0 = {
+            instancePath: instancePath + "/validationProfileId",
+            schemaPath:
+              "ontology-contract-common.v1.schema.json#/$defs/documentValidationProfile/oneOf/0/properties/validationProfileId/const",
+            keyword: "const",
+            params: { allowedValue: "ontology-source-document-heuristic-v1" },
+            message: "must be equal to constant",
+          };
+          if (vErrors === null) {
+            vErrors = [err0];
+          } else {
+            vErrors.push(err0);
+          }
+          errors++;
+        }
+        var valid3 = _errs7 === errors;
+      } else {
+        var valid3 = true;
+      }
+      if (valid3) {
+        if (data.parseMode !== undefined) {
+          const _errs8 = errors;
+          if ("compatible" !== data.parseMode) {
+            const err1 = {
+              instancePath: instancePath + "/parseMode",
+              schemaPath:
+                "ontology-contract-common.v1.schema.json#/$defs/documentValidationProfile/oneOf/0/properties/parseMode/const",
+              keyword: "const",
+              params: { allowedValue: "compatible" },
+              message: "must be equal to constant",
+            };
+            if (vErrors === null) {
+              vErrors = [err1];
+            } else {
+              vErrors.push(err1);
+            }
+            errors++;
+          }
+          var valid3 = _errs8 === errors;
+        } else {
+          var valid3 = true;
+        }
+      }
+    }
+  }
+  var _valid0 = _errs5 === errors;
+  if (_valid0) {
+    valid2 = true;
+    passing0 = 0;
+    var props0 = {};
+    props0.validationProfileId = true;
+    props0.parseMode = true;
+  }
+  const _errs9 = errors;
+  if (errors === _errs9) {
+    if (data && typeof data == "object" && !Array.isArray(data)) {
+      if (data.validationProfileId !== undefined) {
+        const _errs11 = errors;
+        if ("ontology-source-document-v1" !== data.validationProfileId) {
+          const err2 = {
+            instancePath: instancePath + "/validationProfileId",
+            schemaPath:
+              "ontology-contract-common.v1.schema.json#/$defs/documentValidationProfile/oneOf/1/properties/validationProfileId/const",
+            keyword: "const",
+            params: { allowedValue: "ontology-source-document-v1" },
+            message: "must be equal to constant",
+          };
+          if (vErrors === null) {
+            vErrors = [err2];
+          } else {
+            vErrors.push(err2);
+          }
+          errors++;
+        }
+        var valid4 = _errs11 === errors;
+      } else {
+        var valid4 = true;
+      }
+      if (valid4) {
+        if (data.parseMode !== undefined) {
+          const _errs12 = errors;
+          if ("preserve" !== data.parseMode) {
+            const err3 = {
+              instancePath: instancePath + "/parseMode",
+              schemaPath:
+                "ontology-contract-common.v1.schema.json#/$defs/documentValidationProfile/oneOf/1/properties/parseMode/const",
+              keyword: "const",
+              params: { allowedValue: "preserve" },
+              message: "must be equal to constant",
+            };
+            if (vErrors === null) {
+              vErrors = [err3];
+            } else {
+              vErrors.push(err3);
+            }
+            errors++;
+          }
+          var valid4 = _errs12 === errors;
+        } else {
+          var valid4 = true;
+        }
+      }
+    }
+  }
+  var _valid0 = _errs9 === errors;
+  if (_valid0 && valid2) {
+    valid2 = false;
+    passing0 = [passing0, 1];
+  } else {
+    if (_valid0) {
+      valid2 = true;
+      passing0 = 1;
+      if (props0 !== true) {
+        props0 = props0 || {};
+        props0.validationProfileId = true;
+        props0.parseMode = true;
+      }
+    }
+  }
+  if (!valid2) {
+    const err4 = {
+      instancePath,
+      schemaPath:
+        "ontology-contract-common.v1.schema.json#/$defs/documentValidationProfile/oneOf",
+      keyword: "oneOf",
+      params: { passingSchemas: passing0 },
+      message: "must match exactly one schema in oneOf",
+    };
+    if (vErrors === null) {
+      vErrors = [err4];
+    } else {
+      vErrors.push(err4);
+    }
+    errors++;
+    validate32.errors = vErrors;
+    return false;
+  } else {
+    errors = _errs4;
+    if (vErrors !== null) {
+      if (_errs4) {
+        vErrors.length = _errs4;
+      } else {
+        vErrors = null;
+      }
+    }
+  }
+  if (errors === _errs2) {
     if (data && typeof data == "object" && !Array.isArray(data)) {
       let missing0;
       if (
-        (data.schemaVersion === undefined && (missing0 = "schemaVersion")) ||
-        (data.kind === undefined && (missing0 = "kind")) ||
-        (data.validationIdentity === undefined &&
-          (missing0 = "validationIdentity")) ||
-        (data.identityInputs === undefined && (missing0 = "identityInputs")) ||
         (data.validationProfileId === undefined &&
           (missing0 = "validationProfileId")) ||
-        (data.documentState === undefined && (missing0 = "documentState")) ||
-        (data.parseMode === undefined && (missing0 = "parseMode")) ||
-        (data.sourceBytesRetained === undefined &&
-          (missing0 = "sourceBytesRetained")) ||
-        (data.sourceAssessment === undefined &&
-          (missing0 = "sourceAssessment")) ||
-        (data.profileAssessment === undefined &&
-          (missing0 = "profileAssessment")) ||
-        (data.closureQualification === undefined &&
-          (missing0 = "closureQualification")) ||
-        (data.consumerAdmission === undefined &&
-          (missing0 = "consumerAdmission")) ||
-        (data.diagnosticCodes === undefined &&
-          (missing0 = "diagnosticCodes")) ||
-        (data.diagnosticsTruncated === undefined &&
-          (missing0 = "diagnosticsTruncated")) ||
-        (data.importDeclarationCount === undefined &&
-          (missing0 = "importDeclarationCount")) ||
-        (data.ontologyIris === undefined && (missing0 = "ontologyIris")) ||
-        (data.declaredVersionIris === undefined &&
-          (missing0 = "declaredVersionIris")) ||
-        (data.identifiersTruncated === undefined &&
-          (missing0 = "identifiersTruncated"))
+        (data.parseMode === undefined && (missing0 = "parseMode"))
       ) {
         validate32.errors = [
           {
             instancePath,
-            schemaPath: "#/required",
+            schemaPath:
+              "ontology-contract-common.v1.schema.json#/$defs/documentValidationProfile/required",
             keyword: "required",
             params: { missingProperty: missing0 },
             message: "must have required property '" + missing0 + "'",
           },
         ];
         return false;
+      }
+    } else {
+      validate32.errors = [
+        {
+          instancePath,
+          schemaPath:
+            "ontology-contract-common.v1.schema.json#/$defs/documentValidationProfile/type",
+          keyword: "type",
+          params: { type: "object" },
+          message: "must be object",
+        },
+      ];
+      return false;
+    }
+  }
+  if (errors === 0) {
+    if (data && typeof data == "object" && !Array.isArray(data)) {
+      let missing1;
+      if (
+        (data.schemaVersion === undefined && (missing1 = "schemaVersion")) ||
+        (data.kind === undefined && (missing1 = "kind")) ||
+        (data.validationIdentity === undefined &&
+          (missing1 = "validationIdentity")) ||
+        (data.identityInputs === undefined && (missing1 = "identityInputs")) ||
+        (data.validationProfileId === undefined &&
+          (missing1 = "validationProfileId")) ||
+        (data.documentState === undefined && (missing1 = "documentState")) ||
+        (data.parseMode === undefined && (missing1 = "parseMode")) ||
+        (data.sourceBytesRetained === undefined &&
+          (missing1 = "sourceBytesRetained")) ||
+        (data.sourceAssessment === undefined &&
+          (missing1 = "sourceAssessment")) ||
+        (data.profileAssessment === undefined &&
+          (missing1 = "profileAssessment")) ||
+        (data.closureQualification === undefined &&
+          (missing1 = "closureQualification")) ||
+        (data.consumerAdmission === undefined &&
+          (missing1 = "consumerAdmission")) ||
+        (data.diagnosticCodes === undefined &&
+          (missing1 = "diagnosticCodes")) ||
+        (data.diagnosticsTruncated === undefined &&
+          (missing1 = "diagnosticsTruncated")) ||
+        (data.importDeclarationCount === undefined &&
+          (missing1 = "importDeclarationCount")) ||
+        (data.ontologyIris === undefined && (missing1 = "ontologyIris")) ||
+        (data.declaredVersionIris === undefined &&
+          (missing1 = "declaredVersionIris")) ||
+        (data.identifiersTruncated === undefined &&
+          (missing1 = "identifiersTruncated"))
+      ) {
+        validate32.errors = [
+          {
+            instancePath,
+            schemaPath: "#/required",
+            keyword: "required",
+            params: { missingProperty: missing1 },
+            message: "must have required property '" + missing1 + "'",
+          },
+        ];
+        return false;
       } else {
-        const _errs1 = errors;
+        const _errs13 = errors;
         for (const key0 in data) {
           if (!func1.call(schema95.properties, key0)) {
             validate32.errors = [
@@ -6678,9 +6907,9 @@ function validate32(
             break;
           }
         }
-        if (_errs1 === errors) {
+        if (_errs13 === errors) {
           if (data.schemaVersion !== undefined) {
-            const _errs2 = errors;
+            const _errs14 = errors;
             if (1 !== data.schemaVersion) {
               validate32.errors = [
                 {
@@ -6693,13 +6922,13 @@ function validate32(
               ];
               return false;
             }
-            var valid0 = _errs2 === errors;
+            var valid5 = _errs14 === errors;
           } else {
-            var valid0 = true;
+            var valid5 = true;
           }
-          if (valid0) {
+          if (valid5) {
             if (data.kind !== undefined) {
-              const _errs3 = errors;
+              const _errs15 = errors;
               if ("document-validation" !== data.kind) {
                 validate32.errors = [
                   {
@@ -6712,18 +6941,18 @@ function validate32(
                 ];
                 return false;
               }
-              var valid0 = _errs3 === errors;
+              var valid5 = _errs15 === errors;
             } else {
-              var valid0 = true;
+              var valid5 = true;
             }
-            if (valid0) {
+            if (valid5) {
               if (data.validationIdentity !== undefined) {
-                let data2 = data.validationIdentity;
-                const _errs4 = errors;
-                const _errs5 = errors;
-                if (errors === _errs5) {
-                  if (typeof data2 === "string") {
-                    if (!pattern4.test(data2)) {
+                let data6 = data.validationIdentity;
+                const _errs16 = errors;
+                const _errs17 = errors;
+                if (errors === _errs17) {
+                  if (typeof data6 === "string") {
+                    if (!pattern4.test(data6)) {
                       validate32.errors = [
                         {
                           instancePath: instancePath + "/validationIdentity",
@@ -6751,13 +6980,13 @@ function validate32(
                     return false;
                   }
                 }
-                var valid0 = _errs4 === errors;
+                var valid5 = _errs16 === errors;
               } else {
-                var valid0 = true;
+                var valid5 = true;
               }
-              if (valid0) {
+              if (valid5) {
                 if (data.identityInputs !== undefined) {
-                  const _errs7 = errors;
+                  const _errs19 = errors;
                   if (
                     !validate33(data.identityInputs, {
                       instancePath: instancePath + "/identityInputs",
@@ -6773,36 +7002,32 @@ function validate32(
                         : vErrors.concat(validate33.errors);
                     errors = vErrors.length;
                   }
-                  var valid0 = _errs7 === errors;
+                  var valid5 = _errs19 === errors;
                 } else {
-                  var valid0 = true;
+                  var valid5 = true;
                 }
-                if (valid0) {
+                if (valid5) {
                   if (data.validationProfileId !== undefined) {
-                    const _errs8 = errors;
-                    if (
-                      "ontology-source-document-v1" !== data.validationProfileId
-                    ) {
+                    const _errs20 = errors;
+                    if (typeof data.validationProfileId !== "string") {
                       validate32.errors = [
                         {
                           instancePath: instancePath + "/validationProfileId",
-                          schemaPath: "#/properties/validationProfileId/const",
-                          keyword: "const",
-                          params: {
-                            allowedValue: "ontology-source-document-v1",
-                          },
-                          message: "must be equal to constant",
+                          schemaPath: "#/properties/validationProfileId/type",
+                          keyword: "type",
+                          params: { type: "string" },
+                          message: "must be string",
                         },
                       ];
                       return false;
                     }
-                    var valid0 = _errs8 === errors;
+                    var valid5 = _errs20 === errors;
                   } else {
-                    var valid0 = true;
+                    var valid5 = true;
                   }
-                  if (valid0) {
+                  if (valid5) {
                     if (data.documentState !== undefined) {
-                      const _errs9 = errors;
+                      const _errs22 = errors;
                       if ("DOCUMENT_VALIDATED" !== data.documentState) {
                         validate32.errors = [
                           {
@@ -6815,32 +7040,32 @@ function validate32(
                         ];
                         return false;
                       }
-                      var valid0 = _errs9 === errors;
+                      var valid5 = _errs22 === errors;
                     } else {
-                      var valid0 = true;
+                      var valid5 = true;
                     }
-                    if (valid0) {
+                    if (valid5) {
                       if (data.parseMode !== undefined) {
-                        const _errs10 = errors;
-                        if ("preserve" !== data.parseMode) {
+                        const _errs23 = errors;
+                        if (typeof data.parseMode !== "string") {
                           validate32.errors = [
                             {
                               instancePath: instancePath + "/parseMode",
-                              schemaPath: "#/properties/parseMode/const",
-                              keyword: "const",
-                              params: { allowedValue: "preserve" },
-                              message: "must be equal to constant",
+                              schemaPath: "#/properties/parseMode/type",
+                              keyword: "type",
+                              params: { type: "string" },
+                              message: "must be string",
                             },
                           ];
                           return false;
                         }
-                        var valid0 = _errs10 === errors;
+                        var valid5 = _errs23 === errors;
                       } else {
-                        var valid0 = true;
+                        var valid5 = true;
                       }
-                      if (valid0) {
+                      if (valid5) {
                         if (data.sourceBytesRetained !== undefined) {
-                          const _errs11 = errors;
+                          const _errs25 = errors;
                           if (true !== data.sourceBytesRetained) {
                             validate32.errors = [
                               {
@@ -6855,18 +7080,18 @@ function validate32(
                             ];
                             return false;
                           }
-                          var valid0 = _errs11 === errors;
+                          var valid5 = _errs25 === errors;
                         } else {
-                          var valid0 = true;
+                          var valid5 = true;
                         }
-                        if (valid0) {
+                        if (valid5) {
                           if (data.sourceAssessment !== undefined) {
-                            let data8 = data.sourceAssessment;
-                            const _errs12 = errors;
+                            let data12 = data.sourceAssessment;
+                            const _errs26 = errors;
                             if (!(
-                              data8 === "valid" ||
-                              data8 === "invalid" ||
-                              data8 === "unverified"
+                              data12 === "valid" ||
+                              data12 === "invalid" ||
+                              data12 === "unverified"
                             )) {
                               validate32.errors = [
                                 {
@@ -6885,13 +7110,13 @@ function validate32(
                               ];
                               return false;
                             }
-                            var valid0 = _errs12 === errors;
+                            var valid5 = _errs26 === errors;
                           } else {
-                            var valid0 = true;
+                            var valid5 = true;
                           }
-                          if (valid0) {
+                          if (valid5) {
                             if (data.profileAssessment !== undefined) {
-                              const _errs13 = errors;
+                              const _errs27 = errors;
                               if ("NOT_EVALUATED" !== data.profileAssessment) {
                                 validate32.errors = [
                                   {
@@ -6906,13 +7131,13 @@ function validate32(
                                 ];
                                 return false;
                               }
-                              var valid0 = _errs13 === errors;
+                              var valid5 = _errs27 === errors;
                             } else {
-                              var valid0 = true;
+                              var valid5 = true;
                             }
-                            if (valid0) {
+                            if (valid5) {
                               if (data.closureQualification !== undefined) {
-                                const _errs14 = errors;
+                                const _errs28 = errors;
                                 if (
                                   "UNASSESSED" !== data.closureQualification
                                 ) {
@@ -6929,13 +7154,13 @@ function validate32(
                                   ];
                                   return false;
                                 }
-                                var valid0 = _errs14 === errors;
+                                var valid5 = _errs28 === errors;
                               } else {
-                                var valid0 = true;
+                                var valid5 = true;
                               }
-                              if (valid0) {
+                              if (valid5) {
                                 if (data.consumerAdmission !== undefined) {
-                                  const _errs15 = errors;
+                                  const _errs29 = errors;
                                   if (
                                     "NOT_EVALUATED" !== data.consumerAdmission
                                   ) {
@@ -6954,17 +7179,17 @@ function validate32(
                                     ];
                                     return false;
                                   }
-                                  var valid0 = _errs15 === errors;
+                                  var valid5 = _errs29 === errors;
                                 } else {
-                                  var valid0 = true;
+                                  var valid5 = true;
                                 }
-                                if (valid0) {
+                                if (valid5) {
                                   if (data.diagnosticCodes !== undefined) {
-                                    let data12 = data.diagnosticCodes;
-                                    const _errs16 = errors;
-                                    if (errors === _errs16) {
-                                      if (Array.isArray(data12)) {
-                                        if (data12.length > 64) {
+                                    let data16 = data.diagnosticCodes;
+                                    const _errs30 = errors;
+                                    if (errors === _errs30) {
+                                      if (Array.isArray(data16)) {
+                                        if (data16.length > 64) {
                                           validate32.errors = [
                                             {
                                               instancePath:
@@ -6980,15 +7205,15 @@ function validate32(
                                           ];
                                           return false;
                                         } else {
-                                          var valid2 = true;
-                                          const len0 = data12.length;
+                                          var valid7 = true;
+                                          const len0 = data16.length;
                                           for (let i0 = 0; i0 < len0; i0++) {
-                                            let data13 = data12[i0];
-                                            const _errs18 = errors;
-                                            const _errs19 = errors;
-                                            if (errors === _errs19) {
-                                              if (typeof data13 === "string") {
-                                                if (!pattern47.test(data13)) {
+                                            let data17 = data16[i0];
+                                            const _errs32 = errors;
+                                            const _errs33 = errors;
+                                            if (errors === _errs33) {
+                                              if (typeof data17 === "string") {
+                                                if (!pattern47.test(data17)) {
                                                   validate32.errors = [
                                                     {
                                                       instancePath:
@@ -7027,21 +7252,21 @@ function validate32(
                                                 return false;
                                               }
                                             }
-                                            var valid2 = _errs18 === errors;
-                                            if (!valid2) {
+                                            var valid7 = _errs32 === errors;
+                                            if (!valid7) {
                                               break;
                                             }
                                           }
-                                          if (valid2) {
-                                            let i1 = data12.length;
+                                          if (valid7) {
+                                            let i1 = data16.length;
                                             let j0;
                                             if (i1 > 1) {
                                               outer0: for (; i1--;) {
                                                 for (j0 = i1; j0--;) {
                                                   if (
                                                     func0(
-                                                      data12[i1],
-                                                      data12[j0],
+                                                      data16[i1],
+                                                      data16[j0],
                                                     )
                                                   ) {
                                                     validate32.errors = [
@@ -7087,15 +7312,15 @@ function validate32(
                                         return false;
                                       }
                                     }
-                                    var valid0 = _errs16 === errors;
+                                    var valid5 = _errs30 === errors;
                                   } else {
-                                    var valid0 = true;
+                                    var valid5 = true;
                                   }
-                                  if (valid0) {
+                                  if (valid5) {
                                     if (
                                       data.diagnosticsTruncated !== undefined
                                     ) {
-                                      const _errs21 = errors;
+                                      const _errs35 = errors;
                                       if (
                                         typeof data.diagnosticsTruncated !==
                                         "boolean"
@@ -7114,23 +7339,23 @@ function validate32(
                                         ];
                                         return false;
                                       }
-                                      var valid0 = _errs21 === errors;
+                                      var valid5 = _errs35 === errors;
                                     } else {
-                                      var valid0 = true;
+                                      var valid5 = true;
                                     }
-                                    if (valid0) {
+                                    if (valid5) {
                                       if (
                                         data.importDeclarationCount !==
                                         undefined
                                       ) {
-                                        let data15 =
+                                        let data19 =
                                           data.importDeclarationCount;
-                                        const _errs23 = errors;
+                                        const _errs37 = errors;
                                         if (!(
-                                          typeof data15 == "number" &&
-                                          !(data15 % 1) &&
-                                          !isNaN(data15) &&
-                                          isFinite(data15)
+                                          typeof data19 == "number" &&
+                                          !(data19 % 1) &&
+                                          !isNaN(data19) &&
+                                          isFinite(data19)
                                         )) {
                                           validate32.errors = [
                                             {
@@ -7146,14 +7371,14 @@ function validate32(
                                           ];
                                           return false;
                                         }
-                                        if (errors === _errs23) {
+                                        if (errors === _errs37) {
                                           if (
-                                            typeof data15 == "number" &&
-                                            isFinite(data15)
+                                            typeof data19 == "number" &&
+                                            isFinite(data19)
                                           ) {
                                             if (
-                                              data15 > 9007199254740991 ||
-                                              isNaN(data15)
+                                              data19 > 9007199254740991 ||
+                                              isNaN(data19)
                                             ) {
                                               validate32.errors = [
                                                 {
@@ -7173,7 +7398,7 @@ function validate32(
                                               ];
                                               return false;
                                             } else {
-                                              if (data15 < 0 || isNaN(data15)) {
+                                              if (data19 < 0 || isNaN(data19)) {
                                                 validate32.errors = [
                                                   {
                                                     instancePath:
@@ -7194,17 +7419,17 @@ function validate32(
                                             }
                                           }
                                         }
-                                        var valid0 = _errs23 === errors;
+                                        var valid5 = _errs37 === errors;
                                       } else {
-                                        var valid0 = true;
+                                        var valid5 = true;
                                       }
-                                      if (valid0) {
+                                      if (valid5) {
                                         if (data.ontologyIris !== undefined) {
-                                          let data16 = data.ontologyIris;
-                                          const _errs25 = errors;
-                                          if (errors === _errs25) {
-                                            if (Array.isArray(data16)) {
-                                              if (data16.length > 64) {
+                                          let data20 = data.ontologyIris;
+                                          const _errs39 = errors;
+                                          if (errors === _errs39) {
+                                            if (Array.isArray(data20)) {
+                                              if (data20.length > 64) {
                                                 validate32.errors = [
                                                   {
                                                     instancePath:
@@ -7220,22 +7445,22 @@ function validate32(
                                                 ];
                                                 return false;
                                               } else {
-                                                var valid5 = true;
-                                                const len1 = data16.length;
+                                                var valid10 = true;
+                                                const len1 = data20.length;
                                                 for (
                                                   let i2 = 0;
                                                   i2 < len1;
                                                   i2++
                                                 ) {
-                                                  let data17 = data16[i2];
-                                                  const _errs27 = errors;
-                                                  const _errs28 = errors;
-                                                  if (errors === _errs28) {
+                                                  let data21 = data20[i2];
+                                                  const _errs41 = errors;
+                                                  const _errs42 = errors;
+                                                  if (errors === _errs42) {
                                                     if (
-                                                      typeof data17 === "string"
+                                                      typeof data21 === "string"
                                                     ) {
                                                       if (
-                                                        func2(data17) > 8192
+                                                        func2(data21) > 8192
                                                       ) {
                                                         validate32.errors = [
                                                           {
@@ -7256,7 +7481,7 @@ function validate32(
                                                         ];
                                                         return false;
                                                       } else {
-                                                        if (func2(data17) < 1) {
+                                                        if (func2(data21) < 1) {
                                                           validate32.errors = [
                                                             {
                                                               instancePath:
@@ -7278,7 +7503,7 @@ function validate32(
                                                         } else {
                                                           if (
                                                             !pattern65.test(
-                                                              data17,
+                                                              data21,
                                                             )
                                                           ) {
                                                             validate32.errors =
@@ -7326,9 +7551,9 @@ function validate32(
                                                       return false;
                                                     }
                                                   }
-                                                  var valid5 =
-                                                    _errs27 === errors;
-                                                  if (!valid5) {
+                                                  var valid10 =
+                                                    _errs41 === errors;
+                                                  if (!valid10) {
                                                     break;
                                                   }
                                                 }
@@ -7349,21 +7574,21 @@ function validate32(
                                               return false;
                                             }
                                           }
-                                          var valid0 = _errs25 === errors;
+                                          var valid5 = _errs39 === errors;
                                         } else {
-                                          var valid0 = true;
+                                          var valid5 = true;
                                         }
-                                        if (valid0) {
+                                        if (valid5) {
                                           if (
                                             data.declaredVersionIris !==
                                             undefined
                                           ) {
-                                            let data18 =
+                                            let data22 =
                                               data.declaredVersionIris;
-                                            const _errs30 = errors;
-                                            if (errors === _errs30) {
-                                              if (Array.isArray(data18)) {
-                                                if (data18.length > 64) {
+                                            const _errs44 = errors;
+                                            if (errors === _errs44) {
+                                              if (Array.isArray(data22)) {
+                                                if (data22.length > 64) {
                                                   validate32.errors = [
                                                     {
                                                       instancePath:
@@ -7379,23 +7604,23 @@ function validate32(
                                                   ];
                                                   return false;
                                                 } else {
-                                                  var valid7 = true;
-                                                  const len2 = data18.length;
+                                                  var valid12 = true;
+                                                  const len2 = data22.length;
                                                   for (
                                                     let i3 = 0;
                                                     i3 < len2;
                                                     i3++
                                                   ) {
-                                                    let data19 = data18[i3];
-                                                    const _errs32 = errors;
-                                                    const _errs33 = errors;
-                                                    if (errors === _errs33) {
+                                                    let data23 = data22[i3];
+                                                    const _errs46 = errors;
+                                                    const _errs47 = errors;
+                                                    if (errors === _errs47) {
                                                       if (
-                                                        typeof data19 ===
+                                                        typeof data23 ===
                                                         "string"
                                                       ) {
                                                         if (
-                                                          func2(data19) > 8192
+                                                          func2(data23) > 8192
                                                         ) {
                                                           validate32.errors = [
                                                             {
@@ -7417,7 +7642,7 @@ function validate32(
                                                           return false;
                                                         } else {
                                                           if (
-                                                            func2(data19) < 1
+                                                            func2(data23) < 1
                                                           ) {
                                                             validate32.errors =
                                                               [
@@ -7441,7 +7666,7 @@ function validate32(
                                                           } else {
                                                             if (
                                                               !pattern65.test(
-                                                                data19,
+                                                                data23,
                                                               )
                                                             ) {
                                                               validate32.errors =
@@ -7489,9 +7714,9 @@ function validate32(
                                                         return false;
                                                       }
                                                     }
-                                                    var valid7 =
-                                                      _errs32 === errors;
-                                                    if (!valid7) {
+                                                    var valid12 =
+                                                      _errs46 === errors;
+                                                    if (!valid12) {
                                                       break;
                                                     }
                                                   }
@@ -7512,16 +7737,16 @@ function validate32(
                                                 return false;
                                               }
                                             }
-                                            var valid0 = _errs30 === errors;
+                                            var valid5 = _errs44 === errors;
                                           } else {
-                                            var valid0 = true;
+                                            var valid5 = true;
                                           }
-                                          if (valid0) {
+                                          if (valid5) {
                                             if (
                                               data.identifiersTruncated !==
                                               undefined
                                             ) {
-                                              const _errs35 = errors;
+                                              const _errs49 = errors;
                                               if (
                                                 typeof data.identifiersTruncated !==
                                                 "boolean"
@@ -7540,9 +7765,9 @@ function validate32(
                                                 ];
                                                 return false;
                                               }
-                                              var valid0 = _errs35 === errors;
+                                              var valid5 = _errs49 === errors;
                                             } else {
-                                              var valid0 = true;
+                                              var valid5 = true;
                                             }
                                           }
                                         }
@@ -7586,12 +7811,12 @@ validate32.evaluated = {
 };
 
 export const policy = validate35;
-const schema107 = {
+const schema108 = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
   $id: "https://haddenindustries.com/ontology/contracts/v1/ontology-loader-policy.v1.schema.json",
   title: "Finite document validation policy evidence",
   description:
-    "Draft contract 1.0.0-draft.2; review artifact, not a deployed service promise.",
+    "Draft contract 1.0.0-draft.3; review artifact, not a deployed service promise.",
   type: "object",
   properties: {
     schemaVersion: { const: 1 },
@@ -7603,8 +7828,8 @@ const schema107 = {
       type: "object",
       properties: {
         validationContractVersion: { const: 1 },
-        validationProfileId: { const: "ontology-source-document-v1" },
-        parseMode: { const: "preserve" },
+        validationProfileId: { type: "string" },
+        parseMode: { type: "string" },
         formatSelectionMode: { const: "automatic" },
         decodingPolicy: { const: "strict-utf8-v1" },
         parserBasePolicy: { const: "effective-origin-response-v1" },
@@ -7748,6 +7973,11 @@ const schema107 = {
         "dependencyTranslations",
       ],
       additionalProperties: false,
+      allOf: [
+        {
+          $ref: "ontology-contract-common.v1.schema.json#/$defs/documentValidationProfile",
+        },
+      ],
     },
   },
   required: ["schemaVersion", "kind", "loaderProfileFingerprint", "policy"],
@@ -7981,7 +8211,7 @@ validate36.evaluated = {
   dynamicItems: false,
 };
 
-const schema113 = {
+const schema115 = {
   type: "object",
   properties: {
     dependencyName: { const: "owlapi" },
@@ -8057,7 +8287,7 @@ function validate38(
       } else {
         const _errs1 = errors;
         for (const key0 in data) {
-          if (!func1.call(schema113.properties, key0)) {
+          if (!func1.call(schema115.properties, key0)) {
             validate38.errors = [
               {
                 instancePath,
@@ -8624,7 +8854,184 @@ function validate35(
                 if (data.policy !== undefined) {
                   let data3 = data.policy;
                   const _errs7 = errors;
-                  if (errors === _errs7) {
+                  const _errs10 = errors;
+                  const _errs12 = errors;
+                  let valid4 = false;
+                  let passing0 = null;
+                  const _errs13 = errors;
+                  if (errors === _errs13) {
+                    if (
+                      data3 &&
+                      typeof data3 == "object" &&
+                      !Array.isArray(data3)
+                    ) {
+                      if (data3.validationProfileId !== undefined) {
+                        const _errs15 = errors;
+                        if (
+                          "ontology-source-document-heuristic-v1" !==
+                          data3.validationProfileId
+                        ) {
+                          const err0 = {
+                            instancePath:
+                              instancePath + "/policy/validationProfileId",
+                            schemaPath:
+                              "ontology-contract-common.v1.schema.json#/$defs/documentValidationProfile/oneOf/0/properties/validationProfileId/const",
+                            keyword: "const",
+                            params: {
+                              allowedValue:
+                                "ontology-source-document-heuristic-v1",
+                            },
+                            message: "must be equal to constant",
+                          };
+                          if (vErrors === null) {
+                            vErrors = [err0];
+                          } else {
+                            vErrors.push(err0);
+                          }
+                          errors++;
+                        }
+                        var valid5 = _errs15 === errors;
+                      } else {
+                        var valid5 = true;
+                      }
+                      if (valid5) {
+                        if (data3.parseMode !== undefined) {
+                          const _errs16 = errors;
+                          if ("compatible" !== data3.parseMode) {
+                            const err1 = {
+                              instancePath: instancePath + "/policy/parseMode",
+                              schemaPath:
+                                "ontology-contract-common.v1.schema.json#/$defs/documentValidationProfile/oneOf/0/properties/parseMode/const",
+                              keyword: "const",
+                              params: { allowedValue: "compatible" },
+                              message: "must be equal to constant",
+                            };
+                            if (vErrors === null) {
+                              vErrors = [err1];
+                            } else {
+                              vErrors.push(err1);
+                            }
+                            errors++;
+                          }
+                          var valid5 = _errs16 === errors;
+                        } else {
+                          var valid5 = true;
+                        }
+                      }
+                    }
+                  }
+                  var _valid0 = _errs13 === errors;
+                  if (_valid0) {
+                    valid4 = true;
+                    passing0 = 0;
+                    var props0 = {};
+                    props0.validationProfileId = true;
+                    props0.parseMode = true;
+                  }
+                  const _errs17 = errors;
+                  if (errors === _errs17) {
+                    if (
+                      data3 &&
+                      typeof data3 == "object" &&
+                      !Array.isArray(data3)
+                    ) {
+                      if (data3.validationProfileId !== undefined) {
+                        const _errs19 = errors;
+                        if (
+                          "ontology-source-document-v1" !==
+                          data3.validationProfileId
+                        ) {
+                          const err2 = {
+                            instancePath:
+                              instancePath + "/policy/validationProfileId",
+                            schemaPath:
+                              "ontology-contract-common.v1.schema.json#/$defs/documentValidationProfile/oneOf/1/properties/validationProfileId/const",
+                            keyword: "const",
+                            params: {
+                              allowedValue: "ontology-source-document-v1",
+                            },
+                            message: "must be equal to constant",
+                          };
+                          if (vErrors === null) {
+                            vErrors = [err2];
+                          } else {
+                            vErrors.push(err2);
+                          }
+                          errors++;
+                        }
+                        var valid6 = _errs19 === errors;
+                      } else {
+                        var valid6 = true;
+                      }
+                      if (valid6) {
+                        if (data3.parseMode !== undefined) {
+                          const _errs20 = errors;
+                          if ("preserve" !== data3.parseMode) {
+                            const err3 = {
+                              instancePath: instancePath + "/policy/parseMode",
+                              schemaPath:
+                                "ontology-contract-common.v1.schema.json#/$defs/documentValidationProfile/oneOf/1/properties/parseMode/const",
+                              keyword: "const",
+                              params: { allowedValue: "preserve" },
+                              message: "must be equal to constant",
+                            };
+                            if (vErrors === null) {
+                              vErrors = [err3];
+                            } else {
+                              vErrors.push(err3);
+                            }
+                            errors++;
+                          }
+                          var valid6 = _errs20 === errors;
+                        } else {
+                          var valid6 = true;
+                        }
+                      }
+                    }
+                  }
+                  var _valid0 = _errs17 === errors;
+                  if (_valid0 && valid4) {
+                    valid4 = false;
+                    passing0 = [passing0, 1];
+                  } else {
+                    if (_valid0) {
+                      valid4 = true;
+                      passing0 = 1;
+                      if (props0 !== true) {
+                        props0 = props0 || {};
+                        props0.validationProfileId = true;
+                        props0.parseMode = true;
+                      }
+                    }
+                  }
+                  if (!valid4) {
+                    const err4 = {
+                      instancePath: instancePath + "/policy",
+                      schemaPath:
+                        "ontology-contract-common.v1.schema.json#/$defs/documentValidationProfile/oneOf",
+                      keyword: "oneOf",
+                      params: { passingSchemas: passing0 },
+                      message: "must match exactly one schema in oneOf",
+                    };
+                    if (vErrors === null) {
+                      vErrors = [err4];
+                    } else {
+                      vErrors.push(err4);
+                    }
+                    errors++;
+                    validate35.errors = vErrors;
+                    return false;
+                  } else {
+                    errors = _errs12;
+                    if (vErrors !== null) {
+                      if (_errs12) {
+                        vErrors.length = _errs12;
+                      } else {
+                        vErrors = null;
+                      }
+                    }
+                  }
+                  if (errors === _errs10) {
                     if (
                       data3 &&
                       typeof data3 == "object" &&
@@ -8632,44 +9039,16 @@ function validate35(
                     ) {
                       let missing1;
                       if (
-                        (data3.validationContractVersion === undefined &&
-                          (missing1 = "validationContractVersion")) ||
                         (data3.validationProfileId === undefined &&
                           (missing1 = "validationProfileId")) ||
                         (data3.parseMode === undefined &&
-                          (missing1 = "parseMode")) ||
-                        (data3.formatSelectionMode === undefined &&
-                          (missing1 = "formatSelectionMode")) ||
-                        (data3.decodingPolicy === undefined &&
-                          (missing1 = "decodingPolicy")) ||
-                        (data3.parserBasePolicy === undefined &&
-                          (missing1 = "parserBasePolicy")) ||
-                        (data3.transportPolicy === undefined &&
-                          (missing1 = "transportPolicy")) ||
-                        (data3.remoteImports === undefined &&
-                          (missing1 = "remoteImports")) ||
-                        (data3.remoteJsonLdContexts === undefined &&
-                          (missing1 = "remoteJsonLdContexts")) ||
-                        (data3.externalXmlResources === undefined &&
-                          (missing1 = "externalXmlResources")) ||
-                        (data3.sourceAssessmentAdmission === undefined &&
-                          (missing1 = "sourceAssessmentAdmission")) ||
-                        (data3.formatInventorySha256 === undefined &&
-                          (missing1 = "formatInventorySha256")) ||
-                        (data3.acceptPreferenceSha256 === undefined &&
-                          (missing1 = "acceptPreferenceSha256")) ||
-                        (data3.requestVariant === undefined &&
-                          (missing1 = "requestVariant")) ||
-                        (data3.owlapiArtifact === undefined &&
-                          (missing1 = "owlapiArtifact")) ||
-                        (data3.limits === undefined && (missing1 = "limits")) ||
-                        (data3.dependencyTranslations === undefined &&
-                          (missing1 = "dependencyTranslations"))
+                          (missing1 = "parseMode"))
                       ) {
                         validate35.errors = [
                           {
                             instancePath: instancePath + "/policy",
-                            schemaPath: "#/properties/policy/required",
+                            schemaPath:
+                              "ontology-contract-common.v1.schema.json#/$defs/documentValidationProfile/required",
                             keyword: "required",
                             params: { missingProperty: missing1 },
                             message:
@@ -8677,12 +9056,80 @@ function validate35(
                           },
                         ];
                         return false;
+                      }
+                    } else {
+                      validate35.errors = [
+                        {
+                          instancePath: instancePath + "/policy",
+                          schemaPath:
+                            "ontology-contract-common.v1.schema.json#/$defs/documentValidationProfile/type",
+                          keyword: "type",
+                          params: { type: "object" },
+                          message: "must be object",
+                        },
+                      ];
+                      return false;
+                    }
+                  }
+                  if (errors === _errs7) {
+                    if (
+                      data3 &&
+                      typeof data3 == "object" &&
+                      !Array.isArray(data3)
+                    ) {
+                      let missing2;
+                      if (
+                        (data3.validationContractVersion === undefined &&
+                          (missing2 = "validationContractVersion")) ||
+                        (data3.validationProfileId === undefined &&
+                          (missing2 = "validationProfileId")) ||
+                        (data3.parseMode === undefined &&
+                          (missing2 = "parseMode")) ||
+                        (data3.formatSelectionMode === undefined &&
+                          (missing2 = "formatSelectionMode")) ||
+                        (data3.decodingPolicy === undefined &&
+                          (missing2 = "decodingPolicy")) ||
+                        (data3.parserBasePolicy === undefined &&
+                          (missing2 = "parserBasePolicy")) ||
+                        (data3.transportPolicy === undefined &&
+                          (missing2 = "transportPolicy")) ||
+                        (data3.remoteImports === undefined &&
+                          (missing2 = "remoteImports")) ||
+                        (data3.remoteJsonLdContexts === undefined &&
+                          (missing2 = "remoteJsonLdContexts")) ||
+                        (data3.externalXmlResources === undefined &&
+                          (missing2 = "externalXmlResources")) ||
+                        (data3.sourceAssessmentAdmission === undefined &&
+                          (missing2 = "sourceAssessmentAdmission")) ||
+                        (data3.formatInventorySha256 === undefined &&
+                          (missing2 = "formatInventorySha256")) ||
+                        (data3.acceptPreferenceSha256 === undefined &&
+                          (missing2 = "acceptPreferenceSha256")) ||
+                        (data3.requestVariant === undefined &&
+                          (missing2 = "requestVariant")) ||
+                        (data3.owlapiArtifact === undefined &&
+                          (missing2 = "owlapiArtifact")) ||
+                        (data3.limits === undefined && (missing2 = "limits")) ||
+                        (data3.dependencyTranslations === undefined &&
+                          (missing2 = "dependencyTranslations"))
+                      ) {
+                        validate35.errors = [
+                          {
+                            instancePath: instancePath + "/policy",
+                            schemaPath: "#/properties/policy/required",
+                            keyword: "required",
+                            params: { missingProperty: missing2 },
+                            message:
+                              "must have required property '" + missing2 + "'",
+                          },
+                        ];
+                        return false;
                       } else {
-                        const _errs9 = errors;
+                        const _errs21 = errors;
                         for (const key1 in data3) {
                           if (
                             !func1.call(
-                              schema107.properties.policy.properties,
+                              schema108.properties.policy.properties,
                               key1,
                             )
                           ) {
@@ -8700,9 +9147,9 @@ function validate35(
                             break;
                           }
                         }
-                        if (_errs9 === errors) {
+                        if (_errs21 === errors) {
                           if (data3.validationContractVersion !== undefined) {
-                            const _errs10 = errors;
+                            const _errs22 = errors;
                             if (1 !== data3.validationContractVersion) {
                               validate35.errors = [
                                 {
@@ -8718,16 +9165,15 @@ function validate35(
                               ];
                               return false;
                             }
-                            var valid2 = _errs10 === errors;
+                            var valid7 = _errs22 === errors;
                           } else {
-                            var valid2 = true;
+                            var valid7 = true;
                           }
-                          if (valid2) {
+                          if (valid7) {
                             if (data3.validationProfileId !== undefined) {
-                              const _errs11 = errors;
+                              const _errs23 = errors;
                               if (
-                                "ontology-source-document-v1" !==
-                                data3.validationProfileId
+                                typeof data3.validationProfileId !== "string"
                               ) {
                                 validate35.errors = [
                                   {
@@ -8735,45 +9181,42 @@ function validate35(
                                       instancePath +
                                       "/policy/validationProfileId",
                                     schemaPath:
-                                      "#/properties/policy/properties/validationProfileId/const",
-                                    keyword: "const",
-                                    params: {
-                                      allowedValue:
-                                        "ontology-source-document-v1",
-                                    },
-                                    message: "must be equal to constant",
+                                      "#/properties/policy/properties/validationProfileId/type",
+                                    keyword: "type",
+                                    params: { type: "string" },
+                                    message: "must be string",
                                   },
                                 ];
                                 return false;
                               }
-                              var valid2 = _errs11 === errors;
+                              var valid7 = _errs23 === errors;
                             } else {
-                              var valid2 = true;
+                              var valid7 = true;
                             }
-                            if (valid2) {
+                            if (valid7) {
                               if (data3.parseMode !== undefined) {
-                                const _errs12 = errors;
-                                if ("preserve" !== data3.parseMode) {
+                                const _errs25 = errors;
+                                if (typeof data3.parseMode !== "string") {
                                   validate35.errors = [
                                     {
                                       instancePath:
                                         instancePath + "/policy/parseMode",
                                       schemaPath:
-                                        "#/properties/policy/properties/parseMode/const",
-                                      keyword: "const",
-                                      params: { allowedValue: "preserve" },
-                                      message: "must be equal to constant",
+                                        "#/properties/policy/properties/parseMode/type",
+                                      keyword: "type",
+                                      params: { type: "string" },
+                                      message: "must be string",
                                     },
                                   ];
                                   return false;
                                 }
-                                var valid2 = _errs12 === errors;
+                                var valid7 = _errs25 === errors;
                               } else {
-                                var valid2 = true;
+                                var valid7 = true;
                               }
-                              if (valid2) {
+                              if (valid7) {
                                 if (data3.formatSelectionMode !== undefined) {
-                                  const _errs13 = errors;
+                                  const _errs27 = errors;
                                   if (
                                     "automatic" !== data3.formatSelectionMode
                                   ) {
@@ -8791,13 +9234,13 @@ function validate35(
                                     ];
                                     return false;
                                   }
-                                  var valid2 = _errs13 === errors;
+                                  var valid7 = _errs27 === errors;
                                 } else {
-                                  var valid2 = true;
+                                  var valid7 = true;
                                 }
-                                if (valid2) {
+                                if (valid7) {
                                   if (data3.decodingPolicy !== undefined) {
-                                    const _errs14 = errors;
+                                    const _errs28 = errors;
                                     if (
                                       "strict-utf8-v1" !== data3.decodingPolicy
                                     ) {
@@ -8817,13 +9260,13 @@ function validate35(
                                       ];
                                       return false;
                                     }
-                                    var valid2 = _errs14 === errors;
+                                    var valid7 = _errs28 === errors;
                                   } else {
-                                    var valid2 = true;
+                                    var valid7 = true;
                                   }
-                                  if (valid2) {
+                                  if (valid7) {
                                     if (data3.parserBasePolicy !== undefined) {
-                                      const _errs15 = errors;
+                                      const _errs29 = errors;
                                       if (
                                         "effective-origin-response-v1" !==
                                         data3.parserBasePolicy
@@ -8846,13 +9289,13 @@ function validate35(
                                         ];
                                         return false;
                                       }
-                                      var valid2 = _errs15 === errors;
+                                      var valid7 = _errs29 === errors;
                                     } else {
-                                      var valid2 = true;
+                                      var valid7 = true;
                                     }
-                                    if (valid2) {
+                                    if (valid7) {
                                       if (data3.transportPolicy !== undefined) {
-                                        const _errs16 = errors;
+                                        const _errs30 = errors;
                                         if (
                                           "https-preferred-original-http-fallback-v1" !==
                                           data3.transportPolicy
@@ -8875,13 +9318,13 @@ function validate35(
                                           ];
                                           return false;
                                         }
-                                        var valid2 = _errs16 === errors;
+                                        var valid7 = _errs30 === errors;
                                       } else {
-                                        var valid2 = true;
+                                        var valid7 = true;
                                       }
-                                      if (valid2) {
+                                      if (valid7) {
                                         if (data3.remoteImports !== undefined) {
-                                          const _errs17 = errors;
+                                          const _errs31 = errors;
                                           if (false !== data3.remoteImports) {
                                             validate35.errors = [
                                               {
@@ -8898,16 +9341,16 @@ function validate35(
                                             ];
                                             return false;
                                           }
-                                          var valid2 = _errs17 === errors;
+                                          var valid7 = _errs31 === errors;
                                         } else {
-                                          var valid2 = true;
+                                          var valid7 = true;
                                         }
-                                        if (valid2) {
+                                        if (valid7) {
                                           if (
                                             data3.remoteJsonLdContexts !==
                                             undefined
                                           ) {
-                                            const _errs18 = errors;
+                                            const _errs32 = errors;
                                             if (
                                               false !==
                                               data3.remoteJsonLdContexts
@@ -8929,16 +9372,16 @@ function validate35(
                                               ];
                                               return false;
                                             }
-                                            var valid2 = _errs18 === errors;
+                                            var valid7 = _errs32 === errors;
                                           } else {
-                                            var valid2 = true;
+                                            var valid7 = true;
                                           }
-                                          if (valid2) {
+                                          if (valid7) {
                                             if (
                                               data3.externalXmlResources !==
                                               undefined
                                             ) {
-                                              const _errs19 = errors;
+                                              const _errs33 = errors;
                                               if (
                                                 false !==
                                                 data3.externalXmlResources
@@ -8960,16 +9403,16 @@ function validate35(
                                                 ];
                                                 return false;
                                               }
-                                              var valid2 = _errs19 === errors;
+                                              var valid7 = _errs33 === errors;
                                             } else {
-                                              var valid2 = true;
+                                              var valid7 = true;
                                             }
-                                            if (valid2) {
+                                            if (valid7) {
                                               if (
                                                 data3.sourceAssessmentAdmission !==
                                                 undefined
                                               ) {
-                                                const _errs20 = errors;
+                                                const _errs34 = errors;
                                                 if (
                                                   "report-only" !==
                                                   data3.sourceAssessmentAdmission
@@ -8992,25 +9435,25 @@ function validate35(
                                                   ];
                                                   return false;
                                                 }
-                                                var valid2 = _errs20 === errors;
+                                                var valid7 = _errs34 === errors;
                                               } else {
-                                                var valid2 = true;
+                                                var valid7 = true;
                                               }
-                                              if (valid2) {
+                                              if (valid7) {
                                                 if (
                                                   data3.formatInventorySha256 !==
                                                   undefined
                                                 ) {
-                                                  let data15 =
+                                                  let data19 =
                                                     data3.formatInventorySha256;
-                                                  const _errs21 = errors;
-                                                  const _errs22 = errors;
-                                                  if (errors === _errs22) {
+                                                  const _errs35 = errors;
+                                                  const _errs36 = errors;
+                                                  if (errors === _errs36) {
                                                     if (
-                                                      typeof data15 === "string"
+                                                      typeof data19 === "string"
                                                     ) {
                                                       if (
-                                                        !pattern4.test(data15)
+                                                        !pattern4.test(data19)
                                                       ) {
                                                         validate35.errors = [
                                                           {
@@ -9051,27 +9494,27 @@ function validate35(
                                                       return false;
                                                     }
                                                   }
-                                                  var valid2 =
-                                                    _errs21 === errors;
+                                                  var valid7 =
+                                                    _errs35 === errors;
                                                 } else {
-                                                  var valid2 = true;
+                                                  var valid7 = true;
                                                 }
-                                                if (valid2) {
+                                                if (valid7) {
                                                   if (
                                                     data3.acceptPreferenceSha256 !==
                                                     undefined
                                                   ) {
-                                                    let data16 =
+                                                    let data20 =
                                                       data3.acceptPreferenceSha256;
-                                                    const _errs24 = errors;
-                                                    const _errs25 = errors;
-                                                    if (errors === _errs25) {
+                                                    const _errs38 = errors;
+                                                    const _errs39 = errors;
+                                                    if (errors === _errs39) {
                                                       if (
-                                                        typeof data16 ===
+                                                        typeof data20 ===
                                                         "string"
                                                       ) {
                                                         if (
-                                                          !pattern4.test(data16)
+                                                          !pattern4.test(data20)
                                                         ) {
                                                           validate35.errors = [
                                                             {
@@ -9113,17 +9556,17 @@ function validate35(
                                                         return false;
                                                       }
                                                     }
-                                                    var valid2 =
-                                                      _errs24 === errors;
+                                                    var valid7 =
+                                                      _errs38 === errors;
                                                   } else {
-                                                    var valid2 = true;
+                                                    var valid7 = true;
                                                   }
-                                                  if (valid2) {
+                                                  if (valid7) {
                                                     if (
                                                       data3.requestVariant !==
                                                       undefined
                                                     ) {
-                                                      const _errs27 = errors;
+                                                      const _errs41 = errors;
                                                       if (
                                                         !validate36(
                                                           data3.requestVariant,
@@ -9147,17 +9590,17 @@ function validate35(
                                                               );
                                                         errors = vErrors.length;
                                                       }
-                                                      var valid2 =
-                                                        _errs27 === errors;
+                                                      var valid7 =
+                                                        _errs41 === errors;
                                                     } else {
-                                                      var valid2 = true;
+                                                      var valid7 = true;
                                                     }
-                                                    if (valid2) {
+                                                    if (valid7) {
                                                       if (
                                                         data3.owlapiArtifact !==
                                                         undefined
                                                       ) {
-                                                        const _errs28 = errors;
+                                                        const _errs42 = errors;
                                                         if (
                                                           !validate38(
                                                             data3.owlapiArtifact,
@@ -9182,124 +9625,124 @@ function validate35(
                                                           errors =
                                                             vErrors.length;
                                                         }
-                                                        var valid2 =
-                                                          _errs28 === errors;
+                                                        var valid7 =
+                                                          _errs42 === errors;
                                                       } else {
-                                                        var valid2 = true;
+                                                        var valid7 = true;
                                                       }
-                                                      if (valid2) {
+                                                      if (valid7) {
                                                         if (
                                                           data3.limits !==
                                                           undefined
                                                         ) {
-                                                          let data19 =
+                                                          let data23 =
                                                             data3.limits;
-                                                          const _errs29 =
+                                                          const _errs43 =
                                                             errors;
                                                           if (
-                                                            errors === _errs29
+                                                            errors === _errs43
                                                           ) {
                                                             if (
-                                                              data19 &&
-                                                              typeof data19 ==
+                                                              data23 &&
+                                                              typeof data23 ==
                                                                 "object" &&
                                                               !Array.isArray(
-                                                                data19,
+                                                                data23,
                                                               )
                                                             ) {
-                                                              let missing2;
+                                                              let missing3;
                                                               if (
-                                                                (data19.encodedBytes ===
+                                                                (data23.encodedBytes ===
                                                                   undefined &&
-                                                                  (missing2 =
+                                                                  (missing3 =
                                                                     "encodedBytes")) ||
-                                                                (data19.decodedBytes ===
+                                                                (data23.decodedBytes ===
                                                                   undefined &&
-                                                                  (missing2 =
+                                                                  (missing3 =
                                                                     "decodedBytes")) ||
-                                                                (data19.expandedXmlBytes ===
+                                                                (data23.expandedXmlBytes ===
                                                                   undefined &&
-                                                                  (missing2 =
+                                                                  (missing3 =
                                                                     "expandedXmlBytes")) ||
-                                                                (data19.decompressionRatio ===
+                                                                (data23.decompressionRatio ===
                                                                   undefined &&
-                                                                  (missing2 =
+                                                                  (missing3 =
                                                                     "decompressionRatio")) ||
-                                                                (data19.redirects ===
+                                                                (data23.redirects ===
                                                                   undefined &&
-                                                                  (missing2 =
+                                                                  (missing3 =
                                                                     "redirects")) ||
-                                                                (data19.dnsMs ===
+                                                                (data23.dnsMs ===
                                                                   undefined &&
-                                                                  (missing2 =
+                                                                  (missing3 =
                                                                     "dnsMs")) ||
-                                                                (data19.connectTlsMs ===
+                                                                (data23.connectTlsMs ===
                                                                   undefined &&
-                                                                  (missing2 =
+                                                                  (missing3 =
                                                                     "connectTlsMs")) ||
-                                                                (data19.headersMs ===
+                                                                (data23.headersMs ===
                                                                   undefined &&
-                                                                  (missing2 =
+                                                                  (missing3 =
                                                                     "headersMs")) ||
-                                                                (data19.retrievalMs ===
+                                                                (data23.retrievalMs ===
                                                                   undefined &&
-                                                                  (missing2 =
+                                                                  (missing3 =
                                                                     "retrievalMs")) ||
-                                                                (data19.parseMs ===
+                                                                (data23.parseMs ===
                                                                   undefined &&
-                                                                  (missing2 =
+                                                                  (missing3 =
                                                                     "parseMs")) ||
-                                                                (data19.workerMs ===
+                                                                (data23.workerMs ===
                                                                   undefined &&
-                                                                  (missing2 =
+                                                                  (missing3 =
                                                                     "workerMs")) ||
-                                                                (data19.workerMemoryMiB ===
+                                                                (data23.workerMemoryMiB ===
                                                                   undefined &&
-                                                                  (missing2 =
+                                                                  (missing3 =
                                                                     "workerMemoryMiB")) ||
-                                                                (data19.tokenCount ===
+                                                                (data23.tokenCount ===
                                                                   undefined &&
-                                                                  (missing2 =
+                                                                  (missing3 =
                                                                     "tokenCount")) ||
-                                                                (data19.tokenBytes ===
+                                                                (data23.tokenBytes ===
                                                                   undefined &&
-                                                                  (missing2 =
+                                                                  (missing3 =
                                                                     "tokenBytes")) ||
-                                                                (data19.axiomCount ===
+                                                                (data23.axiomCount ===
                                                                   undefined &&
-                                                                  (missing2 =
+                                                                  (missing3 =
                                                                     "axiomCount")) ||
-                                                                (data19.blankNodeCount ===
+                                                                (data23.blankNodeCount ===
                                                                   undefined &&
-                                                                  (missing2 =
+                                                                  (missing3 =
                                                                     "blankNodeCount")) ||
-                                                                (data19.rdfQuadCount ===
+                                                                (data23.rdfQuadCount ===
                                                                   undefined &&
-                                                                  (missing2 =
+                                                                  (missing3 =
                                                                     "rdfQuadCount")) ||
-                                                                (data19.rdfListLength ===
+                                                                (data23.rdfListLength ===
                                                                   undefined &&
-                                                                  (missing2 =
+                                                                  (missing3 =
                                                                     "rdfListLength")) ||
-                                                                (data19.parserDepth ===
+                                                                (data23.parserDepth ===
                                                                   undefined &&
-                                                                  (missing2 =
+                                                                  (missing3 =
                                                                     "parserDepth")) ||
-                                                                (data19.entityDeclarations ===
+                                                                (data23.entityDeclarations ===
                                                                   undefined &&
-                                                                  (missing2 =
+                                                                  (missing3 =
                                                                     "entityDeclarations")) ||
-                                                                (data19.entityExpansionDepth ===
+                                                                (data23.entityExpansionDepth ===
                                                                   undefined &&
-                                                                  (missing2 =
+                                                                  (missing3 =
                                                                     "entityExpansionDepth")) ||
-                                                                (data19.entityReplacementBytes ===
+                                                                (data23.entityReplacementBytes ===
                                                                   undefined &&
-                                                                  (missing2 =
+                                                                  (missing3 =
                                                                     "entityReplacementBytes")) ||
-                                                                (data19.importFetchCount ===
+                                                                (data23.importFetchCount ===
                                                                   undefined &&
-                                                                  (missing2 =
+                                                                  (missing3 =
                                                                     "importFetchCount"))
                                                               ) {
                                                                 validate35.errors =
@@ -9314,22 +9757,22 @@ function validate35(
                                                                         "required",
                                                                       params: {
                                                                         missingProperty:
-                                                                          missing2,
+                                                                          missing3,
                                                                       },
                                                                       message:
                                                                         "must have required property '" +
-                                                                        missing2 +
+                                                                        missing3 +
                                                                         "'",
                                                                     },
                                                                   ];
                                                                 return false;
                                                               } else {
-                                                                const _errs31 =
+                                                                const _errs45 =
                                                                   errors;
-                                                                for (const key2 in data19) {
+                                                                for (const key2 in data23) {
                                                                   if (
                                                                     !func1.call(
-                                                                      schema107
+                                                                      schema108
                                                                         .properties
                                                                         .policy
                                                                         .properties
@@ -9362,29 +9805,29 @@ function validate35(
                                                                   }
                                                                 }
                                                                 if (
-                                                                  _errs31 ===
+                                                                  _errs45 ===
                                                                   errors
                                                                 ) {
                                                                   if (
-                                                                    data19.encodedBytes !==
+                                                                    data23.encodedBytes !==
                                                                     undefined
                                                                   ) {
-                                                                    let data20 =
-                                                                      data19.encodedBytes;
-                                                                    const _errs32 =
+                                                                    let data24 =
+                                                                      data23.encodedBytes;
+                                                                    const _errs46 =
                                                                       errors;
                                                                     if (!(
-                                                                      typeof data20 ==
+                                                                      typeof data24 ==
                                                                         "number" &&
                                                                       !(
-                                                                        data20 %
+                                                                        data24 %
                                                                         1
                                                                       ) &&
                                                                       !isNaN(
-                                                                        data20,
+                                                                        data24,
                                                                       ) &&
                                                                       isFinite(
-                                                                        data20,
+                                                                        data24,
                                                                       )
                                                                     )) {
                                                                       validate35.errors =
@@ -9409,20 +9852,20 @@ function validate35(
                                                                     }
                                                                     if (
                                                                       errors ===
-                                                                      _errs32
+                                                                      _errs46
                                                                     ) {
                                                                       if (
-                                                                        typeof data20 ==
+                                                                        typeof data24 ==
                                                                           "number" &&
                                                                         isFinite(
-                                                                          data20,
+                                                                          data24,
                                                                         )
                                                                       ) {
                                                                         if (
-                                                                          data20 >
+                                                                          data24 >
                                                                             33554432 ||
                                                                           isNaN(
-                                                                            data20,
+                                                                            data24,
                                                                           )
                                                                         ) {
                                                                           validate35.errors =
@@ -9448,10 +9891,10 @@ function validate35(
                                                                           return false;
                                                                         } else {
                                                                           if (
-                                                                            data20 <
+                                                                            data24 <
                                                                               1 ||
                                                                             isNaN(
-                                                                              data20,
+                                                                              data24,
                                                                             )
                                                                           ) {
                                                                             validate35.errors =
@@ -9479,33 +9922,33 @@ function validate35(
                                                                         }
                                                                       }
                                                                     }
-                                                                    var valid5 =
-                                                                      _errs32 ===
+                                                                    var valid10 =
+                                                                      _errs46 ===
                                                                       errors;
                                                                   } else {
-                                                                    var valid5 = true;
+                                                                    var valid10 = true;
                                                                   }
-                                                                  if (valid5) {
+                                                                  if (valid10) {
                                                                     if (
-                                                                      data19.decodedBytes !==
+                                                                      data23.decodedBytes !==
                                                                       undefined
                                                                     ) {
-                                                                      let data21 =
-                                                                        data19.decodedBytes;
-                                                                      const _errs34 =
+                                                                      let data25 =
+                                                                        data23.decodedBytes;
+                                                                      const _errs48 =
                                                                         errors;
                                                                       if (!(
-                                                                        typeof data21 ==
+                                                                        typeof data25 ==
                                                                           "number" &&
                                                                         !(
-                                                                          data21 %
+                                                                          data25 %
                                                                           1
                                                                         ) &&
                                                                         !isNaN(
-                                                                          data21,
+                                                                          data25,
                                                                         ) &&
                                                                         isFinite(
-                                                                          data21,
+                                                                          data25,
                                                                         )
                                                                       )) {
                                                                         validate35.errors =
@@ -9530,20 +9973,20 @@ function validate35(
                                                                       }
                                                                       if (
                                                                         errors ===
-                                                                        _errs34
+                                                                        _errs48
                                                                       ) {
                                                                         if (
-                                                                          typeof data21 ==
+                                                                          typeof data25 ==
                                                                             "number" &&
                                                                           isFinite(
-                                                                            data21,
+                                                                            data25,
                                                                           )
                                                                         ) {
                                                                           if (
-                                                                            data21 >
+                                                                            data25 >
                                                                               33554432 ||
                                                                             isNaN(
-                                                                              data21,
+                                                                              data25,
                                                                             )
                                                                           ) {
                                                                             validate35.errors =
@@ -9569,10 +10012,10 @@ function validate35(
                                                                             return false;
                                                                           } else {
                                                                             if (
-                                                                              data21 <
+                                                                              data25 <
                                                                                 1 ||
                                                                               isNaN(
-                                                                                data21,
+                                                                                data25,
                                                                               )
                                                                             ) {
                                                                               validate35.errors =
@@ -9600,35 +10043,35 @@ function validate35(
                                                                           }
                                                                         }
                                                                       }
-                                                                      var valid5 =
-                                                                        _errs34 ===
+                                                                      var valid10 =
+                                                                        _errs48 ===
                                                                         errors;
                                                                     } else {
-                                                                      var valid5 = true;
+                                                                      var valid10 = true;
                                                                     }
                                                                     if (
-                                                                      valid5
+                                                                      valid10
                                                                     ) {
                                                                       if (
-                                                                        data19.expandedXmlBytes !==
+                                                                        data23.expandedXmlBytes !==
                                                                         undefined
                                                                       ) {
-                                                                        let data22 =
-                                                                          data19.expandedXmlBytes;
-                                                                        const _errs36 =
+                                                                        let data26 =
+                                                                          data23.expandedXmlBytes;
+                                                                        const _errs50 =
                                                                           errors;
                                                                         if (!(
-                                                                          typeof data22 ==
+                                                                          typeof data26 ==
                                                                             "number" &&
                                                                           !(
-                                                                            data22 %
+                                                                            data26 %
                                                                             1
                                                                           ) &&
                                                                           !isNaN(
-                                                                            data22,
+                                                                            data26,
                                                                           ) &&
                                                                           isFinite(
-                                                                            data22,
+                                                                            data26,
                                                                           )
                                                                         )) {
                                                                           validate35.errors =
@@ -9653,20 +10096,20 @@ function validate35(
                                                                         }
                                                                         if (
                                                                           errors ===
-                                                                          _errs36
+                                                                          _errs50
                                                                         ) {
                                                                           if (
-                                                                            typeof data22 ==
+                                                                            typeof data26 ==
                                                                               "number" &&
                                                                             isFinite(
-                                                                              data22,
+                                                                              data26,
                                                                             )
                                                                           ) {
                                                                             if (
-                                                                              data22 >
+                                                                              data26 >
                                                                                 33554432 ||
                                                                               isNaN(
-                                                                                data22,
+                                                                                data26,
                                                                               )
                                                                             ) {
                                                                               validate35.errors =
@@ -9692,10 +10135,10 @@ function validate35(
                                                                               return false;
                                                                             } else {
                                                                               if (
-                                                                                data22 <
+                                                                                data26 <
                                                                                   1 ||
                                                                                 isNaN(
-                                                                                  data22,
+                                                                                  data26,
                                                                                 )
                                                                               ) {
                                                                                 validate35.errors =
@@ -9723,35 +10166,35 @@ function validate35(
                                                                             }
                                                                           }
                                                                         }
-                                                                        var valid5 =
-                                                                          _errs36 ===
+                                                                        var valid10 =
+                                                                          _errs50 ===
                                                                           errors;
                                                                       } else {
-                                                                        var valid5 = true;
+                                                                        var valid10 = true;
                                                                       }
                                                                       if (
-                                                                        valid5
+                                                                        valid10
                                                                       ) {
                                                                         if (
-                                                                          data19.decompressionRatio !==
+                                                                          data23.decompressionRatio !==
                                                                           undefined
                                                                         ) {
-                                                                          let data23 =
-                                                                            data19.decompressionRatio;
-                                                                          const _errs38 =
+                                                                          let data27 =
+                                                                            data23.decompressionRatio;
+                                                                          const _errs52 =
                                                                             errors;
                                                                           if (!(
-                                                                            typeof data23 ==
+                                                                            typeof data27 ==
                                                                               "number" &&
                                                                             !(
-                                                                              data23 %
+                                                                              data27 %
                                                                               1
                                                                             ) &&
                                                                             !isNaN(
-                                                                              data23,
+                                                                              data27,
                                                                             ) &&
                                                                             isFinite(
-                                                                              data23,
+                                                                              data27,
                                                                             )
                                                                           )) {
                                                                             validate35.errors =
@@ -9776,20 +10219,20 @@ function validate35(
                                                                           }
                                                                           if (
                                                                             errors ===
-                                                                            _errs38
+                                                                            _errs52
                                                                           ) {
                                                                             if (
-                                                                              typeof data23 ==
+                                                                              typeof data27 ==
                                                                                 "number" &&
                                                                               isFinite(
-                                                                                data23,
+                                                                                data27,
                                                                               )
                                                                             ) {
                                                                               if (
-                                                                                data23 >
+                                                                                data27 >
                                                                                   100 ||
                                                                                 isNaN(
-                                                                                  data23,
+                                                                                  data27,
                                                                                 )
                                                                               ) {
                                                                                 validate35.errors =
@@ -9815,10 +10258,10 @@ function validate35(
                                                                                 return false;
                                                                               } else {
                                                                                 if (
-                                                                                  data23 <
+                                                                                  data27 <
                                                                                     1 ||
                                                                                   isNaN(
-                                                                                    data23,
+                                                                                    data27,
                                                                                   )
                                                                                 ) {
                                                                                   validate35.errors =
@@ -9846,35 +10289,35 @@ function validate35(
                                                                               }
                                                                             }
                                                                           }
-                                                                          var valid5 =
-                                                                            _errs38 ===
+                                                                          var valid10 =
+                                                                            _errs52 ===
                                                                             errors;
                                                                         } else {
-                                                                          var valid5 = true;
+                                                                          var valid10 = true;
                                                                         }
                                                                         if (
-                                                                          valid5
+                                                                          valid10
                                                                         ) {
                                                                           if (
-                                                                            data19.redirects !==
+                                                                            data23.redirects !==
                                                                             undefined
                                                                           ) {
-                                                                            let data24 =
-                                                                              data19.redirects;
-                                                                            const _errs40 =
+                                                                            let data28 =
+                                                                              data23.redirects;
+                                                                            const _errs54 =
                                                                               errors;
                                                                             if (!(
-                                                                              typeof data24 ==
+                                                                              typeof data28 ==
                                                                                 "number" &&
                                                                               !(
-                                                                                data24 %
+                                                                                data28 %
                                                                                 1
                                                                               ) &&
                                                                               !isNaN(
-                                                                                data24,
+                                                                                data28,
                                                                               ) &&
                                                                               isFinite(
-                                                                                data24,
+                                                                                data28,
                                                                               )
                                                                             )) {
                                                                               validate35.errors =
@@ -9899,20 +10342,20 @@ function validate35(
                                                                             }
                                                                             if (
                                                                               errors ===
-                                                                              _errs40
+                                                                              _errs54
                                                                             ) {
                                                                               if (
-                                                                                typeof data24 ==
+                                                                                typeof data28 ==
                                                                                   "number" &&
                                                                                 isFinite(
-                                                                                  data24,
+                                                                                  data28,
                                                                                 )
                                                                               ) {
                                                                                 if (
-                                                                                  data24 >
+                                                                                  data28 >
                                                                                     3 ||
                                                                                   isNaN(
-                                                                                    data24,
+                                                                                    data28,
                                                                                   )
                                                                                 ) {
                                                                                   validate35.errors =
@@ -9938,10 +10381,10 @@ function validate35(
                                                                                   return false;
                                                                                 } else {
                                                                                   if (
-                                                                                    data24 <
+                                                                                    data28 <
                                                                                       0 ||
                                                                                     isNaN(
-                                                                                      data24,
+                                                                                      data28,
                                                                                     )
                                                                                   ) {
                                                                                     validate35.errors =
@@ -9969,35 +10412,35 @@ function validate35(
                                                                                 }
                                                                               }
                                                                             }
-                                                                            var valid5 =
-                                                                              _errs40 ===
+                                                                            var valid10 =
+                                                                              _errs54 ===
                                                                               errors;
                                                                           } else {
-                                                                            var valid5 = true;
+                                                                            var valid10 = true;
                                                                           }
                                                                           if (
-                                                                            valid5
+                                                                            valid10
                                                                           ) {
                                                                             if (
-                                                                              data19.dnsMs !==
+                                                                              data23.dnsMs !==
                                                                               undefined
                                                                             ) {
-                                                                              let data25 =
-                                                                                data19.dnsMs;
-                                                                              const _errs42 =
+                                                                              let data29 =
+                                                                                data23.dnsMs;
+                                                                              const _errs56 =
                                                                                 errors;
                                                                               if (!(
-                                                                                typeof data25 ==
+                                                                                typeof data29 ==
                                                                                   "number" &&
                                                                                 !(
-                                                                                  data25 %
+                                                                                  data29 %
                                                                                   1
                                                                                 ) &&
                                                                                 !isNaN(
-                                                                                  data25,
+                                                                                  data29,
                                                                                 ) &&
                                                                                 isFinite(
-                                                                                  data25,
+                                                                                  data29,
                                                                                 )
                                                                               )) {
                                                                                 validate35.errors =
@@ -10022,20 +10465,20 @@ function validate35(
                                                                               }
                                                                               if (
                                                                                 errors ===
-                                                                                _errs42
+                                                                                _errs56
                                                                               ) {
                                                                                 if (
-                                                                                  typeof data25 ==
+                                                                                  typeof data29 ==
                                                                                     "number" &&
                                                                                   isFinite(
-                                                                                    data25,
+                                                                                    data29,
                                                                                   )
                                                                                 ) {
                                                                                   if (
-                                                                                    data25 >
+                                                                                    data29 >
                                                                                       3000 ||
                                                                                     isNaN(
-                                                                                      data25,
+                                                                                      data29,
                                                                                     )
                                                                                   ) {
                                                                                     validate35.errors =
@@ -10061,10 +10504,10 @@ function validate35(
                                                                                     return false;
                                                                                   } else {
                                                                                     if (
-                                                                                      data25 <
+                                                                                      data29 <
                                                                                         1 ||
                                                                                       isNaN(
-                                                                                        data25,
+                                                                                        data29,
                                                                                       )
                                                                                     ) {
                                                                                       validate35.errors =
@@ -10092,35 +10535,35 @@ function validate35(
                                                                                   }
                                                                                 }
                                                                               }
-                                                                              var valid5 =
-                                                                                _errs42 ===
+                                                                              var valid10 =
+                                                                                _errs56 ===
                                                                                 errors;
                                                                             } else {
-                                                                              var valid5 = true;
+                                                                              var valid10 = true;
                                                                             }
                                                                             if (
-                                                                              valid5
+                                                                              valid10
                                                                             ) {
                                                                               if (
-                                                                                data19.connectTlsMs !==
+                                                                                data23.connectTlsMs !==
                                                                                 undefined
                                                                               ) {
-                                                                                let data26 =
-                                                                                  data19.connectTlsMs;
-                                                                                const _errs44 =
+                                                                                let data30 =
+                                                                                  data23.connectTlsMs;
+                                                                                const _errs58 =
                                                                                   errors;
                                                                                 if (!(
-                                                                                  typeof data26 ==
+                                                                                  typeof data30 ==
                                                                                     "number" &&
                                                                                   !(
-                                                                                    data26 %
+                                                                                    data30 %
                                                                                     1
                                                                                   ) &&
                                                                                   !isNaN(
-                                                                                    data26,
+                                                                                    data30,
                                                                                   ) &&
                                                                                   isFinite(
-                                                                                    data26,
+                                                                                    data30,
                                                                                   )
                                                                                 )) {
                                                                                   validate35.errors =
@@ -10145,20 +10588,20 @@ function validate35(
                                                                                 }
                                                                                 if (
                                                                                   errors ===
-                                                                                  _errs44
+                                                                                  _errs58
                                                                                 ) {
                                                                                   if (
-                                                                                    typeof data26 ==
+                                                                                    typeof data30 ==
                                                                                       "number" &&
                                                                                     isFinite(
-                                                                                      data26,
+                                                                                      data30,
                                                                                     )
                                                                                   ) {
                                                                                     if (
-                                                                                      data26 >
+                                                                                      data30 >
                                                                                         5000 ||
                                                                                       isNaN(
-                                                                                        data26,
+                                                                                        data30,
                                                                                       )
                                                                                     ) {
                                                                                       validate35.errors =
@@ -10184,10 +10627,10 @@ function validate35(
                                                                                       return false;
                                                                                     } else {
                                                                                       if (
-                                                                                        data26 <
+                                                                                        data30 <
                                                                                           1 ||
                                                                                         isNaN(
-                                                                                          data26,
+                                                                                          data30,
                                                                                         )
                                                                                       ) {
                                                                                         validate35.errors =
@@ -10215,35 +10658,35 @@ function validate35(
                                                                                     }
                                                                                   }
                                                                                 }
-                                                                                var valid5 =
-                                                                                  _errs44 ===
+                                                                                var valid10 =
+                                                                                  _errs58 ===
                                                                                   errors;
                                                                               } else {
-                                                                                var valid5 = true;
+                                                                                var valid10 = true;
                                                                               }
                                                                               if (
-                                                                                valid5
+                                                                                valid10
                                                                               ) {
                                                                                 if (
-                                                                                  data19.headersMs !==
+                                                                                  data23.headersMs !==
                                                                                   undefined
                                                                                 ) {
-                                                                                  let data27 =
-                                                                                    data19.headersMs;
-                                                                                  const _errs46 =
+                                                                                  let data31 =
+                                                                                    data23.headersMs;
+                                                                                  const _errs60 =
                                                                                     errors;
                                                                                   if (!(
-                                                                                    typeof data27 ==
+                                                                                    typeof data31 ==
                                                                                       "number" &&
                                                                                     !(
-                                                                                      data27 %
+                                                                                      data31 %
                                                                                       1
                                                                                     ) &&
                                                                                     !isNaN(
-                                                                                      data27,
+                                                                                      data31,
                                                                                     ) &&
                                                                                     isFinite(
-                                                                                      data27,
+                                                                                      data31,
                                                                                     )
                                                                                   )) {
                                                                                     validate35.errors =
@@ -10268,20 +10711,20 @@ function validate35(
                                                                                   }
                                                                                   if (
                                                                                     errors ===
-                                                                                    _errs46
+                                                                                    _errs60
                                                                                   ) {
                                                                                     if (
-                                                                                      typeof data27 ==
+                                                                                      typeof data31 ==
                                                                                         "number" &&
                                                                                       isFinite(
-                                                                                        data27,
+                                                                                        data31,
                                                                                       )
                                                                                     ) {
                                                                                       if (
-                                                                                        data27 >
+                                                                                        data31 >
                                                                                           10000 ||
                                                                                         isNaN(
-                                                                                          data27,
+                                                                                          data31,
                                                                                         )
                                                                                       ) {
                                                                                         validate35.errors =
@@ -10307,10 +10750,10 @@ function validate35(
                                                                                         return false;
                                                                                       } else {
                                                                                         if (
-                                                                                          data27 <
+                                                                                          data31 <
                                                                                             1 ||
                                                                                           isNaN(
-                                                                                            data27,
+                                                                                            data31,
                                                                                           )
                                                                                         ) {
                                                                                           validate35.errors =
@@ -10338,35 +10781,35 @@ function validate35(
                                                                                       }
                                                                                     }
                                                                                   }
-                                                                                  var valid5 =
-                                                                                    _errs46 ===
+                                                                                  var valid10 =
+                                                                                    _errs60 ===
                                                                                     errors;
                                                                                 } else {
-                                                                                  var valid5 = true;
+                                                                                  var valid10 = true;
                                                                                 }
                                                                                 if (
-                                                                                  valid5
+                                                                                  valid10
                                                                                 ) {
                                                                                   if (
-                                                                                    data19.retrievalMs !==
+                                                                                    data23.retrievalMs !==
                                                                                     undefined
                                                                                   ) {
-                                                                                    let data28 =
-                                                                                      data19.retrievalMs;
-                                                                                    const _errs48 =
+                                                                                    let data32 =
+                                                                                      data23.retrievalMs;
+                                                                                    const _errs62 =
                                                                                       errors;
                                                                                     if (!(
-                                                                                      typeof data28 ==
+                                                                                      typeof data32 ==
                                                                                         "number" &&
                                                                                       !(
-                                                                                        data28 %
+                                                                                        data32 %
                                                                                         1
                                                                                       ) &&
                                                                                       !isNaN(
-                                                                                        data28,
+                                                                                        data32,
                                                                                       ) &&
                                                                                       isFinite(
-                                                                                        data28,
+                                                                                        data32,
                                                                                       )
                                                                                     )) {
                                                                                       validate35.errors =
@@ -10391,20 +10834,20 @@ function validate35(
                                                                                     }
                                                                                     if (
                                                                                       errors ===
-                                                                                      _errs48
+                                                                                      _errs62
                                                                                     ) {
                                                                                       if (
-                                                                                        typeof data28 ==
+                                                                                        typeof data32 ==
                                                                                           "number" &&
                                                                                         isFinite(
-                                                                                          data28,
+                                                                                          data32,
                                                                                         )
                                                                                       ) {
                                                                                         if (
-                                                                                          data28 >
+                                                                                          data32 >
                                                                                             30000 ||
                                                                                           isNaN(
-                                                                                            data28,
+                                                                                            data32,
                                                                                           )
                                                                                         ) {
                                                                                           validate35.errors =
@@ -10430,10 +10873,10 @@ function validate35(
                                                                                           return false;
                                                                                         } else {
                                                                                           if (
-                                                                                            data28 <
+                                                                                            data32 <
                                                                                               1 ||
                                                                                             isNaN(
-                                                                                              data28,
+                                                                                              data32,
                                                                                             )
                                                                                           ) {
                                                                                             validate35.errors =
@@ -10461,35 +10904,35 @@ function validate35(
                                                                                         }
                                                                                       }
                                                                                     }
-                                                                                    var valid5 =
-                                                                                      _errs48 ===
+                                                                                    var valid10 =
+                                                                                      _errs62 ===
                                                                                       errors;
                                                                                   } else {
-                                                                                    var valid5 = true;
+                                                                                    var valid10 = true;
                                                                                   }
                                                                                   if (
-                                                                                    valid5
+                                                                                    valid10
                                                                                   ) {
                                                                                     if (
-                                                                                      data19.parseMs !==
+                                                                                      data23.parseMs !==
                                                                                       undefined
                                                                                     ) {
-                                                                                      let data29 =
-                                                                                        data19.parseMs;
-                                                                                      const _errs50 =
+                                                                                      let data33 =
+                                                                                        data23.parseMs;
+                                                                                      const _errs64 =
                                                                                         errors;
                                                                                       if (!(
-                                                                                        typeof data29 ==
+                                                                                        typeof data33 ==
                                                                                           "number" &&
                                                                                         !(
-                                                                                          data29 %
+                                                                                          data33 %
                                                                                           1
                                                                                         ) &&
                                                                                         !isNaN(
-                                                                                          data29,
+                                                                                          data33,
                                                                                         ) &&
                                                                                         isFinite(
-                                                                                          data29,
+                                                                                          data33,
                                                                                         )
                                                                                       )) {
                                                                                         validate35.errors =
@@ -10514,20 +10957,20 @@ function validate35(
                                                                                       }
                                                                                       if (
                                                                                         errors ===
-                                                                                        _errs50
+                                                                                        _errs64
                                                                                       ) {
                                                                                         if (
-                                                                                          typeof data29 ==
+                                                                                          typeof data33 ==
                                                                                             "number" &&
                                                                                           isFinite(
-                                                                                            data29,
+                                                                                            data33,
                                                                                           )
                                                                                         ) {
                                                                                           if (
-                                                                                            data29 >
+                                                                                            data33 >
                                                                                               20000 ||
                                                                                             isNaN(
-                                                                                              data29,
+                                                                                              data33,
                                                                                             )
                                                                                           ) {
                                                                                             validate35.errors =
@@ -10553,10 +10996,10 @@ function validate35(
                                                                                             return false;
                                                                                           } else {
                                                                                             if (
-                                                                                              data29 <
+                                                                                              data33 <
                                                                                                 1 ||
                                                                                               isNaN(
-                                                                                                data29,
+                                                                                                data33,
                                                                                               )
                                                                                             ) {
                                                                                               validate35.errors =
@@ -10584,35 +11027,35 @@ function validate35(
                                                                                           }
                                                                                         }
                                                                                       }
-                                                                                      var valid5 =
-                                                                                        _errs50 ===
+                                                                                      var valid10 =
+                                                                                        _errs64 ===
                                                                                         errors;
                                                                                     } else {
-                                                                                      var valid5 = true;
+                                                                                      var valid10 = true;
                                                                                     }
                                                                                     if (
-                                                                                      valid5
+                                                                                      valid10
                                                                                     ) {
                                                                                       if (
-                                                                                        data19.workerMs !==
+                                                                                        data23.workerMs !==
                                                                                         undefined
                                                                                       ) {
-                                                                                        let data30 =
-                                                                                          data19.workerMs;
-                                                                                        const _errs52 =
+                                                                                        let data34 =
+                                                                                          data23.workerMs;
+                                                                                        const _errs66 =
                                                                                           errors;
                                                                                         if (!(
-                                                                                          typeof data30 ==
+                                                                                          typeof data34 ==
                                                                                             "number" &&
                                                                                           !(
-                                                                                            data30 %
+                                                                                            data34 %
                                                                                             1
                                                                                           ) &&
                                                                                           !isNaN(
-                                                                                            data30,
+                                                                                            data34,
                                                                                           ) &&
                                                                                           isFinite(
-                                                                                            data30,
+                                                                                            data34,
                                                                                           )
                                                                                         )) {
                                                                                           validate35.errors =
@@ -10637,20 +11080,20 @@ function validate35(
                                                                                         }
                                                                                         if (
                                                                                           errors ===
-                                                                                          _errs52
+                                                                                          _errs66
                                                                                         ) {
                                                                                           if (
-                                                                                            typeof data30 ==
+                                                                                            typeof data34 ==
                                                                                               "number" &&
                                                                                             isFinite(
-                                                                                              data30,
+                                                                                              data34,
                                                                                             )
                                                                                           ) {
                                                                                             if (
-                                                                                              data30 >
+                                                                                              data34 >
                                                                                                 60000 ||
                                                                                               isNaN(
-                                                                                                data30,
+                                                                                                data34,
                                                                                               )
                                                                                             ) {
                                                                                               validate35.errors =
@@ -10676,10 +11119,10 @@ function validate35(
                                                                                               return false;
                                                                                             } else {
                                                                                               if (
-                                                                                                data30 <
+                                                                                                data34 <
                                                                                                   1 ||
                                                                                                 isNaN(
-                                                                                                  data30,
+                                                                                                  data34,
                                                                                                 )
                                                                                               ) {
                                                                                                 validate35.errors =
@@ -10707,35 +11150,35 @@ function validate35(
                                                                                             }
                                                                                           }
                                                                                         }
-                                                                                        var valid5 =
-                                                                                          _errs52 ===
+                                                                                        var valid10 =
+                                                                                          _errs66 ===
                                                                                           errors;
                                                                                       } else {
-                                                                                        var valid5 = true;
+                                                                                        var valid10 = true;
                                                                                       }
                                                                                       if (
-                                                                                        valid5
+                                                                                        valid10
                                                                                       ) {
                                                                                         if (
-                                                                                          data19.workerMemoryMiB !==
+                                                                                          data23.workerMemoryMiB !==
                                                                                           undefined
                                                                                         ) {
-                                                                                          let data31 =
-                                                                                            data19.workerMemoryMiB;
-                                                                                          const _errs54 =
+                                                                                          let data35 =
+                                                                                            data23.workerMemoryMiB;
+                                                                                          const _errs68 =
                                                                                             errors;
                                                                                           if (!(
-                                                                                            typeof data31 ==
+                                                                                            typeof data35 ==
                                                                                               "number" &&
                                                                                             !(
-                                                                                              data31 %
+                                                                                              data35 %
                                                                                               1
                                                                                             ) &&
                                                                                             !isNaN(
-                                                                                              data31,
+                                                                                              data35,
                                                                                             ) &&
                                                                                             isFinite(
-                                                                                              data31,
+                                                                                              data35,
                                                                                             )
                                                                                           )) {
                                                                                             validate35.errors =
@@ -10760,20 +11203,20 @@ function validate35(
                                                                                           }
                                                                                           if (
                                                                                             errors ===
-                                                                                            _errs54
+                                                                                            _errs68
                                                                                           ) {
                                                                                             if (
-                                                                                              typeof data31 ==
+                                                                                              typeof data35 ==
                                                                                                 "number" &&
                                                                                               isFinite(
-                                                                                                data31,
+                                                                                                data35,
                                                                                               )
                                                                                             ) {
                                                                                               if (
-                                                                                                data31 >
+                                                                                                data35 >
                                                                                                   2048 ||
                                                                                                 isNaN(
-                                                                                                  data31,
+                                                                                                  data35,
                                                                                                 )
                                                                                               ) {
                                                                                                 validate35.errors =
@@ -10799,10 +11242,10 @@ function validate35(
                                                                                                 return false;
                                                                                               } else {
                                                                                                 if (
-                                                                                                  data31 <
+                                                                                                  data35 <
                                                                                                     1 ||
                                                                                                   isNaN(
-                                                                                                    data31,
+                                                                                                    data35,
                                                                                                   )
                                                                                                 ) {
                                                                                                   validate35.errors =
@@ -10830,35 +11273,35 @@ function validate35(
                                                                                               }
                                                                                             }
                                                                                           }
-                                                                                          var valid5 =
-                                                                                            _errs54 ===
+                                                                                          var valid10 =
+                                                                                            _errs68 ===
                                                                                             errors;
                                                                                         } else {
-                                                                                          var valid5 = true;
+                                                                                          var valid10 = true;
                                                                                         }
                                                                                         if (
-                                                                                          valid5
+                                                                                          valid10
                                                                                         ) {
                                                                                           if (
-                                                                                            data19.tokenCount !==
+                                                                                            data23.tokenCount !==
                                                                                             undefined
                                                                                           ) {
-                                                                                            let data32 =
-                                                                                              data19.tokenCount;
-                                                                                            const _errs56 =
+                                                                                            let data36 =
+                                                                                              data23.tokenCount;
+                                                                                            const _errs70 =
                                                                                               errors;
                                                                                             if (!(
-                                                                                              typeof data32 ==
+                                                                                              typeof data36 ==
                                                                                                 "number" &&
                                                                                               !(
-                                                                                                data32 %
+                                                                                                data36 %
                                                                                                 1
                                                                                               ) &&
                                                                                               !isNaN(
-                                                                                                data32,
+                                                                                                data36,
                                                                                               ) &&
                                                                                               isFinite(
-                                                                                                data32,
+                                                                                                data36,
                                                                                               )
                                                                                             )) {
                                                                                               validate35.errors =
@@ -10883,20 +11326,20 @@ function validate35(
                                                                                             }
                                                                                             if (
                                                                                               errors ===
-                                                                                              _errs56
+                                                                                              _errs70
                                                                                             ) {
                                                                                               if (
-                                                                                                typeof data32 ==
+                                                                                                typeof data36 ==
                                                                                                   "number" &&
                                                                                                 isFinite(
-                                                                                                  data32,
+                                                                                                  data36,
                                                                                                 )
                                                                                               ) {
                                                                                                 if (
-                                                                                                  data32 >
+                                                                                                  data36 >
                                                                                                     4000000 ||
                                                                                                   isNaN(
-                                                                                                    data32,
+                                                                                                    data36,
                                                                                                   )
                                                                                                 ) {
                                                                                                   validate35.errors =
@@ -10922,10 +11365,10 @@ function validate35(
                                                                                                   return false;
                                                                                                 } else {
                                                                                                   if (
-                                                                                                    data32 <
+                                                                                                    data36 <
                                                                                                       1 ||
                                                                                                     isNaN(
-                                                                                                      data32,
+                                                                                                      data36,
                                                                                                     )
                                                                                                   ) {
                                                                                                     validate35.errors =
@@ -10953,35 +11396,35 @@ function validate35(
                                                                                                 }
                                                                                               }
                                                                                             }
-                                                                                            var valid5 =
-                                                                                              _errs56 ===
+                                                                                            var valid10 =
+                                                                                              _errs70 ===
                                                                                               errors;
                                                                                           } else {
-                                                                                            var valid5 = true;
+                                                                                            var valid10 = true;
                                                                                           }
                                                                                           if (
-                                                                                            valid5
+                                                                                            valid10
                                                                                           ) {
                                                                                             if (
-                                                                                              data19.tokenBytes !==
+                                                                                              data23.tokenBytes !==
                                                                                               undefined
                                                                                             ) {
-                                                                                              let data33 =
-                                                                                                data19.tokenBytes;
-                                                                                              const _errs58 =
+                                                                                              let data37 =
+                                                                                                data23.tokenBytes;
+                                                                                              const _errs72 =
                                                                                                 errors;
                                                                                               if (!(
-                                                                                                typeof data33 ==
+                                                                                                typeof data37 ==
                                                                                                   "number" &&
                                                                                                 !(
-                                                                                                  data33 %
+                                                                                                  data37 %
                                                                                                   1
                                                                                                 ) &&
                                                                                                 !isNaN(
-                                                                                                  data33,
+                                                                                                  data37,
                                                                                                 ) &&
                                                                                                 isFinite(
-                                                                                                  data33,
+                                                                                                  data37,
                                                                                                 )
                                                                                               )) {
                                                                                                 validate35.errors =
@@ -11006,20 +11449,20 @@ function validate35(
                                                                                               }
                                                                                               if (
                                                                                                 errors ===
-                                                                                                _errs58
+                                                                                                _errs72
                                                                                               ) {
                                                                                                 if (
-                                                                                                  typeof data33 ==
+                                                                                                  typeof data37 ==
                                                                                                     "number" &&
                                                                                                   isFinite(
-                                                                                                    data33,
+                                                                                                    data37,
                                                                                                   )
                                                                                                 ) {
                                                                                                   if (
-                                                                                                    data33 >
+                                                                                                    data37 >
                                                                                                       1048576 ||
                                                                                                     isNaN(
-                                                                                                      data33,
+                                                                                                      data37,
                                                                                                     )
                                                                                                   ) {
                                                                                                     validate35.errors =
@@ -11045,10 +11488,10 @@ function validate35(
                                                                                                     return false;
                                                                                                   } else {
                                                                                                     if (
-                                                                                                      data33 <
+                                                                                                      data37 <
                                                                                                         1 ||
                                                                                                       isNaN(
-                                                                                                        data33,
+                                                                                                        data37,
                                                                                                       )
                                                                                                     ) {
                                                                                                       validate35.errors =
@@ -11076,35 +11519,35 @@ function validate35(
                                                                                                   }
                                                                                                 }
                                                                                               }
-                                                                                              var valid5 =
-                                                                                                _errs58 ===
+                                                                                              var valid10 =
+                                                                                                _errs72 ===
                                                                                                 errors;
                                                                                             } else {
-                                                                                              var valid5 = true;
+                                                                                              var valid10 = true;
                                                                                             }
                                                                                             if (
-                                                                                              valid5
+                                                                                              valid10
                                                                                             ) {
                                                                                               if (
-                                                                                                data19.axiomCount !==
+                                                                                                data23.axiomCount !==
                                                                                                 undefined
                                                                                               ) {
-                                                                                                let data34 =
-                                                                                                  data19.axiomCount;
-                                                                                                const _errs60 =
+                                                                                                let data38 =
+                                                                                                  data23.axiomCount;
+                                                                                                const _errs74 =
                                                                                                   errors;
                                                                                                 if (!(
-                                                                                                  typeof data34 ==
+                                                                                                  typeof data38 ==
                                                                                                     "number" &&
                                                                                                   !(
-                                                                                                    data34 %
+                                                                                                    data38 %
                                                                                                     1
                                                                                                   ) &&
                                                                                                   !isNaN(
-                                                                                                    data34,
+                                                                                                    data38,
                                                                                                   ) &&
                                                                                                   isFinite(
-                                                                                                    data34,
+                                                                                                    data38,
                                                                                                   )
                                                                                                 )) {
                                                                                                   validate35.errors =
@@ -11129,20 +11572,20 @@ function validate35(
                                                                                                 }
                                                                                                 if (
                                                                                                   errors ===
-                                                                                                  _errs60
+                                                                                                  _errs74
                                                                                                 ) {
                                                                                                   if (
-                                                                                                    typeof data34 ==
+                                                                                                    typeof data38 ==
                                                                                                       "number" &&
                                                                                                     isFinite(
-                                                                                                      data34,
+                                                                                                      data38,
                                                                                                     )
                                                                                                   ) {
                                                                                                     if (
-                                                                                                      data34 >
+                                                                                                      data38 >
                                                                                                         200000 ||
                                                                                                       isNaN(
-                                                                                                        data34,
+                                                                                                        data38,
                                                                                                       )
                                                                                                     ) {
                                                                                                       validate35.errors =
@@ -11168,10 +11611,10 @@ function validate35(
                                                                                                       return false;
                                                                                                     } else {
                                                                                                       if (
-                                                                                                        data34 <
+                                                                                                        data38 <
                                                                                                           1 ||
                                                                                                         isNaN(
-                                                                                                          data34,
+                                                                                                          data38,
                                                                                                         )
                                                                                                       ) {
                                                                                                         validate35.errors =
@@ -11199,35 +11642,35 @@ function validate35(
                                                                                                     }
                                                                                                   }
                                                                                                 }
-                                                                                                var valid5 =
-                                                                                                  _errs60 ===
+                                                                                                var valid10 =
+                                                                                                  _errs74 ===
                                                                                                   errors;
                                                                                               } else {
-                                                                                                var valid5 = true;
+                                                                                                var valid10 = true;
                                                                                               }
                                                                                               if (
-                                                                                                valid5
+                                                                                                valid10
                                                                                               ) {
                                                                                                 if (
-                                                                                                  data19.blankNodeCount !==
+                                                                                                  data23.blankNodeCount !==
                                                                                                   undefined
                                                                                                 ) {
-                                                                                                  let data35 =
-                                                                                                    data19.blankNodeCount;
-                                                                                                  const _errs62 =
+                                                                                                  let data39 =
+                                                                                                    data23.blankNodeCount;
+                                                                                                  const _errs76 =
                                                                                                     errors;
                                                                                                   if (!(
-                                                                                                    typeof data35 ==
+                                                                                                    typeof data39 ==
                                                                                                       "number" &&
                                                                                                     !(
-                                                                                                      data35 %
+                                                                                                      data39 %
                                                                                                       1
                                                                                                     ) &&
                                                                                                     !isNaN(
-                                                                                                      data35,
+                                                                                                      data39,
                                                                                                     ) &&
                                                                                                     isFinite(
-                                                                                                      data35,
+                                                                                                      data39,
                                                                                                     )
                                                                                                   )) {
                                                                                                     validate35.errors =
@@ -11252,20 +11695,20 @@ function validate35(
                                                                                                   }
                                                                                                   if (
                                                                                                     errors ===
-                                                                                                    _errs62
+                                                                                                    _errs76
                                                                                                   ) {
                                                                                                     if (
-                                                                                                      typeof data35 ==
+                                                                                                      typeof data39 ==
                                                                                                         "number" &&
                                                                                                       isFinite(
-                                                                                                        data35,
+                                                                                                        data39,
                                                                                                       )
                                                                                                     ) {
                                                                                                       if (
-                                                                                                        data35 >
+                                                                                                        data39 >
                                                                                                           1000000 ||
                                                                                                         isNaN(
-                                                                                                          data35,
+                                                                                                          data39,
                                                                                                         )
                                                                                                       ) {
                                                                                                         validate35.errors =
@@ -11291,10 +11734,10 @@ function validate35(
                                                                                                         return false;
                                                                                                       } else {
                                                                                                         if (
-                                                                                                          data35 <
+                                                                                                          data39 <
                                                                                                             1 ||
                                                                                                           isNaN(
-                                                                                                            data35,
+                                                                                                            data39,
                                                                                                           )
                                                                                                         ) {
                                                                                                           validate35.errors =
@@ -11322,35 +11765,35 @@ function validate35(
                                                                                                       }
                                                                                                     }
                                                                                                   }
-                                                                                                  var valid5 =
-                                                                                                    _errs62 ===
+                                                                                                  var valid10 =
+                                                                                                    _errs76 ===
                                                                                                     errors;
                                                                                                 } else {
-                                                                                                  var valid5 = true;
+                                                                                                  var valid10 = true;
                                                                                                 }
                                                                                                 if (
-                                                                                                  valid5
+                                                                                                  valid10
                                                                                                 ) {
                                                                                                   if (
-                                                                                                    data19.rdfQuadCount !==
+                                                                                                    data23.rdfQuadCount !==
                                                                                                     undefined
                                                                                                   ) {
-                                                                                                    let data36 =
-                                                                                                      data19.rdfQuadCount;
-                                                                                                    const _errs64 =
+                                                                                                    let data40 =
+                                                                                                      data23.rdfQuadCount;
+                                                                                                    const _errs78 =
                                                                                                       errors;
                                                                                                     if (!(
-                                                                                                      typeof data36 ==
+                                                                                                      typeof data40 ==
                                                                                                         "number" &&
                                                                                                       !(
-                                                                                                        data36 %
+                                                                                                        data40 %
                                                                                                         1
                                                                                                       ) &&
                                                                                                       !isNaN(
-                                                                                                        data36,
+                                                                                                        data40,
                                                                                                       ) &&
                                                                                                       isFinite(
-                                                                                                        data36,
+                                                                                                        data40,
                                                                                                       )
                                                                                                     )) {
                                                                                                       validate35.errors =
@@ -11375,20 +11818,20 @@ function validate35(
                                                                                                     }
                                                                                                     if (
                                                                                                       errors ===
-                                                                                                      _errs64
+                                                                                                      _errs78
                                                                                                     ) {
                                                                                                       if (
-                                                                                                        typeof data36 ==
+                                                                                                        typeof data40 ==
                                                                                                           "number" &&
                                                                                                         isFinite(
-                                                                                                          data36,
+                                                                                                          data40,
                                                                                                         )
                                                                                                       ) {
                                                                                                         if (
-                                                                                                          data36 >
+                                                                                                          data40 >
                                                                                                             1000000 ||
                                                                                                           isNaN(
-                                                                                                            data36,
+                                                                                                            data40,
                                                                                                           )
                                                                                                         ) {
                                                                                                           validate35.errors =
@@ -11414,10 +11857,10 @@ function validate35(
                                                                                                           return false;
                                                                                                         } else {
                                                                                                           if (
-                                                                                                            data36 <
+                                                                                                            data40 <
                                                                                                               1 ||
                                                                                                             isNaN(
-                                                                                                              data36,
+                                                                                                              data40,
                                                                                                             )
                                                                                                           ) {
                                                                                                             validate35.errors =
@@ -11445,35 +11888,35 @@ function validate35(
                                                                                                         }
                                                                                                       }
                                                                                                     }
-                                                                                                    var valid5 =
-                                                                                                      _errs64 ===
+                                                                                                    var valid10 =
+                                                                                                      _errs78 ===
                                                                                                       errors;
                                                                                                   } else {
-                                                                                                    var valid5 = true;
+                                                                                                    var valid10 = true;
                                                                                                   }
                                                                                                   if (
-                                                                                                    valid5
+                                                                                                    valid10
                                                                                                   ) {
                                                                                                     if (
-                                                                                                      data19.rdfListLength !==
+                                                                                                      data23.rdfListLength !==
                                                                                                       undefined
                                                                                                     ) {
-                                                                                                      let data37 =
-                                                                                                        data19.rdfListLength;
-                                                                                                      const _errs66 =
+                                                                                                      let data41 =
+                                                                                                        data23.rdfListLength;
+                                                                                                      const _errs80 =
                                                                                                         errors;
                                                                                                       if (!(
-                                                                                                        typeof data37 ==
+                                                                                                        typeof data41 ==
                                                                                                           "number" &&
                                                                                                         !(
-                                                                                                          data37 %
+                                                                                                          data41 %
                                                                                                           1
                                                                                                         ) &&
                                                                                                         !isNaN(
-                                                                                                          data37,
+                                                                                                          data41,
                                                                                                         ) &&
                                                                                                         isFinite(
-                                                                                                          data37,
+                                                                                                          data41,
                                                                                                         )
                                                                                                       )) {
                                                                                                         validate35.errors =
@@ -11498,20 +11941,20 @@ function validate35(
                                                                                                       }
                                                                                                       if (
                                                                                                         errors ===
-                                                                                                        _errs66
+                                                                                                        _errs80
                                                                                                       ) {
                                                                                                         if (
-                                                                                                          typeof data37 ==
+                                                                                                          typeof data41 ==
                                                                                                             "number" &&
                                                                                                           isFinite(
-                                                                                                            data37,
+                                                                                                            data41,
                                                                                                           )
                                                                                                         ) {
                                                                                                           if (
-                                                                                                            data37 >
+                                                                                                            data41 >
                                                                                                               1000000 ||
                                                                                                             isNaN(
-                                                                                                              data37,
+                                                                                                              data41,
                                                                                                             )
                                                                                                           ) {
                                                                                                             validate35.errors =
@@ -11537,10 +11980,10 @@ function validate35(
                                                                                                             return false;
                                                                                                           } else {
                                                                                                             if (
-                                                                                                              data37 <
+                                                                                                              data41 <
                                                                                                                 1 ||
                                                                                                               isNaN(
-                                                                                                                data37,
+                                                                                                                data41,
                                                                                                               )
                                                                                                             ) {
                                                                                                               validate35.errors =
@@ -11568,35 +12011,35 @@ function validate35(
                                                                                                           }
                                                                                                         }
                                                                                                       }
-                                                                                                      var valid5 =
-                                                                                                        _errs66 ===
+                                                                                                      var valid10 =
+                                                                                                        _errs80 ===
                                                                                                         errors;
                                                                                                     } else {
-                                                                                                      var valid5 = true;
+                                                                                                      var valid10 = true;
                                                                                                     }
                                                                                                     if (
-                                                                                                      valid5
+                                                                                                      valid10
                                                                                                     ) {
                                                                                                       if (
-                                                                                                        data19.parserDepth !==
+                                                                                                        data23.parserDepth !==
                                                                                                         undefined
                                                                                                       ) {
-                                                                                                        let data38 =
-                                                                                                          data19.parserDepth;
-                                                                                                        const _errs68 =
+                                                                                                        let data42 =
+                                                                                                          data23.parserDepth;
+                                                                                                        const _errs82 =
                                                                                                           errors;
                                                                                                         if (!(
-                                                                                                          typeof data38 ==
+                                                                                                          typeof data42 ==
                                                                                                             "number" &&
                                                                                                           !(
-                                                                                                            data38 %
+                                                                                                            data42 %
                                                                                                             1
                                                                                                           ) &&
                                                                                                           !isNaN(
-                                                                                                            data38,
+                                                                                                            data42,
                                                                                                           ) &&
                                                                                                           isFinite(
-                                                                                                            data38,
+                                                                                                            data42,
                                                                                                           )
                                                                                                         )) {
                                                                                                           validate35.errors =
@@ -11621,20 +12064,20 @@ function validate35(
                                                                                                         }
                                                                                                         if (
                                                                                                           errors ===
-                                                                                                          _errs68
+                                                                                                          _errs82
                                                                                                         ) {
                                                                                                           if (
-                                                                                                            typeof data38 ==
+                                                                                                            typeof data42 ==
                                                                                                               "number" &&
                                                                                                             isFinite(
-                                                                                                              data38,
+                                                                                                              data42,
                                                                                                             )
                                                                                                           ) {
                                                                                                             if (
-                                                                                                              data38 >
+                                                                                                              data42 >
                                                                                                                 128 ||
                                                                                                               isNaN(
-                                                                                                                data38,
+                                                                                                                data42,
                                                                                                               )
                                                                                                             ) {
                                                                                                               validate35.errors =
@@ -11660,10 +12103,10 @@ function validate35(
                                                                                                               return false;
                                                                                                             } else {
                                                                                                               if (
-                                                                                                                data38 <
+                                                                                                                data42 <
                                                                                                                   1 ||
                                                                                                                 isNaN(
-                                                                                                                  data38,
+                                                                                                                  data42,
                                                                                                                 )
                                                                                                               ) {
                                                                                                                 validate35.errors =
@@ -11691,35 +12134,35 @@ function validate35(
                                                                                                             }
                                                                                                           }
                                                                                                         }
-                                                                                                        var valid5 =
-                                                                                                          _errs68 ===
+                                                                                                        var valid10 =
+                                                                                                          _errs82 ===
                                                                                                           errors;
                                                                                                       } else {
-                                                                                                        var valid5 = true;
+                                                                                                        var valid10 = true;
                                                                                                       }
                                                                                                       if (
-                                                                                                        valid5
+                                                                                                        valid10
                                                                                                       ) {
                                                                                                         if (
-                                                                                                          data19.entityDeclarations !==
+                                                                                                          data23.entityDeclarations !==
                                                                                                           undefined
                                                                                                         ) {
-                                                                                                          let data39 =
-                                                                                                            data19.entityDeclarations;
-                                                                                                          const _errs70 =
+                                                                                                          let data43 =
+                                                                                                            data23.entityDeclarations;
+                                                                                                          const _errs84 =
                                                                                                             errors;
                                                                                                           if (!(
-                                                                                                            typeof data39 ==
+                                                                                                            typeof data43 ==
                                                                                                               "number" &&
                                                                                                             !(
-                                                                                                              data39 %
+                                                                                                              data43 %
                                                                                                               1
                                                                                                             ) &&
                                                                                                             !isNaN(
-                                                                                                              data39,
+                                                                                                              data43,
                                                                                                             ) &&
                                                                                                             isFinite(
-                                                                                                              data39,
+                                                                                                              data43,
                                                                                                             )
                                                                                                           )) {
                                                                                                             validate35.errors =
@@ -11744,20 +12187,20 @@ function validate35(
                                                                                                           }
                                                                                                           if (
                                                                                                             errors ===
-                                                                                                            _errs70
+                                                                                                            _errs84
                                                                                                           ) {
                                                                                                             if (
-                                                                                                              typeof data39 ==
+                                                                                                              typeof data43 ==
                                                                                                                 "number" &&
                                                                                                               isFinite(
-                                                                                                                data39,
+                                                                                                                data43,
                                                                                                               )
                                                                                                             ) {
                                                                                                               if (
-                                                                                                                data39 >
+                                                                                                                data43 >
                                                                                                                   64 ||
                                                                                                                 isNaN(
-                                                                                                                  data39,
+                                                                                                                  data43,
                                                                                                                 )
                                                                                                               ) {
                                                                                                                 validate35.errors =
@@ -11783,10 +12226,10 @@ function validate35(
                                                                                                                 return false;
                                                                                                               } else {
                                                                                                                 if (
-                                                                                                                  data39 <
+                                                                                                                  data43 <
                                                                                                                     0 ||
                                                                                                                   isNaN(
-                                                                                                                    data39,
+                                                                                                                    data43,
                                                                                                                   )
                                                                                                                 ) {
                                                                                                                   validate35.errors =
@@ -11814,35 +12257,35 @@ function validate35(
                                                                                                               }
                                                                                                             }
                                                                                                           }
-                                                                                                          var valid5 =
-                                                                                                            _errs70 ===
+                                                                                                          var valid10 =
+                                                                                                            _errs84 ===
                                                                                                             errors;
                                                                                                         } else {
-                                                                                                          var valid5 = true;
+                                                                                                          var valid10 = true;
                                                                                                         }
                                                                                                         if (
-                                                                                                          valid5
+                                                                                                          valid10
                                                                                                         ) {
                                                                                                           if (
-                                                                                                            data19.entityExpansionDepth !==
+                                                                                                            data23.entityExpansionDepth !==
                                                                                                             undefined
                                                                                                           ) {
-                                                                                                            let data40 =
-                                                                                                              data19.entityExpansionDepth;
-                                                                                                            const _errs72 =
+                                                                                                            let data44 =
+                                                                                                              data23.entityExpansionDepth;
+                                                                                                            const _errs86 =
                                                                                                               errors;
                                                                                                             if (!(
-                                                                                                              typeof data40 ==
+                                                                                                              typeof data44 ==
                                                                                                                 "number" &&
                                                                                                               !(
-                                                                                                                data40 %
+                                                                                                                data44 %
                                                                                                                 1
                                                                                                               ) &&
                                                                                                               !isNaN(
-                                                                                                                data40,
+                                                                                                                data44,
                                                                                                               ) &&
                                                                                                               isFinite(
-                                                                                                                data40,
+                                                                                                                data44,
                                                                                                               )
                                                                                                             )) {
                                                                                                               validate35.errors =
@@ -11867,20 +12310,20 @@ function validate35(
                                                                                                             }
                                                                                                             if (
                                                                                                               errors ===
-                                                                                                              _errs72
+                                                                                                              _errs86
                                                                                                             ) {
                                                                                                               if (
-                                                                                                                typeof data40 ==
+                                                                                                                typeof data44 ==
                                                                                                                   "number" &&
                                                                                                                 isFinite(
-                                                                                                                  data40,
+                                                                                                                  data44,
                                                                                                                 )
                                                                                                               ) {
                                                                                                                 if (
-                                                                                                                  data40 >
+                                                                                                                  data44 >
                                                                                                                     8 ||
                                                                                                                   isNaN(
-                                                                                                                    data40,
+                                                                                                                    data44,
                                                                                                                   )
                                                                                                                 ) {
                                                                                                                   validate35.errors =
@@ -11906,10 +12349,10 @@ function validate35(
                                                                                                                   return false;
                                                                                                                 } else {
                                                                                                                   if (
-                                                                                                                    data40 <
+                                                                                                                    data44 <
                                                                                                                       0 ||
                                                                                                                     isNaN(
-                                                                                                                      data40,
+                                                                                                                      data44,
                                                                                                                     )
                                                                                                                   ) {
                                                                                                                     validate35.errors =
@@ -11937,35 +12380,35 @@ function validate35(
                                                                                                                 }
                                                                                                               }
                                                                                                             }
-                                                                                                            var valid5 =
-                                                                                                              _errs72 ===
+                                                                                                            var valid10 =
+                                                                                                              _errs86 ===
                                                                                                               errors;
                                                                                                           } else {
-                                                                                                            var valid5 = true;
+                                                                                                            var valid10 = true;
                                                                                                           }
                                                                                                           if (
-                                                                                                            valid5
+                                                                                                            valid10
                                                                                                           ) {
                                                                                                             if (
-                                                                                                              data19.entityReplacementBytes !==
+                                                                                                              data23.entityReplacementBytes !==
                                                                                                               undefined
                                                                                                             ) {
-                                                                                                              let data41 =
-                                                                                                                data19.entityReplacementBytes;
-                                                                                                              const _errs74 =
+                                                                                                              let data45 =
+                                                                                                                data23.entityReplacementBytes;
+                                                                                                              const _errs88 =
                                                                                                                 errors;
                                                                                                               if (!(
-                                                                                                                typeof data41 ==
+                                                                                                                typeof data45 ==
                                                                                                                   "number" &&
                                                                                                                 !(
-                                                                                                                  data41 %
+                                                                                                                  data45 %
                                                                                                                   1
                                                                                                                 ) &&
                                                                                                                 !isNaN(
-                                                                                                                  data41,
+                                                                                                                  data45,
                                                                                                                 ) &&
                                                                                                                 isFinite(
-                                                                                                                  data41,
+                                                                                                                  data45,
                                                                                                                 )
                                                                                                               )) {
                                                                                                                 validate35.errors =
@@ -11990,20 +12433,20 @@ function validate35(
                                                                                                               }
                                                                                                               if (
                                                                                                                 errors ===
-                                                                                                                _errs74
+                                                                                                                _errs88
                                                                                                               ) {
                                                                                                                 if (
-                                                                                                                  typeof data41 ==
+                                                                                                                  typeof data45 ==
                                                                                                                     "number" &&
                                                                                                                   isFinite(
-                                                                                                                    data41,
+                                                                                                                    data45,
                                                                                                                   )
                                                                                                                 ) {
                                                                                                                   if (
-                                                                                                                    data41 >
+                                                                                                                    data45 >
                                                                                                                       65536 ||
                                                                                                                     isNaN(
-                                                                                                                      data41,
+                                                                                                                      data45,
                                                                                                                     )
                                                                                                                   ) {
                                                                                                                     validate35.errors =
@@ -12029,10 +12472,10 @@ function validate35(
                                                                                                                     return false;
                                                                                                                   } else {
                                                                                                                     if (
-                                                                                                                      data41 <
+                                                                                                                      data45 <
                                                                                                                         1 ||
                                                                                                                       isNaN(
-                                                                                                                        data41,
+                                                                                                                        data45,
                                                                                                                       )
                                                                                                                     ) {
                                                                                                                       validate35.errors =
@@ -12060,24 +12503,24 @@ function validate35(
                                                                                                                   }
                                                                                                                 }
                                                                                                               }
-                                                                                                              var valid5 =
-                                                                                                                _errs74 ===
+                                                                                                              var valid10 =
+                                                                                                                _errs88 ===
                                                                                                                 errors;
                                                                                                             } else {
-                                                                                                              var valid5 = true;
+                                                                                                              var valid10 = true;
                                                                                                             }
                                                                                                             if (
-                                                                                                              valid5
+                                                                                                              valid10
                                                                                                             ) {
                                                                                                               if (
-                                                                                                                data19.importFetchCount !==
+                                                                                                                data23.importFetchCount !==
                                                                                                                 undefined
                                                                                                               ) {
-                                                                                                                const _errs76 =
+                                                                                                                const _errs90 =
                                                                                                                   errors;
                                                                                                                 if (
                                                                                                                   0 !==
-                                                                                                                  data19.importFetchCount
+                                                                                                                  data23.importFetchCount
                                                                                                                 ) {
                                                                                                                   validate35.errors =
                                                                                                                     [
@@ -12099,11 +12542,11 @@ function validate35(
                                                                                                                     ];
                                                                                                                   return false;
                                                                                                                 }
-                                                                                                                var valid5 =
-                                                                                                                  _errs76 ===
+                                                                                                                var valid10 =
+                                                                                                                  _errs90 ===
                                                                                                                   errors;
                                                                                                               } else {
-                                                                                                                var valid5 = true;
+                                                                                                                var valid10 = true;
                                                                                                               }
                                                                                                             }
                                                                                                           }
@@ -12150,30 +12593,30 @@ function validate35(
                                                               return false;
                                                             }
                                                           }
-                                                          var valid2 =
-                                                            _errs29 === errors;
+                                                          var valid7 =
+                                                            _errs43 === errors;
                                                         } else {
-                                                          var valid2 = true;
+                                                          var valid7 = true;
                                                         }
-                                                        if (valid2) {
+                                                        if (valid7) {
                                                           if (
                                                             data3.dependencyTranslations !==
                                                             undefined
                                                           ) {
-                                                            let data43 =
+                                                            let data47 =
                                                               data3.dependencyTranslations;
-                                                            const _errs77 =
+                                                            const _errs91 =
                                                               errors;
                                                             if (
-                                                              errors === _errs77
+                                                              errors === _errs91
                                                             ) {
                                                               if (
                                                                 Array.isArray(
-                                                                  data43,
+                                                                  data47,
                                                                 )
                                                               ) {
                                                                 if (
-                                                                  data43.length >
+                                                                  data47.length >
                                                                   64
                                                                 ) {
                                                                   validate35.errors =
@@ -12197,7 +12640,7 @@ function validate35(
                                                                   return false;
                                                                 } else {
                                                                   if (
-                                                                    data43.length <
+                                                                    data47.length <
                                                                     1
                                                                   ) {
                                                                     validate35.errors =
@@ -12220,57 +12663,57 @@ function validate35(
                                                                       ];
                                                                     return false;
                                                                   } else {
-                                                                    var valid6 = true;
+                                                                    var valid11 = true;
                                                                     const len0 =
-                                                                      data43.length;
+                                                                      data47.length;
                                                                     for (
                                                                       let i0 = 0;
                                                                       i0 < len0;
                                                                       i0++
                                                                     ) {
-                                                                      let data44 =
-                                                                        data43[
+                                                                      let data48 =
+                                                                        data47[
                                                                           i0
                                                                         ];
-                                                                      const _errs79 =
+                                                                      const _errs93 =
                                                                         errors;
                                                                       if (
                                                                         errors ===
-                                                                        _errs79
+                                                                        _errs93
                                                                       ) {
                                                                         if (
-                                                                          data44 &&
-                                                                          typeof data44 ==
+                                                                          data48 &&
+                                                                          typeof data48 ==
                                                                             "object" &&
                                                                           !Array.isArray(
-                                                                            data44,
+                                                                            data48,
                                                                           )
                                                                         ) {
-                                                                          let missing3;
+                                                                          let missing4;
                                                                           if (
-                                                                            (data44.gate ===
+                                                                            (data48.gate ===
                                                                               undefined &&
-                                                                              (missing3 =
+                                                                              (missing4 =
                                                                                 "gate")) ||
-                                                                            (data44.enforcementTarget ===
+                                                                            (data48.enforcementTarget ===
                                                                               undefined &&
-                                                                              (missing3 =
+                                                                              (missing4 =
                                                                                 "enforcementTarget")) ||
-                                                                            (data44.unit ===
+                                                                            (data48.unit ===
                                                                               undefined &&
-                                                                              (missing3 =
+                                                                              (missing4 =
                                                                                 "unit")) ||
-                                                                            (data44.value ===
+                                                                            (data48.value ===
                                                                               undefined &&
-                                                                              (missing3 =
+                                                                              (missing4 =
                                                                                 "value")) ||
-                                                                            (data44.scope ===
+                                                                            (data48.scope ===
                                                                               undefined &&
-                                                                              (missing3 =
+                                                                              (missing4 =
                                                                                 "scope")) ||
-                                                                            (data44.enforcement ===
+                                                                            (data48.enforcement ===
                                                                               undefined &&
-                                                                              (missing3 =
+                                                                              (missing4 =
                                                                                 "enforcement"))
                                                                           ) {
                                                                             validate35.errors =
@@ -12287,19 +12730,19 @@ function validate35(
                                                                                   params:
                                                                                     {
                                                                                       missingProperty:
-                                                                                        missing3,
+                                                                                        missing4,
                                                                                     },
                                                                                   message:
                                                                                     "must have required property '" +
-                                                                                    missing3 +
+                                                                                    missing4 +
                                                                                     "'",
                                                                                 },
                                                                               ];
                                                                             return false;
                                                                           } else {
-                                                                            const _errs81 =
+                                                                            const _errs95 =
                                                                               errors;
-                                                                            for (const key3 in data44) {
+                                                                            for (const key3 in data48) {
                                                                               if (!(
                                                                                 key3 ===
                                                                                   "gate" ||
@@ -12339,28 +12782,28 @@ function validate35(
                                                                               }
                                                                             }
                                                                             if (
-                                                                              _errs81 ===
+                                                                              _errs95 ===
                                                                               errors
                                                                             ) {
                                                                               if (
-                                                                                data44.gate !==
+                                                                                data48.gate !==
                                                                                 undefined
                                                                               ) {
-                                                                                let data45 =
-                                                                                  data44.gate;
-                                                                                const _errs82 =
+                                                                                let data49 =
+                                                                                  data48.gate;
+                                                                                const _errs96 =
                                                                                   errors;
                                                                                 if (
                                                                                   errors ===
-                                                                                  _errs82
+                                                                                  _errs96
                                                                                 ) {
                                                                                   if (
-                                                                                    typeof data45 ===
+                                                                                    typeof data49 ===
                                                                                     "string"
                                                                                   ) {
                                                                                     if (
                                                                                       func2(
-                                                                                        data45,
+                                                                                        data49,
                                                                                       ) >
                                                                                       128
                                                                                     ) {
@@ -12388,7 +12831,7 @@ function validate35(
                                                                                     } else {
                                                                                       if (
                                                                                         func2(
-                                                                                          data45,
+                                                                                          data49,
                                                                                         ) <
                                                                                         1
                                                                                       ) {
@@ -12439,35 +12882,35 @@ function validate35(
                                                                                     return false;
                                                                                   }
                                                                                 }
-                                                                                var valid7 =
-                                                                                  _errs82 ===
+                                                                                var valid12 =
+                                                                                  _errs96 ===
                                                                                   errors;
                                                                               } else {
-                                                                                var valid7 = true;
+                                                                                var valid12 = true;
                                                                               }
                                                                               if (
-                                                                                valid7
+                                                                                valid12
                                                                               ) {
                                                                                 if (
-                                                                                  data44.unit !==
+                                                                                  data48.unit !==
                                                                                   undefined
                                                                                 ) {
-                                                                                  let data46 =
-                                                                                    data44.unit;
-                                                                                  const _errs84 =
+                                                                                  let data50 =
+                                                                                    data48.unit;
+                                                                                  const _errs98 =
                                                                                     errors;
                                                                                   if (!(
-                                                                                    data46 ===
+                                                                                    data50 ===
                                                                                       "bytes" ||
-                                                                                    data46 ===
+                                                                                    data50 ===
                                                                                       "count" ||
-                                                                                    data46 ===
+                                                                                    data50 ===
                                                                                       "depth" ||
-                                                                                    data46 ===
+                                                                                    data50 ===
                                                                                       "milliseconds" ||
-                                                                                    data46 ===
+                                                                                    data50 ===
                                                                                       "ratio" ||
-                                                                                    data46 ===
+                                                                                    data50 ===
                                                                                       "mebibytes"
                                                                                   )) {
                                                                                     validate35.errors =
@@ -12485,7 +12928,7 @@ function validate35(
                                                                                           params:
                                                                                             {
                                                                                               allowedValues:
-                                                                                                schema107
+                                                                                                schema108
                                                                                                   .properties
                                                                                                   .policy
                                                                                                   .properties
@@ -12501,35 +12944,35 @@ function validate35(
                                                                                       ];
                                                                                     return false;
                                                                                   }
-                                                                                  var valid7 =
-                                                                                    _errs84 ===
+                                                                                  var valid12 =
+                                                                                    _errs98 ===
                                                                                     errors;
                                                                                 } else {
-                                                                                  var valid7 = true;
+                                                                                  var valid12 = true;
                                                                                 }
                                                                                 if (
-                                                                                  valid7
+                                                                                  valid12
                                                                                 ) {
                                                                                   if (
-                                                                                    data44.value !==
+                                                                                    data48.value !==
                                                                                     undefined
                                                                                   ) {
-                                                                                    let data47 =
-                                                                                      data44.value;
-                                                                                    const _errs85 =
+                                                                                    let data51 =
+                                                                                      data48.value;
+                                                                                    const _errs99 =
                                                                                       errors;
                                                                                     if (!(
-                                                                                      typeof data47 ==
+                                                                                      typeof data51 ==
                                                                                         "number" &&
                                                                                       !(
-                                                                                        data47 %
+                                                                                        data51 %
                                                                                         1
                                                                                       ) &&
                                                                                       !isNaN(
-                                                                                        data47,
+                                                                                        data51,
                                                                                       ) &&
                                                                                       isFinite(
-                                                                                        data47,
+                                                                                        data51,
                                                                                       )
                                                                                     )) {
                                                                                       validate35.errors =
@@ -12556,20 +12999,20 @@ function validate35(
                                                                                     }
                                                                                     if (
                                                                                       errors ===
-                                                                                      _errs85
+                                                                                      _errs99
                                                                                     ) {
                                                                                       if (
-                                                                                        typeof data47 ==
+                                                                                        typeof data51 ==
                                                                                           "number" &&
                                                                                         isFinite(
-                                                                                          data47,
+                                                                                          data51,
                                                                                         )
                                                                                       ) {
                                                                                         if (
-                                                                                          data47 >
+                                                                                          data51 >
                                                                                             9007199254740991 ||
                                                                                           isNaN(
-                                                                                            data47,
+                                                                                            data51,
                                                                                           )
                                                                                         ) {
                                                                                           validate35.errors =
@@ -12597,10 +13040,10 @@ function validate35(
                                                                                           return false;
                                                                                         } else {
                                                                                           if (
-                                                                                            data47 <
+                                                                                            data51 <
                                                                                               0 ||
                                                                                             isNaN(
-                                                                                              data47,
+                                                                                              data51,
                                                                                             )
                                                                                           ) {
                                                                                             validate35.errors =
@@ -12630,29 +13073,29 @@ function validate35(
                                                                                         }
                                                                                       }
                                                                                     }
-                                                                                    var valid7 =
-                                                                                      _errs85 ===
+                                                                                    var valid12 =
+                                                                                      _errs99 ===
                                                                                       errors;
                                                                                   } else {
-                                                                                    var valid7 = true;
+                                                                                    var valid12 = true;
                                                                                   }
                                                                                   if (
-                                                                                    valid7
+                                                                                    valid12
                                                                                   ) {
                                                                                     if (
-                                                                                      data44.scope !==
+                                                                                      data48.scope !==
                                                                                       undefined
                                                                                     ) {
-                                                                                      let data48 =
-                                                                                        data44.scope;
-                                                                                      const _errs87 =
+                                                                                      let data52 =
+                                                                                        data48.scope;
+                                                                                      const _errs101 =
                                                                                         errors;
                                                                                       if (!(
-                                                                                        data48 ===
+                                                                                        data52 ===
                                                                                           "document" ||
-                                                                                        data48 ===
+                                                                                        data52 ===
                                                                                           "attempt" ||
-                                                                                        data48 ===
+                                                                                        data52 ===
                                                                                           "worker"
                                                                                       )) {
                                                                                         validate35.errors =
@@ -12670,7 +13113,7 @@ function validate35(
                                                                                               params:
                                                                                                 {
                                                                                                   allowedValues:
-                                                                                                    schema107
+                                                                                                    schema108
                                                                                                       .properties
                                                                                                       .policy
                                                                                                       .properties
@@ -12686,29 +13129,29 @@ function validate35(
                                                                                           ];
                                                                                         return false;
                                                                                       }
-                                                                                      var valid7 =
-                                                                                        _errs87 ===
+                                                                                      var valid12 =
+                                                                                        _errs101 ===
                                                                                         errors;
                                                                                     } else {
-                                                                                      var valid7 = true;
+                                                                                      var valid12 = true;
                                                                                     }
                                                                                     if (
-                                                                                      valid7
+                                                                                      valid12
                                                                                     ) {
                                                                                       if (
-                                                                                        data44.enforcement !==
+                                                                                        data48.enforcement !==
                                                                                         undefined
                                                                                       ) {
-                                                                                        let data49 =
-                                                                                          data44.enforcement;
-                                                                                        const _errs88 =
+                                                                                        let data53 =
+                                                                                          data48.enforcement;
+                                                                                        const _errs102 =
                                                                                           errors;
                                                                                         if (!(
-                                                                                          data49 ===
+                                                                                          data53 ===
                                                                                             "public-api" ||
-                                                                                          data49 ===
+                                                                                          data53 ===
                                                                                             "acquisition-owner" ||
-                                                                                          data49 ===
+                                                                                          data53 ===
                                                                                             "worker-isolation"
                                                                                         )) {
                                                                                           validate35.errors =
@@ -12726,7 +13169,7 @@ function validate35(
                                                                                                 params:
                                                                                                   {
                                                                                                     allowedValues:
-                                                                                                      schema107
+                                                                                                      schema108
                                                                                                         .properties
                                                                                                         .policy
                                                                                                         .properties
@@ -12742,34 +13185,34 @@ function validate35(
                                                                                             ];
                                                                                           return false;
                                                                                         }
-                                                                                        var valid7 =
-                                                                                          _errs88 ===
+                                                                                        var valid12 =
+                                                                                          _errs102 ===
                                                                                           errors;
                                                                                       } else {
-                                                                                        var valid7 = true;
+                                                                                        var valid12 = true;
                                                                                       }
                                                                                       if (
-                                                                                        valid7
+                                                                                        valid12
                                                                                       ) {
                                                                                         if (
-                                                                                          data44.enforcementTarget !==
+                                                                                          data48.enforcementTarget !==
                                                                                           undefined
                                                                                         ) {
-                                                                                          let data50 =
-                                                                                            data44.enforcementTarget;
-                                                                                          const _errs89 =
+                                                                                          let data54 =
+                                                                                            data48.enforcementTarget;
+                                                                                          const _errs103 =
                                                                                             errors;
                                                                                           if (
                                                                                             errors ===
-                                                                                            _errs89
+                                                                                            _errs103
                                                                                           ) {
                                                                                             if (
-                                                                                              typeof data50 ===
+                                                                                              typeof data54 ===
                                                                                               "string"
                                                                                             ) {
                                                                                               if (
                                                                                                 func2(
-                                                                                                  data50,
+                                                                                                  data54,
                                                                                                 ) >
                                                                                                 160
                                                                                               ) {
@@ -12797,7 +13240,7 @@ function validate35(
                                                                                               } else {
                                                                                                 if (
                                                                                                   func2(
-                                                                                                    data50,
+                                                                                                    data54,
                                                                                                   ) <
                                                                                                   1
                                                                                                 ) {
@@ -12848,11 +13291,11 @@ function validate35(
                                                                                               return false;
                                                                                             }
                                                                                           }
-                                                                                          var valid7 =
-                                                                                            _errs89 ===
+                                                                                          var valid12 =
+                                                                                            _errs103 ===
                                                                                             errors;
                                                                                         } else {
-                                                                                          var valid7 = true;
+                                                                                          var valid12 = true;
                                                                                         }
                                                                                       }
                                                                                     }
@@ -12884,11 +13327,11 @@ function validate35(
                                                                           return false;
                                                                         }
                                                                       }
-                                                                      var valid6 =
-                                                                        _errs79 ===
+                                                                      var valid11 =
+                                                                        _errs93 ===
                                                                         errors;
                                                                       if (
-                                                                        !valid6
+                                                                        !valid11
                                                                       ) {
                                                                         break;
                                                                       }
@@ -12916,11 +13359,11 @@ function validate35(
                                                                 return false;
                                                               }
                                                             }
-                                                            var valid2 =
-                                                              _errs77 ===
+                                                            var valid7 =
+                                                              _errs91 ===
                                                               errors;
                                                           } else {
-                                                            var valid2 = true;
+                                                            var valid7 = true;
                                                           }
                                                         }
                                                       }
@@ -12985,7 +13428,7 @@ validate35.evaluated = {
 };
 
 export const materialization = validate40;
-const schema117 = {
+const schema119 = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
   $id: "https://haddenindustries.com/ontology/contracts/v1/ontology-materialization-status.v1.schema.json",
   title: "Pending materialization response",
@@ -13355,7 +13798,7 @@ function validate40(
                               keyword: "enum",
                               params: {
                                 allowedValues:
-                                  schema117.properties.workState.enum,
+                                  schema119.properties.workState.enum,
                               },
                               message:
                                 "must be equal to one of the allowed values",
@@ -13398,7 +13841,7 @@ validate40.evaluated = {
 };
 
 export const refresh = validate41;
-const schema122 = {
+const schema124 = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
   $id: "https://haddenindustries.com/ontology/contracts/v1/ontology-refresh-result.v1.schema.json",
   title: "Refresh disposition or exact attempt",
@@ -14272,7 +14715,7 @@ validate42.evaluated = {
   dynamicItems: false,
 };
 
-const schema159 = {
+const schema161 = {
   type: "object",
   properties: {
     code: { $ref: "#/$defs/errorCode" },
@@ -15056,7 +15499,7 @@ function validate41(
                         keyword: "enum",
                         params: {
                           allowedValues:
-                            schema122.oneOf[1].properties.mode.enum,
+                            schema124.oneOf[1].properties.mode.enum,
                         },
                         message: "must be equal to one of the allowed values",
                       };
@@ -15264,7 +15707,7 @@ function validate41(
                                   keyword: "enum",
                                   params: {
                                     allowedValues:
-                                      schema122.oneOf[1].properties.workState
+                                      schema124.oneOf[1].properties.workState
                                         .enum,
                                   },
                                   message:
@@ -15630,7 +16073,7 @@ function validate41(
                           keyword: "enum",
                           params: {
                             allowedValues:
-                              schema122.oneOf[2].properties.mode.enum,
+                              schema124.oneOf[2].properties.mode.enum,
                           },
                           message: "must be equal to one of the allowed values",
                         };
@@ -15814,7 +16257,7 @@ function validate41(
                                   keyword: "enum",
                                   params: {
                                     allowedValues:
-                                      schema122.oneOf[2].properties.state.enum,
+                                      schema124.oneOf[2].properties.state.enum,
                                   },
                                   message:
                                     "must be equal to one of the allowed values",
@@ -15946,7 +16389,7 @@ function validate41(
                                         keyword: "enum",
                                         params: {
                                           allowedValues:
-                                            schema122.oneOf[2].properties
+                                            schema124.oneOf[2].properties
                                               .upstreamStatus.enum,
                                         },
                                         message:
@@ -16002,7 +16445,7 @@ function validate41(
                                             keyword: "enum",
                                             params: {
                                               allowedValues:
-                                                schema122.oneOf[2].properties
+                                                schema124.oneOf[2].properties
                                                   .discoveryState.enum,
                                             },
                                             message:
@@ -16488,7 +16931,7 @@ function validate41(
                             keyword: "enum",
                             params: {
                               allowedValues:
-                                schema122.oneOf[3].properties.mode.enum,
+                                schema124.oneOf[3].properties.mode.enum,
                             },
                             message:
                               "must be equal to one of the allowed values",
@@ -17160,7 +17603,7 @@ function validate41(
                               keyword: "enum",
                               params: {
                                 allowedValues:
-                                  schema122.oneOf[4].properties.mode.enum,
+                                  schema124.oneOf[4].properties.mode.enum,
                               },
                               message:
                                 "must be equal to one of the allowed values",
@@ -18081,7 +18524,7 @@ function validate41(
 validate41.evaluated = { dynamicProps: true, dynamicItems: false };
 
 export const error = validate51;
-const schema170 = {
+const schema172 = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
   $id: "https://haddenindustries.com/ontology/contracts/v1/ontology-materialization-error.v1.schema.json",
   title: "API error response",

@@ -17,12 +17,12 @@
       "allowFormatWrites": false,
       "normalization": "preserve",
       "expected": {
-        "sha256": "a23f7bbffa4ef6701055f3009fc3cc3ab5a48a57e0aa7380154f9259ddccce53",
-        "byteLength": "6742",
+        "sha256": "ef858040390d8cd976f8d3659048808a9f7faa2e8096874cf11d76293c5d1990",
+        "byteLength": "6744",
         "diagnostics": []
       },
       "owner": "Published ontology cache contract provider",
-      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+      "reason": "Exact bytes from immutable local amazon-aws source commit 287c33ae3418a236d357ace623c7f6c262380022; native structural/safety checks and independent contract/schema tests remain active."
     },
     {
       "paths": [
@@ -37,7 +37,7 @@
         "diagnostics": []
       },
       "owner": "Published ontology cache contract provider",
-      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+      "reason": "Exact bytes from immutable local amazon-aws source commit 287c33ae3418a236d357ace623c7f6c262380022; native structural/safety checks and independent contract/schema tests remain active."
     },
     {
       "paths": [
@@ -52,7 +52,7 @@
         "diagnostics": []
       },
       "owner": "Published ontology cache contract provider",
-      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+      "reason": "Exact bytes from immutable local amazon-aws source commit 287c33ae3418a236d357ace623c7f6c262380022; native structural/safety checks and independent contract/schema tests remain active."
     },
     {
       "paths": [
@@ -62,12 +62,12 @@
       "allowFormatWrites": false,
       "normalization": "preserve",
       "expected": {
-        "sha256": "d09fdfd86af11b83eeb521ef36b80337aa22d4b9dfe8a2cfb05264f49861d10d",
-        "byteLength": "84076",
+        "sha256": "63ee025993afe1fb3b8fe5963cbddca124238d324ab30c2d9243d27bb639ace4",
+        "byteLength": "127374",
         "diagnostics": []
       },
       "owner": "Published ontology cache contract provider",
-      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+      "reason": "Exact bytes from immutable local amazon-aws source commit 287c33ae3418a236d357ace623c7f6c262380022; native structural/safety checks and independent contract/schema tests remain active."
     },
     {
       "paths": [
@@ -82,7 +82,7 @@
         "diagnostics": []
       },
       "owner": "Published ontology cache contract provider",
-      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+      "reason": "Exact bytes from immutable local amazon-aws source commit 287c33ae3418a236d357ace623c7f6c262380022; native structural/safety checks and independent contract/schema tests remain active."
     },
     {
       "paths": [
@@ -92,12 +92,12 @@
       "allowFormatWrites": false,
       "normalization": "preserve",
       "expected": {
-        "sha256": "c0b95d9275fa934881d78b18973fb7a987d11dcb9565fd95cc978f559d28352a",
-        "byteLength": "9215",
+        "sha256": "6e035a70e5cdf9f561668f73634526691b05a29b8829ca84ffb1e71c19707365",
+        "byteLength": "10601",
         "diagnostics": []
       },
       "owner": "Published ontology cache contract provider",
-      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+      "reason": "Exact bytes from immutable local amazon-aws source commit 287c33ae3418a236d357ace623c7f6c262380022; native structural/safety checks and independent contract/schema tests remain active."
     },
     {
       "paths": [
@@ -107,12 +107,12 @@
       "allowFormatWrites": false,
       "normalization": "preserve",
       "expected": {
-        "sha256": "6e436e8a87e00ac4e422ceb86f2dbfa7209400ec09a4e77f14ed1a7c374c4ed2",
-        "byteLength": "7985",
+        "sha256": "48bf02bda5c877b6e06aee8c6616e6d8e70ba2f3fc46d2de6aca348844d6c370",
+        "byteLength": "8099",
         "diagnostics": []
       },
       "owner": "Published ontology cache contract provider",
-      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+      "reason": "Exact bytes from immutable local amazon-aws source commit 287c33ae3418a236d357ace623c7f6c262380022; native structural/safety checks and independent contract/schema tests remain active."
     },
     {
       "paths": [
@@ -127,7 +127,7 @@
         "diagnostics": []
       },
       "owner": "Published ontology cache contract provider",
-      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+      "reason": "Exact bytes from immutable local amazon-aws source commit 287c33ae3418a236d357ace623c7f6c262380022; native structural/safety checks and independent contract/schema tests remain active."
     },
     {
       "paths": [
@@ -142,7 +142,7 @@
         "diagnostics": []
       },
       "owner": "Published ontology cache contract provider",
-      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+      "reason": "Exact bytes from immutable local amazon-aws source commit 287c33ae3418a236d357ace623c7f6c262380022; native structural/safety checks and independent contract/schema tests remain active."
     },
     {
       "paths": [
@@ -157,7 +157,7 @@
         "diagnostics": []
       },
       "owner": "Published ontology cache contract provider",
-      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+      "reason": "Exact bytes from immutable local amazon-aws source commit 287c33ae3418a236d357ace623c7f6c262380022; native structural/safety checks and independent contract/schema tests remain active."
     },
     {
       "paths": [
@@ -172,7 +172,7 @@
         "diagnostics": []
       },
       "owner": "Published ontology cache contract provider",
-      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+      "reason": "Exact bytes from immutable local amazon-aws source commit 287c33ae3418a236d357ace623c7f6c262380022; native structural/safety checks and independent contract/schema tests remain active."
     },
     {
       "paths": [
@@ -187,7 +187,7 @@
         "diagnostics": []
       },
       "owner": "Published ontology cache contract provider",
-      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+      "reason": "Exact bytes from immutable local amazon-aws source commit 287c33ae3418a236d357ace623c7f6c262380022; native structural/safety checks and independent contract/schema tests remain active."
     },
     {
       "paths": [
@@ -202,7 +202,7 @@
         "diagnostics": []
       },
       "owner": "Published ontology cache contract provider",
-      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+      "reason": "Exact bytes from immutable local amazon-aws source commit 287c33ae3418a236d357ace623c7f6c262380022; native structural/safety checks and independent contract/schema tests remain active."
     },
     {
       "paths": [
@@ -217,7 +217,7 @@
         "diagnostics": []
       },
       "owner": "Published ontology cache contract provider",
-      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+      "reason": "Exact bytes from immutable local amazon-aws source commit 287c33ae3418a236d357ace623c7f6c262380022; native structural/safety checks and independent contract/schema tests remain active."
     },
     {
       "paths": [
@@ -232,7 +232,7 @@
         "diagnostics": []
       },
       "owner": "Published ontology cache contract provider",
-      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+      "reason": "Exact bytes from immutable local amazon-aws source commit 287c33ae3418a236d357ace623c7f6c262380022; native structural/safety checks and independent contract/schema tests remain active."
     },
     {
       "paths": [
@@ -247,7 +247,7 @@
         "diagnostics": []
       },
       "owner": "Published ontology cache contract provider",
-      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+      "reason": "Exact bytes from immutable local amazon-aws source commit 287c33ae3418a236d357ace623c7f6c262380022; native structural/safety checks and independent contract/schema tests remain active."
     },
     {
       "paths": [
@@ -257,12 +257,12 @@
       "allowFormatWrites": false,
       "normalization": "preserve",
       "expected": {
-        "sha256": "6217f2ee4dc8804fe59033fbdb6c5eb4d2637e2f18b401b10b3a1974c63b3ef9",
-        "byteLength": "2488",
+        "sha256": "e53154e582954844632da9f0734b3c41dc59e26dc961b46c0dd13a35e28179ed",
+        "byteLength": "2582",
         "diagnostics": []
       },
       "owner": "Published ontology cache contract provider",
-      "reason": "Exact bytes from amazon-aws 646e018dbe440735284990e08ca629e1d8bd2c43; native structural/safety checks and independent contract/schema tests remain active."
+      "reason": "Exact bytes from immutable local amazon-aws source commit 287c33ae3418a236d357ace623c7f6c262380022; native structural/safety checks and independent contract/schema tests remain active."
     },
     {
       "paths": [

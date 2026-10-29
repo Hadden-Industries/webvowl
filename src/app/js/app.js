@@ -19,6 +19,7 @@ import { createConfigMenu } from "./menu/configMenu.js";
 import { createDebugMenu } from "./menu/debugMenu.js";
 import { createExportMenu } from "./menu/exportMenu.js";
 import { createNodesShownControl } from "./ui/nodesShownControl.js";
+import { createOwlMappingControl } from "./ui/owlMappingControl.js";
 import { createGravityMenu } from "./menu/gravityMenu.js";
 import { createModeMenu } from "./menu/modeMenu.js";
 import { createNavigationMenu } from "./menu/navigationMenu.js";
@@ -91,7 +92,9 @@ export function createWebVowlApplication({
   });
 
   let unsubscribeFromControllerState;
+  const readOwlMappingStrategy = createOwlMappingControl(document);
   const webVowlController = createController({
+    readOwlMappingStrategy,
     requestOntologyDeletionConfirmation: (proposal, options) =>
       warningModule.confirmOntologyDeletion(proposal, options),
     applicationUrl: globalThis.location.href,

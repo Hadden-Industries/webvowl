@@ -150,6 +150,8 @@ export async function verifyOntologyResolution({
     await ontologyRecordIdentity("loader-policy", policyRecord.policy),
     resolution.loaderProfileFingerprint,
   );
+  same(validation.validationProfileId, policyRecord.policy.validationProfileId);
+  same(validation.parseMode, policyRecord.policy.parseMode);
   same(
     await ontologyRecordIdentity(
       "parser-artifact",

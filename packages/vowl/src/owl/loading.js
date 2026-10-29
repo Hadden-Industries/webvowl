@@ -316,7 +316,7 @@ export async function loadClosure(bytes, context, options, budget, policy) {
             response.mediaType,
             budget,
             "/resolveImport",
-            policy.parsingMode === "compatible",
+            policy.automaticFormats === true,
           );
           policy.observeSource?.(snapshot, importedContext, {
             requestedIri: request.importIRI.value,
@@ -363,7 +363,7 @@ export async function loadClosure(bytes, context, options, budget, policy) {
     for (const { context: loadedContext } of loaded.documents) {
       budget.check();
       for (const diagnostic of loadedContext.diagnostics) {
-        if (policy.parsingMode === "compatible") {
+        if (policy.observeDiagnostic) {
           policy.observeDiagnostic(diagnostic, loadedContext);
         } else if (diagnostic.code === "MISSING_IMPORT") {
           policy.recover(

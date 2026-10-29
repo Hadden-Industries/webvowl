@@ -5158,6 +5158,40 @@ a#locateSearchResult {
   outline-offset: -3px;
 }
 
+.owl-mapping-options {
+  margin: 8px 0;
+  padding: 0;
+  border: 0;
+}
+
+.owl-mapping-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.owl-mapping-choice {
+  cursor: pointer;
+
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+
+  min-height: 48px;
+}
+
+.owl-mapping-choice small {
+  display: block;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+#owl-mapping-help {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
 .visually-hidden {
   position: absolute;
 

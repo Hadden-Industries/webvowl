@@ -1,4 +1,5 @@
 import isEqual from "lodash/isEqual.js";
+import { selectOwlMappingStrategy } from "./owlMappingStrategy.js";
 import { createNodeCountAdjustment } from "./nodeCountAdjustment.js";
 import { createControllerOperationLifecycle } from "./controllerOperationLifecycle.js";
 import { createCanonicalVowlDocumentSession } from "./canonicalVowlDocumentSession.js";
@@ -88,6 +89,7 @@ export function createCanonicalWebVowlController({
   requestOntologyCreation,
   reconcileScene,
   nodeCountAdjustmentClock,
+  readOwlMappingStrategy = () => selectOwlMappingStrategy(),
 } = {}) {
   let state = createWebVowlControllerState(idle);
   let disposed = false;
@@ -887,8 +889,14 @@ export function createCanonicalWebVowlController({
         initialVisualization,
         useAutomaticNodesShown,
         cacheBindings,
+        owlMappingStrategy,
       } = {},
     ) {
+      const selectedOwlMappingStrategy = selectOwlMappingStrategy(
+        owlMappingStrategy === undefined
+          ? readOwlMappingStrategy()
+          : owlMappingStrategy,
+      );
       const initial = createInitialVisualizationRequest(
         initialVisualization ?? {},
       );
@@ -955,6 +963,12 @@ export function createCanonicalWebVowlController({
         }
         combined.throwIfAborted();
         let attempt;
+        if (request.operation === "open-owl-model") {
+          request = {
+            ...request,
+            owlMappingStrategy: selectedOwlMappingStrategy,
+          };
+        }
         let awaitingFormat = false;
         const imports = acquisition.createImportContext?.(
           request.bytes?.byteLength ?? 0,
@@ -1041,6 +1055,9 @@ export function createCanonicalWebVowlController({
           documentRevision: accepted.documentRevision,
           source: {
             kind: retained.kind,
+            ...(request.operation === "open-owl-model"
+              ? { owlMappingStrategy: selectedOwlMappingStrategy }
+              : {}),
             ...(retained.documentIri || retained.url
               ? { identity: retained.documentIri ?? retained.url }
               : {}),
