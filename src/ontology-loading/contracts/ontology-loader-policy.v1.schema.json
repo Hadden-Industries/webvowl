@@ -38,7 +38,8 @@
         "transportPolicy": {
           "enum": [
             "https-preferred-original-http-fallback-v1",
-            "https-preferred-anonymous-public-snapshots-v2"
+            "https-preferred-anonymous-public-snapshots-v2",
+            "https-preferred-anonymous-public-snapshots-v3"
           ]
         },
         "remoteImports": {
@@ -298,6 +299,24 @@
               "requestVariant": {
                 "type": "object",
                 "properties": { "selectionPolicyVersion": { "const": 2 } }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "transportPolicy": {
+                "const": "https-preferred-anonymous-public-snapshots-v3"
+              }
+            },
+            "required": ["transportPolicy"]
+          },
+          "then": {
+            "properties": {
+              "requestVariant": {
+                "type": "object",
+                "properties": { "selectionPolicyVersion": { "const": 3 } }
               }
             }
           }

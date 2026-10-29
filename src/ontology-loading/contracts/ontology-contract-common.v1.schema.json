@@ -196,10 +196,18 @@
         "vary": {
           "type": "array",
           "items": {
-            "enum": ["accept", "accept-encoding", "origin"]
+            "enum": [
+              "accept",
+              "accept-encoding",
+              "origin",
+              "negotiate",
+              "accept-charset",
+              "accept-language",
+              "accept-features"
+            ]
           },
           "uniqueItems": true,
-          "maxItems": 3
+          "maxItems": 7
         },
         "validators": {
           "$ref": "#/$defs/validators"
