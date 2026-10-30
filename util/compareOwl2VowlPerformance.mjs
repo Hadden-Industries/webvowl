@@ -13,7 +13,7 @@ const root = fileURLToPath(new URL("../", import.meta.url));
 const packageFile = new URL("../package.json", import.meta.url);
 const legacySha256 =
   "c8e0f44e0f11da290c075fc90057ff2c1f92612f65b5662e1d198aa170d84fc5";
-const rootIri =
+export const rootIri =
   "https://haddenindustries.com/ontology/universal/extended/latest";
 const fixture = [
   [
@@ -128,6 +128,20 @@ export async function writeLegacySources(inputs, scratch) {
   return manifest;
 }
 
+export async function readComparisonInputs(ontologies) {
+  return Promise.all(
+    fixture.map(async ([documentIri, path, mediaType, digest]) => {
+      const bytes = await readFile(resolve(ontologies, path));
+      assert.equal(
+        sha256(bytes),
+        digest,
+        `Frozen ontology input changed: ${path}`,
+      );
+      return { documentIri, mediaType, base64: bytes.toString("base64") };
+    }),
+  );
+}
+
 async function compare(options) {
   const iterations = Number(options.iterations ?? 3);
   assert(
@@ -141,18 +155,7 @@ async function compare(options) {
     legacySha256,
     "The original baseline JAR changed",
   );
-  const inputs = await Promise.all(
-    fixture.map(async ([documentIri, path, mediaType, digest]) => {
-      const file = resolve(options.ontologies, path);
-      const bytes = await readFile(file);
-      assert.equal(
-        sha256(bytes),
-        digest,
-        `Frozen ontology input changed: ${path}`,
-      );
-      return { documentIri, mediaType, base64: bytes.toString("base64") };
-    }),
-  );
+  const inputs = await readComparisonInputs(options.ontologies);
   const scratch = await mkdtemp(join(tmpdir(), "owl2vowl-comparison-"));
   let vite, browser;
   try {

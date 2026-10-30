@@ -46,6 +46,12 @@ public final class LegacyOwl2VowlBenchmark {
             documents.put(fields[0], Files.readAllBytes(Paths.get(fields[2])));
             mediaTypes.put(fields[0], fields[1]);
         }
+        if (args[1].equals("--serve")) {
+            // Tomcat and this frozen-source adapter otherwise compete for the
+            // JVM's single protocol factory. Exploded resources need no war: URL.
+            Class.forName("org.apache.catalina.webresources.TomcatURLStreamHandlerFactory")
+                .getMethod("disable").invoke(null);
+        }
         URL.setURLStreamHandlerFactory(protocol -> {
             if (!protocol.equals("http") && !protocol.equals("https")) {
                 return null;
@@ -100,12 +106,21 @@ public final class LegacyOwl2VowlBenchmark {
                         @Override
                         public InputStream getInputStream() {
                             requests++;
+                            if (args[1].equals("--serve")) {
+                                System.out.println("FROZEN_SOURCE " + iri);
+                            }
                             return new ByteArrayInputStream(documents.get(iri));
                         }
                     };
                 }
             };
         });
+        if (args[1].equals("--serve")) {
+            Class.forName("de.uni_stuttgart.vis.vowl.owl2vowl.ServerMain")
+                .getMethod("main", String[].class)
+                .invoke(null, (Object) java.util.Arrays.copyOfRange(args, 2, args.length));
+            return;
+        }
         int iterations = Integer.parseInt(args[2]);
         for (int iteration = 0; iteration < iterations; iteration++) {
             requests = 0;
