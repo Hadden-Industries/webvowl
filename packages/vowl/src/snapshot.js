@@ -64,6 +64,19 @@ const countedByOperation = new WeakMap();
 
 /** Copy all values synchronously using descriptors; sharing is copied by value, cycles rejected. */
 export function snapshotSource(source, budget, primaryAt = () => false) {
+  return visitSource(source, budget, primaryAt, true);
+}
+
+/**
+ * Check a privately constructed tree without allocating another ownership copy.
+ * Internal callers must already own every reachable container; this does not
+ * confer ownership on caller data. All snapshot checks and charges still run.
+ */
+export function validateOwnedSource(source, budget) {
+  visitSource(source, budget, () => false, false);
+}
+
+function visitSource(source, budget, primaryAt, copying) {
   budget.check();
   if (source === null || typeof source !== "object" || Array.isArray(source)) {
     fail("INPUT_TYPE", "");
@@ -137,7 +150,7 @@ export function snapshotSource(source, budget, primaryAt = () => false) {
       }
     }
     ancestors.add(value);
-    const result = array ? [] : Object.create(null);
+    const result = copying ? (array ? [] : Object.create(null)) : value;
     const ordered = array
       ? keys
           .filter((key) => key !== "length")
@@ -157,13 +170,16 @@ export function snapshotSource(source, budget, primaryAt = () => false) {
       if (!array) {
         checkString(key, childPointer, budget, !recopied);
       }
-      result[key] = copy(
+      const child = copy(
         descriptor.value,
         childPointer,
         depth + 1,
         primaryChild,
         recopied,
       );
+      if (copying) {
+        result[key] = child;
+      }
     }
     ancestors.delete(value);
     counted.add(value);

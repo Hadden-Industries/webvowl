@@ -8,7 +8,7 @@ import {
   createAssertionSupportLookup,
 } from "./validateGraph.js";
 import { validateProjection } from "./projection.js";
-import { snapshotSource, deepFreeze } from "./snapshot.js";
+import { snapshotSource, validateOwnedSource, deepFreeze } from "./snapshot.js";
 import { createPreservedSupportLookup } from "./supportPreservation.js";
 import { readmitSourceArchive } from "./sourceArchive.js";
 import {
@@ -96,6 +96,10 @@ function relabel(structural, budget) {
 
 function admit(state, budget, archive) {
   state = snapshotSource(state, budget);
+  return validateAndPublishState(state, budget, archive);
+}
+
+function validateAndPublishState(state, budget, archive) {
   const assertionSupport = validateStructure(state.structural, budget);
   return publishValidatedState(state, budget, archive, assertionSupport);
 }
@@ -215,26 +219,28 @@ export function openOwlState(source, archive, documentIri, budget) {
   if (!root) {
     fail("MODEL_NOT_ADMITTED");
   }
-  const model = admit(
-    {
-      revision: 0,
-      origin: {
-        kind: "owl",
-        profile: compatibleViewPolicy,
-        inputDigest: root.digest,
-        sourceAccess: "available",
-      },
-      structural: owned.structural,
-      supports: allRecords(owned.structural).map(({ id }) => ({
-        record: id,
-        assertions: [],
-        derivations: [{ rule: sourceMappingRule, records: [] }],
-        origin: "generated",
-      })),
+  // The structural tree is the private snapshot above. Every other container
+  // below is freshly allocated here; archive metadata contributes only strings.
+  // Keep snapshot validation/accounting after relabelling without copying the
+  // already-owned tree a second time. External/edit/checkpoint paths still copy.
+  const state = {
+    revision: 0,
+    origin: {
+      kind: "owl",
+      profile: compatibleViewPolicy,
+      inputDigest: root.digest,
+      sourceAccess: "available",
     },
-    budget,
-    archive,
-  );
+    structural: owned.structural,
+    supports: allRecords(owned.structural).map(({ id }) => ({
+      record: id,
+      assertions: [],
+      derivations: [{ rule: sourceMappingRule, records: [] }],
+      origin: "generated",
+    })),
+  };
+  validateOwnedSource(state, budget);
+  const model = validateAndPublishState(state, budget, archive);
   return deepFreeze({
     model,
     correspondence: [...replacements].map(([previous, current]) => ({

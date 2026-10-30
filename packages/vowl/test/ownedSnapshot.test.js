@@ -1,0 +1,93 @@
+import { snapshotSource, validateOwnedSource } from "../src/snapshot.js";
+import { ResourceBudget } from "../src/resourceBudget.js";
+
+function run(check, input, limits = {}) {
+  const budget = new ResourceBudget(
+    { limits: { deadlineMs: Infinity, ...limits } },
+    performance.now(),
+  );
+  try {
+    check(input, budget);
+    return { counts: { ...budget.counts } };
+  } catch ({ code, pointer, details }) {
+    return { code, pointer, details, counts: { ...budget.counts } };
+  } finally {
+    budget.dispose();
+  }
+}
+
+const source = () => ({
+  structural: { subjects: [{ id: "live:S:0", iri: "urn:\u00e9" }] },
+  supports: [{ record: "live:S:0", assertions: [], origin: "generated" }],
+});
+
+test("owned validation retains exact snapshot accounting and every resource failure boundary", () => {
+  expect(run(validateOwnedSource, source())).toEqual(
+    run(snapshotSource, source()),
+  );
+  for (const limit of [
+    "primaryRecords",
+    "embeddedValues",
+    "totalStringBytes",
+    "stringBytes",
+    "depth",
+  ]) {
+    for (const maximum of [1, 2, 3, 4, 8, 16, 32, 64, 128, 256]) {
+      expect(run(validateOwnedSource, source(), { [limit]: maximum })).toEqual(
+        run(snapshotSource, source(), { [limit]: maximum }),
+      );
+    }
+  }
+});
+
+test("owned revalidation counts new supports but does not count snapshotted records twice", () => {
+  const check = (finalize) => {
+    const budget = new ResourceBudget(
+      { limits: { deadlineMs: Infinity } },
+      performance.now(),
+    );
+    try {
+      const owned = snapshotSource({ structural: source().structural }, budget);
+      owned.structural.subjects[0].id = "live:S:100";
+      finalize({ ...source(), structural: owned.structural }, budget);
+      return { ...budget.counts };
+    } finally {
+      budget.dispose();
+    }
+  };
+  expect(check(validateOwnedSource)).toEqual(check(snapshotSource));
+});
+
+test("owned validation still rejects unsafe descriptors, Unicode, shapes and cycles without invoking accessors", () => {
+  let reads = 0;
+  const accessor = Object.defineProperty({}, "value", {
+    enumerable: true,
+    get() {
+      reads++;
+      return "unsafe";
+    },
+  });
+  const cycle = {};
+  cycle.value = cycle;
+  const symbol = { [Symbol("unsafe")]: true };
+  const sparse = [];
+  sparse.length = 2;
+  for (const value of [
+    accessor,
+    cycle,
+    symbol,
+    sparse,
+    { value: "\ud800" },
+    { value: "\ufdd0" },
+    { value: -0 },
+    { value: Infinity },
+    { value: undefined },
+    { value: new Date(0) },
+    Object.defineProperty({}, "value", { value: true }),
+  ]) {
+    const result = run(validateOwnedSource, { value });
+    expect(result.code).toBeDefined();
+    expect(result).toEqual(run(snapshotSource, { value }));
+  }
+  expect(reads).toBe(0);
+});
