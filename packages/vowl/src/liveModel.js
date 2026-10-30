@@ -8,7 +8,12 @@ import {
   createAssertionSupportLookup,
 } from "./validateGraph.js";
 import { validateProjection } from "./projection.js";
-import { snapshotSource, validateOwnedSource, deepFreeze } from "./snapshot.js";
+import {
+  snapshotSource,
+  validateOwnedSource,
+  deepFreeze,
+  freezeOwnedSource,
+} from "./snapshot.js";
 import { createPreservedSupportLookup } from "./supportPreservation.js";
 import { readmitSourceArchive } from "./sourceArchive.js";
 import {
@@ -114,7 +119,7 @@ function publishValidatedState(state, budget, archive, assertionSupport) {
     validateQualifications(state, budget);
   }
   const model = Object.freeze({ revision: state.revision });
-  deepFreeze(state);
+  freezeOwnedSource(state);
   budget.check();
   models.set(model, state);
   inspections.set(model, inspection(state, archive, budget, assertionSupport));

@@ -1,4 +1,9 @@
-import { snapshotSource, validateOwnedSource } from "../src/snapshot.js";
+import {
+  snapshotSource,
+  validateOwnedSource,
+  deepFreeze,
+  freezeOwnedSource,
+} from "../src/snapshot.js";
 import { ResourceBudget } from "../src/resourceBudget.js";
 
 function run(check, input, limits = {}) {
@@ -123,4 +128,98 @@ test("snapshot records retain null prototypes and never invoke inherited setters
     delete Object.prototype[key];
     budget.dispose();
   }
+});
+
+test("freezing owned trees preserves every snapshot charge and resource failure", () => {
+  const budget = new ResourceBudget(
+    { limits: { deadlineMs: Infinity } },
+    performance.now(),
+  );
+  let frozen;
+  try {
+    frozen = freezeOwnedSource(snapshotSource(source(), budget));
+  } finally {
+    budget.dispose();
+  }
+  for (const limit of [
+    "primaryRecords",
+    "embeddedValues",
+    "totalStringBytes",
+    "stringBytes",
+    "depth",
+  ]) {
+    for (const maximum of [1, 2, 4, 8, 16, 32, 64, 128, 256]) {
+      expect(run(snapshotSource, frozen, { [limit]: maximum })).toEqual(
+        run(snapshotSource, source(), { [limit]: maximum }),
+      );
+    }
+  }
+});
+
+test("freezing a caller proxy cannot enable direct reads during snapshotting", () => {
+  let reads = 0;
+  let rejectReads = false;
+  const input = new Proxy(
+    { value: "safe" },
+    {
+      get(target, key) {
+        reads++;
+        if (rejectReads) {
+          throw new Error("Caller get trap must not run");
+        }
+        return Reflect.get(target, key);
+      },
+    },
+  );
+  deepFreeze(input);
+  reads = 0;
+  rejectReads = true;
+  const budget = new ResourceBudget(
+    { limits: { deadlineMs: Infinity } },
+    performance.now(),
+  );
+  try {
+    expect(snapshotSource(input, budget).value).toBe("safe");
+    expect(reads).toBe(0);
+  } finally {
+    budget.dispose();
+  }
+});
+
+test("a caller's shallow freeze cannot prove a deeply frozen tree", () => {
+  const child = { nested: { value: "before" } };
+  const input = Object.freeze({ child });
+  child.nested.value = "after";
+  deepFreeze(input);
+  expect(Object.isFrozen(child)).toBe(true);
+  expect(Object.isFrozen(child.nested)).toBe(true);
+  expect(() => {
+    child.nested.value = "tampered";
+  }).toThrow(TypeError);
+  expect(run(snapshotSource, input)).toEqual(
+    run(snapshotSource, { child: { nested: { value: "after" } } }),
+  );
+});
+
+test("freezing an accessor-bearing object still freezes each newly returned child", () => {
+  let child = { value: "first" };
+  let reads = 0;
+  const input = {
+    get child() {
+      reads++;
+      return child;
+    },
+  };
+  deepFreeze(input);
+  const first = child;
+  child = { value: "second" };
+  deepFreeze(input);
+  expect(reads).toBe(2);
+  expect(Object.isFrozen(first)).toBe(true);
+  expect(Object.isFrozen(child)).toBe(true);
+  expect(run(snapshotSource, input)).toMatchObject({
+    code: "SOURCE_UNSAFE_VALUE",
+    pointer: "/child",
+  });
+  expect(reads).toBe(2);
 });

@@ -61,6 +61,9 @@ export function checkString(value, pointer, budget, charge = true) {
 // operation's budget, whether the snapshot read them or made them. A value
 // counts once in an operation, however often it is copied (#limits).
 const countedByOperation = new WeakMap();
+// Only privately owned, safety-validated trees can populate this proof. A
+// caller's shallow freeze or serialized marker never establishes membership.
+const frozenOwnedTrees = new WeakSet();
 
 /** Copy all values synchronously using descriptors; sharing is copied by value, cycles rejected. */
 export function snapshotSource(source, budget, primaryAt = () => false) {
@@ -229,11 +232,26 @@ export function snapshotBytes(value, budget) {
 
 /** Admission owns an immutable tree; none of its containers can later change encoded bytes. */
 export function deepFreeze(value) {
+  return freezeTree(value, false);
+}
+
+/** Internal handoff only, after ownership and complete data-safety validation. */
+export function freezeOwnedSource(value) {
+  return freezeTree(value, true);
+}
+
+function freezeTree(value, rememberOwned) {
   if (value !== null && typeof value === "object") {
+    if (frozenOwnedTrees.has(value)) {
+      return value;
+    }
     for (const child of Object.values(value)) {
-      deepFreeze(child);
+      freezeTree(child, rememberOwned);
     }
     Object.freeze(value);
+    if (rememberOwned) {
+      frozenOwnedTrees.add(value);
+    }
   }
   return value;
 }

@@ -4,7 +4,7 @@ import {
   snapshotBytes,
   snapshotSource,
   validateOwnedSource,
-  deepFreeze,
+  freezeOwnedSource,
 } from "./snapshot.js";
 import { validateFields } from "./typedValues.js";
 import { isOwlMappingParserMode } from "./owlMappingStrategy.js";
@@ -262,7 +262,7 @@ function term(value, kinds) {
 }
 
 function ownedArchive(evidence, sources) {
-  deepFreeze(evidence);
+  freezeOwnedSource(evidence);
   return Object.freeze({
     evidence,
     readBytes(id, budget) {
