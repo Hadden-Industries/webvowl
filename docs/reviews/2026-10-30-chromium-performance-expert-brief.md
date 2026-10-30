@@ -32,6 +32,8 @@ Raw repetitions, in milliseconds:
 
 **Interpretation limits:** three repetitions are descriptive evidence, not a statistical performance guarantee. These are controlled local measurements, not Internet or deployed-AWS timings. No function-level Chromium CPU/allocation trace is available. Stage durations below are elapsed spans, not exclusive CPU attribution.
 
+**Fixture correction, 30 October:** the measurements above used incorrect `text/turtle` fixture headers for the four formatless Hadden documents. Their unchanged, hash-pinned bytes are RDF/XML. These observations remain historical evidence; parity qualification requires a matched original/current rerun with the corrected `application/rdf+xml` headers. The workload table below now identifies their actual syntax.
+
 ## 2. What this application does
 
 An **ontology** is a machine-readable description of classes, properties and relationships, serialized here as Turtle or RDF/XML. One ontology can declare imports of others. The **import closure** is the root document plus every transitively required document: seven documents in this workload.
@@ -113,10 +115,10 @@ The seven input documents total **3,023,334 decoded bytes**, approximately 2.88 
 
 | Document                    | Logical document IRI                                                      | Syntax  |     Bytes |
 | --------------------------- | ------------------------------------------------------------------------- | ------- | --------: |
-| Universal Ontology extended | `https://haddenindustries.com/ontology/universal/extended/latest`         | Turtle  |   730,907 |
-| Universal Ontology core     | `https://haddenindustries.com/ontology/universal/core/20260912`           | Turtle  |   376,694 |
-| Reference data              | `https://haddenindustries.com/ontology/universal/reference-data/20260912` | Turtle  | 1,139,625 |
-| ISO/IEC 11179-3             | `https://haddenindustries.com/ontology/iso-iec/11179/-3/ed-4/20260912`    | Turtle  |   602,693 |
+| Universal Ontology extended | `https://haddenindustries.com/ontology/universal/extended/latest`         | RDF/XML |   730,907 |
+| Universal Ontology core     | `https://haddenindustries.com/ontology/universal/core/20260912`           | RDF/XML |   376,694 |
+| Reference data              | `https://haddenindustries.com/ontology/universal/reference-data/20260912` | RDF/XML | 1,139,625 |
+| ISO/IEC 11179-3             | `https://haddenindustries.com/ontology/iso-iec/11179/-3/ed-4/20260912`    | RDF/XML |   602,693 |
 | Gregorian time              | `http://www.w3.org/ns/time/gregorian`                                     | Turtle  |     7,414 |
 | OWL-Time                    | `http://www.w3.org/2006/time`                                             | RDF/XML |   136,737 |
 | SKOS                        | `http://www.w3.org/2004/02/skos/core`                                     | RDF/XML |    29,264 |

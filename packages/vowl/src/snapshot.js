@@ -1,6 +1,11 @@
 import { at, fail } from "./errors.js";
 import { categories } from "./profiles.js";
 
+const nonAscii = /[^\p{ASCII}]/u;
+const primaryRecordArrays = Object.freeze(
+  Object.keys(categories).map((category) => `/structural/${category}`),
+);
+
 /** A lone surrogate or a noncharacter that I-JSON prohibits. */
 export function prohibitedScalar(scalar) {
   return (
@@ -19,7 +24,7 @@ export function utf8Length(scalar) {
 export function checkString(value, pointer, budget, charge = true) {
   // A bounded ASCII scan proves both the I-JSON scalar domain and UTF-8 size.
   // Longer strings retain the interruptible walk below.
-  if (value.length <= 1024 && !/[^\p{ASCII}]/u.test(value)) {
+  if (value.length <= 1024 && !nonAscii.test(value)) {
     budget.bound("stringBytes", value.length, pointer);
     if (charge) {
       budget.charge("totalStringBytes", value.length, pointer);
@@ -73,7 +78,7 @@ export function snapshotSource(source, budget, primaryAt = () => false) {
 /**
  * Check a privately constructed tree without allocating another ownership copy.
  * Internal callers must already own every reachable container; this does not
- * confer ownership on caller data. All snapshot checks and charges still run.
+ * confer ownership on caller data. All safety invariants and charges still apply.
  */
 export function validateOwnedSource(source, budget) {
   visitSource(source, budget, () => false, false);
@@ -109,20 +114,24 @@ function visitSource(source, budget, primaryAt, copying) {
     if (typeof value === "boolean" || value === null) {
       return value;
     }
-    if (typeof value !== "object" || ancestors.has(value)) {
+    const frozenSafe = frozenOwnedTrees.has(value);
+    if (typeof value !== "object" || (!frozenSafe && ancestors.has(value))) {
       fail("SOURCE_UNSAFE_VALUE", pointer);
     }
     budget.bound("depth", depth, pointer);
     const array = Array.isArray(value);
-    const prototype = Object.getPrototypeOf(value);
-    if (
-      array
-        ? prototype !== Array.prototype
-        : prototype !== Object.prototype && prototype !== null
-    ) {
-      fail("SOURCE_UNSAFE_VALUE", pointer);
+    if (!frozenSafe) {
+      const prototype = Object.getPrototypeOf(value);
+      if (
+        array
+          ? prototype !== Array.prototype
+          : prototype !== Object.prototype && prototype !== null
+      ) {
+        fail("SOURCE_UNSAFE_VALUE", pointer);
+      }
     }
-    const recopied = counted.has(value) && !reached.has(value);
+    const knownToBudget = counted.has(value);
+    const recopied = knownToBudget && !reached.has(value);
     reached.add(value);
     if (!recopied) {
       budget.charge(
@@ -131,15 +140,23 @@ function visitSource(source, budget, primaryAt, copying) {
         pointer,
       );
     }
-    const keys = Reflect.ownKeys(value);
-    if (keys.some((key) => typeof key !== "string")) {
+    // Published safe trees are deeply frozen and exclusively owned. Their
+    // prototypes, dense layout and own data attributes cannot change. Reuse
+    // only those facts; every occurrence still traverses and charges below.
+    const keys = frozenSafe ? Object.keys(value) : Reflect.ownKeys(value);
+    if (!frozenSafe && keys.some((key) => typeof key !== "string")) {
       fail("SOURCE_UNSAFE_VALUE", pointer);
     }
-    const descriptors = Object.create(null);
-    for (const key of keys) {
-      descriptors[key] = Object.getOwnPropertyDescriptor(value, key);
+    // Keep descriptor reads tied to the captured keys, without enumerating
+    // a programmatic input a second time.
+    let descriptors;
+    if (!frozenSafe) {
+      descriptors = Object.create(null);
+      for (const key of keys) {
+        descriptors[key] = Object.getOwnPropertyDescriptor(value, key);
+      }
     }
-    if (array) {
+    if (array && !frozenSafe) {
       const length = descriptors.length.value;
       if (
         keys.length !== length + 1 ||
@@ -152,29 +169,32 @@ function visitSource(source, budget, primaryAt, copying) {
         fail("SOURCE_UNSAFE_VALUE", pointer);
       }
     }
-    ancestors.add(value);
+    if (!frozenSafe) {
+      ancestors.add(value);
+    }
     const result = copying ? (array ? [] : Object.create(null)) : value;
-    const ordered = array
-      ? keys
-          .filter((key) => key !== "length")
-          .sort((a, b) => Number(a) - Number(b))
-      : keys.sort();
-    const primaryChild =
-      array &&
-      Object.keys(categories).some(
-        (category) => pointer === `/structural/${category}`,
-      );
-    for (const key of ordered) {
-      const descriptor = descriptors[key];
+    // The dense-array check above proves every index is present exactly once.
+    // Visit those numeric positions directly, including when a caller proxy
+    // reports its keys in another order. Record fields retain lexical order.
+    const ordered = array ? undefined : keys.sort();
+    const length = array
+      ? frozenSafe
+        ? value.length
+        : descriptors.length.value
+      : ordered.length;
+    const primaryChild = array && primaryRecordArrays.includes(pointer);
+    for (let index = 0; index < length; index++) {
+      const key = array ? index : ordered[index];
+      const descriptor = descriptors?.[key];
       const childPointer = at(pointer, key);
-      if (!("value" in descriptor) || !descriptor.enumerable) {
+      if (!frozenSafe && (!("value" in descriptor) || !descriptor.enumerable)) {
         fail("SOURCE_UNSAFE_VALUE", childPointer);
       }
       if (!array) {
         checkString(key, childPointer, budget, !recopied);
       }
       const child = copy(
-        descriptor.value,
+        frozenSafe ? value[key] : descriptor.value,
         childPointer,
         depth + 1,
         primaryChild,
@@ -184,14 +204,20 @@ function visitSource(source, budget, primaryAt, copying) {
         result[key] = child;
       }
     }
-    ancestors.delete(value);
+    if (!frozenSafe) {
+      ancestors.delete(value);
+    }
     // Populate a fresh ordinary record with own data properties, then remove
     // its prototype before publication. Preserve null-prototype isolation while
     // allowing engines to retain a compact property layout for repeated reads.
     const owned =
       copying && !array ? Object.setPrototypeOf({ ...result }, null) : result;
-    counted.add(value);
-    counted.add(owned);
+    if (!knownToBudget) {
+      counted.add(value);
+    }
+    if (owned !== value) {
+      counted.add(owned);
+    }
     return owned;
   }
   const result = copy(source, "", 1);

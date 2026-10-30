@@ -7,6 +7,7 @@ import {
   legacyNamedEntities,
   assertLegacyCoverage,
   writeLegacySources,
+  assertComparisonMediaType,
 } from "./compareOwl2VowlPerformance.mjs";
 
 const legacy = {
@@ -19,6 +20,30 @@ const legacy = {
 };
 const expected = { class: ["urn:Class"], property: ["urn:property"] };
 const current = { documents: 7, unresolved: 0, entities: expected };
+
+test("XML fixture bytes cannot be qualified under a Turtle media type", () => {
+  for (const text of [
+    '<?xml version="1.0"?><rdf:RDF/>',
+    '\ufeff \n<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"/>',
+  ]) {
+    const bytes = new TextEncoder().encode(text);
+    assert.throws(
+      () => assertComparisonMediaType(bytes, "text/turtle"),
+      /Frozen RDF\/XML input has an incompatible media type/u,
+    );
+    assert.doesNotThrow(() =>
+      assertComparisonMediaType(bytes, "application/rdf+xml"),
+    );
+  }
+  assert.doesNotThrow(() =>
+    assertComparisonMediaType(
+      new TextEncoder().encode(
+        "# Frozen Turtle\n@prefix owl: <http://www.w3.org/2002/07/owl#>.",
+      ),
+      "text/turtle",
+    ),
+  );
+});
 
 test("original converter IRIs, rather than unstable legacy IDs, own the named-role sink", () => {
   assert.deepEqual(legacyNamedEntities(legacy), expected);

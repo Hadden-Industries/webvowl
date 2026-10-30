@@ -93,6 +93,10 @@ test("owned validation still rejects unsafe descriptors, Unicode, shapes and cyc
     const result = run(validateOwnedSource, { value });
     expect(result.code).toBeDefined();
     expect(result).toEqual(run(snapshotSource, { value }));
+    const frozen = Object.freeze(value);
+    const frozenResult = run(snapshotSource, { value: frozen });
+    expect(frozenResult.code).toBeDefined();
+    expect(frozenResult).toEqual(result);
   }
   expect(reads).toBe(0);
 });
@@ -222,4 +226,54 @@ test("freezing an accessor-bearing object still freezes each newly returned chil
     pointer: "/child",
   });
   expect(reads).toBe(2);
+});
+
+test("dense arrays retain numeric traversal and primary-record limits despite proxy key order", () => {
+  const subjects = [{ id: "first" }, { id: "second" }];
+  const reordered = new Proxy(subjects, {
+    ownKeys() {
+      return ["1", "0", "length"];
+    },
+  });
+  const input = { structural: { subjects: reordered } };
+  const copies = [];
+  run((value, budget) => copies.push(snapshotSource(value, budget)), input);
+  expect(copies[0].structural.subjects.map(({ id }) => id)).toEqual([
+    "first",
+    "second",
+  ]);
+  const failure = run(snapshotSource, input, { primaryRecords: 1 });
+  expect(failure).toMatchObject({
+    code: "MODEL_RESOURCE_LIMIT",
+    pointer: "/structural/subjects/1",
+    details: { limit: "primaryRecords", maximum: 1, actual: 2 },
+  });
+  expect(failure).toEqual(
+    run(snapshotSource, { structural: { subjects } }, { primaryRecords: 1 }),
+  );
+});
+
+test("an immutable proof never changes shared-value multiplicity or caller bounds", () => {
+  const budget = new ResourceBudget(
+    { limits: { deadlineMs: Infinity } },
+    performance.now(),
+  );
+  let owned;
+  try {
+    owned = freezeOwnedSource(snapshotSource({ text: "immutable" }, budget));
+  } finally {
+    budget.dispose();
+  }
+  const shared = { first: owned, second: owned };
+  const separate = {
+    first: { text: "immutable" },
+    second: { text: "immutable" },
+  };
+  for (const maximum of [1, 2, 3, 8, 16, 32, 64, 128]) {
+    for (const limit of ["embeddedValues", "totalStringBytes", "depth"]) {
+      expect(run(snapshotSource, shared, { [limit]: maximum })).toEqual(
+        run(snapshotSource, separate, { [limit]: maximum }),
+      );
+    }
+  }
 });

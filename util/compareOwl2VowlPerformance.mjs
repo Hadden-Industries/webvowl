@@ -19,25 +19,25 @@ const fixture = [
   [
     rootIri,
     "universal/extended/latest",
-    "text/turtle",
+    "application/rdf+xml",
     "92ad97ccb1acf4f2413dc3f1100433adbaa965ce98821f863de9df22eced7f24",
   ],
   [
     "https://haddenindustries.com/ontology/universal/core/20260912",
     "universal/core/20260912",
-    "text/turtle",
+    "application/rdf+xml",
     "214f21e9116c0515bd52e5e8e893c83fcf93eb4ce586a49dbd8afc8a05e2c190",
   ],
   [
     "https://haddenindustries.com/ontology/universal/reference-data/20260912",
     "universal/reference-data/20260912",
-    "text/turtle",
+    "application/rdf+xml",
     "1354d260a8bf33d0e67b6145b45438be719203f71e0280d61fc498b697860260",
   ],
   [
     "https://haddenindustries.com/ontology/iso-iec/11179/-3/ed-4/20260912",
     "iso-iec/11179/-3/ed-4/20260912",
-    "text/turtle",
+    "application/rdf+xml",
     "b621c3d545343cbfab9e8c41cf296046df32722204b8ff76251b7b5a6f3a2e74",
   ],
   [
@@ -137,9 +137,22 @@ export async function readComparisonInputs(ontologies) {
         digest,
         `Frozen ontology input changed: ${path}`,
       );
+      assertComparisonMediaType(bytes, mediaType);
       return { documentIri, mediaType, base64: bytes.toString("base64") };
     }),
   );
+}
+
+/** Guard the known frozen XML fixtures; this is not a general RDF syntax selector. */
+export function assertComparisonMediaType(bytes, mediaType) {
+  const prefix = new TextDecoder().decode(bytes.subarray(0, 128)).trimStart();
+  if (prefix.startsWith("<?xml") || prefix.startsWith("<rdf:RDF")) {
+    assert.equal(
+      mediaType,
+      "application/rdf+xml",
+      "Frozen RDF/XML input has an incompatible media type",
+    );
+  }
 }
 
 async function compare(options) {
