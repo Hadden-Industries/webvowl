@@ -40,9 +40,18 @@ export async function prepareCompatibleView(bytes, context, options, budget) {
     diagnostic,
     recover: diagnostic,
   });
+  performance.measure("webvowl.owl-model-projection", {
+    start: startedAt,
+    end: performance.now(),
+  });
   budget.check();
   const result = { ...prepared, source, projectionDiagnostics };
+  const retentionStartedAt = performance.now();
   const retained = await retainCompatibleEvidence(result, budget);
+  performance.measure("webvowl.owl-evidence-retention", {
+    start: retentionStartedAt,
+    end: performance.now(),
+  });
   performance.measure("webvowl.owl-retention", {
     start: startedAt,
     end: performance.now(),

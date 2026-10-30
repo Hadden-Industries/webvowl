@@ -76,13 +76,19 @@ export async function openOwl(input, options) {
     );
     const bytes = snapshotBytes(input, budget);
     const prepared = await prepareCompatibleView(bytes, context, opts, budget);
-    return admitOwlModel(
+    const admissionStartedAt = performance.now();
+    const result = admitOwlModel(
       inspectModel,
       prepared.source,
       prepared.retained,
       opts.documentIri,
       budget,
     );
+    performance.measure("webvowl.owl-model-admission", {
+      start: admissionStartedAt,
+      end: performance.now(),
+    });
+    return result;
   } catch (error) {
     budget.check();
     if (error instanceof VowlError) {
