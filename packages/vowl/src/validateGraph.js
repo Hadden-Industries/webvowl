@@ -66,6 +66,7 @@ export function validateGraph(
   const index = new Map();
   const locations = new Map();
   const references = [];
+  const setContainers = [];
   const shape = envelope(profile);
   for (const collection of Object.keys(categories).sort()) {
     model[collection].forEach((record, i) => {
@@ -91,6 +92,12 @@ export function validateGraph(
     budget.poll();
     if (descriptor?.reference) {
       references.push({ value, descriptor, pointer });
+    }
+    // Nothing mutates the owned source during this validation. Retain set
+    // positions in the same traversal order, but check them only after all
+    // reference, cycle and record-identity failures, as required by A7.
+    if (!normalizing && descriptor?.items && !descriptor.sequence) {
+      setContainers.push({ value, descriptor, pointer });
     }
   });
   for (const { value, pointer } of references) {
@@ -225,24 +232,22 @@ export function validateGraph(
       seen?.add(key);
     }
   }
-  walkTyped(source, shape, (value, descriptor, pointer) => {
+  for (const { value, descriptor, pointer } of setContainers) {
     budget.poll();
-    if (descriptor?.items && !descriptor.sequence) {
-      const seen = new Set();
-      value.forEach((member, i) => {
-        budget.poll();
-        // Primary identity is checked above; two distinct anonymous subjects stay distinct.
-        const key =
-          member && typeof member === "object" && Object.hasOwn(member, "id")
-            ? member.id
-            : semanticKey(member, descriptor.items, undefined, budget);
-        if (seen.has(key)) {
-          fail("SOURCE_DUPLICATE_SET_MEMBER", at(pointer, i));
-        }
-        seen.add(key);
-      });
-    }
-  });
+    const seen = new Set();
+    value.forEach((member, i) => {
+      budget.poll();
+      // Primary identity is checked above; two distinct anonymous subjects stay distinct.
+      const key =
+        member && typeof member === "object" && Object.hasOwn(member, "id")
+          ? member.id
+          : semanticKey(member, descriptor.items, undefined, budget);
+      if (seen.has(key)) {
+        fail("SOURCE_DUPLICATE_SET_MEMBER", at(pointer, i));
+      }
+      seen.add(key);
+    });
+  }
   budget.check();
   return {
     index,
