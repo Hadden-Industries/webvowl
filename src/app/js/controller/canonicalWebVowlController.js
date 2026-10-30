@@ -883,7 +883,7 @@ export function createCanonicalWebVowlController({
         : null;
     },
     async loadOntology(
-      { source },
+      { source, reuseCachedOntology },
       {
         signal,
         initialVisualization,
@@ -989,6 +989,9 @@ export function createCanonicalWebVowlController({
           attempt = new AbortController();
           try {
             accepted = await session.load(request, {
+              reuseValidatedResult:
+                reuseCachedOntology === undefined ||
+                reuseCachedOntology === true,
               signal: AbortSignal.any([combined, attempt.signal]),
               resolveImport:
                 imports?.resolveImport ?? acquisition.resolveImport,

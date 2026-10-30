@@ -26,6 +26,46 @@ const warSha256 =
 // The owner's existing webvowl_1.1.7.zip contains ROOT.war. Both hashes select
 // that actual distribution, rather than assuming a newer legacy fork is 1.1.7.
 const digest = (bytes) => createHash("sha256").update(bytes).digest("hex");
+// Actual original 1.1.7 browser baselines recorded in AWS plan line 1059.
+// A candidate must meet each measured boundary; no slower tolerance is added.
+export const originalBrowserMilliseconds = Object.freeze({
+  cold: 3340,
+  "same-session-warm": 1722,
+  "fresh-session-warm": 2428,
+});
+export function assertOriginalParity(samples) {
+  const failures = [];
+  for (const temperature of Object.keys(originalBrowserMilliseconds)) {
+    const values = samples
+      .filter(
+        (sample) =>
+          sample.path === "current" && sample.temperature === temperature,
+      )
+      .map((sample) => sample.milliseconds)
+      .sort((a, b) => a - b);
+    if (temperature === "fresh-session-warm" && !values.length) continue;
+    assert(values.length, "Missing candidate " + temperature + " samples");
+    const middle = Math.floor(values.length / 2);
+    const median =
+      values.length % 2
+        ? values[middle]
+        : (values[middle - 1] + values[middle]) / 2;
+    if (median > originalBrowserMilliseconds[temperature])
+      failures.push(
+        temperature +
+          ": " +
+          median +
+          "ms > original " +
+          originalBrowserMilliseconds[temperature] +
+          "ms",
+      );
+  }
+  assert.equal(
+    failures.length,
+    0,
+    "Original WebVOWL end-to-end parity failed: " + failures.join("; "),
+  );
+}
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const listen = async (server) => {
   server.listen(0, "127.0.0.1");
@@ -49,7 +89,40 @@ function javaExecutable(home, name) {
 }
 
 /** Browser-side paint oracle shared by the unmodified original and current application. */
-export function installPaintProbe({ originalIris, fixtureOrigin, rootIri }) {
+export function installPaintProbe({
+  originalIris,
+  fixtureOrigin,
+  rootIri,
+  profileWorkers = false,
+}) {
+  globalThis.comparisonWorkerMeasures = [];
+  if (profileWorkers) {
+    const NativeWorker = globalThis.Worker;
+    let sequence = 0;
+    globalThis.Worker = class extends NativeWorker {
+      constructor(url, options) {
+        const workerId = ++sequence;
+        const moduleUrl = new URL(url, globalThis.location.href).href;
+        const wrapper = `const send=self.postMessage.bind(self),queued=[];self.onmessage=e=>queued.push(e);self.postMessage=(message,...rest)=>{if(message.type==="preview"||message.type==="result")send({type:"comparison-worker-measures",measures:performance.getEntriesByType("measure").map(e=>({name:e.name,duration:e.duration}))});send(message,...rest)};await import(${JSON.stringify(moduleUrl)});for(const event of queued)self.onmessage(event);`;
+        const blob = URL.createObjectURL(
+          new Blob([wrapper], { type: "text/javascript" }),
+        );
+        super(blob, { ...options, type: "module" });
+        this.addEventListener("message", (event) => {
+          if (event.data.type === "comparison-worker-measures") {
+            globalThis.comparisonWorkerMeasures.push({
+              workerId,
+              measures: event.data.measures,
+            });
+            event.stopImmediatePropagation();
+          }
+        });
+        const revoke = () => URL.revokeObjectURL(blob);
+        this.addEventListener("message", revoke, { once: true });
+        this.addEventListener("error", revoke, { once: true });
+      }
+    };
+  }
   const nativeFetch = globalThis.fetch.bind(globalThis);
   // Only direct source transport is routed to a controlled origin. It omits CORS,
   // so the real browser rejects it; materialization HTTP and browser caching remain real.
@@ -344,7 +417,7 @@ async function benchmark(options) {
       response.end(bytes);
     });
     const originPort = await listen(origin);
-    const fixtureOrigin = "https://localhost:" + originPort;
+    const fixtureOrigin = "https://127.0.0.1:" + originPort;
     const retrieve = createRetriever({
       limits,
       requestVariant,
@@ -374,7 +447,7 @@ async function benchmark(options) {
     service = https.createServer(tls, (request, response) =>
       handler(request, response),
     );
-    serviceOrigin = "https://localhost:" + (await listen(service));
+    serviceOrigin = "https://127.0.0.1:" + (await listen(service));
     let handler;
     function resetProvider() {
       archive = new LocalArchive();
@@ -533,6 +606,7 @@ async function benchmark(options) {
         originalIris: inputs.map((input) => input.documentIri),
         fixtureOrigin,
         rootIri,
+        profileWorkers: options["profile-workers"] === true,
       });
       const page = await context.newPage();
       const pageErrors = [];
@@ -594,6 +668,14 @@ async function benchmark(options) {
               totalNodeElements: run.totalNodeElements,
               state: controller?.getState(),
               sources: sources?.map((source) => ({ iri: source.documentIri })),
+              workerMeasures: globalThis.comparisonWorkerMeasures,
+              network: performance
+                .getEntriesByType("resource")
+                .map((entry) => ({
+                  name: entry.name,
+                  start: entry.startTime - run.start,
+                  milliseconds: entry.duration,
+                })),
               legacyModel: original
                 ? {
                     nodes: original.getUnfilteredData().nodes.length,
@@ -610,6 +692,7 @@ async function benchmark(options) {
           },
           { path, temperature, iteration },
         );
+        if (!options["profile-network"]) delete sample.network;
         if (path === "current") {
           assert.equal(
             sample.sources.length,
@@ -777,18 +860,20 @@ async function benchmark(options) {
       }
       sourceCalls.length = 0;
       providerCalls.length = 0;
-      const legacyOrigin = await startJava(iteration);
-      await runBrowser("legacy", legacyOrigin, iteration);
-      if (options["fresh-session-warm"])
-        await runBrowser(
-          "legacy",
-          legacyOrigin,
-          iteration,
-          "fresh-session-warm",
-          false,
-        );
-      await stopJava(java);
-      java = undefined;
+      if (!options["current-only"]) {
+        const legacyOrigin = await startJava(iteration);
+        await runBrowser("legacy", legacyOrigin, iteration);
+        if (options["fresh-session-warm"])
+          await runBrowser(
+            "legacy",
+            legacyOrigin,
+            iteration,
+            "fresh-session-warm",
+            false,
+          );
+        await stopJava(java);
+        java = undefined;
+      }
       await runBrowser("current", currentOrigin, iteration);
       if (options["fresh-session-warm"]) {
         provider.setAdmission(false);
@@ -802,6 +887,7 @@ async function benchmark(options) {
       }
     }
     assert.deepEqual(failures, []);
+    if (options["assert-parity"]) assertOriginalParity(samples);
     console.log(
       JSON.stringify({
         kind: "webvowl-end-to-end-comparison",
@@ -882,6 +968,10 @@ if (
         ].map((name) => [name, { type: "string" }]),
       ),
       "fresh-session-warm": { type: "boolean" },
+      "profile-workers": { type: "boolean" },
+      "profile-network": { type: "boolean" },
+      "current-only": { type: "boolean" },
+      "assert-parity": { type: "boolean" },
     },
   });
   for (const name of [

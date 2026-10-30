@@ -5,7 +5,34 @@ import {
   installPaintProbe,
   observeLegacyConversion,
   finishConversionObservation,
+  assertOriginalParity,
+  originalBrowserMilliseconds,
 } from "./compareWebVowlEndToEnd.mjs";
+
+test("parity requires every measured loading boundary, including fresh browser warmth", () => {
+  const samples = Object.entries(originalBrowserMilliseconds).map(
+    ([temperature, milliseconds]) => ({
+      path: "current",
+      temperature,
+      milliseconds,
+    }),
+  );
+  assert.doesNotThrow(() => assertOriginalParity(samples));
+  for (const sample of samples) {
+    assert.throws(
+      () =>
+        assertOriginalParity(
+          samples.map((entry) =>
+            entry === sample
+              ? { ...entry, milliseconds: entry.milliseconds + 1 }
+              : entry,
+          ),
+        ),
+      /Original WebVOWL end-to-end parity failed/,
+    );
+  }
+  assert.throws(() => assertOriginalParity([]), /Missing candidate cold/);
+});
 
 function fixture({ current = false } = {}) {
   let time = 0,

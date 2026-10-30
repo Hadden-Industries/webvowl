@@ -579,6 +579,7 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
         initialVisualization,
         useAutomaticNodesShown = false,
         onNodeOrdering,
+        reuseValidatedResult = true,
       } = {},
     ) {
       checkOpen();
@@ -598,6 +599,7 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
       let installed = false;
       try {
         const result = await workerClient.run(request, {
+          reuseValidatedResult,
           loadGeneration,
           baseRevision: 0,
           signal: operation.signal,
