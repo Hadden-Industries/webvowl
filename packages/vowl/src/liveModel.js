@@ -472,9 +472,12 @@ export function editLiveModel(model, changes, budget) {
 
 export function checkpointLiveModel(model, budget) {
   const state = liveState(model);
-  const checkpoint = deepFreeze(
-    snapshotSource({ version: 1, policy, implementation, ...state }, budget),
-  );
+  // Publication already recursively froze every reachable state container.
+  // Share those immutable records with inspection in the transport graph;
+  // recovery still snapshots and fully readmits caller-supplied checkpoints.
+  const checkpoint = { version: 1, policy, implementation, ...state };
+  validateOwnedSource(checkpoint, budget);
+  Object.freeze(checkpoint);
   const archive = archives.get(model);
   return archive
     ? Object.freeze({ ...checkpoint, source: archive.checkpoint(budget) })

@@ -1,6 +1,11 @@
 import { fail } from "./errors.js";
 import { optionRecord } from "./resourceBudget.js";
-import { snapshotBytes, snapshotSource, deepFreeze } from "./snapshot.js";
+import {
+  snapshotBytes,
+  snapshotSource,
+  validateOwnedSource,
+  deepFreeze,
+} from "./snapshot.js";
 import { validateFields } from "./typedValues.js";
 import { isOwlMappingParserMode } from "./owlMappingStrategy.js";
 
@@ -277,10 +282,13 @@ function ownedArchive(evidence, sources) {
           Object.freeze({ document, bytes: snapshotBytes(bytes, budget) }),
         );
       }
-      // Typed arrays are defensive copies, not frozen buffers or ownership tokens.
+      // Evidence was privately owned and deeply frozen at archive publication.
+      // Keep its exact accounting, but share the immutable graph. Typed arrays
+      // remain defensive copies, not frozen buffers or ownership tokens.
+      validateOwnedSource(evidence, budget);
       return Object.freeze({
         version: 1,
-        evidence: deepFreeze(snapshotSource(evidence, budget)),
+        evidence,
         sources: Object.freeze(entries),
       });
     },

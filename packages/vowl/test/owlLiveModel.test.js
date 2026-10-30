@@ -169,6 +169,22 @@ function transport(checkpoint) {
   };
 }
 
+test("OWL checkpoints share immutable evidence but keep source bytes independently owned", async () => {
+  const bytes = encode(prefix + "<urn:A> a owl:Class.");
+  const { model } = await openOwl(bytes, options);
+  const first = await checkpointModel(model);
+  const second = await checkpointModel(model);
+  expect(first.source.evidence).toBe(second.source.evidence);
+  expect(Object.isFrozen(first.source.evidence.documents[0])).toBe(true);
+  expect(() => {
+    first.source.evidence.documents[0].digest = "tampered";
+  }).toThrow(TypeError);
+  first.source.sources[0].bytes.fill(0);
+  expect(second.source.sources[0].bytes).toEqual(bytes);
+  const recovered = await readmitModel(transport(second));
+  expect(inspectModel(recovered.model)).toEqual(inspectModel(model));
+});
+
 test("live OWL closure survives editing and checkpoint recovery without RDF canonicalization or reacquisition", async () => {
   let acquisitions = 0;
   const root = encode(

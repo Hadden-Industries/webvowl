@@ -144,6 +144,27 @@ test("snapshots and cloned tokens convey neither live nor canonical admission", 
   });
 });
 
+test("checkpoint transport shares only immutable admitted records with inspection", async () => {
+  const { model } = await openCanonical(
+    await canonicalize(fixture("named-class-structural"), options),
+  );
+  const inspection = inspectModel(model);
+  const checkpoint = await checkpointModel(model);
+  expect(checkpoint.structural.subjects).toBe(inspection.records.subjects);
+  expect(Object.isFrozen(checkpoint.structural.subjects[0])).toBe(true);
+  expect(() => {
+    checkpoint.structural.subjects[0].iri = "urn:tampered";
+  }).toThrow(TypeError);
+  const caller = transport(checkpoint);
+  caller.structural.subjects[0].iri = "urn:changed";
+  expect(inspection.records.subjects[0].iri).not.toBe("urn:changed");
+  expect(() => inspectModel(checkpoint)).toThrow(
+    expect.objectContaining({ code: "MODEL_NOT_ADMITTED" }),
+  );
+  await expect(readmitModel(caller)).resolves.toBeDefined();
+  expect(inspection.records.subjects[0].iri).not.toBe("urn:changed");
+});
+
 test("failed capture and failed edits preserve the model and its recoverable checkpoint", async () => {
   const { model } = await openCanonical(
     await canonicalize(fixture("named-class-structural"), options),
