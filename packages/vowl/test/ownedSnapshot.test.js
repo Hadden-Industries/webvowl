@@ -91,3 +91,36 @@ test("owned validation still rejects unsafe descriptors, Unicode, shapes and cyc
   }
   expect(reads).toBe(0);
 });
+
+test("snapshot records retain null prototypes and never invoke inherited setters", () => {
+  const key = "snapshotPollutionProbe";
+  expect(Object.hasOwn(Object.prototype, key)).toBe(false);
+  let writes = 0;
+  const budget = new ResourceBudget(
+    { limits: { deadlineMs: Infinity } },
+    performance.now(),
+  );
+  Object.defineProperty(Object.prototype, key, {
+    configurable: true,
+    set() {
+      writes++;
+    },
+  });
+  try {
+    const input = JSON.parse(
+      '{"snapshotPollutionProbe":1,"__proto__":{"polluted":true},"constructor":{"prototype":{"polluted":true}}}',
+    );
+    const copy = snapshotSource(input, budget);
+    expect(Object.getPrototypeOf(copy)).toBeNull();
+    expect(Object.getPrototypeOf(copy.__proto__)).toBeNull();
+    expect(Object.getPrototypeOf(copy.constructor.prototype)).toBeNull();
+    expect(Object.hasOwn(copy, key)).toBe(true);
+    expect(Object.hasOwn(copy, "__proto__")).toBe(true);
+    expect(copy[key]).toBe(1);
+    expect(writes).toBe(0);
+    expect(Object.hasOwn(Object.prototype, "polluted")).toBe(false);
+  } finally {
+    delete Object.prototype[key];
+    budget.dispose();
+  }
+});

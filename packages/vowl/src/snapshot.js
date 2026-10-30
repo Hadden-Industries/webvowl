@@ -182,9 +182,14 @@ function visitSource(source, budget, primaryAt, copying) {
       }
     }
     ancestors.delete(value);
+    // Populate a fresh ordinary record with own data properties, then remove
+    // its prototype before publication. Preserve null-prototype isolation while
+    // allowing engines to retain a compact property layout for repeated reads.
+    const owned =
+      copying && !array ? Object.setPrototypeOf({ ...result }, null) : result;
     counted.add(value);
-    counted.add(result);
-    return result;
+    counted.add(owned);
+    return owned;
   }
   const result = copy(source, "", 1);
   budget.check();
