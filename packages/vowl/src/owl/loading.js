@@ -264,16 +264,24 @@ export async function loadClosure(bytes, context, options, budget, policy) {
           }
           let result;
           try {
-            result = await waitForResult(
-              options.resolveImport(
-                request.importIRI.value,
-                Object.freeze({
-                  importingDocumentIri: request.importingDocumentIRI.value,
-                  signal: budget.signal,
-                }),
-              ),
-              budget,
-            );
+            const acquisitionStartedAt = performance.now();
+            try {
+              result = await waitForResult(
+                options.resolveImport(
+                  request.importIRI.value,
+                  Object.freeze({
+                    importingDocumentIri: request.importingDocumentIRI.value,
+                    signal: budget.signal,
+                  }),
+                ),
+                budget,
+              );
+            } finally {
+              performance.measure("webvowl.owl-import-acquisition", {
+                start: acquisitionStartedAt,
+                end: performance.now(),
+              });
+            }
           } catch (error) {
             // Callback failure is acquisition failure. Cancellation/deadline takes precedence.
             budget.check();

@@ -10,43 +10,42 @@ export function semanticKey(
   normalizeSets = false,
 ) {
   budget?.check();
+  // Compose each typed subtree's local equality bytes once. Rebuilding an
+  // object tree and canonicalizing it again repeated every nested set member.
+  // JCS still owns all scalar escaping and caller-supplied reference values.
   function key(item, shape) {
     budget?.poll();
     const resolved = descriptorFor(item, shape, "");
     if (resolved?.reference) {
-      return reference(item);
+      return jsonKey(reference(item));
     }
     if (resolved?.fields) {
-      return Object.fromEntries(
-        Object.keys(item)
-          .filter((name) => !resolved.fields[name]?.id)
-          .sort()
-          .map((name) => [name, key(item[name], resolved.fields[name])]),
-      );
+      return `{${Object.keys(item)
+        .filter((name) => !resolved.fields[name]?.id)
+        .sort()
+        .map(
+          (name) =>
+            `${jsonKey(name)}:${key(item[name], resolved.fields[name])}`,
+        )
+        .join(",")}}`;
     }
     if (resolved?.items) {
       const members = item.map((member) => key(member, resolved.items));
       if (!resolved.sequence) {
         // Lexical order suffices for local equality. Wire sets use unsigned UTF-8 later.
-        const keyed = members.map((member) => ({
-          member,
-          key: jsonKey(member),
-        }));
-        keyed.sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
-        return keyed
-          .filter(
-            (entry, index) =>
-              !normalizeSets ||
-              index === 0 ||
-              entry.key !== keyed[index - 1].key,
-          )
-          .map((entry) => entry.member);
+        members.sort();
       }
-      return members;
+      const retained =
+        resolved.sequence || !normalizeSets
+          ? members
+          : members.filter(
+              (entry, index) => index === 0 || entry !== members[index - 1],
+            );
+      return `[${retained.join(",")}]`;
     }
-    return item;
+    return jsonKey(item);
   }
-  const result = jsonKey(key(value, descriptor));
+  const result = key(value, descriptor);
   budget?.check();
   return result;
 }
