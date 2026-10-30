@@ -40,7 +40,11 @@ function medianOf(values) {
     ? values[middle]
     : (values[middle - 1] + values[middle]) / 2;
 }
-export function assertOriginalParity(samples) {
+export function assertOriginalParity(samples, { engine = "webkit" } = {}) {
+  assert(
+    ["webkit", "chromium", "firefox"].includes(engine),
+    "Unsupported browser engine",
+  );
   const failures = [];
   for (const temperature of Object.keys(originalBrowserMilliseconds)) {
     const values = samples
@@ -57,10 +61,14 @@ export function assertOriginalParity(samples) {
           sample.path === "legacy" && sample.temperature === temperature,
       )
       .map((sample) => sample.milliseconds);
-    // A new matched engine can reveal a faster original. It cannot relax the
-    // retained historical boundary or turn an earlier failure into a pass.
+    assert(
+      engine === "webkit" || matched.length,
+      "Missing matched original " + engine + " " + temperature + " samples",
+    );
+    // Retain the historical WebKit boundary. Other engines require their own
+    // matched original; a WebKit measurement cannot qualify a different engine.
     const target = Math.min(
-      originalBrowserMilliseconds[temperature],
+      engine === "webkit" ? originalBrowserMilliseconds[temperature] : Infinity,
       matched.length ? medianOf(matched) : Infinity,
     );
     const median = medianOf(values);
@@ -103,8 +111,10 @@ export function installPaintProbe({
   fixtureOrigin,
   rootIri,
   profileWorkers = false,
+  engine = "webkit",
 }) {
   globalThis.comparisonWorkerMeasures = [];
+  globalThis.comparisonCorsDenials = 0;
   if (profileWorkers) {
     const NativeWorker = globalThis.Worker;
     let sequence = 0;
@@ -145,12 +155,21 @@ export function installPaintProbe({
         : input instanceof URL
           ? input.href
           : input.url;
-    return nativeFetch(
+    const pending = nativeFetch(
       originals.has(iri)
         ? fixtureOrigin + "/source?iri=" + encodeURIComponent(iri)
         : input,
       options,
     );
+    // WebKit's existing pageerror oracle remains authoritative there. Other
+    // engines expose handled native CORS denial through the Fetch rejection.
+    if (engine !== "webkit" && originals.has(iri)) {
+      return pending.catch((error) => {
+        if (error instanceof TypeError) globalThis.comparisonCorsDenials++;
+        throw error;
+      });
+    }
+    return pending;
   };
   globalThis.comparisonPaint = {
     start: 0,
@@ -308,6 +327,17 @@ export async function finishConversionObservation(
 }
 
 async function benchmark(options) {
+  const engine = options.engine ?? "webkit";
+  assert(
+    ["webkit", "chromium", "firefox"].includes(engine),
+    "Unsupported browser engine",
+  );
+  assert(
+    engine === "webkit" ||
+      !options["current-only"] ||
+      !options["assert-parity"],
+    "Other engines require matched original runs for parity",
+  );
   const iterations = Number(options.iterations ?? 3);
   assert(
     Number.isSafeInteger(iterations) && iterations >= 1 && iterations <= 5,
@@ -542,7 +572,7 @@ async function benchmark(options) {
     const playwright = await import(
       pathToFileURL(resolve(options.playwright)).href
     );
-    browser = await playwright.webkit.launch({
+    browser = await playwright[engine].launch({
       headless: true,
       executablePath: resolve(options.executable),
     });
@@ -616,6 +646,7 @@ async function benchmark(options) {
         fixtureOrigin,
         rootIri,
         profileWorkers: options["profile-workers"] === true,
+        engine,
       });
       const page = await context.newPage();
       const pageErrors = [];
@@ -733,7 +764,10 @@ async function benchmark(options) {
             ).length,
             providerRequests: providerCalls.length,
             conversions: conversions.length,
-            expectedBrowserCorsErrors: corsErrors.length,
+            expectedBrowserCorsErrors:
+              engine === "webkit"
+                ? corsErrors.length
+                : await page.evaluate(() => globalThis.comparisonCorsDenials),
           }),
         );
       }
@@ -757,7 +791,9 @@ async function benchmark(options) {
               "A fresh warm browser called the control plane",
             );
             assert.equal(
-              corsErrors.length,
+              engine === "webkit"
+                ? corsErrors.length
+                : await page.evaluate(() => globalThis.comparisonCorsDenials),
               0,
               "A fresh warm browser retried direct source acquisition",
             );
@@ -833,7 +869,9 @@ async function benchmark(options) {
             JSON.stringify(targets),
           );
           assert.equal(
-            corsErrors.length,
+            engine === "webkit"
+              ? corsErrors.length
+              : await page.evaluate(() => globalThis.comparisonCorsDenials),
             inputs.length,
             "Each cold direct acquisition must fail real browser CORS before materialization",
           );
@@ -899,6 +937,7 @@ async function benchmark(options) {
     console.log(
       JSON.stringify({
         kind: "webvowl-end-to-end-comparison",
+        engine,
         browser: browser.version(),
         browserExecutable: resolve(options.executable),
         archiveSha256,
@@ -926,11 +965,10 @@ async function benchmark(options) {
             totalNodeElements,
           }),
         ),
-        scope:
-          "Production-mode current frontend with isolated cache-enabled composition versus original 1.1.7 WAR and actual 0.3.7 HTTP service. Same seven hash-pinned bytes/logical IRIs, 1440x1000 WebKit, navigation or native reload to visible painted graph. Cold starts a fresh ready JVM and browser context and empty provider; warm retains the page and native application/provider caches. Controlled origin boundaries; no Internet source acquisition, AWS, deployment or activation. Java25/Tomcat8.5.16 compatibility environment, not the historical Java8 host. Rendering defaults and visible counts are reported, not assumed equivalent.",
+        scope: `Production-mode current frontend with isolated cache-enabled composition versus original 1.1.7 WAR and actual 0.3.7 HTTP service. Same seven hash-pinned bytes/logical IRIs, 1440x1000 ${engine}, navigation or native reload to visible painted graph. Cold starts a fresh ready JVM and browser context and empty provider; warm retains the page and native application/provider caches. Controlled origin boundaries; no Internet source acquisition, AWS, deployment or activation. Java25/Tomcat8.5.16 compatibility environment, not the historical Java8 host. Rendering defaults and visible counts are reported, not assumed equivalent.`,
       }),
     );
-    if (options["assert-parity"]) assertOriginalParity(samples);
+    if (options["assert-parity"]) assertOriginalParity(samples, { engine });
   } catch (error) {
     failed = true;
     failure = error;
@@ -976,6 +1014,7 @@ if (
           "tomcat",
           "executable",
           "iterations",
+          "engine",
         ].map((name) => [name, { type: "string" }]),
       ),
       "fresh-session-warm": { type: "boolean" },

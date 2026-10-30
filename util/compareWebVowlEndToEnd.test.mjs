@@ -60,7 +60,45 @@ test("a faster matched original run tightens the gate and a slower one cannot re
   );
 });
 
-function fixture({ current = false } = {}) {
+test("other engines require their own matched original and retain exact parity thresholds", () => {
+  const samples = [
+    { path: "current", temperature: "cold", milliseconds: 4000 },
+    { path: "current", temperature: "same-session-warm", milliseconds: 2000 },
+  ];
+  assert.throws(
+    () => assertOriginalParity(samples, { engine: "chromium" }),
+    /Missing matched original chromium cold/,
+  );
+  const matched = [
+    ...samples,
+    ...samples.map((entry) => ({ ...entry, path: "legacy" })),
+  ];
+  for (const engine of ["chromium", "firefox"]) {
+    assert.doesNotThrow(() => assertOriginalParity(matched, { engine }));
+    assert.throws(
+      () =>
+        assertOriginalParity(
+          matched.map((entry) =>
+            entry.path === "current"
+              ? { ...entry, milliseconds: entry.milliseconds + 1 }
+              : entry,
+          ),
+          { engine },
+        ),
+      /Original WebVOWL end-to-end parity failed/,
+    );
+  }
+  assert.throws(
+    () => assertOriginalParity(matched),
+    /cold: 4000ms > original 3340ms/,
+  );
+  assert.throws(
+    () => assertOriginalParity(matched, { engine: "unknown" }),
+    /Unsupported browser engine/,
+  );
+});
+
+function fixture({ current = false, engine = "webkit", fetchFailure } = {}) {
   let time = 0,
     opacity = "0";
   const rootIri = "https://example.test/root";
@@ -90,7 +128,9 @@ function fixture({ current = false } = {}) {
     innerHeight: 100,
     fetch: async (input) => {
       requests.push(input);
+      if (fetchFailure) throw fetchFailure;
     },
+    TypeError,
     requestAnimationFrame: (callback) => frames.push(callback),
     document: { querySelectorAll: () => nodes, querySelector: () => nodes[0] },
     getComputedStyle: () => ({
@@ -124,6 +164,7 @@ function fixture({ current = false } = {}) {
         originalIris: [rootIri],
         fixtureOrigin: "https://localhost:1234",
         rootIri,
+        engine,
       }) +
       ")",
     sandbox,
@@ -241,4 +282,28 @@ test("only the frozen source requests are routed to the real CORS-denying origin
     "https://localhost:1234/source?iri=https%3A%2F%2Fexample.test%2Froot",
     "https://provider.test/ontology/materializations",
   ]);
+});
+
+test("other engines count native TypeError source denial and preserve the original rejection", async () => {
+  for (const engine of ["chromium", "firefox"]) {
+    const error = new TypeError("Native fetch denial");
+    const h = fixture({ engine, fetchFailure: error });
+    await assert.rejects(
+      h.sandbox.fetch("https://example.test/root"),
+      (observed) => observed === error,
+    );
+    assert.equal(h.sandbox.comparisonCorsDenials, 1);
+    await assert.rejects(
+      h.sandbox.fetch("https://provider.test/ontology/materializations"),
+      (observed) => observed === error,
+    );
+    assert.equal(h.sandbox.comparisonCorsDenials, 1);
+  }
+  const failure = new Error("Other source failure");
+  const h = fixture({ engine: "chromium", fetchFailure: failure });
+  await assert.rejects(
+    h.sandbox.fetch("https://example.test/root"),
+    (observed) => observed === failure,
+  );
+  assert.equal(h.sandbox.comparisonCorsDenials, 0);
 });
