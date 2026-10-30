@@ -113,6 +113,32 @@ test("static hit verifies the complete chain, exact bytes and origin parser cont
   }
 });
 
+test.each(["acquireBinding", "materialize"])(
+  "%s shares immutable policy acquisition only within the supplied load context",
+  async (method) => {
+    const h = harness({
+      api({ response, pointer }) {
+        return response(
+          encoder.encode(fixtures.ontologySource.utf8Text),
+          `${pointer.currentBinding.artifactIri}?source=${pointer.sourceKey}&binding=${pointer.currentBinding.resolutionIdentity}`,
+        );
+      },
+    });
+    const target = `${h.pointer.currentBinding.artifactIri}?source=${h.pointer.sourceKey}&binding=${h.pointer.currentBinding.resolutionIdentity}`;
+    const acquire = (context) =>
+      method === "acquireBinding"
+        ? h.client.acquireBinding(source, target, { context })
+        : h.client.materialize(source, { context });
+    const context = {};
+    await Promise.all([acquire(context), acquire(context)]);
+    const policyCalls = () =>
+      h.fetchImpl.mock.calls.filter(([url]) => url.includes("/policies/"));
+    expect(policyCalls()).toHaveLength(1);
+    await acquire({});
+    expect(policyCalls()).toHaveLength(2);
+  },
+);
+
 test.each(["heuristic", "unambiguous"])(
   "a %s policy accepts its matching validation and rejects relabelled mapping evidence before artifact fetch",
   async (owlMappingStrategy) => {
@@ -181,6 +207,99 @@ test.each(["heuristic", "unambiguous"])(
     ).toBe(false);
   },
 );
+
+test.each(["waiter", "owner"])(
+  "a cancelled shared-policy %s cannot delay or cancel the other caller",
+  async (cancelled) => {
+    const h = harness();
+    let entered, release;
+    const policyStarted = new Promise((resolve) => {
+      entered = resolve;
+    });
+    let firstPolicy = true;
+    const client = createOntologyMaterializationClient({
+      ...h.options,
+      fetchImpl: async (url, options) => {
+        if (firstPolicy && url.includes("/policies/")) {
+          firstPolicy = false;
+          entered();
+          await new Promise((resolve, reject) => {
+            release = resolve;
+            options.signal.addEventListener(
+              "abort",
+              () => reject(options.signal.reason),
+              { once: true },
+            );
+          });
+        }
+        return h.fetchImpl(url, options);
+      },
+    });
+    const context = {};
+    const owner = new AbortController(),
+      waiter = new AbortController();
+    const first = client.lookup(source, { context, signal: owner.signal });
+    const firstOutcome = Promise.allSettled([first]);
+    await policyStarted;
+    let secondSettled = false;
+    const second = client.lookup(source, { context, signal: waiter.signal });
+    const secondOutcome = Promise.allSettled([second]).then((value) => {
+      secondSettled = true;
+      return value;
+    });
+    for (let index = 0; index < 20; index++) {
+      await new Promise(setImmediate);
+    }
+    const reason = new Error("cancel this caller");
+    (cancelled === "owner" ? owner : waiter).abort(reason);
+    try {
+      for (let index = 0; index < 50 && !secondSettled; index++) {
+        await new Promise(setImmediate);
+      }
+      expect(secondSettled).toBe(true);
+      const [result] = await secondOutcome;
+      if (cancelled === "waiter") {
+        expect(result).toMatchObject({ status: "rejected", reason });
+        release();
+        expect((await firstOutcome)[0].status).toBe("fulfilled");
+      } else {
+        expect(result.status).toBe("fulfilled");
+        expect((await firstOutcome)[0]).toMatchObject({
+          status: "rejected",
+          reason,
+        });
+      }
+    } finally {
+      release();
+      owner.abort();
+      waiter.abort();
+      await Promise.all([firstOutcome, secondOutcome]);
+    }
+  },
+);
+
+test("a failed policy read is evicted before a new acquisition in the same load context", async () => {
+  const h = harness();
+  let fail = true;
+  const client = createOntologyMaterializationClient({
+    ...h.options,
+    fetchImpl: async (url, options) => {
+      if (url.includes("/policies/") && fail) {
+        fail = false;
+        throw new TypeError("transient transport failure");
+      }
+      return h.fetchImpl(url, options);
+    },
+  });
+  const context = {};
+  await expect(client.lookup(source, { context })).rejects.toThrow(
+    "transient transport failure",
+  );
+  const target = `${h.pointer.currentBinding.artifactIri}?source=${h.pointer.sourceKey}&binding=${h.pointer.currentBinding.resolutionIdentity}`;
+  await expect(
+    client.acquireBinding(source, target, { context }),
+  ).resolves.toHaveProperty("bytes");
+});
 
 test.each([
   [

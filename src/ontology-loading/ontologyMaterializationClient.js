@@ -1,4 +1,7 @@
-import { readBoundedBytes } from "./boundedSourceBytes.js";
+import {
+  readBoundedBytes,
+  waitForOntologyAcquisition,
+} from "./boundedSourceBytes.js";
 import { ResourceLimitError } from "owlapi/io";
 import { parseOntologyCacheJson } from "./ontologyCacheJson.js";
 import {
@@ -55,6 +58,7 @@ export function createOntologyMaterializationClient({
       ...(signal ? [signal] : []),
       AbortSignal.timeout(deadlineMs),
     ]);
+  const policyOwners = new WeakMap();
 
   async function request(url, { signal, ...options } = {}) {
     signal?.throwIfAborted();
@@ -95,6 +99,17 @@ export function createOntologyMaterializationClient({
     }
     return jsonResponse(response, signal, limit);
   }
+  function policyRead(url, signal, limit, context) {
+    const pending = readJson(url, signal, limit);
+    context.policies.set(url, pending);
+    policyOwners.set(pending, signal);
+    void pending.catch(() => {
+      if (context.policies.get(url) === pending) {
+        context.policies.delete(url);
+      }
+    });
+    return pending;
+  }
   async function evidence(
     requestedDocumentIri,
     resolutionIdentity,
@@ -109,14 +124,25 @@ export function createOntologyMaterializationClient({
       binding,
       paths,
       approvedPolicyFingerprints,
-      readJson: (url, limit) => {
+      readJson: async (url, limit) => {
         if (!url.startsWith(`${origin}/ontology/cache/policies/`)) {
           return readJson(url, signal, limit);
         }
         if (!context.policies.has(url)) {
-          context.policies.set(url, readJson(url, signal, limit));
+          policyRead(url, signal, limit, context);
         }
-        return context.policies.get(url);
+        const pending = context.policies.get(url);
+        try {
+          return await waitForOntologyAcquisition(pending, signal);
+        } catch (error) {
+          signal.throwIfAborted();
+          // The shared transport belongs to another caller. If that owner
+          // cancels, make this caller's one independent bounded read instead.
+          if (policyOwners.get(pending)?.aborted) {
+            return policyRead(url, signal, limit, context);
+          }
+          throw error;
+        }
       },
     });
   }
@@ -141,7 +167,13 @@ export function createOntologyMaterializationClient({
     signal.throwIfAborted();
     return { bytes, documentIri: resolution.parserDocumentIri, resolution };
   }
-  async function fromTarget(requestedDocumentIri, target, signal, response) {
+  async function fromTarget(
+    requestedDocumentIri,
+    target,
+    signal,
+    response,
+    context,
+  ) {
     try {
       const url = new URL(target);
       const sourceKey = await ontologySourceKey(requestedDocumentIri);
@@ -159,6 +191,8 @@ export function createOntologyMaterializationClient({
         requestedDocumentIri,
         resolutionIdentity,
         signal,
+        undefined,
+        context,
       );
       if (resolution.artifactSha256 !== digest) {
         throw new OntologyCacheError();
@@ -259,12 +293,18 @@ export function createOntologyMaterializationClient({
     await response.body?.cancel();
     throw new OntologyCacheError("CACHE_PENDING");
   }
-  async function ready(requestedDocumentIri, response, signal) {
+  async function ready(requestedDocumentIri, response, signal, context) {
     if (
       response.status === 200 &&
       response.url?.startsWith(`${origin}/ontology/cache/artifacts/sha256/`)
     ) {
-      return fromTarget(requestedDocumentIri, response.url, signal, response);
+      return fromTarget(
+        requestedDocumentIri,
+        response.url,
+        signal,
+        response,
+        context,
+      );
     }
     if (!response.ok) {
       const value = validateOntologyCacheRecord(
@@ -324,10 +364,23 @@ export function createOntologyMaterializationClient({
       }
       return { ...(await artifact(resolution, signal)), pointer };
     },
-    async acquireBinding(requestedDocumentIri, target, { signal } = {}) {
-      return fromTarget(requestedDocumentIri, target, boundedSignal(signal));
+    async acquireBinding(
+      requestedDocumentIri,
+      target,
+      { signal, context } = {},
+    ) {
+      return fromTarget(
+        requestedDocumentIri,
+        target,
+        boundedSignal(signal),
+        undefined,
+        context,
+      );
     },
-    async materialize(requestedDocumentIri, { signal: callerSignal } = {}) {
+    async materialize(
+      requestedDocumentIri,
+      { signal: callerSignal, context } = {},
+    ) {
       const signal = boundedSignal(callerSignal);
       const key = await ontologySourceKey(requestedDocumentIri);
       const initial = await post(
@@ -354,6 +407,7 @@ export function createOntologyMaterializationClient({
           pending,
         ),
         signal,
+        context,
       );
       if (pending && acquired.resolution.generation < pending.generation) {
         throw new OntologyCacheError();

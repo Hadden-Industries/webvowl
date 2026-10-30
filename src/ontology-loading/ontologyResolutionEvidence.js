@@ -40,6 +40,23 @@ function same(left, right) {
   }
 }
 
+// Observe each rejection immediately, including reads that an earlier failed
+// check makes unnecessary. Unwrap in the established validation/error order.
+async function readOutcome(readJson, url, limit) {
+  try {
+    return { ok: true, value: await readJson(url, limit) };
+  } catch (error) {
+    return { ok: false, error };
+  }
+}
+async function readValue(pending) {
+  const outcome = await pending;
+  if (!outcome.ok) {
+    throw outcome.error;
+  }
+  return outcome.value;
+}
+
 /** Verify the complete immutable evidence chain before any artifact can enter the worker. */
 export async function verifyOntologyResolution({
   requestedDocumentIri,
@@ -97,9 +114,22 @@ export async function verifyOntologyResolution({
     same(binding.resolutionIri, paths.resolution(resolutionIdentity));
     same(binding.versionIri, paths.version(resolution.sourceVersionIdentity));
   }
+  // Only verified same-origin, digest-bound paths reach this boundary. These
+  // three bounded records are independent reads; all checks below still run
+  // before the caller can acquire/consume the artifact.
+  const versionRead = readOutcome(
+    readJson,
+    paths.version(resolution.sourceVersionIdentity),
+  );
+  const validationRead = readOutcome(
+    readJson,
+    resolution.validationIri,
+    262144,
+  );
+  const policyRead = readOutcome(readJson, resolution.loaderPolicyIri, 262144);
   const version = validateOntologyCacheRecord(
     "version",
-    await readJson(paths.version(resolution.sourceVersionIdentity)),
+    await readValue(versionRead),
   );
   for (const key of [
     "sourceVersionIdentity",
@@ -126,7 +156,7 @@ export async function verifyOntologyResolution({
   );
   const validation = validateOntologyCacheRecord(
     "validation",
-    await readJson(resolution.validationIri, 262144),
+    await readValue(validationRead),
   );
   same(validation.validationIdentity, resolution.validationIdentity);
   same(
@@ -142,7 +172,7 @@ export async function verifyOntologyResolution({
   same(validation.sourceAssessment, resolution.sourceAssessment);
   const policyRecord = validateOntologyCacheRecord(
     "policy",
-    await readJson(resolution.loaderPolicyIri, 262144),
+    await readValue(policyRead),
   );
   same(
     policyRecord.loaderProfileFingerprint,
