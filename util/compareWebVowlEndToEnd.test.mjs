@@ -34,6 +34,32 @@ test("parity requires every measured loading boundary, including fresh browser w
   assert.throws(() => assertOriginalParity([]), /Missing candidate cold/);
 });
 
+test("a faster matched original run tightens the gate and a slower one cannot relax the historical target", () => {
+  const warm = {
+    path: "current",
+    temperature: "same-session-warm",
+    milliseconds: 1000,
+  };
+  assert.throws(
+    () =>
+      assertOriginalParity([
+        warm,
+        { path: "legacy", temperature: "cold", milliseconds: 2000 },
+        { path: "current", temperature: "cold", milliseconds: 2100 },
+      ]),
+    /cold: 2100ms > original 2000ms/,
+  );
+  assert.throws(
+    () =>
+      assertOriginalParity([
+        warm,
+        { path: "legacy", temperature: "cold", milliseconds: 5000 },
+        { path: "current", temperature: "cold", milliseconds: 3400 },
+      ]),
+    /cold: 3400ms > original 3340ms/,
+  );
+});
+
 function fixture({ current = false } = {}) {
   let time = 0,
     opacity = "0";

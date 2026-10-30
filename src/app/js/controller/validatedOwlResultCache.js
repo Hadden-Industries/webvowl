@@ -73,7 +73,7 @@ function signature(request, scope) {
  */
 export function createValidatedOwlResultCache({ measure }) {
   let retained;
-  const previews = new WeakSet();
+  const previews = new WeakMap();
   return Object.freeze({
     candidate(request, scope) {
       const key = signature(request, scope);
@@ -92,19 +92,24 @@ export function createValidatedOwlResultCache({ measure }) {
         return;
       }
       try {
-        measure(result, maximumRetainedBytes);
+        const size = measure(result, maximumRetainedBytes);
+        if (
+          !Number.isSafeInteger(size) ||
+          size < 0 ||
+          size > maximumRetainedBytes
+        ) {
+          return undefined;
+        }
         const owned = structuredClone(result);
-        previews.add(owned);
+        previews.set(owned, size);
         return owned;
       } catch {
         return undefined;
       }
     },
     remember(request, scope, imports, completion, preview) {
-      const result =
-        preview && previews.has(preview)
-          ? { ...preview, ...completion }
-          : completion;
+      const hasPreview = previews.has(preview);
+      const result = hasPreview ? { ...preview, ...completion } : completion;
       const key = signature(request, scope);
       if (
         !key ||
@@ -117,11 +122,16 @@ export function createValidatedOwlResultCache({ measure }) {
       }
       try {
         // Capacity only disables reuse. It never rejects an otherwise valid load.
-        measure(result, maximumRetainedBytes);
-        const owned =
-          preview && previews.has(preview)
-            ? { ...preview, ...structuredClone(completion) }
-            : structuredClone(result);
+        // The caller cannot access this owned preview. Reuse its measured
+        // capacity and account only the completion, conservatively counting
+        // both root envelopes even though merging removes one of them.
+        measure(
+          hasPreview ? completion : result,
+          maximumRetainedBytes - (hasPreview ? previews.get(preview) : 0),
+        );
+        const owned = hasPreview
+          ? { ...preview, ...structuredClone(completion) }
+          : structuredClone(result);
         if (preview) {
           previews.delete(preview);
         }

@@ -4,6 +4,7 @@ import {
 } from "./canonicalVowlWorkerOperations.js";
 import { createCanonicalVowlWorkerClient } from "./canonicalVowlWorkerClient.js";
 import { jest } from "@jest/globals";
+import { createValidatedOwlResultCache } from "./validatedOwlResultCache.js";
 
 const clone = structuredClone;
 // Node's native clone originates outside Jest's VM. Native browser delivery
@@ -428,3 +429,51 @@ test("limits in the owned worker payload cannot be bypassed by a changing reques
     h.client.dispose();
   }
 });
+
+test.each([false, true])(
+  "private preview accounting is reused without exceeding the remaining retention capacity (full=%s)",
+  async (full) => {
+    const h = harness();
+    try {
+      const result = await run(h, 1);
+      const { displayOrderKeys, ...previewInput } = result;
+      const completion = { displayOrderKeys };
+      const maximum = 33554432;
+      const previewSize = full ? maximum - 2 : 100;
+      const measure = jest.fn((value, limit) => {
+        const size = value === previewInput ? previewSize : 3;
+        if (size > limit) {
+          throw new RangeError("Retention capacity");
+        }
+        return size;
+      });
+      const cache = createValidatedOwlResultCache({ measure });
+      const scope = {
+        explicitLimits: false,
+        deadlineMs: 60000,
+        inputLimit: maximum,
+      };
+      const preview = cache.capture(request(), scope, previewInput);
+      cache.remember(
+        request(),
+        scope,
+        [
+          {
+            importIri: childIri,
+            importingDocumentIri: rootIri,
+            documentIri: childIri,
+            mediaType: "text/turtle",
+          },
+        ],
+        completion,
+        preview,
+      );
+      expect(measure).toHaveBeenCalledTimes(2);
+      expect(measure.mock.calls[1][0] === completion).toBe(true);
+      expect(measure.mock.calls[1][1]).toBe(maximum - previewSize);
+      expect(Boolean(cache.candidate(request(), scope))).toBe(!full);
+    } finally {
+      h.client.dispose();
+    }
+  },
+);

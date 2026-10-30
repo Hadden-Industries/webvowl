@@ -33,6 +33,13 @@ export const originalBrowserMilliseconds = Object.freeze({
   "same-session-warm": 1722,
   "fresh-session-warm": 2428,
 });
+function medianOf(values) {
+  values.sort((a, b) => a - b);
+  const middle = Math.floor(values.length / 2);
+  return values.length % 2
+    ? values[middle]
+    : (values[middle - 1] + values[middle]) / 2;
+}
 export function assertOriginalParity(samples) {
   const failures = [];
   for (const temperature of Object.keys(originalBrowserMilliseconds)) {
@@ -41,23 +48,25 @@ export function assertOriginalParity(samples) {
         (sample) =>
           sample.path === "current" && sample.temperature === temperature,
       )
-      .map((sample) => sample.milliseconds)
-      .sort((a, b) => a - b);
+      .map((sample) => sample.milliseconds);
     if (temperature === "fresh-session-warm" && !values.length) continue;
     assert(values.length, "Missing candidate " + temperature + " samples");
-    const middle = Math.floor(values.length / 2);
-    const median =
-      values.length % 2
-        ? values[middle]
-        : (values[middle - 1] + values[middle]) / 2;
-    if (median > originalBrowserMilliseconds[temperature])
+    const matched = samples
+      .filter(
+        (sample) =>
+          sample.path === "legacy" && sample.temperature === temperature,
+      )
+      .map((sample) => sample.milliseconds);
+    // A new matched engine can reveal a faster original. It cannot relax the
+    // retained historical boundary or turn an earlier failure into a pass.
+    const target = Math.min(
+      originalBrowserMilliseconds[temperature],
+      matched.length ? medianOf(matched) : Infinity,
+    );
+    const median = medianOf(values);
+    if (median > target)
       failures.push(
-        temperature +
-          ": " +
-          median +
-          "ms > original " +
-          originalBrowserMilliseconds[temperature] +
-          "ms",
+        temperature + ": " + median + "ms > original " + target + "ms",
       );
   }
   assert.equal(
@@ -887,11 +896,11 @@ async function benchmark(options) {
       }
     }
     assert.deepEqual(failures, []);
-    if (options["assert-parity"]) assertOriginalParity(samples);
     console.log(
       JSON.stringify({
         kind: "webvowl-end-to-end-comparison",
         browser: browser.version(),
+        browserExecutable: resolve(options.executable),
         archiveSha256,
         warSha256,
         owlapi: artifact.sourceCommit,
@@ -920,6 +929,7 @@ async function benchmark(options) {
           "Production-mode current frontend with isolated cache-enabled composition versus original 1.1.7 WAR and actual 0.3.7 HTTP service. Same seven hash-pinned bytes/logical IRIs, 1440x1000 WebKit, navigation or native reload to visible painted graph. Cold starts a fresh ready JVM and browser context and empty provider; warm retains the page and native application/provider caches. Controlled origin boundaries; no Internet source acquisition, AWS, deployment or activation. Java25/Tomcat8.5.16 compatibility environment, not the historical Java8 host. Rendering defaults and visible counts are reported, not assumed equivalent.",
       }),
     );
+    if (options["assert-parity"]) assertOriginalParity(samples);
   } catch (error) {
     failed = true;
     failure = error;
