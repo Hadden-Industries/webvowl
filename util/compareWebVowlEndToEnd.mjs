@@ -904,6 +904,7 @@ async function benchmark(options) {
         archiveSha256,
         warSha256,
         owlapi: artifact.sourceCommit,
+        providerRuntime: artifact.runtimeTarget,
         samples: samples.map(
           ({
             path,
