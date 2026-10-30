@@ -70,6 +70,11 @@ const countedByOperation = new WeakMap();
 // caller's shallow freeze or serialized marker never establishes membership.
 const frozenOwnedTrees = new WeakSet();
 
+/** Internal query only: a proof of immutable data safety, never model admission. */
+export function isFrozenOwnedSource(value) {
+  return frozenOwnedTrees.has(value);
+}
+
 /** Copy all values synchronously using descriptors; sharing is copied by value, cycles rejected. */
 export function snapshotSource(source, budget, primaryAt = () => false) {
   return visitSource(source, budget, primaryAt, true);

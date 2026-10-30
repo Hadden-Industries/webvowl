@@ -2,6 +2,7 @@ import { fail } from "./errors.js";
 import { envelope, dataRangeKinds } from "./modelContract.js";
 import { namespaces, profiles, collectionTypeNames } from "./profiles.js";
 import { validateFields, walkTyped, descriptorFor } from "./typedValues.js";
+import { walkTypedSelected } from "./selectedTraversal.js";
 import { semanticKey } from "./semanticKeys.js";
 import { validateGraph, validateMeaning } from "./validateGraph.js";
 import { generateProjection, occurrenceKey } from "./projection.js";
@@ -210,7 +211,7 @@ export function normalizeDraft(source, budget, reservedHandles = []) {
     if (aliases.size === rewrittenAliases) {
       return;
     }
-    walkTyped(
+    walkTypedSelected(
       source,
       envelope(profiles.structuralContent),
       (value, descriptor, _pointer, parent, key) => {
@@ -219,6 +220,7 @@ export function normalizeDraft(source, budget, reservedHandles = []) {
           parent[key] = resolve(value);
         }
       },
+      budget,
     );
     rewrittenAliases = aliases.size;
   };

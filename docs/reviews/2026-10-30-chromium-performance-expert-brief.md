@@ -32,7 +32,17 @@ Raw repetitions, in milliseconds:
 
 **Interpretation limits:** three repetitions are descriptive evidence, not a statistical performance guarantee. These are controlled local measurements, not Internet or deployed-AWS timings. No function-level Chromium CPU/allocation trace is available. Stage durations below are elapsed spans, not exclusive CPU attribution.
 
-**Fixture correction, 30 October:** the measurements above used incorrect `text/turtle` fixture headers for the four formatless Hadden documents. Their unchanged, hash-pinned bytes are RDF/XML. These observations remain historical evidence; parity qualification requires a matched original/current rerun with the corrected `application/rdf+xml` headers. The workload table below now identifies their actual syntax.
+**Fixture correction, 30 October:** the measurements above used incorrect `text/turtle` fixture headers for the four formatless Hadden documents. Their unchanged, hash-pinned bytes are RDF/XML. Those observations remain historical evidence. The workload table below now identifies their actual syntax; subsequent comparisons use corrected `application/rdf+xml` headers.
+
+**Latest implementation checkpoint, 30 October:** the original research inputs and source excerpts below remain a historical snapshot. Subsequent local changes preserve full validation while reusing private ownership and immutable data facts, selecting grammar-defined reference/set positions, and bounding exact serialization/key reuse. A Chromium worker CPU diagnostic now exists in the native task journal; it is distinct from the uninstrumented production-build measurements below.
+
+| User-visible case  | Original median | Current median | Current minus original |
+| ------------------ | --------------: | -------------: | ---------------------: |
+| Cold               |      3,141.2 ms |     5,538.9 ms |            +2,397.7 ms |
+| Same-page warm     |      1,544.4 ms |       460.0 ms |            −1,084.4 ms |
+| Fresh-browser warm |      2,313.1 ms |     3,153.3 ms |              +840.2 ms |
+
+These are three repetitions per case. The final candidate reuses the original samples from the immediately preceding paired run; browser/runtime and frozen workload identities match. The unchanged parity assertion still fails cold and fresh-browser warm. All seven source/import and browser-CORS assertions pass; warm reads perform zero origin acquisitions or control-plane calls. Full package validation passed 8,127 tests in 45 suites; the final cache-bookkeeping repair passed all nine affected semantic-key tests and narrow review. These local results establish neither deployed-AWS latency nor release/live acceptance. No deployment, activation or push accompanied this increment.
 
 ## 2. What this application does
 

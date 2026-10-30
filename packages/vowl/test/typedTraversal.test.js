@@ -1,10 +1,37 @@
-import { walkTyped } from "../src/typedValues.js";
+import { walkTyped, validateFields } from "../src/typedValues.js";
 import { ResourceBudget } from "../src/resourceBudget.js";
 
 const shape = { fields: { z: "IRI", "a/b": { items: "Role" } } };
 const source = () => ({
   z: "urn:last",
   "a/b": [{ subject: "S", kind: "class", id: "R" }],
+});
+
+test("field validation reads frozen normalized values without skipping scalar checks or mutable normalization", () => {
+  const budget = new ResourceBudget({}, performance.now());
+  try {
+    const value = { kind: "language", lexical: "label", language: "en-US" };
+    validateFields(value, "Literal", budget);
+    expect(value.language).toBe("en-us");
+    Object.freeze(value);
+    expect(() => validateFields(value, "Literal", budget)).not.toThrow();
+    expect(() =>
+      validateFields(
+        Object.freeze({ ...value, language: "en--us" }),
+        "Literal",
+        budget,
+      ),
+    ).toThrow(expect.objectContaining({ code: "LANGUAGE_TAG_INVALID" }));
+    expect(() =>
+      validateFields(
+        Object.freeze({ kind: "iri", iri: "relative" }),
+        "AnnotationValue",
+        budget,
+      ),
+    ).toThrow(expect.objectContaining({ code: "IRI_INVALID" }));
+  } finally {
+    budget.dispose();
+  }
 });
 
 test("typed traversal retains A7 order, escaped locations and exact parent references", () => {

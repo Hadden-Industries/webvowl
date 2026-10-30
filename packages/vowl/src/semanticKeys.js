@@ -1,5 +1,6 @@
 import { descriptorFor } from "./typedValues.js";
 import { jsonKey } from "./canonicalJson.js";
+import { isFrozenOwnedSource } from "./snapshot.js";
 
 // Exact immutable strings have context-free JCS spellings. Reuse only the
 // serializer's successful result, within one operation and finite capacity.
@@ -7,6 +8,9 @@ import { jsonKey } from "./canonicalJson.js";
 const stringsByOperation = new WeakMap();
 const maximumStrings = 4096;
 const maximumStringLength = 1024;
+const immutableKeysByOperation = new WeakMap();
+const maximumKeyCharacters = 2 * 1024 * 1024;
+const identityReference = (id) => id;
 
 function serialized(value, budget) {
   if (
@@ -36,11 +40,27 @@ function serialized(value, budget) {
 export function semanticKey(
   value,
   descriptor,
-  reference = (id) => id,
+  reference = identityReference,
   budget,
   normalizeSets = false,
 ) {
   budget?.check();
+  const reusable =
+    budget &&
+    reference === identityReference &&
+    typeof descriptor === "string" &&
+    isFrozenOwnedSource(value);
+  let cache;
+  let known;
+  const slot = normalizeSets ? "normalized" : "exact";
+  if (reusable) {
+    cache = immutableKeysByOperation.get(budget);
+    known = cache?.values.get(value)?.get(descriptor);
+    if (known?.[slot] !== undefined) {
+      budget.check();
+      return known[slot];
+    }
+  }
   // Compose each typed subtree's local equality bytes once. Rebuilding an
   // object tree and canonicalizing it again repeated every nested set member.
   // JCS still owns all scalar escaping and caller-supplied reference values.
@@ -78,5 +98,26 @@ export function semanticKey(
   }
   const result = key(value, descriptor);
   budget?.check();
+  if (reusable) {
+    if (!cache) {
+      cache = { values: new WeakMap(), entries: 0, characters: 0 };
+      immutableKeysByOperation.set(budget, cache);
+    }
+    if (
+      cache.entries < maximumStrings &&
+      cache.characters + result.length <= maximumKeyCharacters
+    ) {
+      let shapes = cache.values.get(value);
+      if (!shapes) {
+        shapes = new Map();
+        cache.values.set(value, shapes);
+      }
+      known ??= Object.create(null);
+      known[slot] = result;
+      shapes.set(descriptor, known);
+      cache.entries++;
+      cache.characters += result.length;
+    }
+  }
   return result;
 }

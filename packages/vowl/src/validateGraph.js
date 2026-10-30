@@ -4,6 +4,7 @@ import { categories, namespaces } from "./profiles.js";
 import { semanticKey } from "./semanticKeys.js";
 import { occurrenceKey } from "./projection.js";
 import { walkTyped } from "./typedValues.js";
+import { walkTypedSelected } from "./selectedTraversal.js";
 
 const categoryNames = {
   subjects: "S",
@@ -88,18 +89,24 @@ export function validateGraph(
       locations.set(record.id, pointer);
     });
   }
-  walkTyped(source, shape, (value, descriptor, pointer) => {
-    budget.poll();
-    if (descriptor?.reference) {
-      references.push({ value, descriptor, pointer });
-    }
-    // Nothing mutates the owned source during this validation. Retain set
-    // positions in the same traversal order, but check them only after all
-    // reference, cycle and record-identity failures, as required by A7.
-    if (!normalizing && descriptor?.items && !descriptor.sequence) {
-      setContainers.push({ value, descriptor, pointer });
-    }
-  });
+  walkTypedSelected(
+    source,
+    shape,
+    (value, descriptor, pointer) => {
+      budget.poll();
+      if (descriptor?.reference) {
+        references.push({ value, descriptor, pointer });
+      }
+      // Nothing mutates the owned source during this validation. Retain set
+      // positions in the same traversal order, but check them only after all
+      // reference, cycle and record-identity failures, as required by A7.
+      if (!normalizing && descriptor?.items && !descriptor.sequence) {
+        setContainers.push({ value, descriptor, pointer });
+      }
+    },
+    budget,
+    normalizing ? "references" : "references-and-sets",
+  );
   for (const { value, pointer } of references) {
     budget.poll();
     if (!index.has(value)) {
@@ -135,13 +142,18 @@ export function validateGraph(
     visiting.add(id);
     const record = index.get(id).record;
     const children = [];
-    walkTyped(record, "Expression", (value, descriptor) => {
-      budget.poll();
-      if (descriptor?.reference && index.get(value).category === "X") {
-        children.push(value);
-        visitExpression(value, depth + 1);
-      }
-    });
+    walkTypedSelected(
+      record,
+      "Expression",
+      (value, descriptor) => {
+        budget.poll();
+        if (descriptor?.reference && index.get(value).category === "X") {
+          children.push(value);
+          visitExpression(value, depth + 1);
+        }
+      },
+      budget,
+    );
     expressionChildren.set(id, children);
     const height = children.reduce(
       (maximum, child) => Math.max(maximum, expressionHeights.get(child) + 1),

@@ -221,21 +221,28 @@ function validateField(value, descriptor, budget, pointer) {
     shallowValidate(value, resolved, pointer);
     if (resolved.fields) {
       for (const name of Object.keys(value).sort()) {
-        value[name] = validateField(
-          value[name],
+        const previous = value[name];
+        const validated = validateField(
+          previous,
           resolved.fields[name],
           budget,
           at(pointer, name),
         );
+        if (validated !== previous) {
+          value[name] = validated;
+        }
       }
     } else {
       value.forEach((member, index) => {
-        value[index] = validateField(
+        const validated = validateField(
           member,
           resolved.items,
           budget,
           at(pointer, index),
         );
+        if (validated !== member) {
+          value[index] = validated;
+        }
       });
     }
     return value;

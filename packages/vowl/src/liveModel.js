@@ -2,6 +2,7 @@ import { fail } from "./errors.js";
 import { profiles, categories, namespaces } from "./profiles.js";
 import { envelope } from "./modelContract.js";
 import { validateFields, walkTyped } from "./typedValues.js";
+import { walkTypedSelected } from "./selectedTraversal.js";
 import {
   validateGraph,
   validateMeaning,
@@ -85,7 +86,7 @@ function relabel(structural, budget) {
       replacements.set(id, `live:${prefix}:${index}`);
     });
   }
-  walkTyped(
+  walkTypedSelected(
     { structural },
     envelope(profiles.structuralContent),
     (value, shape, _pointer, parent, field) => {
@@ -94,6 +95,8 @@ function relabel(structural, budget) {
         parent[field] = replacements.get(value);
       }
     },
+    budget,
+    "handles",
   );
   budget.check();
   return replacements;
@@ -219,9 +222,12 @@ export function inspectLiveModel(model) {
 export function openOwnedOwlState(source, archive, documentIri, budget) {
   // buildModel allocates its own containers and snapshots every generated
   // record. Its result stays private through evidence retention. Keep the full
-  // safety walk before relabelling, without making a second ownership copy.
+  // safety walk before publication, without making a second ownership copy.
   validateOwnedSource({ structural: source.structural }, budget);
-  const replacements = relabel(source.structural, budget);
+  // This is the same private draft, rather than an external handle transfer.
+  // Its builder-issued handles are already local and unique. Retain them and
+  // make the safety proof immutable before the independent admission checks.
+  freezeOwnedSource(source.structural);
   const root = archive.evidence.documents.find(
     (document) => document.documentIri === documentIri,
   );
@@ -230,7 +236,7 @@ export function openOwnedOwlState(source, archive, documentIri, budget) {
   }
   // The structural tree is the private draft above. Every other container
   // below is freshly allocated here; archive metadata contributes only strings.
-  // Keep snapshot validation/accounting after relabelling without copying the
+  // Keep snapshot validation/accounting without copying the
   // already-owned tree a second time. External/edit/checkpoint paths still copy.
   const state = {
     revision: 0,
@@ -252,10 +258,7 @@ export function openOwnedOwlState(source, archive, documentIri, budget) {
   const model = validateAndPublishState(state, budget, archive);
   return deepFreeze({
     model,
-    correspondence: [...replacements].map(([previous, current]) => ({
-      previous,
-      current,
-    })),
+    correspondence: identity(source.structural, budget),
   });
 }
 
