@@ -340,6 +340,9 @@ async function compare(options) {
               ).length,
               entities,
               measures,
+              assessment: result.checkpoint.source.evidence.assessment,
+              profileViolations:
+                result.checkpoint.source.evidence.profileViolations,
             };
           } finally {
             client.dispose();
@@ -361,6 +364,13 @@ async function compare(options) {
           unresolved: sample.unresolved,
           namedClasses: sample.entities.class.length,
           namedProperties: sample.entities.property.length,
+          assessmentStatus: sample.assessment.status,
+          assessmentSha256: sha256(
+            JSON.stringify({
+              assessment: sample.assessment,
+              profileViolations: sample.profileViolations,
+            }),
+          ),
           measures: sample.measures,
         }),
       );
