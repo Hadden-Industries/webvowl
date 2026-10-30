@@ -215,16 +215,20 @@ export function inspectLiveModel(model) {
   return inspections.get(model) ?? inspection(state);
 }
 
-export function openOwlState(source, archive, documentIri, budget) {
-  const owned = snapshotSource({ structural: source.structural }, budget);
-  const replacements = relabel(owned.structural, budget);
+/** Adapter-only move of buildModel's private draft; no caller data may enter here. */
+export function openOwnedOwlState(source, archive, documentIri, budget) {
+  // buildModel allocates its own containers and snapshots every generated
+  // record. Its result stays private through evidence retention. Keep the full
+  // safety walk before relabelling, without making a second ownership copy.
+  validateOwnedSource({ structural: source.structural }, budget);
+  const replacements = relabel(source.structural, budget);
   const root = archive.evidence.documents.find(
     (document) => document.documentIri === documentIri,
   );
   if (!root) {
     fail("MODEL_NOT_ADMITTED");
   }
-  // The structural tree is the private snapshot above. Every other container
+  // The structural tree is the private draft above. Every other container
   // below is freshly allocated here; archive metadata contributes only strings.
   // Keep snapshot validation/accounting after relabelling without copying the
   // already-owned tree a second time. External/edit/checkpoint paths still copy.
@@ -236,8 +240,8 @@ export function openOwlState(source, archive, documentIri, budget) {
       inputDigest: root.digest,
       sourceAccess: "available",
     },
-    structural: owned.structural,
-    supports: allRecords(owned.structural).map(({ id }) => ({
+    structural: source.structural,
+    supports: allRecords(source.structural).map(({ id }) => ({
       record: id,
       assertions: [],
       derivations: [{ rule: sourceMappingRule, records: [] }],

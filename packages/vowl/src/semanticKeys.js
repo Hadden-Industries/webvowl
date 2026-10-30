@@ -1,6 +1,37 @@
 import { descriptorFor } from "./typedValues.js";
 import { jsonKey } from "./canonicalJson.js";
 
+// Exact immutable strings have context-free JCS spellings. Reuse only the
+// serializer's successful result, within one operation and finite capacity.
+// Compound reference values always retain the owning canonical serializer.
+const stringsByOperation = new WeakMap();
+const maximumStrings = 4096;
+const maximumStringLength = 1024;
+
+function serialized(value, budget) {
+  if (
+    !budget ||
+    typeof value !== "string" ||
+    value.length > maximumStringLength
+  ) {
+    return jsonKey(value);
+  }
+  let strings = stringsByOperation.get(budget);
+  const known = strings?.get(value);
+  if (known !== undefined) {
+    return known;
+  }
+  const result = jsonKey(value);
+  if (!strings) {
+    strings = new Map();
+    stringsByOperation.set(budget, strings);
+  }
+  if (strings.size < maximumStrings) {
+    strings.set(value, result);
+  }
+  return result;
+}
+
 /** A local equality key, never a graph label or wire value. Only typed references resolve. */
 export function semanticKey(
   value,
@@ -17,7 +48,7 @@ export function semanticKey(
     budget?.poll();
     const resolved = descriptorFor(item, shape, "");
     if (resolved?.reference) {
-      return jsonKey(reference(item));
+      return serialized(reference(item), budget);
     }
     if (resolved?.fields) {
       return `{${Object.keys(item)
@@ -25,7 +56,7 @@ export function semanticKey(
         .sort()
         .map(
           (name) =>
-            `${jsonKey(name)}:${key(item[name], resolved.fields[name])}`,
+            `${serialized(name, budget)}:${key(item[name], resolved.fields[name])}`,
         )
         .join(",")}}`;
     }
@@ -43,7 +74,7 @@ export function semanticKey(
             );
       return `[${retained.join(",")}]`;
     }
-    return jsonKey(item);
+    return serialized(item, budget);
   }
   const result = key(value, descriptor);
   budget?.check();

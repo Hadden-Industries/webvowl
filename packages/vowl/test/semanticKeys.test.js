@@ -82,3 +82,41 @@ test("local equality work still observes the operation cancellation budget", () 
     budget.dispose();
   }
 });
+
+test("operation-local serialization reuse keeps exact strings and reserializes compound reference values", () => {
+  const budget = new ResourceBudget({}, performance.now());
+  try {
+    const literal = (lexical) => ({
+      kind: "typed",
+      datatype: "urn:string",
+      lexical,
+    });
+    for (const value of [
+      'quotes "\\\n',
+      "é",
+      "e\u0301",
+      "\u{1F600}",
+      "a".repeat(1025),
+    ]) {
+      const expected = semanticKey(literal(value), "Literal");
+      expect(semanticKey(literal(value), "Literal", undefined, budget)).toBe(
+        expected,
+      );
+      expect(semanticKey(literal(value), "Literal", undefined, budget)).toBe(
+        expected,
+      );
+    }
+    const reference = { a: "first" };
+    const record = { id: "R", kind: "class", subject: "S" };
+    const first = semanticKey(record, "Role", () => reference, budget);
+    reference.a = "second";
+    expect(semanticKey(record, "Role", () => reference, budget)).not.toBe(
+      first,
+    );
+    expect(() =>
+      semanticKey(literal("\uD800"), "Literal", undefined, budget),
+    ).toThrow("Lone surrogate");
+  } finally {
+    budget.dispose();
+  }
+});
