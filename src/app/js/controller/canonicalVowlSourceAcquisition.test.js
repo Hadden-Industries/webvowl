@@ -215,6 +215,9 @@ async function siblingHarness({
   strategy = "heuristic",
   hintedStrategy = "heuristic",
   rootLength = 1,
+  deadlineMs,
+  rootSignal,
+  rootFormat,
 } = {}) {
   const rootIri = "https://example.org/root";
   const iris = ["a", "b", "c"].map((name) => `https://example.org/${name}`);
@@ -225,6 +228,7 @@ async function siblingHarness({
   const source = createCanonicalVowlSourceAcquisition({
     cache: {
       enabled: true,
+      deadlineMs,
       createClient: () => ({
         async acquire(iri, { signal, context }) {
           context.bindings ??= new Map();
@@ -267,7 +271,10 @@ async function siblingHarness({
       }),
     },
   });
-  const root = await source.remote(rootIri);
+  const root = await source.remote(rootIri, {
+    signal: rootSignal,
+    format: rootFormat,
+  });
   const onFailure = jest.fn();
   const imports = source.createImportContext(root.bytes.length, {
     rootBytes: root.bytes,
@@ -294,6 +301,89 @@ async function siblingHarness({
     onFailure,
   };
 }
+
+test("one verified root hint stages bytes without admitting import evidence", async () => {
+  const h = await siblingHarness();
+  const preparing = h.imports.prepare({ signal: h.options.signal });
+  try {
+    await h.flush();
+    expect(h.calls).toEqual([h.iris[0]]);
+    h.waiting.get(h.iris[0]).resolve();
+    await preparing;
+    expect(h.imports.cacheEvidence()).toEqual([]);
+    const imported = await h.imports.resolveImport(h.iris[0], h.options);
+    expect(imported.documentIri).toBe(h.iris[0]);
+    expect(h.calls.filter((iri) => iri === h.iris[0])).toHaveLength(1);
+  } finally {
+    h.abort.abort("test complete");
+    await preparing.catch(() => {});
+  }
+});
+
+test.each(["unambiguous", "none"])(
+  "root hints do not stage imports for the %s consumer choice",
+  async (strategy) => {
+    const h = await siblingHarness({ strategy });
+    await h.imports.prepare({ signal: h.options.signal });
+    expect(h.calls).toEqual([]);
+  },
+);
+
+test("an explicit root format does not trigger speculative preparation", async () => {
+  const h = await siblingHarness({ rootFormat: "turtle" });
+  await h.imports.prepare({ signal: h.options.signal });
+  expect(h.calls).toEqual([]);
+});
+
+test("caller cancellation interrupts preparation with its original reason", async () => {
+  const h = await siblingHarness();
+  const preparing = h.imports.prepare({ signal: h.options.signal });
+  const reason = new Error("cancelled before model admission");
+  const rejected = expect(preparing).rejects.toBe(reason);
+  await h.flush();
+  h.abort.abort(reason);
+  await rejected;
+  expect(h.calls).toEqual([h.iris[0]]);
+  expect(h.imports.cacheEvidence()).toEqual([]);
+});
+
+test("preparation does not renew the root acquisition deadline", async () => {
+  const h = await siblingHarness({ deadlineMs: 10 });
+  await new Promise((resolve) => setTimeout(resolve, 25));
+  await h.imports.prepare({ signal: h.options.signal });
+  expect(h.calls).toEqual([]);
+});
+
+test("expired preparation permits a separately bounded worker demand", async () => {
+  const h = await siblingHarness({ deadlineMs: 10 });
+  await h.imports.prepare({ signal: h.options.signal });
+  await h.flush();
+  expect(h.calls).toEqual([h.iris[0]]);
+  const demanded = h.imports.resolveImport(h.iris[0], h.options);
+  try {
+    await h.flush();
+    expect(h.calls.filter((iri) => iri === h.iris[0])).toHaveLength(2);
+    h.waiting.get(h.iris[0]).resolve();
+    expect((await demanded).documentIri).toBe(h.iris[0]);
+  } finally {
+    h.abort.abort("test complete");
+    await demanded.catch(() => {});
+  }
+});
+
+test("prepared bytes retain the aggregate byte ceiling before model admission", async () => {
+  const limit = OWLOntologyLoaderConfiguration.defaults().maxInputBytes;
+  const h = await siblingHarness({ rootLength: limit - 1 });
+  const preparing = h.imports.prepare({ signal: h.options.signal });
+  const rejected = expect(preparing).rejects.toMatchObject({
+    code: "RESOURCE_LIMIT_EXCEEDED",
+    resource: "maxInputBytes",
+  });
+  await h.flush();
+  h.waiting.get(h.iris[0]).resolve(new Uint8Array([1, 2]));
+  await rejected;
+  expect(h.imports.cacheEvidence()).toEqual([]);
+});
 
 test("a worker-requested import overlaps one verified sibling, coalesces demand and bounds concurrency", async () => {
   const h = await siblingHarness();

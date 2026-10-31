@@ -98,6 +98,14 @@ export function createCanonicalVowlSourceAcquisition({
     }
     return bytes.slice();
   }
+  function acquisitionSignal(signal) {
+    return cacheConfiguration.enabled === true
+      ? AbortSignal.any([
+          ...(signal ? [signal] : []),
+          AbortSignal.timeout(cacheConfiguration.deadlineMs ?? 60000),
+        ])
+      : signal;
+  }
   async function acquireBytes(
     documentIri,
     signal,
@@ -105,13 +113,7 @@ export function createCanonicalVowlSourceAcquisition({
     selectedBindings,
     context,
   ) {
-    signal =
-      useCache && cacheConfiguration.enabled === true
-        ? AbortSignal.any([
-            ...(signal ? [signal] : []),
-            AbortSignal.timeout(cacheConfiguration.deadlineMs ?? 60000),
-          ])
-        : signal;
+    signal = useCache ? acquisitionSignal(signal) : signal;
     signal?.throwIfAborted();
     const acquired =
       useCache && cacheConfiguration.enabled === true
@@ -246,12 +248,15 @@ export function createCanonicalVowlSourceAcquisition({
           (async () => {
             try {
               job.signal?.throwIfAborted();
-              const acquired = await acquireBytes(
-                job.documentIri,
+              const acquired = await waitForOntologyAcquisition(
+                acquireBytes(
+                  job.documentIri,
+                  job.signal,
+                  true,
+                  selectedBindings,
+                  context,
+                ),
                 job.signal,
-                true,
-                selectedBindings,
-                context,
               );
               totalBytes += acquired.bytes.byteLength;
               if (totalBytes > limits.maxInputBytes) {
@@ -351,6 +356,40 @@ export function createCanonicalVowlSourceAcquisition({
         importBytes(sibling, signal).then(settled, settled);
       }
       return Object.freeze({
+        async prepare({ signal } = {}) {
+          const hints = rootEvidence?.resolution.declaredImports;
+          if (
+            cacheConfiguration.enabled !== true ||
+            !context.prepareHint ||
+            !owlMappingStrategy ||
+            hints?.owlMappingStrategy !== owlMappingStrategy
+          ) {
+            return;
+          }
+          const first = hints.iris.find((iri) => /^https?:\/\//iu.test(iri));
+          if (!first) {
+            return;
+          }
+          const preparingSignal = AbortSignal.any([
+            context.acquisitionSignal,
+            ...(signal ? [signal] : []),
+          ]);
+          try {
+            // One hint stages bytes only. The native worker still determines
+            // imports and validates the complete model independently.
+            await waitForOntologyAcquisition(
+              importBytes(first, preparingSignal),
+              preparingSignal,
+            );
+          } catch (error) {
+            signal?.throwIfAborted();
+            if (error?.code === "RESOURCE_LIMIT_EXCEEDED") {
+              throw error;
+            }
+            // Ordinary failures remain demand-owned. An expired acquisition
+            // phase leaves the worker its existing separate finite allowance.
+          }
+        },
         cacheEvidence: () => [...evidence.values()],
         async resolveImport(importIri, { signal, importingDocumentIri } = {}) {
           signal?.throwIfAborted();
@@ -448,10 +487,13 @@ export function createCanonicalVowlSourceAcquisition({
     },
     async remote(documentIri, { signal, format, selectedBindings } = {}) {
       // Human input precedes worker admission; it cannot consume its parse deadline.
-      const context = {};
+      const context = {
+        acquisitionSignal: acquisitionSignal(signal),
+        prepareHint: format === undefined,
+      };
       const acquired = await acquire(
         documentIri,
-        signal,
+        context.acquisitionSignal,
         format,
         selectedBindings,
         context,

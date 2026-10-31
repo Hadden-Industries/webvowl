@@ -23,6 +23,30 @@ function deferred() {
   return { promise, resolve, reject };
 }
 
+test("bounded import preparation completes before the model job starts", async () => {
+  const h = setup();
+  const gate = deferred();
+  h.acquisition.createImportContext = () => ({
+    prepare: () => gate.promise,
+  });
+  const loading = h.load("urn:prepared");
+  try {
+    for (let index = 0; index < 8; index++) {
+      await Promise.resolve();
+    }
+    expect(h.controller.getState().status).toBe("loading");
+    expect(h.session.load).not.toHaveBeenCalled();
+    gate.resolve();
+    await loading;
+    expect(h.session.load).toHaveBeenCalledTimes(1);
+    expect(h.controller.getState().status).toBe("ready");
+  } finally {
+    gate.resolve();
+    await loading.catch(() => {});
+    h.controller.dispose();
+  }
+});
+
 test("OWL mapping preference is captured before acquisition and an explicit option overrides it", async () => {
   let selected = "unambiguous";
   const h = setup({ readOwlMappingStrategy: () => selected });

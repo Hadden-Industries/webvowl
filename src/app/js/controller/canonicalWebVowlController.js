@@ -983,6 +983,8 @@ export function createCanonicalWebVowlController({
             rootBytes: request.bytes,
           },
         );
+        await imports?.prepare?.({ signal: combined });
+        combined.throwIfAborted();
         let accepted;
         for (;;) {
           awaitingFormat = false;
