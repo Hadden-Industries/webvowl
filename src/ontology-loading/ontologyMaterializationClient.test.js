@@ -352,6 +352,156 @@ test("artifact digest mismatch is rejected after bounded acquisition", async () 
   );
 });
 
+test.each([502, 503, 504])(
+  "a redirected artifact HTTP %i is retried once after verifying evidence without repeating admission",
+  async (status) => {
+    const h = harness({
+      api({ response, pointer }) {
+        return response(
+          "Resource unavailable.",
+          `${pointer.currentBinding.artifactIri}?source=${pointer.sourceKey}&binding=${pointer.currentBinding.resolutionIdentity}`,
+          status,
+        );
+      },
+    });
+    const result = await h.client.materialize(source);
+    expect(result.bytes).toEqual(
+      encoder.encode(fixtures.ontologySource.utf8Text),
+    );
+    expect(
+      h.fetchImpl.mock.calls.filter(([, options]) => options.method === "POST"),
+    ).toHaveLength(1);
+    const reads = h.fetchImpl.mock.calls.filter(
+      ([url]) => url === h.pointer.currentBinding.artifactIri,
+    );
+    expect(reads).toHaveLength(1);
+    expect(reads[0][1]).toMatchObject({
+      credentials: "omit",
+      redirect: "error",
+    });
+    expect(reads[0][1].headers).toBeUndefined();
+  },
+);
+
+test("a second transient artifact failure stops after two GETs", async () => {
+  const h = harness();
+  const original = h.options.fetchImpl;
+  let artifacts = 0;
+  h.options.fetchImpl = async (url, options) => {
+    if (url === h.pointer.currentBinding.artifactIri) {
+      artifacts++;
+      return h.response("unavailable", url, 503);
+    }
+    return original(url, options);
+  };
+  await expect(
+    createOntologyMaterializationClient(h.options).lookup(source),
+  ).rejects.toHaveProperty("code", "CACHE_PROTOCOL_INVALID");
+  expect(artifacts).toBe(2);
+});
+
+test.each([403, 404, 429])(
+  "artifact HTTP %i is not retried",
+  async (status) => {
+    const h = harness();
+    const original = h.options.fetchImpl;
+    let artifacts = 0;
+    h.options.fetchImpl = async (url, options) => {
+      if (url === h.pointer.currentBinding.artifactIri) {
+        artifacts++;
+        return h.response("unavailable", url, status);
+      }
+      return original(url, options);
+    };
+    await expect(
+      createOntologyMaterializationClient(h.options).lookup(source),
+    ).rejects.toThrow();
+    expect(artifacts).toBe(1);
+  },
+);
+
+test("a redirected artifact retry still rejects changed bytes", async () => {
+  const h = harness({
+    artifactText: "corrupted",
+    api({ response, pointer }) {
+      return response(
+        "unavailable",
+        `${pointer.currentBinding.artifactIri}?source=${pointer.sourceKey}&binding=${pointer.currentBinding.resolutionIdentity}`,
+        503,
+      );
+    },
+  });
+  await expect(h.client.materialize(source)).rejects.toHaveProperty(
+    "code",
+    "CACHE_ARTIFACT_CORRUPT",
+  );
+});
+
+test("a transient artifact response cannot bypass an unsupported loader policy", async () => {
+  const h = harness({
+    api({ response, pointer }) {
+      return response(
+        "unavailable",
+        `${pointer.currentBinding.artifactIri}?source=${pointer.sourceKey}&binding=${pointer.currentBinding.resolutionIdentity}`,
+        503,
+      );
+    },
+  });
+  await expect(
+    createOntologyMaterializationClient({
+      ...h.options,
+      approvedPolicyFingerprints: [],
+    }).materialize(source),
+  ).rejects.toHaveProperty("code", "CACHE_POLICY_UNSUPPORTED");
+  expect(
+    h.fetchImpl.mock.calls.some(
+      ([url]) => url === h.pointer.currentBinding.artifactIri,
+    ),
+  ).toBe(false);
+});
+
+test.each(["86400", "not-a-date"])(
+  "an unusable artifact Retry-After %s does not cause another read",
+  async (hint) => {
+    const h = harness();
+    const original = h.options.fetchImpl;
+    let artifacts = 0;
+    h.options.fetchImpl = async (url, options) => {
+      if (url === h.pointer.currentBinding.artifactIri) {
+        artifacts++;
+        return h.response("unavailable", url, 503, { "retry-after": hint });
+      }
+      return original(url, options);
+    };
+    await expect(
+      createOntologyMaterializationClient(h.options).lookup(source),
+    ).rejects.toThrow();
+    expect(artifacts).toBe(1);
+  },
+);
+
+test("cancellation stops the transient artifact retry before another GET", async () => {
+  const h = harness();
+  const original = h.options.fetchImpl;
+  const controller = new AbortController();
+  const reason = new Error("cancel artifact recovery");
+  let artifacts = 0;
+  h.options.fetchImpl = async (url, options) => {
+    if (url === h.pointer.currentBinding.artifactIri) {
+      artifacts++;
+      queueMicrotask(() => controller.abort(reason));
+      return h.response("unavailable", url, 503);
+    }
+    return original(url, options);
+  };
+  await expect(
+    createOntologyMaterializationClient(h.options).lookup(source, {
+      signal: controller.signal,
+    }),
+  ).rejects.toBe(reason);
+  expect(artifacts).toBe(1);
+});
+
 test("unsupported policy never downloads an artifact", async () => {
   const { options, fetchImpl } = harness();
   const client = createOntologyMaterializationClient({

@@ -16,6 +16,9 @@ import {
   OntologyCacheError,
 } from "./ontologySourceIdentity.js";
 
+const transientArtifactStatuses = new Set([502, 503, 504]);
+const artifactRetryDelayMs = 100;
+
 function wait(milliseconds, signal) {
   signal.throwIfAborted();
   return new Promise((resolve, reject) => {
@@ -59,6 +62,14 @@ export function createOntologyMaterializationClient({
       AbortSignal.timeout(deadlineMs),
     ]);
   const policyOwners = new WeakMap();
+  function retryDelay(response, fallback) {
+    const value = response.headers.get("retry-after");
+    return value === null
+      ? fallback
+      : /^\d+$/u.test(value)
+        ? Number(value) * 1000
+        : Date.parse(value) - now();
+  }
 
   async function request(url, { signal, ...options } = {}) {
     signal?.throwIfAborted();
@@ -148,6 +159,17 @@ export function createOntologyMaterializationClient({
   }
   async function artifact(resolution, signal, response) {
     response ??= await request(resolution.artifactIri, { signal });
+    if (transientArtifactStatuses.has(response.status)) {
+      const delay = retryDelay(response, artifactRetryDelayMs);
+      await response.body?.cancel();
+      if (!Number.isFinite(delay) || delay < 0 || delay >= deadlineMs) {
+        throw new OntologyCacheError();
+      }
+      // Evidence is already verified. Retry only its immutable artifact GET,
+      // once, under the same signal; never repeat the admission request.
+      await wait(Math.max(artifactRetryDelayMs, delay), signal);
+      response = await request(resolution.artifactIri, { signal });
+    }
     if (!response.ok || response.status !== 200) {
       await response.body?.cancel();
       throw new OntologyCacheError();
@@ -263,10 +285,7 @@ export function createOntologyMaterializationClient({
       ) {
         throw new OntologyCacheError();
       }
-      const retry = response.headers.get("retry-after");
-      const delay = /^\d+$/u.test(retry ?? "")
-        ? Number(retry) * 1000
-        : Date.parse(retry) - now();
+      const delay = retryDelay(response);
       // A ready-to-run producer need not impose a multi-second floor. Keep
       // zero hints bounded, progressively back off, and honor longer hints.
       const pollingDelay = Math.max(
@@ -295,7 +314,8 @@ export function createOntologyMaterializationClient({
   }
   async function ready(requestedDocumentIri, response, signal, context) {
     if (
-      response.status === 200 &&
+      (response.status === 200 ||
+        transientArtifactStatuses.has(response.status)) &&
       response.url?.startsWith(`${origin}/ontology/cache/artifacts/sha256/`)
     ) {
       return fromTarget(
