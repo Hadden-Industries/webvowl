@@ -122,16 +122,25 @@ export function createOntologyRefreshObservation({
       if (!current() || offers.size === 0) {
         throw new OntologyCacheError("CACHE_OFFER_EXPIRED");
       }
+      const offeredIdentities = new Map(
+        [...offers].map(([iri, binding]) => [iri, binding.resolutionIdentity]),
+      );
       const selected = new Map();
       try {
-        for (const [iri, binding] of offers) {
-          const acquired = await client.confirm(
-            iri,
-            binding.resolutionIdentity,
-            {
-              signal: lifetime.signal,
-            },
-          );
+        for (const { requestedDocumentIri: iri, resolution } of sources) {
+          const offeredIdentity = offeredIdentities.get(iri);
+          // An update replaces only its offered members. Reverify the exact
+          // accepted bindings of the others: mutable discovery may be stale
+          // or have advanced, and must not silently change this selection.
+          const acquired = offeredIdentity
+            ? await client.confirm(iri, offeredIdentity, {
+                signal: lifetime.signal,
+              })
+            : await client.acquireBinding(
+                iri,
+                `${resolution.artifactIri}?source=${resolution.sourceKey}&binding=${resolution.resolutionIdentity}`,
+                { signal: lifetime.signal },
+              );
           if (!current()) {
             throw new OntologyCacheError("CACHE_OFFER_EXPIRED");
           }

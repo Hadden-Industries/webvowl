@@ -113,6 +113,45 @@ test("static hit verifies the complete chain, exact bytes and origin parser cont
   }
 });
 
+test("retained binding selection verifies immutable bytes and cannot be supplied by a caller clone", async () => {
+  const h = harness();
+  const acquisition = createCachedOntologySourceAcquisition({
+    ...h.options,
+    resolver: {},
+  });
+  const target = `${h.pointer.currentBinding.artifactIri}?source=${h.pointer.sourceKey}&binding=${h.pointer.currentBinding.resolutionIdentity}`;
+  const selected = await acquisition.acquireBinding(source, target, {});
+  const result = await acquisition.acquire(source, {
+    selectedBindings: new Map([[source, selected]]),
+  });
+  expect(result.bytes).toEqual(selected.bytes);
+  expect(result.bytes).not.toBe(selected.bytes);
+  await expect(
+    acquisition.acquire(source, {
+      selectedBindings: new Map([[source, structuredClone(selected)]]),
+    }),
+  ).rejects.toHaveProperty("code", "CACHE_PROTOCOL_INVALID");
+  expect(
+    h.fetchImpl.mock.calls.every(
+      ([url]) =>
+        !url.includes("/ontology/materializations") &&
+        !url.includes("/provenance/"),
+    ),
+  ).toBe(true);
+});
+
+test("retained binding selection never admits corrupted artifact bytes", async () => {
+  const h = harness({ artifactText: "changed" });
+  const acquisition = createCachedOntologySourceAcquisition({
+    ...h.options,
+    resolver: {},
+  });
+  const target = `${h.pointer.currentBinding.artifactIri}?source=${h.pointer.sourceKey}&binding=${h.pointer.currentBinding.resolutionIdentity}`;
+  await expect(
+    acquisition.acquireBinding(source, target, {}),
+  ).rejects.toHaveProperty("code", "CACHE_ARTIFACT_CORRUPT");
+});
+
 async function curatedHarness(mutate, options = {}) {
   const resolution = example("curated-archive-resolution");
   mutate?.(resolution);
