@@ -40,6 +40,49 @@ function same(left, right) {
   }
 }
 
+function verifyCuratedCapture(resolution) {
+  const capture = resolution.archiveCapture;
+  if (new TextEncoder().encode(JSON.stringify(capture)).byteLength > 8192) {
+    throw new OntologyCacheError();
+  }
+  for (const iri of [capture.archiveIri, capture.originalDocumentIri]) {
+    ontologySourceIri(iri);
+    const url = new URL(iri);
+    same(url.href, iri);
+    same(url.hash, "");
+  }
+  same(new URL(capture.archiveIri).protocol, "https:");
+  const capturedAt = Date.parse(capture.capturedAt);
+  if (!Number.isFinite(capturedAt) || capturedAt > Date.now()) {
+    throw new OntologyCacheError();
+  }
+  same(new Date(capturedAt).toISOString(), capture.capturedAt);
+  for (const value of [
+    capture.archiveMediaType,
+    ...Object.values(capture.knownOriginalHeaders),
+  ]) {
+    if (
+      [...value].some((character) => {
+        const code = character.codePointAt(0);
+        return code < 32 || code === 127;
+      })
+    ) {
+      throw new OntologyCacheError();
+    }
+  }
+  same(resolution.requestVariant, null);
+  same(resolution.originMetadata, null);
+  for (const field of [
+    "retrievalIri",
+    "effectiveRetrievalIri",
+    "parserDocumentIri",
+  ]) {
+    same(resolution[field], capture.originalDocumentIri);
+  }
+  same(resolution.acquiredAt, capture.capturedAt);
+  same(resolution.checkedAt, capture.capturedAt);
+}
+
 // Observe each rejection immediately, including reads that an earlier failed
 // check makes unnecessary. Unwrap in the established validation/error order.
 async function readOutcome(readJson, url, limit) {
@@ -85,6 +128,13 @@ export async function verifyOntologyResolution({
   ontologySourceIri(resolution.effectiveRetrievalIri);
   ontologySourceIri(resolution.parserDocumentIri);
   same(resolution.parserDocumentIri, resolution.effectiveRetrievalIri);
+  if (resolution.publicationDisposition === "CURATED_PUBLIC_ARCHIVE") {
+    try {
+      verifyCuratedCapture(resolution);
+    } catch {
+      throw new OntologyCacheError();
+    }
+  }
   same(resolution.artifactIri, paths.artifact(resolution.artifactSha256));
   same(
     resolution.validationIri,
@@ -195,13 +245,15 @@ export async function verifyOntologyResolution({
     await ontologyRecordIdentity("request-variant", resolution.requestVariant),
     resolution.requestVariantFingerprint,
   );
-  same(
-    await ontologyRecordIdentity(
-      "request-variant",
-      policyRecord.policy.requestVariant,
-    ),
-    resolution.requestVariantFingerprint,
-  );
+  if (resolution.publicationDisposition !== "CURATED_PUBLIC_ARCHIVE") {
+    same(
+      await ontologyRecordIdentity(
+        "request-variant",
+        policyRecord.policy.requestVariant,
+      ),
+      resolution.requestVariantFingerprint,
+    );
+  }
   if (resolution.declaredImports) {
     if (
       resolution.declaredImports.iris.some((iri) => !isOntologyImportIri(iri))

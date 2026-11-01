@@ -2,16 +2,16 @@
   "schemaVersion": 1,
   "kind": "contract-manifest",
   "contractId": "hadden-ontology-materialization-cache",
-  "version": "1.0.0-draft.6",
-  "bundleSha256": "79b4a3bc4c94ef9ae8ee812aa5bfdd6f259497c498c90d4e8c10ced0295d1833",
+  "version": "1.0.0-draft.7",
+  "bundleSha256": "794a1f0679e1b1697f4f6c15e20e305d295c6e62bcb6536e9a7447ebb3517135",
   "status": "DRAFT_UNPUBLISHED",
-  "createdOn": "2026-10-30",
+  "createdOn": "2026-10-31",
   "identityRule": "SHA256(UTF8(\"hadden-ontology-cache/contract-bundle/v1\\n\") || JCS({contractId,version,files})); the backslash-n denotes one LF byte.",
   "files": [
     {
       "path": "README.md",
-      "sha256": "24e8ac8df9fcce0f1ee21b5713d7fed623c16d45e801c7a9d81811a0c5066ab4",
-      "byteLength": 9953
+      "sha256": "00ad439671be8c768f6c451212e2c97a021bb4f69300ec2a52aab30affd5d048",
+      "byteLength": 10196
     },
     {
       "path": "conformance.v1.md",
@@ -80,13 +80,18 @@
     },
     {
       "path": "fixtures/protocol-cases.v1.json",
-      "sha256": "d4b65ef9701484d2bd6e56b4711b0ffe61a0b9ca0294bff8402dabd7952b36fd",
-      "byteLength": 182685
+      "sha256": "cd2b978967f205d15cc1a60c90cd01d9c78245551f75fb58b3af379bbf0c74f6",
+      "byteLength": 192262
     },
     {
       "path": "fixtures/state-transitions.v1.json",
       "sha256": "4faf7609190ce7b537cbf6be53333ec3db6117b6944328a244cf7614bb1e0461",
       "byteLength": 13018
+    },
+    {
+      "path": "ontology-archive-capture.v1.schema.json",
+      "sha256": "f3845957e40814192808ec7e7c1219b2fc4973b4a3db964ddc9bb483b9a1c216",
+      "byteLength": 2755
     },
     {
       "path": "ontology-catalog-generation.v1.schema.json",
@@ -130,8 +135,8 @@
     },
     {
       "path": "ontology-resolution.v1.schema.json",
-      "sha256": "66eafaf06219fe9f30e741d6e586e08bafb3075aec5f2bec332468e02f7afbf8",
-      "byteLength": 4175
+      "sha256": "4630b4b4cca0fc1adbfb8c2666408637fe6c6f2ccbe786dc5857c09a510f5b14",
+      "byteLength": 5336
     },
     {
       "path": "ontology-seed-manifest.v1.schema.json",
@@ -155,13 +160,13 @@
     },
     {
       "path": "openapi.v1.json",
-      "sha256": "d20556d62b40ab96344e8364c42163661a8860706b344605bde7095adfddec6d",
+      "sha256": "20c94b77e7266294c45ba0b71ecb8b9e2996e630c1c96615d897f5d58f335b4e",
       "byteLength": 57706
     },
     {
       "path": "protocol.v1.md",
-      "sha256": "b5d6d6547b107cf483e34b7ce1efabe30dc66aae5bc4b409b4a9973d533bca29",
-      "byteLength": 44285
+      "sha256": "184da40b2862c2106af5b1254762026b6002145dfcddf2bc5e0f0a522a82e9db",
+      "byteLength": 46902
     },
     {
       "path": "requirements-verification.txt",
@@ -185,8 +190,8 @@
     },
     {
       "path": "verify_contract.py",
-      "sha256": "403f4a88e3464c477e7b72523daf9f5f0be47c354a5d62d77e81428dd03f4abb",
-      "byteLength": 12654
+      "sha256": "405d98d528513cf192d9bdf302a26f3eed460df8afa5905915fb3f086d43094c",
+      "byteLength": 13438
     }
   ]
 }

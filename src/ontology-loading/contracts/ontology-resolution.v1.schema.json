@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://haddenindustries.com/ontology/contracts/v1/ontology-resolution.v1.schema.json",
   "title": "Immutable source-generation resolution",
-  "description": "Draft contract 1.0.0-draft.6; review artifact, not a deployed service promise.",
+  "description": "Draft contract 1.0.0-draft.7; review artifact, not a deployed service promise.",
   "type": "object",
   "properties": {
     "schemaVersion": {
@@ -83,10 +83,18 @@
       "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
     },
     "originMetadata": {
-      "$ref": "ontology-contract-common.v1.schema.json#/$defs/originMetadata"
+      "anyOf": [
+        {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/originMetadata"
+        },
+        { "type": "null" }
+      ]
     },
     "requestVariant": {
-      "$ref": "ontology-contract-common.v1.schema.json#/$defs/variant"
+      "anyOf": [
+        { "$ref": "ontology-contract-common.v1.schema.json#/$defs/variant" },
+        { "type": "null" }
+      ]
     },
     "requestVariantFingerprint": {
       "$ref": "ontology-contract-common.v1.schema.json#/$defs/digest"
@@ -94,6 +102,7 @@
     "publicationDisposition": {
       "enum": ["AUTOMATIC_PUBLIC_ARCHIVE", "CURATED_PUBLIC_ARCHIVE"]
     },
+    "archiveCapture": { "$ref": "ontology-archive-capture.v1.schema.json" },
     "sourceAssessment": {
       "enum": ["valid", "invalid", "unverified"]
     },
@@ -136,6 +145,40 @@
     "publicationDisposition",
     "sourceAssessment",
     "closureQualification"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "publicationDisposition": { "const": "CURATED_PUBLIC_ARCHIVE" }
+        },
+        "required": ["publicationDisposition"]
+      },
+      "then": {
+        "required": ["archiveCapture"],
+        "properties": {
+          "archiveCapture": { "$ref": "#/properties/archiveCapture" },
+          "artifactByteLength": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1048576
+          },
+          "originMetadata": { "type": "null" },
+          "requestVariant": { "type": "null" }
+        }
+      },
+      "else": {
+        "properties": {
+          "archiveCapture": false,
+          "originMetadata": {
+            "$ref": "ontology-contract-common.v1.schema.json#/$defs/originMetadata"
+          },
+          "requestVariant": {
+            "$ref": "ontology-contract-common.v1.schema.json#/$defs/variant"
+          }
+        }
+      }
+    }
   ],
   "additionalProperties": false
 }

@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import canonicalize from "canonicalize";
 import Ajv2020 from "ajv/dist/2020.js";
 import { validateOntologyCacheRecord } from "./ontologyResolutionEvidence.js";
+import { PROVIDER_BUNDLE } from "../../util/acquireOntologyCacheContract.mjs";
 
 const directory = new URL("./contracts/", import.meta.url);
 const read = (name) => readFileSync(new URL(name, directory));
@@ -17,9 +18,8 @@ test("acquired provider data agrees with the exact immutable contract bundle", (
         canonicalize({ contractId, version, files }),
     )
     .digest("hex");
-  expect(digest).toBe(
-    "79b4a3bc4c94ef9ae8ee812aa5bfdd6f259497c498c90d4e8c10ced0295d1833",
-  );
+  expect(digest).toBe(PROVIDER_BUNDLE);
+  expect(manifest.bundleSha256).toBe(PROVIDER_BUNDLE);
   for (const entry of files.filter(
     ({ path }) =>
       path.endsWith(".schema.json") ||

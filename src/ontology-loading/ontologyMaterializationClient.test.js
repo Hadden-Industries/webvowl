@@ -113,6 +113,180 @@ test("static hit verifies the complete chain, exact bytes and origin parser cont
   }
 });
 
+async function curatedHarness(mutate, options = {}) {
+  const resolution = example("curated-archive-resolution");
+  mutate?.(resolution);
+  const { resolutionIdentity: previous, ...input } = resolution;
+  expect(previous).toBeDefined();
+  resolution.resolutionIdentity = await ontologyRecordIdentity(
+    "resolution",
+    input,
+  );
+  return harness({
+    ...options,
+    mutate(records, pointer) {
+      records.delete(pointer.currentBinding.resolutionIri);
+      pointer.currentBinding.resolutionIdentity = resolution.resolutionIdentity;
+      pointer.currentBinding.resolutionIri = `${origin}/ontology/cache/resolutions/sha256/${resolution.resolutionIdentity}.json`;
+      for (const field of [
+        "acquiredAt",
+        "lastSuccessfullyCheckedAt",
+        "lastChangedAt",
+        "freshUntil",
+      ]) {
+        if (Object.hasOwn(pointer, field)) {
+          pointer[field] = resolution.acquiredAt;
+        }
+      }
+      records.set(pointer.currentBinding.resolutionIri, resolution);
+    },
+  });
+}
+
+test("curated archive lookup verifies exact bytes with the original parser base and no archive or API fetch", async () => {
+  const h = await curatedHarness();
+  const acquired = await h.client.lookup(source);
+  expect(acquired.bytes).toEqual(
+    encoder.encode(fixtures.ontologySource.utf8Text),
+  );
+  expect(acquired.documentIri).toBe(fixtures.ontologySource.parserDocumentIri);
+  expect(h.fetchImpl).toHaveBeenCalledTimes(6);
+  expect(
+    h.fetchImpl.mock.calls.every(([url]) =>
+      url.startsWith(origin + "/ontology/cache/"),
+    ),
+  ).toBe(true);
+});
+
+test.each([
+  [
+    "original parser context",
+    (r) => {
+      r.archiveCapture.originalDocumentIri =
+        "https://other.example.test/root.ttl";
+    },
+  ],
+  [
+    "archive used as retrieval context",
+    (r) => {
+      r.retrievalIri = r.archiveCapture.archiveIri;
+    },
+  ],
+  [
+    "new check time",
+    (r) => {
+      r.checkedAt = "2026-10-01T00:00:00.000Z";
+    },
+  ],
+  [
+    "future capture",
+    (r) => {
+      r.archiveCapture.capturedAt =
+        r.acquiredAt =
+        r.checkedAt =
+          "2099-01-01T00:00:00.000Z";
+    },
+  ],
+  [
+    "invalid calendar date",
+    (r) => {
+      r.archiveCapture.capturedAt =
+        r.acquiredAt =
+        r.checkedAt =
+          "2024-02-30T03:41:07.000Z";
+    },
+  ],
+  [
+    "noncanonical original URI",
+    (r) => {
+      r.archiveCapture.originalDocumentIri =
+        "https://origin.example.test/v1/../v1/root.ttl";
+    },
+  ],
+  [
+    "original fragment",
+    (r) => {
+      r.archiveCapture.originalDocumentIri += "#part";
+    },
+  ],
+  [
+    "archive IPvFuture IRI",
+    (r) => {
+      r.archiveCapture.archiveIri = "https://[v1.example]/";
+    },
+  ],
+  [
+    "original-context IPvFuture IRI",
+    (r) => {
+      r.archiveCapture.originalDocumentIri = "https://[v1.example]/";
+    },
+  ],
+  [
+    "archive fragment",
+    (r) => {
+      r.archiveCapture.archiveIri += "#part";
+    },
+  ],
+  [
+    "noncanonical archive URI",
+    (r) => {
+      r.archiveCapture.archiveIri =
+        "https://archive.example.test/a/../root.ttl";
+    },
+  ],
+  [
+    "provenance byte limit",
+    (r) => {
+      r.archiveCapture.knownOriginalHeaders.etag = "x".repeat(4096);
+      r.archiveCapture.knownOriginalHeaders["last-modified"] = "y".repeat(4096);
+    },
+  ],
+  [
+    "header control character",
+    (r) => {
+      r.archiveCapture.knownOriginalHeaders.etag = "value\n";
+    },
+  ],
+  [
+    "media control character",
+    (r) => {
+      r.archiveCapture.archiveMediaType = "text/turtle\n";
+    },
+  ],
+  [
+    "invented request facts",
+    (r) => {
+      r.requestVariant = example("A-resolution").requestVariant;
+    },
+  ],
+  [
+    "automatic disposition with unknown HTTP facts",
+    (r) => {
+      r.publicationDisposition = "AUTOMATIC_PUBLIC_ARCHIVE";
+    },
+  ],
+])(
+  "curated archive rejects rehashed invalid %s before artifact acquisition",
+  async (_label, mutate) => {
+    const h = await curatedHarness(mutate);
+    await expect(h.client.lookup(source)).rejects.toHaveProperty(
+      "code",
+      "CACHE_PROTOCOL_INVALID",
+    );
+    expect(
+      h.fetchImpl.mock.calls.some(([url]) => url.includes("/artifacts/")),
+    ).toBe(false);
+  },
+);
+
+test("curated archive still rejects changed artifact bytes", async () => {
+  const h = await curatedHarness(undefined, { artifactText: "changed" });
+  await expect(h.client.lookup(source)).rejects.toHaveProperty(
+    "code",
+    "CACHE_ARTIFACT_CORRUPT",
+  );
+});
+
 test.each(["acquireBinding", "materialize"])(
   "%s shares immutable policy acquisition only within the supplied load context",
   async (method) => {

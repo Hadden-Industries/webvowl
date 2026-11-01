@@ -3910,6 +3910,129 @@
         },
         "resolutionIdentity": "b9983aa100dd300d6d34072e39ddcec76aa7cf8ecb90b75adcbd357618a2cf50"
       }
+    },
+    {
+      "id": "curated-archive-capture",
+      "schema": "ontology-archive-capture.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "curated-historical-capture",
+        "archiveIri": "https://archive.example.test/20240303034107/root.ttl",
+        "originalDocumentIri": "https://origin.example.test/v1/root.ttl",
+        "capturedAt": "2024-03-03T03:41:07.000Z",
+        "archiveMediaType": "text/turtle",
+        "originalRequest": "NOT_RECORDED",
+        "originalResponseStatus": null,
+        "originalResponseHeadersComplete": false,
+        "knownOriginalHeaders": {
+          "etag": "\"fixture-A\""
+        }
+      }
+    },
+    {
+      "id": "curated-archive-resolution",
+      "schema": "ontology-resolution.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "resolution",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "generation": 1,
+        "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+        "requestedDocumentIri": "https://ontology.example.test/onto#v1",
+        "retrievalIri": "https://origin.example.test/v1/root.ttl",
+        "effectiveRetrievalIri": "https://origin.example.test/v1/root.ttl",
+        "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+        "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactByteLength": 117,
+        "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+        "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2.json",
+        "loaderProfileFingerprint": "dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6",
+        "loaderPolicyIri": "https://cache.example.test/ontology/cache/policies/sha256/dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6.json",
+        "owlapiArtifactIdentity": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619",
+        "formatSelectionMode": "automatic",
+        "explicitFormatId": null,
+        "observedFormatId": "turtle",
+        "decodingPolicy": "strict-utf8-v1",
+        "validationContractVersion": 1,
+        "acquiredAt": "2024-03-03T03:41:07.000Z",
+        "checkedAt": "2024-03-03T03:41:07.000Z",
+        "originMetadata": null,
+        "requestVariant": null,
+        "requestVariantFingerprint": "c0149d3ff65fac68290cac06cae1ed20906820b166689f529b59ed20a8b19b00",
+        "publicationDisposition": "CURATED_PUBLIC_ARCHIVE",
+        "sourceAssessment": "valid",
+        "closureQualification": "UNASSESSED",
+        "archiveCapture": {
+          "schemaVersion": 1,
+          "kind": "curated-historical-capture",
+          "archiveIri": "https://archive.example.test/20240303034107/root.ttl",
+          "originalDocumentIri": "https://origin.example.test/v1/root.ttl",
+          "capturedAt": "2024-03-03T03:41:07.000Z",
+          "archiveMediaType": "text/turtle",
+          "originalRequest": "NOT_RECORDED",
+          "originalResponseStatus": null,
+          "originalResponseHeadersComplete": false,
+          "knownOriginalHeaders": {
+            "etag": "\"fixture-A\""
+          }
+        },
+        "resolutionIdentity": "7a7e32bf305bb1c9d0cae77289c5e1858c027afed40a44410d5fe2a2c6833eb1"
+      }
+    },
+    {
+      "id": "reject-automatic-missing-http-facts",
+      "schema": "ontology-resolution.v1.schema.json",
+      "expectedSchemaValid": false,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "resolution",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "generation": 1,
+        "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+        "requestedDocumentIri": "https://ontology.example.test/onto#v1",
+        "retrievalIri": "https://origin.example.test/v1/root.ttl",
+        "effectiveRetrievalIri": "https://origin.example.test/v1/root.ttl",
+        "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+        "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactByteLength": 117,
+        "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+        "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2.json",
+        "loaderProfileFingerprint": "dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6",
+        "loaderPolicyIri": "https://cache.example.test/ontology/cache/policies/sha256/dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6.json",
+        "owlapiArtifactIdentity": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619",
+        "formatSelectionMode": "automatic",
+        "explicitFormatId": null,
+        "observedFormatId": "turtle",
+        "decodingPolicy": "strict-utf8-v1",
+        "validationContractVersion": 1,
+        "acquiredAt": "2024-03-03T03:41:07.000Z",
+        "checkedAt": "2024-03-03T03:41:07.000Z",
+        "originMetadata": null,
+        "requestVariant": null,
+        "requestVariantFingerprint": "c0149d3ff65fac68290cac06cae1ed20906820b166689f529b59ed20a8b19b00",
+        "publicationDisposition": "AUTOMATIC_PUBLIC_ARCHIVE",
+        "sourceAssessment": "valid",
+        "closureQualification": "UNASSESSED",
+        "archiveCapture": {
+          "schemaVersion": 1,
+          "kind": "curated-historical-capture",
+          "archiveIri": "https://archive.example.test/20240303034107/root.ttl",
+          "originalDocumentIri": "https://origin.example.test/v1/root.ttl",
+          "capturedAt": "2024-03-03T03:41:07.000Z",
+          "archiveMediaType": "text/turtle",
+          "originalRequest": "NOT_RECORDED",
+          "originalResponseStatus": null,
+          "originalResponseHeadersComplete": false,
+          "knownOriginalHeaders": {
+            "etag": "\"fixture-A\""
+          }
+        },
+        "resolutionIdentity": "7a7e32bf305bb1c9d0cae77289c5e1858c027afed40a44410d5fe2a2c6833eb1"
+      }
     }
   ],
   "semanticExamples": [
@@ -4174,6 +4297,59 @@
         "identifiersTruncated": false
       },
       "expectedSemanticOutcome": "REJECT_SELECTION_MODE"
+    },
+    {
+      "id": "reject-curated-parser-base-mismatch",
+      "schema": "ontology-resolution.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "resolution",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "generation": 1,
+        "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+        "requestedDocumentIri": "https://ontology.example.test/onto#v1",
+        "retrievalIri": "https://origin.example.test/v1/root.ttl",
+        "effectiveRetrievalIri": "https://origin.example.test/v1/root.ttl",
+        "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+        "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactByteLength": 117,
+        "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+        "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2.json",
+        "loaderProfileFingerprint": "dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6",
+        "loaderPolicyIri": "https://cache.example.test/ontology/cache/policies/sha256/dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6.json",
+        "owlapiArtifactIdentity": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619",
+        "formatSelectionMode": "automatic",
+        "explicitFormatId": null,
+        "observedFormatId": "turtle",
+        "decodingPolicy": "strict-utf8-v1",
+        "validationContractVersion": 1,
+        "acquiredAt": "2024-03-03T03:41:07.000Z",
+        "checkedAt": "2024-03-03T03:41:07.000Z",
+        "originMetadata": null,
+        "requestVariant": null,
+        "requestVariantFingerprint": "c0149d3ff65fac68290cac06cae1ed20906820b166689f529b59ed20a8b19b00",
+        "publicationDisposition": "CURATED_PUBLIC_ARCHIVE",
+        "sourceAssessment": "valid",
+        "closureQualification": "UNASSESSED",
+        "archiveCapture": {
+          "schemaVersion": 1,
+          "kind": "curated-historical-capture",
+          "archiveIri": "https://archive.example.test/20240303034107/root.ttl",
+          "originalDocumentIri": "https://different.example.test/original.ttl",
+          "capturedAt": "2024-03-03T03:41:07.000Z",
+          "archiveMediaType": "text/turtle",
+          "originalRequest": "NOT_RECORDED",
+          "originalResponseStatus": null,
+          "originalResponseHeadersComplete": false,
+          "knownOriginalHeaders": {
+            "etag": "\"fixture-A\""
+          }
+        },
+        "resolutionIdentity": "fab1a9499a1062c2ec6f2341ba02ee411b41bc787bbfc7eabd5ea55f040b6f47"
+      },
+      "expectedSemanticOutcome": "REJECT_ORIGIN_CONTEXT"
     }
   ],
   "rawAdmissionCases": [
