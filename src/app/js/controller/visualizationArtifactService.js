@@ -1,5 +1,4 @@
 import { createSvgViewRecipe } from "./svgSerializer.js";
-import { serializeRenderedDrawingAsTikz } from "./tikzSerializer.js";
 import {
   normalizeVisualizationFilename,
   normalizeCanonicalVowlFilename,
@@ -418,6 +417,7 @@ export function createVisualizationArtifactService(dependencies) {
         throw new TypeError("An artifact requires a positive load generation.");
       }
       const pageLocalArtifactId = `${format}-artifact-${loadGeneration}-${pageLocalArtifactSequence}`;
+      const filename = request.filename;
       let serializedArtifactText;
       let provenance;
       if (format === "svg") {
@@ -451,11 +451,18 @@ export function createVisualizationArtifactService(dependencies) {
           source: Object.freeze({ ...request.source }),
         };
       } else if (format === "latex") {
-        serializedArtifactText = `% WebVOWL source: ${JSON.stringify(request.source)}\n${serializeRenderedDrawingAsTikz(request.renderedDrawingSnapshot)}`;
+        const drawingSnapshot = structuredClone(
+          request.renderedDrawingSnapshot,
+        );
+        const sourceDescription = JSON.stringify(request.source);
         provenance = {
           loadGeneration,
           source: Object.freeze({ ...request.source }),
         };
+        const { serializeRenderedDrawingAsTikz } =
+          await import("./tikzSerializer.js");
+        throwIfOperationAborted(options.signal);
+        serializedArtifactText = `% WebVOWL source: ${sourceDescription}\n${serializeRenderedDrawingAsTikz(drawingSnapshot)}`;
       }
       throwIfOperationAborted(options.signal);
 
@@ -464,7 +471,7 @@ export function createVisualizationArtifactService(dependencies) {
         {
           format,
           pageLocalArtifactId,
-          filename: normalizeVisualizationFilename(request.filename, format),
+          filename: normalizeVisualizationFilename(filename, format),
           provenance,
         },
         options,
