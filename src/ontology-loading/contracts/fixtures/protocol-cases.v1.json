@@ -340,7 +340,9 @@
         "diagnosticCodes": [],
         "diagnosticsTruncated": false,
         "importDeclarationCount": 1,
-        "ontologyIris": ["https://origin.example.test/v1/root.ttl"],
+        "ontologyIris": [
+          "https://origin.example.test/v1/root.ttl"
+        ],
         "declaredVersionIris": [],
         "identifiersTruncated": false
       }
@@ -379,7 +381,9 @@
           "contentType": "text/turtle",
           "contentEncoding": "identity",
           "cacheControl": "public, max-age=86400",
-          "vary": ["accept"],
+          "vary": [
+            "accept"
+          ],
           "validators": {
             "etag": "\"fixture-A\""
           }
@@ -441,7 +445,9 @@
         "diagnosticCodes": [],
         "diagnosticsTruncated": false,
         "importDeclarationCount": 1,
-        "ontologyIris": ["https://origin.example.test/v1/root.ttl"],
+        "ontologyIris": [
+          "https://origin.example.test/v1/root.ttl"
+        ],
         "declaredVersionIris": [],
         "identifiersTruncated": false
       }
@@ -480,7 +486,9 @@
           "contentType": "text/turtle",
           "contentEncoding": "identity",
           "cacheControl": "public, max-age=86400",
-          "vary": ["accept"],
+          "vary": [
+            "accept"
+          ],
           "validators": {
             "etag": "\"fixture-A\""
           }
@@ -542,7 +550,9 @@
         "diagnosticCodes": [],
         "diagnosticsTruncated": false,
         "importDeclarationCount": 1,
-        "ontologyIris": ["https://origin.example.test/v1/root.ttl"],
+        "ontologyIris": [
+          "https://origin.example.test/v1/root.ttl"
+        ],
         "declaredVersionIris": [],
         "identifiersTruncated": false
       }
@@ -581,7 +591,9 @@
           "contentType": "text/turtle",
           "contentEncoding": "identity",
           "cacheControl": "public, max-age=86400",
-          "vary": ["accept"],
+          "vary": [
+            "accept"
+          ],
           "validators": {
             "etag": "\"fixture-B\""
           }
@@ -1667,7 +1679,9 @@
         "diagnosticCodes": [],
         "diagnosticsTruncated": false,
         "importDeclarationCount": 1,
-        "ontologyIris": ["https://origin.example.test/v1/root.ttl"],
+        "ontologyIris": [
+          "https://origin.example.test/v1/root.ttl"
+        ],
         "declaredVersionIris": [],
         "identifiersTruncated": false
       }
@@ -2205,7 +2219,9 @@
         "diagnosticCodes": [],
         "diagnosticsTruncated": false,
         "importDeclarationCount": 1,
-        "ontologyIris": ["https://origin.example.test/v1/root.ttl"],
+        "ontologyIris": [
+          "https://origin.example.test/v1/root.ttl"
+        ],
         "declaredVersionIris": [],
         "identifiersTruncated": false
       }
@@ -2239,7 +2255,9 @@
         "diagnosticCodes": [],
         "diagnosticsTruncated": false,
         "importDeclarationCount": 1,
-        "ontologyIris": ["https://origin.example.test/v1/root.ttl"],
+        "ontologyIris": [
+          "https://origin.example.test/v1/root.ttl"
+        ],
         "declaredVersionIris": [],
         "identifiersTruncated": false
       }
@@ -2525,7 +2543,9 @@
         "diagnosticCodes": [],
         "diagnosticsTruncated": false,
         "importDeclarationCount": 1,
-        "ontologyIris": ["https://origin.example.test/v1/root.ttl"],
+        "ontologyIris": [
+          "https://origin.example.test/v1/root.ttl"
+        ],
         "declaredVersionIris": [],
         "identifiersTruncated": false
       }
@@ -3068,7 +3088,11 @@
           "contentType": "text/turtle",
           "contentEncoding": "identity",
           "cacheControl": "public, s-maxage=2592001",
-          "vary": ["accept", "accept-encoding", "origin"],
+          "vary": [
+            "accept",
+            "accept-encoding",
+            "origin"
+          ],
           "validators": {
             "etag": "\"fixture-A\""
           }
@@ -3114,7 +3138,9 @@
         "diagnosticCodes": [],
         "diagnosticsTruncated": false,
         "importDeclarationCount": 1,
-        "ontologyIris": ["https://origin.example.test/v1/root.ttl"],
+        "ontologyIris": [
+          "https://origin.example.test/v1/root.ttl"
+        ],
         "declaredVersionIris": [],
         "identifiersTruncated": false
       }
@@ -3400,7 +3426,9 @@
         "diagnosticCodes": [],
         "diagnosticsTruncated": false,
         "importDeclarationCount": 1,
-        "ontologyIris": ["https://origin.example.test/v1/root.ttl"],
+        "ontologyIris": [
+          "https://origin.example.test/v1/root.ttl"
+        ],
         "declaredVersionIris": [],
         "identifiersTruncated": false
       }
@@ -3774,7 +3802,9 @@
         "closureQualification": "UNASSESSED",
         "declaredImports": {
           "owlMappingStrategy": "heuristic",
-          "iris": ["https://origin.example.test/v1/child.ttl"],
+          "iris": [
+            "https://origin.example.test/v1/child.ttl"
+          ],
           "iriByteLength": 40
         },
         "resolutionIdentity": "b9983aa100dd300d6d34072e39ddcec76aa7cf8ecb90b75adcbd357618a2cf50"
@@ -3905,7 +3935,9 @@
         "closureQualification": "UNASSESSED",
         "declaredImports": {
           "owlMappingStrategy": "heuristic",
-          "iris": ["https://origin.example.test/v1/child.ttl"],
+          "iris": [
+            "https://origin.example.test/v1/child.ttl"
+          ],
           "iriByteLength": 16385
         },
         "resolutionIdentity": "b9983aa100dd300d6d34072e39ddcec76aa7cf8ecb90b75adcbd357618a2cf50"
@@ -4070,7 +4102,9 @@
           "contentType": "text/turtle",
           "contentEncoding": "identity",
           "cacheControl": "public, max-age=86400",
-          "vary": ["accept"],
+          "vary": [
+            "accept"
+          ],
           "validators": {
             "etag": "\"fixture-A\""
           }
@@ -4122,7 +4156,9 @@
           "contentType": "text/turtle",
           "contentEncoding": "identity",
           "cacheControl": "public, max-age=86400",
-          "vary": ["accept"],
+          "vary": [
+            "accept"
+          ],
           "validators": {
             "etag": "\"fixture-A\""
           }
@@ -4292,7 +4328,9 @@
         "diagnosticCodes": [],
         "diagnosticsTruncated": false,
         "importDeclarationCount": 1,
-        "ontologyIris": ["https://origin.example.test/v1/root.ttl"],
+        "ontologyIris": [
+          "https://origin.example.test/v1/root.ttl"
+        ],
         "declaredVersionIris": [],
         "identifiersTruncated": false
       },

@@ -30,7 +30,11 @@
       "const": true
     },
     "sourceAssessment": {
-      "enum": ["valid", "invalid", "unverified"]
+      "enum": [
+        "valid",
+        "invalid",
+        "unverified"
+      ]
     },
     "profileAssessment": {
       "const": "NOT_EVALUATED"

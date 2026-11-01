@@ -186,7 +186,6 @@ test.each([
         [npmCliPath, "ci", "--include=dev", "--ignore-scripts"],
       ],
       [process.execPath, [npmCliPath, "run", "install:markdown"]],
-      [process.execPath, [npmCliPath, "run", "install:json"]],
       [
         systemPythonExecutableName,
         ["-m", "venv", join(repositoryRoot, ".venv")],

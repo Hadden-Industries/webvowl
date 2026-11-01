@@ -164,7 +164,7 @@ test("JSON checking runs on both platforms unless scope verifies PR reuse", () =
     .map((step) => step.run)
     .filter(Boolean)
     .join("\n");
-  expect(commands).toContain("npm run install:json");
+  expect(commands).toContain("npm ci --ignore-scripts");
   expect(commands).toContain("npm run build:bundle");
   expect(commands).toContain("npm run check:json -- --require-generated");
 });

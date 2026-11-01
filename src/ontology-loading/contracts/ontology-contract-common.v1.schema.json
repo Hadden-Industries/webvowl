@@ -77,7 +77,9 @@
               "const": "unbounded"
             }
           },
-          "required": ["kind"],
+          "required": [
+            "kind"
+          ],
           "additionalProperties": false
         }
       ],
@@ -98,7 +100,11 @@
           "type": "boolean"
         }
       },
-      "required": ["code", "message", "retryable"],
+      "required": [
+        "code",
+        "message",
+        "retryable"
+      ],
       "additionalProperties": true
     },
     "binding": {
@@ -162,7 +168,11 @@
           "maximum": 9007199254740991
         }
       },
-      "required": ["accept", "acceptEncoding", "selectionPolicyVersion"],
+      "required": [
+        "accept",
+        "acceptEncoding",
+        "selectionPolicyVersion"
+      ],
       "additionalProperties": false
     },
     "validators": {
@@ -182,13 +192,21 @@
       "type": "object",
       "properties": {
         "status": {
-          "enum": [200, 304]
+          "enum": [
+            200,
+            304
+          ]
         },
         "contentType": {
           "$ref": "#/$defs/headerValue"
         },
         "contentEncoding": {
-          "enum": ["identity", "gzip", "br", "deflate"]
+          "enum": [
+            "identity",
+            "gzip",
+            "br",
+            "deflate"
+          ]
         },
         "cacheControl": {
           "$ref": "#/$defs/headerValue"
@@ -213,7 +231,12 @@
           "$ref": "#/$defs/validators"
         }
       },
-      "required": ["status", "contentEncoding", "vary", "validators"],
+      "required": [
+        "status",
+        "contentEncoding",
+        "vary",
+        "validators"
+      ],
       "additionalProperties": false
     },
     "packageEvidence": {
@@ -279,7 +302,10 @@
           "$ref": "#/$defs/requestedIri"
         },
         "formatSelectionMode": {
-          "enum": ["automatic", "explicit"]
+          "enum": [
+            "automatic",
+            "explicit"
+          ]
         },
         "explicitFormatId": {
           "oneOf": [
@@ -382,14 +408,20 @@
           }
         }
       ],
-      "required": ["validationProfileId", "parseMode"]
+      "required": [
+        "validationProfileId",
+        "parseMode"
+      ]
     },
     "declaredImports": {
       "type": "object",
       "description": "Complete bounded direct import hints under the validated mapping; not a closure or consumer admission.",
       "properties": {
         "owlMappingStrategy": {
-          "enum": ["heuristic", "unambiguous"]
+          "enum": [
+            "heuristic",
+            "unambiguous"
+          ]
         },
         "iris": {
           "type": "array",
@@ -405,7 +437,11 @@
           "maximum": 16384
         }
       },
-      "required": ["owlMappingStrategy", "iris", "iriByteLength"],
+      "required": [
+        "owlMappingStrategy",
+        "iris",
+        "iriByteLength"
+      ],
       "additionalProperties": false
     }
   }

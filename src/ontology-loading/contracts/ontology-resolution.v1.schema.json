@@ -87,24 +87,39 @@
         {
           "$ref": "ontology-contract-common.v1.schema.json#/$defs/originMetadata"
         },
-        { "type": "null" }
+        {
+          "type": "null"
+        }
       ]
     },
     "requestVariant": {
       "anyOf": [
-        { "$ref": "ontology-contract-common.v1.schema.json#/$defs/variant" },
-        { "type": "null" }
+        {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/variant"
+        },
+        {
+          "type": "null"
+        }
       ]
     },
     "requestVariantFingerprint": {
       "$ref": "ontology-contract-common.v1.schema.json#/$defs/digest"
     },
     "publicationDisposition": {
-      "enum": ["AUTOMATIC_PUBLIC_ARCHIVE", "CURATED_PUBLIC_ARCHIVE"]
+      "enum": [
+        "AUTOMATIC_PUBLIC_ARCHIVE",
+        "CURATED_PUBLIC_ARCHIVE"
+      ]
     },
-    "archiveCapture": { "$ref": "ontology-archive-capture.v1.schema.json" },
+    "archiveCapture": {
+      "$ref": "ontology-archive-capture.v1.schema.json"
+    },
     "sourceAssessment": {
-      "enum": ["valid", "invalid", "unverified"]
+      "enum": [
+        "valid",
+        "invalid",
+        "unverified"
+      ]
     },
     "closureQualification": {
       "const": "UNASSESSED"
@@ -150,21 +165,33 @@
     {
       "if": {
         "properties": {
-          "publicationDisposition": { "const": "CURATED_PUBLIC_ARCHIVE" }
+          "publicationDisposition": {
+            "const": "CURATED_PUBLIC_ARCHIVE"
+          }
         },
-        "required": ["publicationDisposition"]
+        "required": [
+          "publicationDisposition"
+        ]
       },
       "then": {
-        "required": ["archiveCapture"],
+        "required": [
+          "archiveCapture"
+        ],
         "properties": {
-          "archiveCapture": { "$ref": "#/properties/archiveCapture" },
+          "archiveCapture": {
+            "$ref": "#/properties/archiveCapture"
+          },
           "artifactByteLength": {
             "type": "integer",
             "minimum": 1,
             "maximum": 1048576
           },
-          "originMetadata": { "type": "null" },
-          "requestVariant": { "type": "null" }
+          "originMetadata": {
+            "type": "null"
+          },
+          "requestVariant": {
+            "type": "null"
+          }
         }
       },
       "else": {

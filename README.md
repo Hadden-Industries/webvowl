@@ -134,20 +134,14 @@ The required gate rejects missing, skipped or failed JSON checks.
 
 ### JSON quality and producer ownership
 
-Run `npm run install:json` explicitly after pulling JSON tool changes.
-The engine uses one source selector, `devDependencies["@hadden-industries/json-quality"]` in `tooling/json/package.json`: an exact npm version or `git+https://github.com/Hadden-Industries/json-quality.git#FULL_40_CHARACTER_COMMIT`.
-Native npm generates the lockfile.
-Installation is script-free and verifies the installed payload against the locked native cache; retain that cache for `npm run test:json`.
-The engine remains an isolated development tool.
-The shared package owns the generated acquisition bootstrap, isolated export guard and installed-payload checks.
-Update the bootstrap through `jsonQualityAcquisitionBootstrap()` rather than editing parallel consumer implementations.
-The consumer test also rejects bootstrap drift.
+Root `package.json` declares `@hadden-industries/json-quality` as an ordinary `>=1.0.0-rc.2` devDependency.
+Root `npm ci --ignore-scripts` installs it and its matching optional platform package using the root npm lockfile.
+Consumers import its public API and ESLint plugin directly; npm owns dependency resolution and package integrity alongside the other development dependencies.
 `npm run inspect:json -- --json` runs complete checks and streams their inventory and outcomes.
 `npm run check:json` checks bytes, strict syntax, duplicate and meaningful keys, numeric and Unicode interoperability, all-string NFC and presentation.
-`-- --json` requests cohort-2 newline-delimited events; only the final `execution-terminal` closes repository obligations.
+`-- --json` requests cohort-3 newline-delimited events; only the final `execution-terminal` closes repository obligations.
 Capacity flags such as `-- --max-files 100000` and `-- --no-capacity-limits` override admission controls without weakening semantic checks.
 Policy and object API admission overrides use `capacityLimits`; explicit `false` removes those admission ceilings, while finite `runtimeControls` still govern managed memory, scratch, depth, elapsed time and concurrency.
-The generated acquisition bootstrap accepts `JSON_QUALITY_CAPACITY_LIMITS` and separate `JSON_QUALITY_CLEANUP` retry options.
 
 `npm run format:json:check` delegates to complete `check`; protected inputs receive their presentation checks in the same run.
 The repository adapter exposes `openRepositoryJsonSession()`; consume its `events()` and close it in `finally`.

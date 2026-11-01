@@ -143,7 +143,7 @@ export function setUpDevelopmentEnvironment({
     "--ignore-scripts",
   ]);
 
-  for (const kind of ["markdown", "json"]) {
+  for (const kind of ["markdown"]) {
     runRequiredCommand(
       `Isolated ${kind} quality-tool installation`,
       process.execPath,

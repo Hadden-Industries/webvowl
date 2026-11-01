@@ -25,6 +25,11 @@
       "pattern": "^[A-Za-z0-9_-]{1,128}$"
     }
   },
-  "required": ["schemaVersion", "kind", "error", "requestId"],
+  "required": [
+    "schemaVersion",
+    "kind",
+    "error",
+    "requestId"
+  ],
   "additionalProperties": true
 }

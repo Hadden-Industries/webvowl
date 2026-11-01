@@ -236,10 +236,18 @@
                 "maximum": 9007199254740991
               },
               "scope": {
-                "enum": ["document", "attempt", "worker"]
+                "enum": [
+                  "document",
+                  "attempt",
+                  "worker"
+                ]
               },
               "enforcement": {
-                "enum": ["public-api", "acquisition-owner", "worker-isolation"]
+                "enum": [
+                  "public-api",
+                  "acquisition-owner",
+                  "worker-isolation"
+                ]
               },
               "enforcementTarget": {
                 "type": "string",
@@ -292,13 +300,19 @@
                 "const": "https-preferred-anonymous-public-snapshots-v2"
               }
             },
-            "required": ["transportPolicy"]
+            "required": [
+              "transportPolicy"
+            ]
           },
           "then": {
             "properties": {
               "requestVariant": {
                 "type": "object",
-                "properties": { "selectionPolicyVersion": { "const": 2 } }
+                "properties": {
+                  "selectionPolicyVersion": {
+                    "const": 2
+                  }
+                }
               }
             }
           }
@@ -310,13 +324,19 @@
                 "const": "https-preferred-anonymous-public-snapshots-v3"
               }
             },
-            "required": ["transportPolicy"]
+            "required": [
+              "transportPolicy"
+            ]
           },
           "then": {
             "properties": {
               "requestVariant": {
                 "type": "object",
-                "properties": { "selectionPolicyVersion": { "const": 3 } }
+                "properties": {
+                  "selectionPolicyVersion": {
+                    "const": 3
+                  }
+                }
               }
             }
           }
@@ -324,6 +344,11 @@
       ]
     }
   },
-  "required": ["schemaVersion", "kind", "loaderProfileFingerprint", "policy"],
+  "required": [
+    "schemaVersion",
+    "kind",
+    "loaderProfileFingerprint",
+    "policy"
+  ],
   "additionalProperties": false
 }

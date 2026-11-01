@@ -27,7 +27,11 @@
       "$ref": "ontology-contract-common.v1.schema.json#/$defs/httpsIri"
     },
     "workState": {
-      "enum": ["QUEUED", "RUNNING", "HELD"]
+      "enum": [
+        "QUEUED",
+        "RUNNING",
+        "HELD"
+      ]
     }
   },
   "required": [

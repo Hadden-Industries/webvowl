@@ -5,8 +5,12 @@
   "description": "Partial historical evidence, limited to 8192 serialized UTF-8 bytes; absent original headers are unknown, never assertions that the headers were absent.",
   "type": "object",
   "properties": {
-    "schemaVersion": { "const": 1 },
-    "kind": { "const": "curated-historical-capture" },
+    "schemaVersion": {
+      "const": 1
+    },
+    "kind": {
+      "const": "curated-historical-capture"
+    },
     "archiveIri": {
       "$ref": "ontology-contract-common.v1.schema.json#/$defs/httpsIri"
     },
@@ -16,10 +20,20 @@
     "capturedAt": {
       "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
     },
-    "archiveMediaType": { "type": "string", "minLength": 1, "maxLength": 256 },
-    "originalRequest": { "const": "NOT_RECORDED" },
-    "originalResponseStatus": { "type": "null" },
-    "originalResponseHeadersComplete": { "const": false },
+    "archiveMediaType": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "originalRequest": {
+      "const": "NOT_RECORDED"
+    },
+    "originalResponseStatus": {
+      "type": "null"
+    },
+    "originalResponseHeadersComplete": {
+      "const": false
+    },
     "knownOriginalHeaders": {
       "type": "object",
       "properties": {

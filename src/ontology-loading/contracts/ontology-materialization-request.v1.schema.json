@@ -9,6 +9,8 @@
       "$ref": "ontology-contract-common.v1.schema.json#/$defs/requestedIri"
     }
   },
-  "required": ["requestedDocumentIri"],
+  "required": [
+    "requestedDocumentIri"
+  ],
   "additionalProperties": false
 }

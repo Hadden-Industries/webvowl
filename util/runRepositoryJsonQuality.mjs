@@ -7,7 +7,7 @@ import { resolve } from "node:path";
 import {
   openJsonRepositorySession,
   runJsonQualityCli,
-} from "../tooling/json/public-api.mjs";
+} from "@hadden-industries/json-quality";
 import { capturedCorpusJson } from "../packages/vowl/scripts/captured-corpus-json.mjs";
 
 const repositoryRoot = fileURLToPath(new URL("../", import.meta.url));
