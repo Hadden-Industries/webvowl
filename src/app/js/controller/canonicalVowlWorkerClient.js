@@ -7,6 +7,7 @@ import {
   importRequestKey,
   sameSourceBytes,
 } from "./validatedOwlResultCache.js";
+import { createOwnedWorkerResult } from "./canonicalVowlWorkerResultOwnership.js";
 
 import {
   APPLICATION_LIMITS,
@@ -580,8 +581,10 @@ export function createCanonicalVowlWorkerClient({
                 settle(failure("CANONICAL_WORKER_FAILED"));
                 return;
               }
-              // Keep an independent copy before any preview field can escape.
-              ownedPreview = cache.capture(payload, cacheScope, data.result);
+              // Move the native receiver's private value. Public payload reads
+              // copy lazily; the session/cache can share the unexposed value.
+              const preview = createOwnedWorkerResult(data.result, context);
+              ownedPreview = cache.capture(payload, cacheScope, preview);
               const ready = new Promise((done) => {
                 finishOrdering = done;
               });
@@ -591,27 +594,27 @@ export function createCanonicalVowlWorkerClient({
                   return;
                 }
                 previewDelivered = true;
-                resolve({
-                  ...context,
-                  ...data.result,
-                  nodeOrdering: {
-                    ready,
-                    start() {
-                      if (finished || orderingStarted) {
-                        return;
-                      }
-                      orderingStarted = true;
-                      try {
-                        worker.postMessage({
-                          type: "continue-ordering",
-                          ...context,
-                        });
-                      } catch {
-                        settle(failure("CANONICAL_WORKER_FAILED"));
-                      }
+                resolve(
+                  Object.assign(preview, {
+                    nodeOrdering: {
+                      ready,
+                      start() {
+                        if (finished || orderingStarted) {
+                          return;
+                        }
+                        orderingStarted = true;
+                        try {
+                          worker.postMessage({
+                            type: "continue-ordering",
+                            ...context,
+                          });
+                        } catch {
+                          settle(failure("CANONICAL_WORKER_FAILED"));
+                        }
+                      },
                     },
-                  },
-                });
+                  }),
+                );
               }, 0);
             } else if (data.type === "result") {
               if (

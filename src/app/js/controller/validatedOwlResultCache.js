@@ -1,3 +1,5 @@
+import { readOwnedWorkerResult } from "./canonicalVowlWorkerResultOwnership.js";
+
 const maximumRetainedBytes = 33554432;
 const sourceFields = [
   "operation",
@@ -74,6 +76,13 @@ function signature(request, scope) {
 export function createValidatedOwlResultCache({ measure }) {
   let retained;
   const previews = new WeakMap();
+  function measuredSize(value, maximum) {
+    const size = measure(value, maximum);
+    if (!Number.isSafeInteger(size) || size < 0 || size > maximum) {
+      throw new RangeError("Retention capacity");
+    }
+    return size;
+  }
   return Object.freeze({
     candidate(request, scope) {
       const key = signature(request, scope);
@@ -84,6 +93,8 @@ export function createValidatedOwlResultCache({ measure }) {
         : undefined;
     },
     capture(request, scope, result) {
+      const transferred = readOwnedWorkerResult(result);
+      result = transferred ?? result;
       if (
         !signature(request, scope) ||
         result?.checkpoint?.revision !== 0 ||
@@ -92,14 +103,14 @@ export function createValidatedOwlResultCache({ measure }) {
         return;
       }
       try {
-        const size = measure(result, maximumRetainedBytes);
-        if (
-          !Number.isSafeInteger(size) ||
-          size < 0 ||
-          size > maximumRetainedBytes
-        ) {
-          return undefined;
+        if (transferred) {
+          // No payload is allocated here: the session already needs this native
+          // receiver value. Measure optional retention at completion, before
+          // allocating a completion copy or installing the long-lived entry.
+          previews.set(transferred, null);
+          return transferred;
         }
+        const size = measuredSize(result, maximumRetainedBytes);
         const owned = structuredClone(result);
         previews.set(owned, size);
         return owned;
@@ -122,12 +133,16 @@ export function createValidatedOwlResultCache({ measure }) {
       }
       try {
         // Capacity only disables reuse. It never rejects an otherwise valid load.
-        // The caller cannot access this owned preview. Reuse its measured
-        // capacity and account only the completion, conservatively counting
-        // both root envelopes even though merging removes one of them.
-        measure(
+        // The caller cannot access this owned preview. A transferred value has
+        // not needed a payload allocation yet; copied previews already carry
+        // their measurement. Count both root envelopes conservatively.
+        const previewSize = hasPreview
+          ? (previews.get(preview) ??
+            measuredSize(preview, maximumRetainedBytes))
+          : 0;
+        measuredSize(
           hasPreview ? completion : result,
-          maximumRetainedBytes - (hasPreview ? previews.get(preview) : 0),
+          maximumRetainedBytes - previewSize,
         );
         const owned = hasPreview
           ? { ...preview, ...structuredClone(completion) }

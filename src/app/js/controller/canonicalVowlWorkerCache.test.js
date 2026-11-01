@@ -5,6 +5,7 @@ import {
 import { createCanonicalVowlWorkerClient } from "./canonicalVowlWorkerClient.js";
 import { jest } from "@jest/globals";
 import { createValidatedOwlResultCache } from "./validatedOwlResultCache.js";
+import { createOwnedWorkerResult } from "./canonicalVowlWorkerResultOwnership.js";
 
 const clone = structuredClone;
 // Node's native clone originates outside Jest's VM. Native browser delivery
@@ -394,6 +395,26 @@ test("a caller-mutated preview cannot poison a later reusable result", async () 
   }
 });
 
+test("retaining a native preview does not allocate another complete transport copy", async () => {
+  const h = harness();
+  try {
+    const preview = await run(h, 1, imported, request(), {
+      deferNodeOrdering: true,
+    });
+    const completeCopies = structuredClone.mock.calls.filter(
+      ([value]) => value?.inspection && value?.checkpoint,
+    );
+    expect(completeCopies.length).toBe(0);
+    preview.nodeOrdering.start();
+    await preview.nodeOrdering.ready;
+    const next = await run(h, 2);
+    expect(h.workers).toHaveLength(1);
+    expect(next.inspection.documents[0].documentIri).toBe(rootIri);
+  } finally {
+    h.client.dispose();
+  }
+});
+
 test("an explicit fresh load always invokes the owning parser", async () => {
   const h = harness();
   try {
@@ -430,9 +451,14 @@ test("limits in the owned worker payload cannot be bypassed by a changing reques
   }
 });
 
-test.each([false, true])(
-  "private preview accounting is reused without exceeding the remaining retention capacity (full=%s)",
-  async (full) => {
+test.each([
+  [false, false],
+  [true, false],
+  [false, true],
+  [true, true],
+])(
+  "private preview accounting respects remaining retention capacity (full=%s, transferred=%s)",
+  async (full, transferred) => {
     const h = harness();
     try {
       const result = await run(h, 1);
@@ -453,7 +479,12 @@ test.each([false, true])(
         deadlineMs: 60000,
         inputLimit: maximum,
       };
-      const preview = cache.capture(request(), scope, previewInput);
+      const preview = cache.capture(
+        request(),
+        scope,
+        transferred ? createOwnedWorkerResult(previewInput, {}) : previewInput,
+      );
+      expect(measure).toHaveBeenCalledTimes(transferred ? 0 : 1);
       cache.remember(
         request(),
         scope,

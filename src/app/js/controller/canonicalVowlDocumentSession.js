@@ -2,6 +2,7 @@ import { createCanonicalVowlScene } from "./canonicalVowlScene.js";
 import { readCanonicalFacts } from "./canonicalVowlFacts.js";
 import { createCanonicalVowlRenderProjection } from "./canonicalVowlRenderProjection.js";
 import { ownCanonicalInspection } from "./canonicalVowlInspectionOwnership.js";
+import { readOwnedWorkerResult } from "./canonicalVowlWorkerResultOwnership.js";
 import { createCanonicalVowlSemanticReadModel } from "./canonicalVowlSemanticReadModel.js";
 import {
   createCanonicalVowlInspectionProjection,
@@ -40,6 +41,8 @@ function semanticRecords(inspection) {
 }
 
 function readResult(result, revision, preview = false) {
+  const owned = readOwnedWorkerResult(result);
+  result = owned ?? result;
   if (
     result.inspection?.revision !== revision ||
     result.checkpoint?.revision !== revision ||
@@ -52,7 +55,10 @@ function readResult(result, revision, preview = false) {
   const inspection = ownCanonicalInspection(result.inspection);
   return {
     inspection,
-    checkpoint: structuredClone(result.checkpoint),
+    // The session only reads its opaque checkpoint and snapshots every public
+    // exposure. Native transport ownership permits sharing it with retention;
+    // other result providers still require a defensive copy here.
+    checkpoint: owned ? result.checkpoint : structuredClone(result.checkpoint),
     selectNodes: createCanonicalNodeSelector(
       inspection,
       preview
