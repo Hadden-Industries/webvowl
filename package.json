@@ -22,6 +22,7 @@
     "@rollup/plugin-replace": ">=6.0.3",
     "archiver": ">=8.0.0",
     "cross-env": ">=10.1.0",
+    "deepmerge": "file:tooling/vendor/deepmerge",
     "dependency-cruiser": ">=18.7.0",
     "eslint": ">=10.13.0",
     "eslint-config-prettier": ">=10.1.8",
@@ -91,6 +92,7 @@
   "license": "AGPL-3.0-only",
   "overrides": {
     "owlapi": "$owlapi",
+    "deepmerge": "$deepmerge",
     "@istanbuljs/load-nyc-config": {
       "js-yaml": "5.5.0"
     }

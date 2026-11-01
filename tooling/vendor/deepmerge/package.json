@@ -1,0 +1,8 @@
+{
+  "name": "@hadden-industries/webvowl-deepmerge",
+  "version": "4.3.1-webvowl.1",
+  "private": true,
+  "main": "index.cjs",
+  "types": "index.d.ts",
+  "license": "MIT"
+}
