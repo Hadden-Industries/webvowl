@@ -369,26 +369,55 @@ html {
 }
 
 #ontologyCacheSource {
-  position: relative;
+  position: absolute;
   z-index: 10;
+  inset-block-end: 8px;
+  inset-inline-start: max(12px, var(--safe-area-left));
 
-  max-width: min(28rem, 70vw);
-  padding: 8px 12px;
+  overflow: auto;
+
+  box-sizing: border-box;
+  max-inline-size: min(42rem, calc(100% - 76px));
+  max-block-size: 40%;
+  padding: 10px 12px;
+  border: 1px solid #b8c6d1;
   border-radius: 6px;
 
-  font-size: 12px;
-  color: #fff;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #24374a;
 
-  background: #18202a;
+  background: #ecf0f1;
 }
 
-#ontologyCacheSource > div {
+.ontology-source-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
+  margin-block-start: 8px;
+}
+
+#ontologyCacheSource p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+#ontologyCacheSourceStatus {
+  font-weight: 600;
+}
+
+#ontologyCacheSource.source-needs-attention {
+  border-color: #8a5a00;
+  background: #fff4db;
+}
+
+.ontology-source-actions button {
+  min-block-size: 44px;
+  white-space: normal;
 }
 
 .ontology-source-action[hidden],
+.ontology-source-actions[hidden],
 #ontologyCacheSource[hidden] {
   display: none;
 }
@@ -3071,6 +3100,36 @@ button.accordion-trigger {
 
 .ontology-dialog dd {
   margin-inline-start: 16px;
+}
+
+.ontology-source-document {
+  padding-block: 16px;
+  border-block-start: 1px solid #64748b;
+}
+
+.ontology-source-document h4 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.ontology-source-document dt {
+  font-weight: 600;
+}
+
+.ontology-source-document details {
+  margin-block-start: 12px;
+}
+
+.ontology-dialog summary {
+  cursor: pointer;
+  padding-block: 8px;
+  line-height: 1.5;
+}
+
+.ontology-dialog summary:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
 }
 
 .ontology-dialog .accordion-container {

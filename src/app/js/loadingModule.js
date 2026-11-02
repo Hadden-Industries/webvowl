@@ -1,4 +1,5 @@
 import { readVisualizationShareLink } from "./controller/visualizationShareLink.js";
+import { presentOntologySources } from "./ui/ontologySourcePresentation.js";
 import {
   ONTOLOGY_LIFECYCLE_STATES,
   isOntologyModelAvailable,
@@ -65,6 +66,10 @@ export function createLoadingModule({
     typeof document === "undefined"
       ? null
       : document.querySelector("#ontologyCacheSourceStatus");
+  const cacheStorage =
+    typeof document === "undefined"
+      ? null
+      : document.querySelector("#ontologyCacheStorage");
   const checkSource =
     typeof document === "undefined"
       ? null
@@ -651,32 +656,21 @@ export function createLoadingModule({
     if (controllerState === null || typeof controllerState !== "object") {
       return;
     }
-    const cache = controllerState.source?.cache;
     if (cacheSource) {
-      cacheSource.hidden =
-        !cache || !["ready", "relaxing"].includes(controllerState.status);
-      if (cache) {
-        const expired =
-          cache.documentRevision !== controllerState.documentRevision ||
-          cache.loadGeneration !== controllerState.loadGeneration;
-        const messages = {
-          archived: "Archived source",
-          checking: "Checking the source for updates…",
-          checked: "Source check completed",
-          "update-available": "Updated source available",
-          "check-failed":
-            "Source check failed; the archived graph remains open",
-        };
-        const dates = cache.sources[0];
-        cacheStatus.textContent = expired
-          ? "This graph has been edited. Reopen its source before applying source updates."
-          : cache.code === "CACHE_OFFER_SUPERSEDED"
-            ? "The offered source has changed. Check the source again."
-            : `${messages[cache.status] ?? "Archived source"}. Saved ${dates.acquiredAt}; last successful check ${dates.checkedAt}.`;
-        checkSource.disabled = expired || cache.status === "checking";
-        applySource.hidden = !cache.hasUpdate;
-        applySource.disabled = expired || cache.status === "checking";
+      const presentation = presentOntologySources(controllerState);
+      cacheSource.hidden = !presentation.visible;
+      cacheSource.classList.toggle(
+        "source-needs-attention",
+        presentation.attention,
+      );
+      if (cacheStatus.textContent !== presentation.message) {
+        cacheStatus.textContent = presentation.message;
       }
+      cacheStorage.textContent = presentation.storage;
+      checkSource.textContent = presentation.checkLabel;
+      checkSource.disabled = presentation.expired || presentation.checking;
+      applySource.hidden = !presentation.hasUpdate;
+      applySource.disabled = presentation.expired || presentation.checking;
     }
     if (controllerState.status === "loading") {
       // Every controller load, including an agent input, supersedes a file

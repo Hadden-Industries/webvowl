@@ -1,10 +1,14 @@
 import { jest } from "@jest/globals";
 import { createOntologyRefreshObservation } from "./ontologyRefreshObservation.js";
+import { OntologyCacheError } from "./ontologySourceIdentity.js";
 
 function fixture(additionalSources = []) {
   const source = {
     requestedDocumentIri: "https://origin.test/root",
+    role: "ontology",
     resolution: {
+      retrievalIri: "https://origin.test/root.rdf",
+      originMetadata: { status: 200 },
       sourceVersionIdentity: "old",
       sourceKey: "a".repeat(64),
       resolutionIdentity: "b".repeat(64),
@@ -191,10 +195,14 @@ test("304/evidence-only requalification updates check dates without an offer", a
       status: "checked",
       hasUpdate: false,
       sources: [
-        {
+        expect.objectContaining({
           acquiredAt: "2026-10-01T00:00:00.000Z",
           checkedAt: "2026-10-04T00:00:00.000Z",
-        },
+          requestedDocumentIri: "https://origin.test/root",
+          retrievalIri: "https://origin.test/root.rdf",
+          role: "ontology",
+          checkOutcome: "checked",
+        }),
       ],
     }),
   );
@@ -253,12 +261,181 @@ test("failed refresh remains a failure and preserves the previous successful-che
     expect.objectContaining({
       status: "check-failed",
       sources: [
-        {
+        expect.objectContaining({
           acquiredAt: "2026-10-01T00:00:00.000Z",
           checkedAt: "2026-10-02T00:00:00.000Z",
-        },
+          checkOutcome: "failed",
+        }),
       ],
     }),
   );
   observation.dispose();
 });
+
+test("a reused provider result preserves its last check and does not claim a new publisher check", async () => {
+  const { observation, client, onStatus } = fixture();
+  client.refresh.mockResolvedValue({
+    state: "SKIPPED_FRESH",
+    currentBinding: { sourceVersionIdentity: "old" },
+  });
+  await observation.refresh();
+  expect(onStatus.mock.lastCall[0]).toMatchObject({
+    status: "checked",
+    hasUpdate: false,
+    sources: [
+      {
+        requestedDocumentIri: "https://origin.test/root",
+        role: "ontology",
+        checkOutcome: "reused",
+        checkedAt: "2026-10-02T00:00:00.000Z",
+      },
+    ],
+  });
+  observation.dispose();
+});
+
+test("a failed member does not hide the outcomes of other saved documents", async () => {
+  const child = {
+    requestedDocumentIri: "https://origin.test/import",
+    role: "import",
+    resolution: {
+      sourceVersionIdentity: "import-old",
+      acquiredAt: "2026-09-01T00:00:00Z",
+    },
+  };
+  const { observation, client, onStatus } = fixture([child]);
+  client.refresh.mockImplementation(async (iri) => {
+    if (iri.endsWith("/root")) {
+      throw new Error("offline");
+    }
+    return {
+      state: "CHANGED",
+      lastSuccessfullyCheckedAt: "2026-11-02T00:00:00Z",
+      resultBinding: { sourceVersionIdentity: "import-new" },
+    };
+  });
+  await expect(observation.refresh()).rejects.toThrow("offline");
+  expect(client.refresh).toHaveBeenCalledTimes(2);
+  expect(onStatus.mock.lastCall[0]).toMatchObject({
+    status: "check-failed",
+    hasUpdate: true,
+    sources: [
+      {
+        requestedDocumentIri: "https://origin.test/root",
+        checkOutcome: "failed",
+        checkedAt: "2026-10-02T00:00:00.000Z",
+      },
+      {
+        requestedDocumentIri: child.requestedDocumentIri,
+        role: "import",
+        checkOutcome: "checked",
+        hasUpdate: true,
+        acquiredAt: child.resolution.acquiredAt,
+      },
+    ],
+  });
+  observation.dispose();
+});
+
+test("a historical copy without HTTP evidence does not invent a publisher check time", () => {
+  const { observation, source, onStatus } = fixture();
+  source.resolution.originMetadata = null;
+  // The state is captured at construction: make a distinct observation of this historical input.
+  observation.dispose();
+  const historical = createOntologyRefreshObservation({
+    sources: [source],
+    client: {},
+    readIdentity: () => ({ loadGeneration: 1, documentRevision: 0 }),
+    onStatus,
+    now: () => Date.parse("2026-10-02T12:00:00.000Z"),
+  });
+  historical.start();
+  expect(onStatus.mock.lastCall[0].sources[0].checkedAt).toBeUndefined();
+  historical.dispose();
+});
+
+test("a failed update confirmation names only that document and preserves all completed check outcomes", async () => {
+  const additional = ["import", "unvisited"].map((name) => ({
+    requestedDocumentIri: `https://origin.test/${name}`,
+    role: "import",
+    resolution: { sourceVersionIdentity: `${name}-old` },
+  }));
+  const { observation, client, onStatus, selected } = fixture(additional);
+  await observation.refresh();
+  const before = structuredClone(onStatus.mock.lastCall[0].sources);
+  client.confirm.mockImplementation(async (iri) => {
+    if (iri === additional[0].requestedDocumentIri) {
+      throw new OntologyCacheError("CACHE_OFFER_SUPERSEDED");
+    }
+    return selected;
+  });
+  await expect(observation.selectUpdate()).rejects.toHaveProperty(
+    "code",
+    "CACHE_OFFER_SUPERSEDED",
+  );
+  expect(client.confirm).toHaveBeenCalledTimes(2);
+  expect(onStatus.mock.lastCall[0]).toMatchObject({
+    status: "update-failed",
+    hasUpdate: false,
+    updateFailure: {
+      requestedDocumentIri: additional[0].requestedDocumentIri,
+      code: "CACHE_OFFER_SUPERSEDED",
+    },
+  });
+  expect(onStatus.mock.lastCall[0].sources).toEqual(before);
+  observation.dispose();
+});
+
+test.each([false, true])(
+  "an overlapping refresh supersedes an earlier selection failure for its document (refresh fails: %s)",
+  async (refreshFails) => {
+    const { observation, client, onStatus } = fixture();
+    await observation.refresh();
+    let rejectSelection;
+    client.confirm.mockImplementation(
+      () =>
+        new Promise((_resolve, reject) => {
+          rejectSelection = reject;
+        }),
+    );
+    const selecting = observation.selectUpdate();
+    let completeRefresh;
+    client.refresh.mockImplementation(
+      () =>
+        new Promise((resolve, reject) => {
+          completeRefresh = () =>
+            refreshFails
+              ? reject(new OntologyCacheError("CACHE_UNAVAILABLE"))
+              : resolve({
+                  state: "CHANGED",
+                  resultBinding: {
+                    sourceVersionIdentity: "newer",
+                    resolutionIdentity: "newer-binding",
+                  },
+                });
+        }),
+    );
+    const refreshing = observation.refresh();
+    rejectSelection(new OntologyCacheError("CACHE_OFFER_SUPERSEDED"));
+    await expect(selecting).rejects.toHaveProperty(
+      "code",
+      "CACHE_OFFER_SUPERSEDED",
+    );
+    expect(onStatus.mock.lastCall[0].status).toBe("update-failed");
+    completeRefresh();
+    if (refreshFails) {
+      await expect(refreshing).rejects.toHaveProperty(
+        "code",
+        "CACHE_UNAVAILABLE",
+      );
+    } else {
+      await refreshing;
+    }
+    expect(onStatus.mock.lastCall[0]).not.toHaveProperty("updateFailure");
+    expect(onStatus.mock.lastCall[0].status).toBe(
+      refreshFails ? "check-failed" : "update-available",
+    );
+    expect(onStatus.mock.lastCall[0].hasUpdate).toBe(!refreshFails);
+    observation.dispose();
+  },
+);

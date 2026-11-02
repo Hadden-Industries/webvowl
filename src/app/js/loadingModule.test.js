@@ -58,6 +58,8 @@ global.window = {
 };
 
 beforeAll(async () => {
+  const { presentOntologySources } =
+    await import("./ui/ontologySourcePresentation.js");
   const { readVisualizationShareLink } =
     await import("./controller/visualizationShareLink.js");
   const loadingModuleUrl = new URL("./loadingModule.js", import.meta.url);
@@ -86,6 +88,15 @@ beforeAll(async () => {
     resolveFetchUrlModuleUrl,
   );
   await loadingModuleSource.link((specifier) => {
+    if (specifier === "./ui/ontologySourcePresentation.js") {
+      return new SyntheticModule(
+        ["presentOntologySources"],
+        function provideSourcePresentation() {
+          this.setExport("presentOntologySources", presentOntologySources);
+        },
+        { context: loadingModuleContext, identifier: specifier },
+      );
+    }
     if (specifier === "./controller/visualizationShareLink.js") {
       return new SyntheticModule(
         ["readVisualizationShareLink"],
@@ -515,11 +526,11 @@ describe("loading module controller state presentation", () => {
   test.each([
     [
       "CACHE_OFFER_SUPERSEDED",
-      "The offered source has changed. Check the source again.",
+      "The available update changed. Check for source updates again before reloading.",
     ],
     [
       "CACHE_UNAVAILABLE",
-      "Source check failed; the archived graph remains open",
+      "Couldn’t check SKOS for changes. The loaded graph is still available.",
     ],
   ])(
     "source-action failure retains its controller status: %s",
@@ -537,6 +548,8 @@ describe("loading module controller state presentation", () => {
             hasUpdate: false,
             sources: [
               {
+                requestedDocumentIri: "http://www.w3.org/2004/02/skos/core",
+                role: "import",
                 acquiredAt: "2026-10-01T00:00:00.000Z",
                 checkedAt: "2026-10-02T00:00:00.000Z",
               },

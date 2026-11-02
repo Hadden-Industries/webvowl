@@ -156,30 +156,6 @@
         </div>
 
         <div id="additionalInformationContainer">
-          <section
-            id="ontologyCacheSource"
-            aria-label="Archived ontology source"
-            hidden
-          >
-            <p id="ontologyCacheSourceStatus" role="status"></p>
-            <div>
-              <button
-                id="checkOntologySourceUpdate"
-                class="ontology-source-action"
-                type="button"
-              >
-                Check source
-              </button>
-              <button
-                id="applyOntologySourceUpdate"
-                class="ontology-source-action"
-                type="button"
-                hidden
-              >
-                Apply source update
-              </button>
-            </div>
-          </section>
           <button id="reloadOntologySource" type="button" class="hidden">
             <svg
               class="bi bi-arrow-clockwise reloadOntologySourceIcon"
@@ -287,6 +263,37 @@
             </div>
           </div>
         </div>
+        <section id="ontologyCacheSource" aria-label="Source updates" hidden>
+          <div class="ontology-source-summary">
+            <p id="ontologyCacheSourceStatus" role="status"></p>
+            <p id="ontologyCacheStorage"></p>
+          </div>
+          <div class="ontology-source-actions">
+            <button
+              id="ontology-sources-open"
+              class="ontology-source-action"
+              type="button"
+              aria-haspopup="dialog"
+            >
+              View sources
+            </button>
+            <button
+              id="checkOntologySourceUpdate"
+              class="ontology-source-action"
+              type="button"
+            >
+              Check saved sources for updates
+            </button>
+            <button
+              id="applyOntologySourceUpdate"
+              class="ontology-source-action"
+              type="button"
+              hidden
+            >
+              Reload with updated sources
+            </button>
+          </div>
+        </section>
         <nav id="menuContainer" aria-label="Main Navigation">
           <!--Ontology Menu-->
           <div
@@ -1814,12 +1821,41 @@
           <button type="submit">Close overview</button>
         </form>
       </div>
-      <div id="ontology-overview-body"></div>
       <section aria-labelledby="ontology-source-heading">
-        <h3 id="ontology-source-heading">Source and loading information</h3>
-        <dl id="ontology-source-provenance"></dl>
-        <ul id="ontology-overview-warnings"></ul>
+        <h3 id="ontology-source-heading" tabindex="-1">Sources</h3>
+        <p id="ontology-overview-source-status" role="status"></p>
+        <p id="ontology-source-check-help" hidden>
+          Update checks look for changes to saved source documents at their
+          recorded publisher URLs. They do not assess OWL correctness or
+          standards conformance. The graph changes only when you load an update.
+        </p>
+        <div id="ontology-source-provenance"></div>
+        <div
+          class="ontology-source-actions"
+          id="ontology-overview-source-actions"
+          hidden
+        >
+          <button id="ontology-overview-check-sources" type="button">
+            Check saved sources for updates
+          </button>
+          <button id="ontology-overview-apply-sources" type="button" hidden>
+            Reload with updated sources
+          </button>
+        </div>
       </section>
+      <section
+        id="ontology-overview-notes"
+        aria-labelledby="ontology-notes-heading"
+        hidden
+      >
+        <h3 id="ontology-notes-heading">Parsing and visualization notes</h3>
+        <p id="ontology-overview-notes-summary"></p>
+        <details>
+          <summary>View parsing and mapping details</summary>
+          <ul id="ontology-overview-warnings"></ul>
+        </details>
+      </section>
+      <div id="ontology-overview-body"></div>
       <div class="ontology-dialog-actions">
         <button id="ontology-overview-facts" type="button" disabled>
           Ontology facts

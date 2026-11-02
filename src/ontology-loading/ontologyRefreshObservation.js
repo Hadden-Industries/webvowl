@@ -12,6 +12,7 @@ export function createOntologyRefreshObservation({
   const lifetime = new AbortController();
   const offers = new Map();
   let pending;
+  let updateFailure;
   const current = () => {
     const identity = readIdentity();
     return (
@@ -20,17 +21,31 @@ export function createOntologyRefreshObservation({
       identity.documentRevision === owner.documentRevision
     );
   };
-  const dates = sources.map(({ resolution, pointer }) => ({
-    acquiredAt: resolution.acquiredAt,
-    checkedAt: pointer?.lastSuccessfullyCheckedAt ?? resolution.checkedAt,
-  }));
+  const sourceStates = sources.map(
+    ({ requestedDocumentIri, role, resolution, pointer }) => ({
+      requestedDocumentIri,
+      role,
+      retrievalIri: resolution.retrievalIri,
+      artifactIri: resolution.artifactIri,
+      sourceKey: resolution.sourceKey,
+      resolutionIdentity: resolution.resolutionIdentity,
+      sourceVersionIdentity: resolution.sourceVersionIdentity,
+      acquiredAt: resolution.acquiredAt,
+      checkedAt:
+        pointer?.lastSuccessfullyCheckedAt ??
+        (resolution.originMetadata ? resolution.checkedAt : undefined),
+      checkOutcome: "not-checked",
+      hasUpdate: false,
+    }),
+  );
   function publish(status, code) {
     if (current()) {
       onStatus({
         ...owner,
         status,
         hasUpdate: offers.size > 0,
-        sources: dates.map((entry) => ({ ...entry })),
+        sources: sourceStates.map((entry) => ({ ...entry })),
+        ...(updateFailure ? { updateFailure: { ...updateFailure } } : {}),
         ...(code ? { code } : {}),
       });
     }
@@ -43,11 +58,18 @@ export function createOntologyRefreshObservation({
       return pending;
     }
     pending = (async () => {
+      let failure;
+      updateFailure = undefined;
+      for (const entry of sourceStates) {
+        entry.checkOutcome = "not-checked";
+        delete entry.code;
+      }
       publish("checking");
       try {
         // Sequential observation bounds client concurrency independently of server coalescing.
         for (const source of sources) {
           const { requestedDocumentIri, resolution, pointer } = source;
+          const entry = sourceStates[sources.indexOf(source)];
           if (
             mode === "if-due" &&
             (!pointer ||
@@ -57,31 +79,56 @@ export function createOntologyRefreshObservation({
                   Date.parse(pointer.nextCheckAllowedAt),
                 ))
           ) {
+            entry.checkOutcome = "reused";
             continue;
           }
-          const result = await client.refresh(requestedDocumentIri, {
-            signal: lifetime.signal,
-            mode,
-          });
-          if (!current()) {
-            throw new OntologyCacheError("CACHE_OFFER_EXPIRED");
-          }
-          if (result.state === "FAILED" || result.state === "SUPERSEDED") {
-            throw new OntologyCacheError("CACHE_REFRESH_FAILED");
-          }
-          if (result.lastSuccessfullyCheckedAt) {
-            dates[sources.indexOf(source)].checkedAt =
-              result.lastSuccessfullyCheckedAt;
-          }
-          const binding = result.resultBinding ?? result.currentBinding;
-          if (
-            binding &&
-            binding.sourceVersionIdentity !== resolution.sourceVersionIdentity
-          ) {
-            offers.set(requestedDocumentIri, binding);
-          } else {
+          try {
+            const result = await client.refresh(requestedDocumentIri, {
+              signal: lifetime.signal,
+              mode,
+            });
+            if (!current()) {
+              throw new OntologyCacheError("CACHE_OFFER_EXPIRED");
+            }
+            if (result.state === "FAILED" || result.state === "SUPERSEDED") {
+              throw new OntologyCacheError("CACHE_REFRESH_FAILED");
+            }
+            if (result.lastSuccessfullyCheckedAt) {
+              entry.checkedAt = result.lastSuccessfullyCheckedAt;
+            }
+            entry.checkOutcome =
+              result.state === "SKIPPED_FRESH" ? "reused" : "checked";
+            const binding = result.resultBinding ?? result.currentBinding;
+            if (
+              binding &&
+              binding.sourceVersionIdentity !== resolution.sourceVersionIdentity
+            ) {
+              offers.set(requestedDocumentIri, binding);
+            } else {
+              offers.delete(requestedDocumentIri);
+            }
+            entry.hasUpdate = offers.has(requestedDocumentIri);
+          } catch (error) {
+            if (!current()) {
+              throw new OntologyCacheError("CACHE_OFFER_EXPIRED");
+            }
+            entry.checkOutcome = "failed";
+            entry.code =
+              error instanceof OntologyCacheError
+                ? error.code
+                : "CACHE_UNAVAILABLE";
+            entry.hasUpdate = false;
             offers.delete(requestedDocumentIri);
+            failure ??= error;
+          } finally {
+            // A later result for this document supersedes an overlapping selection failure.
+            if (updateFailure?.requestedDocumentIri === requestedDocumentIri) {
+              updateFailure = undefined;
+            }
           }
+        }
+        if (failure) {
+          throw failure;
         }
         publish(offers.size ? "update-available" : "checked");
       } catch (error) {
@@ -126,8 +173,10 @@ export function createOntologyRefreshObservation({
         [...offers].map(([iri, binding]) => [iri, binding.resolutionIdentity]),
       );
       const selected = new Map();
+      let selecting;
       try {
         for (const { requestedDocumentIri: iri, resolution } of sources) {
+          selecting = iri;
           const offeredIdentity = offeredIdentities.get(iri);
           // An update replaces only its offered members. Reverify the exact
           // accepted bindings of the others: mutable discovery may be stale
@@ -148,12 +197,14 @@ export function createOntologyRefreshObservation({
         }
       } catch (error) {
         offers.clear();
-        publish(
-          "check-failed",
-          error instanceof OntologyCacheError
-            ? error.code
-            : "CACHE_UNAVAILABLE",
-        );
+        updateFailure = {
+          requestedDocumentIri: selecting,
+          code:
+            error instanceof OntologyCacheError
+              ? error.code
+              : "CACHE_UNAVAILABLE",
+        };
+        publish("update-failed", updateFailure.code);
         throw error;
       }
       return selected;
