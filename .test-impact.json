@@ -45,7 +45,7 @@
     "src/renderedGraphDecoupling.architecture.test.js",
     "src/testRunnerScope.architecture.test.js",
     "src/esmConfiguration.integration.test.js",
-    "src/generatedJavaScriptCleanup.integration.test.js",
+    "src/generatedAssetCleanup.integration.test.js",
     "src/initialPageStyles.test.js",
     "src/app/css/fontDelivery.test.js",
     "src/app/css/toolstyle.test.js",
@@ -296,9 +296,9 @@
     {
       "id": "generated-cleanup-source-reader",
       "dependency": "src/",
-      "consumer": "src/generatedJavaScriptCleanup.integration.test.js",
+      "consumer": "src/generatedAssetCleanup.integration.test.js",
       "kind": "source-reader",
-      "evidence": "src/generatedJavaScriptCleanup.integration.test.js: authored source inventory",
+      "evidence": "src/generatedAssetCleanup.integration.test.js: authored source inventory",
       "fixture": "architecture-source-reader"
     },
     {

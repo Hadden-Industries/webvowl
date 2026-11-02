@@ -18,19 +18,17 @@ test("the production bundle links without a browser package resolver", () => {
   const configuration = createConfiguration({
     command: "build", mode: "production", isPreview: false, isSsrBuild: false,
   });
-  // File timestamp preservation and post-build deletion are outside this
-  // module-link contract. write:false alone still invokes closeBundle. Omit
-  // only those filesystem hooks; retain all HTML and module transformations.
+  // Timestamp preservation is outside this module-link contract. write:false
+  // still invokes closeBundle; omit only its filesystem hooks. Generated-asset
+  // cleanup honors write:false and all HTML/module transformations stay active.
   const plugins = configuration.plugins.map((plugin) => {
-    if (!["mtime-preserve", "webvowl-build"].includes(plugin.name)) {
+    if (plugin.name !== "mtime-preserve") {
       return plugin;
     }
     assert.equal(typeof plugin.closeBundle, "function");
     const moduleGenerationPlugin = { ...plugin };
     delete moduleGenerationPlugin.closeBundle;
-    if (plugin.name === "mtime-preserve") {
-      delete moduleGenerationPlugin.buildStart;
-    }
+    delete moduleGenerationPlugin.buildStart;
     return moduleGenerationPlugin;
   });
   plugins.push({
