@@ -1,11 +1,10 @@
 import { defineConfig, normalizePath } from "vite";
-import { dirname, resolve, relative } from "node:path";
+import { basename, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   existsSync,
   readFileSync,
   readdirSync,
-  rmSync,
   statSync,
   utimesSync,
 } from "node:fs";
@@ -13,7 +12,7 @@ import replace from "@rollup/plugin-replace";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import eslintPlugin from "vite-plugin-eslint2";
 import stylelint from "vite-plugin-stylelint";
-import { createGeneratedJavaScriptCleanupPlugin } from "./util/generatedJavaScriptCleanup.mjs";
+import { createGeneratedAssetCleanupPlugin } from "./util/generatedAssetCleanup.mjs";
 import {
   HtmlValidate,
   FileSystemConfigLoader,
@@ -25,53 +24,10 @@ const pkg = JSON.parse(
   readFileSync(resolve(configDir, "package.json"), "utf-8"),
 );
 
-const generatedJavaScriptManifestPath = ".vite/webvowl-generated-js.json";
-const preManifestGeneratedJavaScriptFiles = [
-  "js/d3.min.js",
-  "js/directInputModule.js",
-  "js/index.js",
-  "js/jsonld.esm.js",
-  "js/jsonld.js",
-  "js/languageTools.js",
-  "js/leftSidebar.js",
-  "js/loadingModule.js",
-  "js/n3.min.js",
-  "js/ontologyEditorSidebar.js",
-  "js/popover.js",
-  "js/rdfxml-streaming-parser.js",
-  "js/rolldown-runtime.js",
-  "js/sidebar.js",
-  "js/src.js",
-  "js/vendor~index.js",
-  "js/vendor~index2.js",
-  "js/vendor~index3.js",
-  "js/vendor~index~index.js",
-  "js/vendor~jsonld.esm.js",
-  "js/vendor~jsonld.js",
-  "js/vendor~n3.min.js",
-  "js/vendor~popover.js",
-  "js/visualizationControlAction.js",
-  "js/visualizationShareLink.js",
-  "js/vowlDocument.js",
-  "js/warningModule.js",
-];
-
-/**
- * Custom Vite plugin that handles HTML template processing and post-build cleanup.
- * Replaces grunt-html-build & grunt clean:testOntology functionality:
- *   - Injects package version into __WEBVOWL_VERSION__ template expressions
- *   - Strips <!-- build:process --> / <!-- /build --> comment markers
- *   - In production: removes <!-- build:remove release--> blocks (benchmark ontology link)
- *   - In production: deletes deploy/data/benchmark.json and cleans up leftover .map files
- */
+/** Process the HTML template and production-only markup. */
 function webvowlBuildPlugin(mode) {
-  let outputDirectory;
   return {
     name: "webvowl-build",
-
-    configResolved(configuration) {
-      outputDirectory = resolve(configuration.root, configuration.build.outDir);
-    },
 
     transformIndexHtml(html) {
       let processedHtml = html;
@@ -91,51 +47,6 @@ function webvowlBuildPlugin(mode) {
 
       // 3. Replace __WEBVOWL_VERSION__ template expressions with package version
       return processedHtml.replaceAll("__WEBVOWL_VERSION__", pkg.version);
-    },
-
-    closeBundle() {
-      // Post-build cleanup actions only run in production
-      if (mode !== "production") return;
-
-      const deployDir = outputDirectory;
-      if (!deployDir || !existsSync(deployDir)) return;
-
-      // 1. Remove non-prod data files
-      const filesToRemove = [
-        // Remove benchmark data file (replicates grunt clean:testOntology)
-        "data/benchmark.json",
-        "data/personasonto.owl.java.json",
-      ];
-
-      for (const file of filesToRemove) {
-        const filePath = resolve(deployDir, file);
-
-        if (existsSync(filePath)) {
-          rmSync(filePath, { force: true });
-          console.log(
-            `[webvowl-build] Removed deploy/${file} (production release)`,
-          );
-        }
-      }
-
-      // 2. Clean up any sourcemaps (.map files) in the deploy directory
-      const removeMapFiles = (dir) => {
-        const entries = readdirSync(dir, { withFileTypes: true });
-        for (const entry of entries) {
-          const fullPath = resolve(dir, entry.name);
-          if (entry.isDirectory()) {
-            removeMapFiles(fullPath);
-          } else if (entry.isFile() && entry.name.endsWith(".map")) {
-            rmSync(fullPath, { force: true });
-            const relPath = relative(configDir, fullPath).replace(/\\/g, "/");
-            console.log(
-              `[webvowl-build] Removed ${relPath} (production release)`,
-            );
-          }
-        }
-      };
-
-      removeMapFiles(deployDir);
     },
   };
 }
@@ -228,6 +139,7 @@ function htmlValidatePlugin(mode) {
 export default defineConfig(({ mode }) => {
   const isProd = mode === "production";
   const isCanonicalCandidate = mode === "canonical";
+  const generatedAssets = createGeneratedAssetCleanupPlugin();
 
   return {
     // Relative base path allows deployment under subdirectories (e.g. https://domain.com/webvowl/)
@@ -235,6 +147,12 @@ export default defineConfig(({ mode }) => {
     // index.html remains at src/index.html (project convention preserved)
     root: "src",
     publicDir: false,
+
+    // The linked core and lazy OWL entry share module-owned model identities.
+    // Prebundle both before the first worker load, including a fresh dev cache.
+    optimizeDeps: {
+      include: ["vowl", "vowl/owl"],
+    },
 
     // Native dynamic imports keep OWL parsers out of canonical-only worker jobs.
     worker: {
@@ -349,10 +267,6 @@ export default defineConfig(({ mode }) => {
             },
           ]
         : []),
-      createGeneratedJavaScriptCleanupPlugin({
-        manifestName: generatedJavaScriptManifestPath,
-        legacyFiles: preManifestGeneratedJavaScriptFiles,
-      }),
       mtimePreservePlugin(),
       // Replace @@WEBVOWL_VERSION placeholder in JS source files with the package version
       replace({
@@ -367,20 +281,66 @@ export default defineConfig(({ mode }) => {
             src: "app/data/*",
             dest: "data",
             rename: { stripBase: true },
+            transform: {
+              encoding: "buffer",
+              handler(content, source) {
+                const name = basename(source);
+                if (
+                  isProd &&
+                  ["benchmark.json", "personasonto.owl.java.json"].includes(
+                    name,
+                  )
+                )
+                  return null;
+                return generatedAssets.api.recordCopiedAsset(
+                  `data/${name}`,
+                  content,
+                );
+              },
+            },
           },
           {
             src: "app/fonts/open-sans/OFL.txt",
             dest: "licenses/open-sans",
             rename: { stripBase: true },
+            transform: {
+              encoding: "buffer",
+              handler: (content) =>
+                generatedAssets.api.recordCopiedAsset(
+                  "licenses/open-sans/OFL.txt",
+                  content,
+                ),
+            },
           },
-          { src: "favicon.ico", dest: "." },
-          { src: "favicon.svg", dest: "." },
+          {
+            src: "favicon.ico",
+            dest: ".",
+            transform: {
+              encoding: "buffer",
+              handler: (content) =>
+                generatedAssets.api.recordCopiedAsset("favicon.ico", content),
+            },
+          },
+          {
+            src: "favicon.svg",
+            dest: ".",
+            transform: {
+              encoding: "buffer",
+              handler: (content) =>
+                generatedAssets.api.recordCopiedAsset("favicon.svg", content),
+            },
+          },
           {
             src: normalizePath(resolve(configDir, "LICENSE")),
             // Bypasses the '.' collapse bug
             // as per http://gemini.google.com/app/793f7f5228862e6b
             dest: "deploy",
             rename: { name: "license.txt" },
+            transform: {
+              encoding: "buffer",
+              handler: (content) =>
+                generatedAssets.api.recordCopiedAsset("license.txt", content),
+            },
           },
         ],
       }),
@@ -396,6 +356,7 @@ export default defineConfig(({ mode }) => {
       }),
       htmlValidatePlugin(mode),
       webvowlBuildPlugin(mode),
+      generatedAssets,
     ],
 
     // Dev server configuration

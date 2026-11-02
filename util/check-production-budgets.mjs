@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { verifyGeneratedAssetManifest } from "./generatedAssetCleanup.mjs";
 import {
   productionManifest,
   productionCohortSchedule,
@@ -218,20 +218,7 @@ if (
     "Usage: node util/check-production-budgets.mjs <production-directory>",
   );
   const manifest = productionManifest(directory);
-  const ownership = JSON.parse(
-    readFileSync(resolve(directory, ".vite/webvowl-generated-js.json"), "utf8"),
-  );
-  const currentFiles = new Map(manifest.files.map((file) => [file.path, file]));
-  assert(
-    ownership.schemaVersion === 1 && Array.isArray(ownership.files),
-    "Missing generated-asset ownership",
-  );
-  for (const path of ownership.files) {
-    assert(
-      currentFiles.get(path)?.sha256 === ownership.hashes?.[path],
-      `Generated asset ownership mismatch: ${path}`,
-    );
-  }
+  const ownership = verifyGeneratedAssetManifest(directory);
   for (const path of manifest.workerClosures[manifest.workers[0]]) {
     assert(
       ownership.files.includes(path),

@@ -201,6 +201,7 @@ export function unsupportedQuantifier(root, budget, wanted) {
 
 /** Build through public OWL objects and available source structure; no parsing or inference. */
 export function buildModel(loaded, budget, policy) {
+  const constructionStartedAt = performance.now();
   const structural = {
     ontology: { imports: [], annotations: [] },
     subjects: [],
@@ -611,6 +612,15 @@ export function buildModel(loaded, budget, policy) {
       statement(value, ontology);
     }
   }
+  const normalizationStartedAt = performance.now();
+  performance.measure("webvowl.owl-model-construction", {
+    start: constructionStartedAt,
+    end: normalizationStartedAt,
+  });
   normalizeDraft(source, budget);
+  performance.measure("webvowl.owl-model-normalization", {
+    start: normalizationStartedAt,
+    end: performance.now(),
+  });
   return source;
 }

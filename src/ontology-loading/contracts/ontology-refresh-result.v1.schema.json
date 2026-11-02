@@ -63,7 +63,10 @@
           "$ref": "ontology-contract-common.v1.schema.json#/$defs/generation"
         },
         "mode": {
-          "enum": ["if-due", "check-now"]
+          "enum": [
+            "if-due",
+            "check-now"
+          ]
         },
         "admittedAt": {
           "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
@@ -78,7 +81,11 @@
           "const": "PENDING"
         },
         "workState": {
-          "enum": ["QUEUED", "RUNNING", "HELD"]
+          "enum": [
+            "QUEUED",
+            "RUNNING",
+            "HELD"
+          ]
         },
         "startedAt": {
           "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
@@ -118,7 +125,10 @@
           "$ref": "ontology-contract-common.v1.schema.json#/$defs/generation"
         },
         "mode": {
-          "enum": ["if-due", "check-now"]
+          "enum": [
+            "if-due",
+            "check-now"
+          ]
         },
         "admittedAt": {
           "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
@@ -130,7 +140,10 @@
           "$ref": "ontology-contract-common.v1.schema.json#/$defs/httpsIri"
         },
         "state": {
-          "enum": ["UNCHANGED", "CHANGED"]
+          "enum": [
+            "UNCHANGED",
+            "CHANGED"
+          ]
         },
         "startedAt": {
           "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
@@ -139,13 +152,19 @@
           "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
         },
         "upstreamStatus": {
-          "enum": [200, 304]
+          "enum": [
+            200,
+            304
+          ]
         },
         "resultBinding": {
           "$ref": "ontology-contract-common.v1.schema.json#/$defs/binding"
         },
         "discoveryState": {
-          "enum": ["PENDING", "PUBLISHED"]
+          "enum": [
+            "PENDING",
+            "PUBLISHED"
+          ]
         },
         "lastSuccessfullyCheckedAt": {
           "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
@@ -198,7 +217,10 @@
           "$ref": "ontology-contract-common.v1.schema.json#/$defs/generation"
         },
         "mode": {
-          "enum": ["if-due", "check-now"]
+          "enum": [
+            "if-due",
+            "check-now"
+          ]
         },
         "admittedAt": {
           "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
@@ -261,7 +283,10 @@
           "$ref": "ontology-contract-common.v1.schema.json#/$defs/generation"
         },
         "mode": {
-          "enum": ["if-due", "check-now"]
+          "enum": [
+            "if-due",
+            "check-now"
+          ]
         },
         "admittedAt": {
           "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
@@ -311,21 +336,29 @@
             "const": "SKIPPED_FRESH"
           }
         },
-        "required": ["state"]
+        "required": [
+          "state"
+        ]
       },
       "then": {
         "not": {
           "anyOf": [
             {
-              "required": ["refreshAttemptId"],
+              "required": [
+                "refreshAttemptId"
+              ],
               "type": "object"
             },
             {
-              "required": ["generation"],
+              "required": [
+                "generation"
+              ],
               "type": "object"
             },
             {
-              "required": ["resultBinding"],
+              "required": [
+                "resultBinding"
+              ],
               "type": "object"
             }
           ]
@@ -337,14 +370,22 @@
         "type": "object",
         "properties": {
           "state": {
-            "enum": ["FAILED", "SUPERSEDED", "PENDING"]
+            "enum": [
+              "FAILED",
+              "SUPERSEDED",
+              "PENDING"
+            ]
           }
         },
-        "required": ["state"]
+        "required": [
+          "state"
+        ]
       },
       "then": {
         "not": {
-          "required": ["resultBinding"],
+          "required": [
+            "resultBinding"
+          ],
           "type": "object"
         }
       }
@@ -357,11 +398,15 @@
             "const": "PENDING"
           }
         },
-        "required": ["state"]
+        "required": [
+          "state"
+        ]
       },
       "then": {
         "not": {
-          "required": ["finishedAt"],
+          "required": [
+            "finishedAt"
+          ],
           "type": "object"
         }
       }

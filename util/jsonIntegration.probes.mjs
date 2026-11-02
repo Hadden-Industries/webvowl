@@ -8,16 +8,59 @@ import { fileURLToPath } from "node:url";
 import { openRepositoryJsonSession } from "./runRepositoryJsonQuality.mjs";
 import {
   openJsonSourceSession,
+  admitJsonPolicy,
   jsonContract,
   formatJsonSource,
-  verifyJsonQualityInstallation,
   validateJsonQualityEvent,
-} from "../tooling/json/public-api.mjs";
+} from "@hadden-industries/json-quality";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const policy = JSON.parse(
   readFileSync(new URL("../.json-quality.json", import.meta.url)),
 );
+
+test("provider contracts retain ordinary presentation checks and downstream write protection without duplicate identities", async () => {
+  const path =
+    "src/ontology-loading/contracts/ontology-archive-capture.v1.schema.json";
+  const selected = jsonContract(path, admitJsonPolicy(policy), {
+    tracked: true,
+  });
+  assert.equal(selected.formatContract, "prettier-json");
+  assert.equal(selected.normalization, "NFC");
+  assert.equal(selected.allowFormatWrites, false);
+  assert.equal(selected.expected, undefined);
+  const bytes = readFileSync(new URL(`../${path}`, import.meta.url));
+  const session = await openJsonSourceSession();
+  try {
+    for (const [input, expected] of [
+      [bytes, true],
+      [Buffer.concat([bytes, Buffer.from(" ")]), false],
+    ]) {
+      let terminal;
+      for await (const event of session.check(
+        {
+          async *open() {
+            yield input;
+          },
+        },
+        {
+          path,
+          formatContract: selected.formatContract,
+          normalization: selected.normalization,
+          allowFormatWrites: selected.allowFormatWrites,
+        },
+        { includeValues: false, retainValues: false },
+      ))
+        if (event.type === "terminal") terminal = event;
+      assert.equal(terminal.parserComplete, true);
+      assert.equal(terminal.presentationChecked, true);
+      assert.equal(terminal.diagnosticsComplete, true);
+      assert.equal(terminal.contractSatisfied, expected);
+    }
+  } finally {
+    await session.close();
+  }
+});
 
 test("the complete repository adapter checks every independently pinned JSON member", async () => {
   const inventory = JSON.parse(
@@ -74,16 +117,6 @@ test("the complete repository adapter checks every independently pinned JSON mem
   } finally {
     await session.close();
   }
-});
-
-test("the native source selector, lock, generated bootstrap and installed payload agree", async () => {
-  const result = await verifyJsonQualityInstallation({
-    toolingRoot: fileURLToPath(new URL("../tooling/json/", import.meta.url)),
-    bootstrapPath: fileURLToPath(
-      new URL("./installRepositoryQualityTools.mjs", import.meta.url),
-    ),
-  });
-  assert.ok(result.files > 0);
 });
 
 test("the finite pure writer preserves numeric spelling and never writes repository bytes", async () => {

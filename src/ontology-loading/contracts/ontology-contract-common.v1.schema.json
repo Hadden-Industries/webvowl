@@ -77,7 +77,9 @@
               "const": "unbounded"
             }
           },
-          "required": ["kind"],
+          "required": [
+            "kind"
+          ],
           "additionalProperties": false
         }
       ],
@@ -98,7 +100,11 @@
           "type": "boolean"
         }
       },
-      "required": ["code", "message", "retryable"],
+      "required": [
+        "code",
+        "message",
+        "retryable"
+      ],
       "additionalProperties": true
     },
     "binding": {
@@ -162,7 +168,11 @@
           "maximum": 9007199254740991
         }
       },
-      "required": ["accept", "acceptEncoding", "selectionPolicyVersion"],
+      "required": [
+        "accept",
+        "acceptEncoding",
+        "selectionPolicyVersion"
+      ],
       "additionalProperties": false
     },
     "validators": {
@@ -182,13 +192,21 @@
       "type": "object",
       "properties": {
         "status": {
-          "enum": [200, 304]
+          "enum": [
+            200,
+            304
+          ]
         },
         "contentType": {
           "$ref": "#/$defs/headerValue"
         },
         "contentEncoding": {
-          "enum": ["identity", "gzip", "br", "deflate"]
+          "enum": [
+            "identity",
+            "gzip",
+            "br",
+            "deflate"
+          ]
         },
         "cacheControl": {
           "$ref": "#/$defs/headerValue"
@@ -196,16 +214,29 @@
         "vary": {
           "type": "array",
           "items": {
-            "enum": ["accept", "accept-encoding"]
+            "enum": [
+              "accept",
+              "accept-encoding",
+              "origin",
+              "negotiate",
+              "accept-charset",
+              "accept-language",
+              "accept-features"
+            ]
           },
           "uniqueItems": true,
-          "maxItems": 2
+          "maxItems": 7
         },
         "validators": {
           "$ref": "#/$defs/validators"
         }
       },
-      "required": ["status", "contentEncoding", "vary", "validators"],
+      "required": [
+        "status",
+        "contentEncoding",
+        "vary",
+        "validators"
+      ],
       "additionalProperties": false
     },
     "packageEvidence": {
@@ -271,7 +302,10 @@
           "$ref": "#/$defs/requestedIri"
         },
         "formatSelectionMode": {
-          "enum": ["automatic", "explicit"]
+          "enum": [
+            "automatic",
+            "explicit"
+          ]
         },
         "explicitFormatId": {
           "oneOf": [
@@ -338,6 +372,77 @@
       "maxLength": 8192,
       "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:",
       "description": "Absolute logical IRI, including non-HTTP identifiers such as urn:. Validate with the owning public IRI contract. This is metadata, never authority to fetch."
+    },
+    "documentValidationProfile": {
+      "type": "object",
+      "description": "Operator-approved OWL mapping strategies. Labels describe behavior; parseMode records the actual dependency token.",
+      "default": {
+        "validationProfileId": "ontology-source-document-heuristic-v1",
+        "parseMode": "compatible"
+      },
+      "oneOf": [
+        {
+          "$anchor": "heuristic",
+          "title": "Heuristic OWL mapping",
+          "description": "Constructs an OWL model using parser heuristics where source information is underspecified, while reporting detected repairs and mapping issues.",
+          "properties": {
+            "validationProfileId": {
+              "const": "ontology-source-document-heuristic-v1"
+            },
+            "parseMode": {
+              "const": "compatible"
+            }
+          }
+        },
+        {
+          "$anchor": "unambiguous",
+          "title": "Unambiguous OWL mapping",
+          "description": "Determines property uses from explicit roles or unambiguous source structure, rejecting unresolved interpretations.",
+          "properties": {
+            "validationProfileId": {
+              "const": "ontology-source-document-v1"
+            },
+            "parseMode": {
+              "const": "preserve"
+            }
+          }
+        }
+      ],
+      "required": [
+        "validationProfileId",
+        "parseMode"
+      ]
+    },
+    "declaredImports": {
+      "type": "object",
+      "description": "Complete bounded direct import hints under the validated mapping; not a closure or consumer admission.",
+      "properties": {
+        "owlMappingStrategy": {
+          "enum": [
+            "heuristic",
+            "unambiguous"
+          ]
+        },
+        "iris": {
+          "type": "array",
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/iri"
+          }
+        },
+        "iriByteLength": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 16384
+        }
+      },
+      "required": [
+        "owlMappingStrategy",
+        "iris",
+        "iriByteLength"
+      ],
+      "additionalProperties": false
     }
   }
 }

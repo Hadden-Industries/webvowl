@@ -30,7 +30,7 @@ export function createCachedOntologySourceAcquisition({
     deadlineMs,
   });
   const blocked = new Set();
-  const confirmedSelections = new WeakSet();
+  const verifiedSelections = new WeakSet();
   const observations = new Map();
   function diagnose(error) {
     onDiagnostic({
@@ -54,6 +54,21 @@ export function createCachedOntologySourceAcquisition({
     });
     return value;
   };
+  async function selectBinding(iri, operation) {
+    if (blocked.has(iri)) {
+      throw new OntologyCacheError("SOURCE_WITHDRAWN");
+    }
+    try {
+      const selected = await operation();
+      verifiedSelections.add(selected);
+      return selected;
+    } catch (error) {
+      if (withdrawn.has(error.code)) {
+        blocked.add(iri);
+      }
+      throw error;
+    }
+  }
   return Object.freeze({
     async acquire(
       iri,
@@ -80,7 +95,7 @@ export function createCachedOntologySourceAcquisition({
       if (selectedBindings?.has(iri)) {
         const selected = selectedBindings.get(iri);
         if (
-          !confirmedSelections.has(selected) ||
+          !verifiedSelections.has(selected) ||
           selected.resolution.requestedDocumentIri !== iri
         ) {
           throw new OntologyCacheError();
@@ -167,20 +182,13 @@ export function createCachedOntologySourceAcquisition({
       }
       return observations.get(iri);
     },
-    async confirm(iri, identity, options) {
-      if (blocked.has(iri)) {
-        throw new OntologyCacheError("SOURCE_WITHDRAWN");
-      }
-      try {
-        const selected = await client.confirm(iri, identity, options);
-        confirmedSelections.add(selected);
-        return selected;
-      } catch (error) {
-        if (withdrawn.has(error.code)) {
-          blocked.add(iri);
-        }
-        throw error;
-      }
+    confirm(iri, identity, options) {
+      return selectBinding(iri, () => client.confirm(iri, identity, options));
+    },
+    acquireBinding(iri, target, options) {
+      return selectBinding(iri, () =>
+        client.acquireBinding(iri, target, options),
+      );
     },
   });
 }

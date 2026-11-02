@@ -2,7 +2,7 @@ import js from "@eslint/js";
 import { defineConfig } from "eslint/config";
 import compat from "eslint-plugin-compat";
 import globals from "globals";
-import { jsonQualityEslint } from "./tooling/json/public-api.mjs";
+import jsonQualityEslint from "@hadden-industries/json-quality/eslint";
 
 export default defineConfig([
   // Native Ajv output is checked by deterministic regeneration and protocol fixtures.

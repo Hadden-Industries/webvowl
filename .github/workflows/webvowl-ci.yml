@@ -159,11 +159,10 @@ jobs:
         with:
           node-version-file: .node-version
           package-manager-cache: false
-      - name: Acquire locked root and isolated JSON tooling
+      - name: Acquire locked root dependencies
         run: |
           node util/installSelectedNpm.mjs
           npm ci --ignore-scripts
-          npm run install:json
       - run: npm run test:json
       - name: Produce current Vite JSON outputs without formatting source
         run: npm run build:bundle
@@ -208,7 +207,6 @@ jobs:
         run: |
           node util/installSelectedNpm.mjs
           npm ci --ignore-scripts
-      - run: npm run install:json
       - run: npm test -- --runInBand
       - run: npm run build
       - name: Check deterministic production byte and worker-closure budgets

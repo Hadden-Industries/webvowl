@@ -99,6 +99,7 @@ export async function runCanonicalVowlOperation(
       const opened = await openOwl(bytes, {
         documentIri: request.documentIri,
         mediaType: request.mediaType,
+        owlMappingStrategy: request.owlMappingStrategy,
         limits,
         resolveImport,
       });

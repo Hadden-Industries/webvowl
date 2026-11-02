@@ -1,6 +1,7 @@
 import { jest } from "@jest/globals";
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
+import canonicalize from "canonicalize";
 import {
   MissingImportError,
   ResourceLimitError,
@@ -9,6 +10,7 @@ import {
 import { createOntologyMaterializationClient } from "./ontologyMaterializationClient.js";
 import { createCachedOntologySourceAcquisition } from "./cachedOntologySourceAcquisition.js";
 import { validateOntologyCacheRecord } from "./ontologyResolutionEvidence.js";
+import { ontologyRecordIdentity } from "./ontologySourceIdentity.js";
 
 const fixtures = JSON.parse(
   readFileSync(
@@ -111,6 +113,407 @@ test("static hit verifies the complete chain, exact bytes and origin parser cont
   }
 });
 
+test("retained binding selection verifies immutable bytes and cannot be supplied by a caller clone", async () => {
+  const h = harness();
+  const acquisition = createCachedOntologySourceAcquisition({
+    ...h.options,
+    resolver: {},
+  });
+  const target = `${h.pointer.currentBinding.artifactIri}?source=${h.pointer.sourceKey}&binding=${h.pointer.currentBinding.resolutionIdentity}`;
+  const selected = await acquisition.acquireBinding(source, target, {});
+  const result = await acquisition.acquire(source, {
+    selectedBindings: new Map([[source, selected]]),
+  });
+  expect(result.bytes).toEqual(selected.bytes);
+  expect(result.bytes).not.toBe(selected.bytes);
+  await expect(
+    acquisition.acquire(source, {
+      selectedBindings: new Map([[source, structuredClone(selected)]]),
+    }),
+  ).rejects.toHaveProperty("code", "CACHE_PROTOCOL_INVALID");
+  expect(
+    h.fetchImpl.mock.calls.every(
+      ([url]) =>
+        !url.includes("/ontology/materializations") &&
+        !url.includes("/provenance/"),
+    ),
+  ).toBe(true);
+});
+
+test("retained binding selection never admits corrupted artifact bytes", async () => {
+  const h = harness({ artifactText: "changed" });
+  const acquisition = createCachedOntologySourceAcquisition({
+    ...h.options,
+    resolver: {},
+  });
+  const target = `${h.pointer.currentBinding.artifactIri}?source=${h.pointer.sourceKey}&binding=${h.pointer.currentBinding.resolutionIdentity}`;
+  await expect(
+    acquisition.acquireBinding(source, target, {}),
+  ).rejects.toHaveProperty("code", "CACHE_ARTIFACT_CORRUPT");
+});
+
+async function curatedHarness(mutate, options = {}) {
+  const resolution = example("curated-archive-resolution");
+  mutate?.(resolution);
+  const { resolutionIdentity: previous, ...input } = resolution;
+  expect(previous).toBeDefined();
+  resolution.resolutionIdentity = await ontologyRecordIdentity(
+    "resolution",
+    input,
+  );
+  return harness({
+    ...options,
+    mutate(records, pointer) {
+      records.delete(pointer.currentBinding.resolutionIri);
+      pointer.currentBinding.resolutionIdentity = resolution.resolutionIdentity;
+      pointer.currentBinding.resolutionIri = `${origin}/ontology/cache/resolutions/sha256/${resolution.resolutionIdentity}.json`;
+      for (const field of [
+        "acquiredAt",
+        "lastSuccessfullyCheckedAt",
+        "lastChangedAt",
+        "freshUntil",
+      ]) {
+        if (Object.hasOwn(pointer, field)) {
+          pointer[field] = resolution.acquiredAt;
+        }
+      }
+      records.set(pointer.currentBinding.resolutionIri, resolution);
+    },
+  });
+}
+
+test("curated archive lookup verifies exact bytes with the original parser base and no archive or API fetch", async () => {
+  const h = await curatedHarness();
+  const acquired = await h.client.lookup(source);
+  expect(acquired.bytes).toEqual(
+    encoder.encode(fixtures.ontologySource.utf8Text),
+  );
+  expect(acquired.documentIri).toBe(fixtures.ontologySource.parserDocumentIri);
+  expect(h.fetchImpl).toHaveBeenCalledTimes(6);
+  expect(
+    h.fetchImpl.mock.calls.every(([url]) =>
+      url.startsWith(origin + "/ontology/cache/"),
+    ),
+  ).toBe(true);
+});
+
+test.each([
+  [
+    "original parser context",
+    (r) => {
+      r.archiveCapture.originalDocumentIri =
+        "https://other.example.test/root.ttl";
+    },
+  ],
+  [
+    "archive used as retrieval context",
+    (r) => {
+      r.retrievalIri = r.archiveCapture.archiveIri;
+    },
+  ],
+  [
+    "new check time",
+    (r) => {
+      r.checkedAt = "2026-10-01T00:00:00.000Z";
+    },
+  ],
+  [
+    "future capture",
+    (r) => {
+      r.archiveCapture.capturedAt =
+        r.acquiredAt =
+        r.checkedAt =
+          "2099-01-01T00:00:00.000Z";
+    },
+  ],
+  [
+    "invalid calendar date",
+    (r) => {
+      r.archiveCapture.capturedAt =
+        r.acquiredAt =
+        r.checkedAt =
+          "2024-02-30T03:41:07.000Z";
+    },
+  ],
+  [
+    "noncanonical original URI",
+    (r) => {
+      r.archiveCapture.originalDocumentIri =
+        "https://origin.example.test/v1/../v1/root.ttl";
+    },
+  ],
+  [
+    "original fragment",
+    (r) => {
+      r.archiveCapture.originalDocumentIri += "#part";
+    },
+  ],
+  [
+    "archive IPvFuture IRI",
+    (r) => {
+      r.archiveCapture.archiveIri = "https://[v1.example]/";
+    },
+  ],
+  [
+    "original-context IPvFuture IRI",
+    (r) => {
+      r.archiveCapture.originalDocumentIri = "https://[v1.example]/";
+    },
+  ],
+  [
+    "archive fragment",
+    (r) => {
+      r.archiveCapture.archiveIri += "#part";
+    },
+  ],
+  [
+    "noncanonical archive URI",
+    (r) => {
+      r.archiveCapture.archiveIri =
+        "https://archive.example.test/a/../root.ttl";
+    },
+  ],
+  [
+    "provenance byte limit",
+    (r) => {
+      r.archiveCapture.knownOriginalHeaders.etag = "x".repeat(4096);
+      r.archiveCapture.knownOriginalHeaders["last-modified"] = "y".repeat(4096);
+    },
+  ],
+  [
+    "header control character",
+    (r) => {
+      r.archiveCapture.knownOriginalHeaders.etag = "value\n";
+    },
+  ],
+  [
+    "media control character",
+    (r) => {
+      r.archiveCapture.archiveMediaType = "text/turtle\n";
+    },
+  ],
+  [
+    "invented request facts",
+    (r) => {
+      r.requestVariant = example("A-resolution").requestVariant;
+    },
+  ],
+  [
+    "automatic disposition with unknown HTTP facts",
+    (r) => {
+      r.publicationDisposition = "AUTOMATIC_PUBLIC_ARCHIVE";
+    },
+  ],
+])(
+  "curated archive rejects rehashed invalid %s before artifact acquisition",
+  async (_label, mutate) => {
+    const h = await curatedHarness(mutate);
+    await expect(h.client.lookup(source)).rejects.toHaveProperty(
+      "code",
+      "CACHE_PROTOCOL_INVALID",
+    );
+    expect(
+      h.fetchImpl.mock.calls.some(([url]) => url.includes("/artifacts/")),
+    ).toBe(false);
+  },
+);
+
+test("curated archive still rejects changed artifact bytes", async () => {
+  const h = await curatedHarness(undefined, { artifactText: "changed" });
+  await expect(h.client.lookup(source)).rejects.toHaveProperty(
+    "code",
+    "CACHE_ARTIFACT_CORRUPT",
+  );
+});
+
+test.each(["acquireBinding", "materialize"])(
+  "%s shares immutable policy acquisition only within the supplied load context",
+  async (method) => {
+    const h = harness({
+      api({ response, pointer }) {
+        return response(
+          encoder.encode(fixtures.ontologySource.utf8Text),
+          `${pointer.currentBinding.artifactIri}?source=${pointer.sourceKey}&binding=${pointer.currentBinding.resolutionIdentity}`,
+        );
+      },
+    });
+    const target = `${h.pointer.currentBinding.artifactIri}?source=${h.pointer.sourceKey}&binding=${h.pointer.currentBinding.resolutionIdentity}`;
+    const acquire = (context) =>
+      method === "acquireBinding"
+        ? h.client.acquireBinding(source, target, { context })
+        : h.client.materialize(source, { context });
+    const context = {};
+    await Promise.all([acquire(context), acquire(context)]);
+    const policyCalls = () =>
+      h.fetchImpl.mock.calls.filter(([url]) => url.includes("/policies/"));
+    expect(policyCalls()).toHaveLength(1);
+    await acquire({});
+    expect(policyCalls()).toHaveLength(2);
+  },
+);
+
+test.each(["heuristic", "unambiguous"])(
+  "a %s policy accepts its matching validation and rejects relabelled mapping evidence before artifact fetch",
+  async (owlMappingStrategy) => {
+    const h = harness();
+    const resolution = example("A-resolution");
+    const policy = example("loader-policy");
+    const validation = example("A-validation");
+    if (owlMappingStrategy === "heuristic") {
+      policy.policy.validationProfileId =
+        "ontology-source-document-heuristic-v1";
+      policy.policy.parseMode = "compatible";
+    }
+    policy.loaderProfileFingerprint = await ontologyRecordIdentity(
+      "loader-policy",
+      policy.policy,
+    );
+    validation.identityInputs.loaderProfileFingerprint =
+      policy.loaderProfileFingerprint;
+    validation.validationProfileId = policy.policy.validationProfileId;
+    validation.parseMode = policy.policy.parseMode;
+    validation.validationIdentity = await ontologyRecordIdentity(
+      "document-validation",
+      validation.identityInputs,
+    );
+    resolution.loaderProfileFingerprint = policy.loaderProfileFingerprint;
+    resolution.loaderPolicyIri = `${origin}/ontology/cache/policies/sha256/${policy.loaderProfileFingerprint}.json`;
+    resolution.validationIdentity = validation.validationIdentity;
+    resolution.validationIri = `${origin}/ontology/cache/validations/sha256/${validation.validationIdentity}.json`;
+    const resolutionInput = { ...resolution };
+    delete resolutionInput.resolutionIdentity;
+    resolution.resolutionIdentity = await ontologyRecordIdentity(
+      "resolution",
+      resolutionInput,
+    );
+    const resolutionIri = `${origin}/ontology/cache/resolutions/sha256/${resolution.resolutionIdentity}.json`;
+    Object.assign(h.pointer.currentBinding, {
+      resolutionIdentity: resolution.resolutionIdentity,
+      resolutionIri,
+      validationIdentity: validation.validationIdentity,
+      validationIri: resolution.validationIri,
+    });
+    h.records.set(resolutionIri, resolution);
+    h.records.set(resolution.loaderPolicyIri, policy);
+    h.records.set(resolution.validationIri, validation);
+    const client = createOntologyMaterializationClient({
+      ...h.options,
+      approvedPolicyFingerprints: [policy.loaderProfileFingerprint],
+    });
+    await expect(client.lookup(source)).resolves.toHaveProperty("bytes");
+    validation.validationProfileId =
+      owlMappingStrategy === "heuristic"
+        ? "ontology-source-document-v1"
+        : "ontology-source-document-heuristic-v1";
+    validation.parseMode =
+      owlMappingStrategy === "heuristic" ? "preserve" : "compatible";
+    expect(() =>
+      validateOntologyCacheRecord("validation", validation),
+    ).not.toThrow();
+    h.fetchImpl.mockClear();
+    await expect(client.lookup(source)).rejects.toHaveProperty(
+      "code",
+      "CACHE_PROTOCOL_INVALID",
+    );
+    expect(
+      h.fetchImpl.mock.calls.some(([url]) => url.includes("/artifacts/")),
+    ).toBe(false);
+  },
+);
+
+test.each(["waiter", "owner"])(
+  "a cancelled shared-policy %s cannot delay or cancel the other caller",
+  async (cancelled) => {
+    const h = harness();
+    let entered, release;
+    const policyStarted = new Promise((resolve) => {
+      entered = resolve;
+    });
+    let firstPolicy = true;
+    const client = createOntologyMaterializationClient({
+      ...h.options,
+      fetchImpl: async (url, options) => {
+        if (firstPolicy && url.includes("/policies/")) {
+          firstPolicy = false;
+          entered();
+          await new Promise((resolve, reject) => {
+            release = resolve;
+            options.signal.addEventListener(
+              "abort",
+              () => reject(options.signal.reason),
+              { once: true },
+            );
+          });
+        }
+        return h.fetchImpl(url, options);
+      },
+    });
+    const context = {};
+    const owner = new AbortController(),
+      waiter = new AbortController();
+    const first = client.lookup(source, { context, signal: owner.signal });
+    const firstOutcome = Promise.allSettled([first]);
+    await policyStarted;
+    let secondSettled = false;
+    const second = client.lookup(source, { context, signal: waiter.signal });
+    const secondOutcome = Promise.allSettled([second]).then((value) => {
+      secondSettled = true;
+      return value;
+    });
+    for (let index = 0; index < 20; index++) {
+      await new Promise(setImmediate);
+    }
+    const reason = new Error("cancel this caller");
+    (cancelled === "owner" ? owner : waiter).abort(reason);
+    try {
+      for (let index = 0; index < 50 && !secondSettled; index++) {
+        await new Promise(setImmediate);
+      }
+      expect(secondSettled).toBe(true);
+      const [result] = await secondOutcome;
+      if (cancelled === "waiter") {
+        expect(result).toMatchObject({ status: "rejected", reason });
+        release();
+        expect((await firstOutcome)[0].status).toBe("fulfilled");
+      } else {
+        expect(result.status).toBe("fulfilled");
+        expect((await firstOutcome)[0]).toMatchObject({
+          status: "rejected",
+          reason,
+        });
+      }
+    } finally {
+      release();
+      owner.abort();
+      waiter.abort();
+      await Promise.all([firstOutcome, secondOutcome]);
+    }
+  },
+);
+
+test("a failed policy read is evicted before a new acquisition in the same load context", async () => {
+  const h = harness();
+  let fail = true;
+  const client = createOntologyMaterializationClient({
+    ...h.options,
+    fetchImpl: async (url, options) => {
+      if (url.includes("/policies/") && fail) {
+        fail = false;
+        throw new TypeError("transient transport failure");
+      }
+      return h.fetchImpl(url, options);
+    },
+  });
+  const context = {};
+  await expect(client.lookup(source, { context })).rejects.toThrow(
+    "transient transport failure",
+  );
+  const target = `${h.pointer.currentBinding.artifactIri}?source=${h.pointer.sourceKey}&binding=${h.pointer.currentBinding.resolutionIdentity}`;
+  await expect(
+    client.acquireBinding(source, target, { context }),
+  ).resolves.toHaveProperty("bytes");
+});
+
 test.each([
   [
     "resolution",
@@ -160,6 +563,156 @@ test("artifact digest mismatch is rejected after bounded acquisition", async () 
     "code",
     "CACHE_ARTIFACT_CORRUPT",
   );
+});
+
+test.each([502, 503, 504])(
+  "a redirected artifact HTTP %i is retried once after verifying evidence without repeating admission",
+  async (status) => {
+    const h = harness({
+      api({ response, pointer }) {
+        return response(
+          "Resource unavailable.",
+          `${pointer.currentBinding.artifactIri}?source=${pointer.sourceKey}&binding=${pointer.currentBinding.resolutionIdentity}`,
+          status,
+        );
+      },
+    });
+    const result = await h.client.materialize(source);
+    expect(result.bytes).toEqual(
+      encoder.encode(fixtures.ontologySource.utf8Text),
+    );
+    expect(
+      h.fetchImpl.mock.calls.filter(([, options]) => options.method === "POST"),
+    ).toHaveLength(1);
+    const reads = h.fetchImpl.mock.calls.filter(
+      ([url]) => url === h.pointer.currentBinding.artifactIri,
+    );
+    expect(reads).toHaveLength(1);
+    expect(reads[0][1]).toMatchObject({
+      credentials: "omit",
+      redirect: "error",
+    });
+    expect(reads[0][1].headers).toBeUndefined();
+  },
+);
+
+test("a second transient artifact failure stops after two GETs", async () => {
+  const h = harness();
+  const original = h.options.fetchImpl;
+  let artifacts = 0;
+  h.options.fetchImpl = async (url, options) => {
+    if (url === h.pointer.currentBinding.artifactIri) {
+      artifacts++;
+      return h.response("unavailable", url, 503);
+    }
+    return original(url, options);
+  };
+  await expect(
+    createOntologyMaterializationClient(h.options).lookup(source),
+  ).rejects.toHaveProperty("code", "CACHE_PROTOCOL_INVALID");
+  expect(artifacts).toBe(2);
+});
+
+test.each([403, 404, 429])(
+  "artifact HTTP %i is not retried",
+  async (status) => {
+    const h = harness();
+    const original = h.options.fetchImpl;
+    let artifacts = 0;
+    h.options.fetchImpl = async (url, options) => {
+      if (url === h.pointer.currentBinding.artifactIri) {
+        artifacts++;
+        return h.response("unavailable", url, status);
+      }
+      return original(url, options);
+    };
+    await expect(
+      createOntologyMaterializationClient(h.options).lookup(source),
+    ).rejects.toThrow();
+    expect(artifacts).toBe(1);
+  },
+);
+
+test("a redirected artifact retry still rejects changed bytes", async () => {
+  const h = harness({
+    artifactText: "corrupted",
+    api({ response, pointer }) {
+      return response(
+        "unavailable",
+        `${pointer.currentBinding.artifactIri}?source=${pointer.sourceKey}&binding=${pointer.currentBinding.resolutionIdentity}`,
+        503,
+      );
+    },
+  });
+  await expect(h.client.materialize(source)).rejects.toHaveProperty(
+    "code",
+    "CACHE_ARTIFACT_CORRUPT",
+  );
+});
+
+test("a transient artifact response cannot bypass an unsupported loader policy", async () => {
+  const h = harness({
+    api({ response, pointer }) {
+      return response(
+        "unavailable",
+        `${pointer.currentBinding.artifactIri}?source=${pointer.sourceKey}&binding=${pointer.currentBinding.resolutionIdentity}`,
+        503,
+      );
+    },
+  });
+  await expect(
+    createOntologyMaterializationClient({
+      ...h.options,
+      approvedPolicyFingerprints: [],
+    }).materialize(source),
+  ).rejects.toHaveProperty("code", "CACHE_POLICY_UNSUPPORTED");
+  expect(
+    h.fetchImpl.mock.calls.some(
+      ([url]) => url === h.pointer.currentBinding.artifactIri,
+    ),
+  ).toBe(false);
+});
+
+test.each(["86400", "not-a-date"])(
+  "an unusable artifact Retry-After %s does not cause another read",
+  async (hint) => {
+    const h = harness();
+    const original = h.options.fetchImpl;
+    let artifacts = 0;
+    h.options.fetchImpl = async (url, options) => {
+      if (url === h.pointer.currentBinding.artifactIri) {
+        artifacts++;
+        return h.response("unavailable", url, 503, { "retry-after": hint });
+      }
+      return original(url, options);
+    };
+    await expect(
+      createOntologyMaterializationClient(h.options).lookup(source),
+    ).rejects.toThrow();
+    expect(artifacts).toBe(1);
+  },
+);
+
+test("cancellation stops the transient artifact retry before another GET", async () => {
+  const h = harness();
+  const original = h.options.fetchImpl;
+  const controller = new AbortController();
+  const reason = new Error("cancel artifact recovery");
+  let artifacts = 0;
+  h.options.fetchImpl = async (url, options) => {
+    if (url === h.pointer.currentBinding.artifactIri) {
+      artifacts++;
+      queueMicrotask(() => controller.abort(reason));
+      return h.response("unavailable", url, 503);
+    }
+    return original(url, options);
+  };
+  await expect(
+    createOntologyMaterializationClient(h.options).lookup(source, {
+      signal: controller.signal,
+    }),
+  ).rejects.toBe(reason);
+  expect(artifacts).toBe(1);
 });
 
 test("unsupported policy never downloads an artifact", async () => {
@@ -451,6 +1004,230 @@ test("first caller polls one admitted generation and never submits it again", as
     fetchImpl.mock.calls.filter(([, options]) => options.method === "POST"),
   ).toHaveLength(1);
 });
+
+test.each([
+  [0, 6],
+  [2, 6],
+  [0, 20],
+])(
+  "pending polling honors hint %i and accepts completion on GET %i",
+  async (hint, terminalPoll) => {
+    const pending = example("pending-materialization");
+    const originalTimer = globalThis.setTimeout;
+    const delays = [];
+    const timer = jest
+      .spyOn(globalThis, "setTimeout")
+      .mockImplementation((callback, milliseconds) => {
+        delays.push(milliseconds);
+        return originalTimer(callback, 0);
+      });
+    const random = jest.spyOn(Math, "random").mockReturnValue(0);
+    let polls = 0;
+    try {
+      const { client, fetchImpl } = harness({
+        api({ url, options, response, pointer }) {
+          if (options.method !== "POST" && ++polls === terminalPoll) {
+            return response(
+              encoder.encode(fixtures.ontologySource.utf8Text),
+              `${pointer.currentBinding.artifactIri}?source=${pointer.sourceKey}&binding=${pointer.currentBinding.resolutionIdentity}`,
+            );
+          }
+          return response(JSON.stringify(pending), url, 202, {
+            "content-type": "application/json",
+            location: pending.statusIri,
+            "retry-after": String(hint),
+          });
+        },
+      });
+      await client.materialize(source);
+      expect(delays).toEqual(
+        hint === 0
+          ? [
+              100,
+              200,
+              400,
+              800,
+              1600,
+              3200,
+              ...Array(terminalPoll - 6).fill(4000),
+            ]
+          : [2000, 2000, 2000, 2000, 2000, 3200],
+      );
+      expect(
+        fetchImpl.mock.calls.filter(([, options]) => options.method === "POST"),
+      ).toHaveLength(1);
+    } finally {
+      timer.mockRestore();
+      random.mockRestore();
+    }
+  },
+);
+
+test("a pending observation never schedules a wait beyond its remaining deadline", async () => {
+  const pending = example("pending-materialization");
+  const { options, fetchImpl } = harness({
+    api({ url, response }) {
+      return response(JSON.stringify(pending), url, 202, {
+        "content-type": "application/json",
+        location: pending.statusIri,
+        "retry-after": "0",
+      });
+    },
+  });
+  const client = createOntologyMaterializationClient({
+    ...options,
+    deadlineMs: 50,
+  });
+  await expect(client.materialize(source)).rejects.toHaveProperty(
+    "code",
+    "CACHE_PENDING",
+  );
+  expect(fetchImpl).toHaveBeenCalledTimes(1);
+});
+
+test("slow work completing after thirty-six seconds remains observable within the deadline and request ceiling", async () => {
+  const originalTimer = globalThis.setTimeout;
+  let elapsed = 0;
+  const timer = jest
+    .spyOn(globalThis, "setTimeout")
+    .mockImplementation((callback, milliseconds) => {
+      elapsed += milliseconds;
+      return originalTimer(callback, 0);
+    });
+  const random = jest.spyOn(Math, "random").mockReturnValue(0);
+  try {
+    const pending = example("pending-materialization");
+    const { options, fetchImpl } = harness({
+      api({ url, response, pointer }) {
+        if (elapsed >= 36000) {
+          return response(
+            encoder.encode(fixtures.ontologySource.utf8Text),
+            `${pointer.currentBinding.artifactIri}?source=${pointer.sourceKey}&binding=${pointer.currentBinding.resolutionIdentity}`,
+          );
+        }
+        return response(JSON.stringify(pending), url, 202, {
+          "content-type": "application/json",
+          location: pending.statusIri,
+          "retry-after": "0",
+        });
+      },
+    });
+    const client = createOntologyMaterializationClient({
+      ...options,
+      now: () => elapsed,
+    });
+    expect((await client.materialize(source)).bytes).toEqual(
+      encoder.encode(fixtures.ontologySource.utf8Text),
+    );
+    expect(elapsed).toBeLessThan(60000);
+    expect(
+      fetchImpl.mock.calls.filter(
+        ([url, options]) =>
+          url.includes("/materializations/") && options.method !== "POST",
+      ).length,
+    ).toBeLessThanOrEqual(20);
+    expect(
+      fetchImpl.mock.calls.filter(([, options]) => options.method === "POST"),
+    ).toHaveLength(1);
+  } finally {
+    timer.mockRestore();
+    random.mockRestore();
+  }
+});
+
+test("perpetually pending work stops after twenty bounded observations", async () => {
+  const originalTimer = globalThis.setTimeout;
+  const timer = jest
+    .spyOn(globalThis, "setTimeout")
+    .mockImplementation((callback) => originalTimer(callback, 0));
+  try {
+    const pending = example("pending-materialization");
+    const { client, fetchImpl } = harness({
+      api({ url, response }) {
+        return response(JSON.stringify(pending), url, 202, {
+          "content-type": "application/json",
+          location: pending.statusIri,
+          "retry-after": "0",
+        });
+      },
+    });
+    await expect(client.materialize(source)).rejects.toHaveProperty(
+      "code",
+      "CACHE_PENDING",
+    );
+    expect(fetchImpl).toHaveBeenCalledTimes(21);
+  } finally {
+    timer.mockRestore();
+  }
+});
+
+test("cancellation interrupts polling before another status request", async () => {
+  const abort = new AbortController();
+  const pending = example("pending-materialization");
+  const { client, fetchImpl } = harness({
+    api({ url, response, options }) {
+      if (options.method !== "POST") {
+        abort.abort();
+      }
+      return response(JSON.stringify(pending), url, 202, {
+        "content-type": "application/json",
+        location: pending.statusIri,
+        "retry-after": "0",
+      });
+    },
+  });
+  await expect(
+    client.materialize(source, { signal: abort.signal }),
+  ).rejects.toHaveProperty("name", "AbortError");
+  expect(fetchImpl).toHaveBeenCalledTimes(2);
+});
+
+test.each(["valid", "count", "mode", "bytes", "invalid-iri", "throwing-iri"])(
+  "direct-import hints %s are checked before artifact acquisition",
+  async (variant) => {
+    const { client, fetchImpl } = harness({
+      mutate(records, pointer) {
+        const oldIri = pointer.currentBinding.resolutionIri;
+        const resolution = records.get(oldIri);
+        const iri =
+          variant === "invalid-iri"
+            ? "https://example.test/space here"
+            : variant === "throwing-iri"
+              ? "https://[v1.a]/child"
+              : fixtures.ontologySource.expectedResolvedImportIri;
+        resolution.declaredImports = {
+          owlMappingStrategy: variant === "mode" ? "heuristic" : "unambiguous",
+          iris: variant === "count" ? [] : [iri],
+          iriByteLength:
+            variant === "bytes" ? 0 : encoder.encode(iri).byteLength,
+        };
+        const { resolutionIdentity: ignored, ...input } = resolution;
+        expect(ignored).toBeDefined();
+        resolution.resolutionIdentity = createHash("sha256")
+          .update("hadden-ontology-cache/resolution/v1\n" + canonicalize(input))
+          .digest("hex");
+        pointer.currentBinding.resolutionIdentity =
+          resolution.resolutionIdentity;
+        pointer.currentBinding.resolutionIri = `${origin}/ontology/cache/resolutions/sha256/${resolution.resolutionIdentity}.json`;
+        records.delete(oldIri);
+        records.set(pointer.currentBinding.resolutionIri, resolution);
+      },
+    });
+    if (variant === "valid") {
+      expect(
+        (await client.lookup(source)).resolution.declaredImports.iris,
+      ).toEqual([fixtures.ontologySource.expectedResolvedImportIri]);
+    } else {
+      await expect(client.lookup(source)).rejects.toHaveProperty(
+        "code",
+        "CACHE_PROTOCOL_INVALID",
+      );
+      expect(
+        fetchImpl.mock.calls.some(([url]) => url.includes("/artifacts/")),
+      ).toBe(false);
+    }
+  },
+);
 
 test("uncached apply confirmation rejects a superseded candidate and preserves the offered identity", async () => {
   const { client, fetchImpl } = harness({

@@ -340,7 +340,9 @@
         "diagnosticCodes": [],
         "diagnosticsTruncated": false,
         "importDeclarationCount": 1,
-        "ontologyIris": ["https://origin.example.test/v1/root.ttl"],
+        "ontologyIris": [
+          "https://origin.example.test/v1/root.ttl"
+        ],
         "declaredVersionIris": [],
         "identifiersTruncated": false
       }
@@ -379,7 +381,9 @@
           "contentType": "text/turtle",
           "contentEncoding": "identity",
           "cacheControl": "public, max-age=86400",
-          "vary": ["accept"],
+          "vary": [
+            "accept"
+          ],
           "validators": {
             "etag": "\"fixture-A\""
           }
@@ -441,7 +445,9 @@
         "diagnosticCodes": [],
         "diagnosticsTruncated": false,
         "importDeclarationCount": 1,
-        "ontologyIris": ["https://origin.example.test/v1/root.ttl"],
+        "ontologyIris": [
+          "https://origin.example.test/v1/root.ttl"
+        ],
         "declaredVersionIris": [],
         "identifiersTruncated": false
       }
@@ -480,7 +486,9 @@
           "contentType": "text/turtle",
           "contentEncoding": "identity",
           "cacheControl": "public, max-age=86400",
-          "vary": ["accept"],
+          "vary": [
+            "accept"
+          ],
           "validators": {
             "etag": "\"fixture-A\""
           }
@@ -542,7 +550,9 @@
         "diagnosticCodes": [],
         "diagnosticsTruncated": false,
         "importDeclarationCount": 1,
-        "ontologyIris": ["https://origin.example.test/v1/root.ttl"],
+        "ontologyIris": [
+          "https://origin.example.test/v1/root.ttl"
+        ],
         "declaredVersionIris": [],
         "identifiersTruncated": false
       }
@@ -581,7 +591,9 @@
           "contentType": "text/turtle",
           "contentEncoding": "identity",
           "cacheControl": "public, max-age=86400",
-          "vary": ["accept"],
+          "vary": [
+            "accept"
+          ],
           "validators": {
             "etag": "\"fixture-B\""
           }
@@ -1385,6 +1397,2674 @@
         "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
         "checkedAt": "2026-10-01T00:00:00.000Z"
       }
+    },
+    {
+      "id": "heuristic-loader-policy",
+      "schema": "ontology-loader-policy.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "loader-policy",
+        "loaderProfileFingerprint": "2afb887ab1efefbb5070cd55c1fe5e6b362400fae8f247ebf24b0763ee50f418",
+        "policy": {
+          "validationContractVersion": 1,
+          "validationProfileId": "ontology-source-document-heuristic-v1",
+          "parseMode": "compatible",
+          "formatSelectionMode": "automatic",
+          "decodingPolicy": "strict-utf8-v1",
+          "parserBasePolicy": "effective-origin-response-v1",
+          "transportPolicy": "https-preferred-original-http-fallback-v1",
+          "remoteImports": false,
+          "remoteJsonLdContexts": false,
+          "externalXmlResources": false,
+          "sourceAssessmentAdmission": "report-only",
+          "formatInventorySha256": "4444444444444444444444444444444444444444444444444444444444444444",
+          "acceptPreferenceSha256": "5555555555555555555555555555555555555555555555555555555555555555",
+          "requestVariant": {
+            "accept": "text/turtle",
+            "acceptEncoding": "identity",
+            "selectionPolicyVersion": 1
+          },
+          "owlapiArtifact": {
+            "dependencyName": "owlapi",
+            "packageName": "owlapi",
+            "packageVersion": "0.0.0-contract-fixture",
+            "selector": "synthetic-contract-fixture-only",
+            "sourceCommit": "0000000000000000000000000000000000000000",
+            "archiveSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+            "installedPayloadSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+            "dependencyClosureSha256": "3333333333333333333333333333333333333333333333333333333333333333",
+            "runtimeTarget": "synthetic-no-runtime"
+          },
+          "limits": {
+            "encodedBytes": 33554432,
+            "decodedBytes": 33554432,
+            "expandedXmlBytes": 33554432,
+            "decompressionRatio": 100,
+            "redirects": 3,
+            "dnsMs": 3000,
+            "connectTlsMs": 5000,
+            "headersMs": 10000,
+            "retrievalMs": 30000,
+            "parseMs": 20000,
+            "workerMs": 60000,
+            "workerMemoryMiB": 2048,
+            "tokenCount": 4000000,
+            "tokenBytes": 1048576,
+            "axiomCount": 200000,
+            "blankNodeCount": 1000000,
+            "rdfQuadCount": 1000000,
+            "rdfListLength": 1000000,
+            "parserDepth": 128,
+            "entityDeclarations": 64,
+            "entityExpansionDepth": 8,
+            "entityReplacementBytes": 65536,
+            "importFetchCount": 0
+          },
+          "dependencyTranslations": [
+            {
+              "gate": "encodedBytes",
+              "enforcementTarget": "fixture-only:encodedBytes",
+              "unit": "bytes",
+              "value": 33554432,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "decodedBytes",
+              "enforcementTarget": "fixture-only:decodedBytes",
+              "unit": "bytes",
+              "value": 33554432,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "expandedXmlBytes",
+              "enforcementTarget": "fixture-only:expandedXmlBytes",
+              "unit": "bytes",
+              "value": 33554432,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "decompressionRatio",
+              "enforcementTarget": "fixture-only:decompressionRatio",
+              "unit": "ratio",
+              "value": 100,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "redirects",
+              "enforcementTarget": "fixture-only:redirects",
+              "unit": "count",
+              "value": 3,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "dnsMs",
+              "enforcementTarget": "fixture-only:dnsMs",
+              "unit": "milliseconds",
+              "value": 3000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "connectTlsMs",
+              "enforcementTarget": "fixture-only:connectTlsMs",
+              "unit": "milliseconds",
+              "value": 5000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "headersMs",
+              "enforcementTarget": "fixture-only:headersMs",
+              "unit": "milliseconds",
+              "value": 10000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "retrievalMs",
+              "enforcementTarget": "fixture-only:retrievalMs",
+              "unit": "milliseconds",
+              "value": 30000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "parseMs",
+              "enforcementTarget": "fixture-only:parseMs",
+              "unit": "milliseconds",
+              "value": 20000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "workerMs",
+              "enforcementTarget": "fixture-only:workerMs",
+              "unit": "milliseconds",
+              "value": 60000,
+              "scope": "worker",
+              "enforcement": "worker-isolation"
+            },
+            {
+              "gate": "workerMemoryMiB",
+              "enforcementTarget": "fixture-only:workerMemoryMiB",
+              "unit": "mebibytes",
+              "value": 2048,
+              "scope": "worker",
+              "enforcement": "worker-isolation"
+            },
+            {
+              "gate": "tokenCount",
+              "enforcementTarget": "fixture-only:tokenCount",
+              "unit": "count",
+              "value": 4000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "tokenBytes",
+              "enforcementTarget": "fixture-only:tokenBytes",
+              "unit": "bytes",
+              "value": 1048576,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "axiomCount",
+              "enforcementTarget": "fixture-only:axiomCount",
+              "unit": "count",
+              "value": 200000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "blankNodeCount",
+              "enforcementTarget": "fixture-only:blankNodeCount",
+              "unit": "count",
+              "value": 1000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "rdfQuadCount",
+              "enforcementTarget": "fixture-only:rdfQuadCount",
+              "unit": "count",
+              "value": 1000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "rdfListLength",
+              "enforcementTarget": "fixture-only:rdfListLength",
+              "unit": "count",
+              "value": 1000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "parserDepth",
+              "enforcementTarget": "fixture-only:parserDepth",
+              "unit": "depth",
+              "value": 128,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "entityDeclarations",
+              "enforcementTarget": "fixture-only:entityDeclarations",
+              "unit": "count",
+              "value": 64,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "entityExpansionDepth",
+              "enforcementTarget": "fixture-only:entityExpansionDepth",
+              "unit": "depth",
+              "value": 8,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "entityReplacementBytes",
+              "enforcementTarget": "fixture-only:entityReplacementBytes",
+              "unit": "bytes",
+              "value": 65536,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "importFetchCount",
+              "enforcementTarget": "fixture-only:importFetchCount",
+              "unit": "count",
+              "value": 0,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "heuristic-validation",
+      "schema": "ontology-validation.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "document-validation",
+        "validationIdentity": "2d48e74475b07cc97ca6081952c5af7295bd4c0a6b867ee968c965f4a68abde6",
+        "identityInputs": {
+          "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+          "formatSelectionMode": "automatic",
+          "explicitFormatId": null,
+          "observedFormatId": "turtle",
+          "owlapiArtifactIdentity": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619",
+          "loaderProfileFingerprint": "2afb887ab1efefbb5070cd55c1fe5e6b362400fae8f247ebf24b0763ee50f418",
+          "validationContractVersion": 1
+        },
+        "validationProfileId": "ontology-source-document-heuristic-v1",
+        "documentState": "DOCUMENT_VALIDATED",
+        "parseMode": "compatible",
+        "sourceBytesRetained": true,
+        "sourceAssessment": "unverified",
+        "profileAssessment": "NOT_EVALUATED",
+        "closureQualification": "UNASSESSED",
+        "consumerAdmission": "NOT_EVALUATED",
+        "diagnosticCodes": [],
+        "diagnosticsTruncated": false,
+        "importDeclarationCount": 1,
+        "ontologyIris": [
+          "https://origin.example.test/v1/root.ttl"
+        ],
+        "declaredVersionIris": [],
+        "identifiersTruncated": false
+      }
+    },
+    {
+      "id": "reject-heuristic-loader-policy-mismatched-profile",
+      "schema": "ontology-loader-policy.v1.schema.json",
+      "expectedSchemaValid": false,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "loader-policy",
+        "loaderProfileFingerprint": "834f42813222c180fba978169abbfc77cb4f68609635c47e911609f8341c5ee4",
+        "policy": {
+          "validationContractVersion": 1,
+          "validationProfileId": "ontology-source-document-heuristic-v1",
+          "parseMode": "preserve",
+          "formatSelectionMode": "automatic",
+          "decodingPolicy": "strict-utf8-v1",
+          "parserBasePolicy": "effective-origin-response-v1",
+          "transportPolicy": "https-preferred-original-http-fallback-v1",
+          "remoteImports": false,
+          "remoteJsonLdContexts": false,
+          "externalXmlResources": false,
+          "sourceAssessmentAdmission": "report-only",
+          "formatInventorySha256": "4444444444444444444444444444444444444444444444444444444444444444",
+          "acceptPreferenceSha256": "5555555555555555555555555555555555555555555555555555555555555555",
+          "requestVariant": {
+            "accept": "text/turtle",
+            "acceptEncoding": "identity",
+            "selectionPolicyVersion": 1
+          },
+          "owlapiArtifact": {
+            "dependencyName": "owlapi",
+            "packageName": "owlapi",
+            "packageVersion": "0.0.0-contract-fixture",
+            "selector": "synthetic-contract-fixture-only",
+            "sourceCommit": "0000000000000000000000000000000000000000",
+            "archiveSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+            "installedPayloadSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+            "dependencyClosureSha256": "3333333333333333333333333333333333333333333333333333333333333333",
+            "runtimeTarget": "synthetic-no-runtime"
+          },
+          "limits": {
+            "encodedBytes": 33554432,
+            "decodedBytes": 33554432,
+            "expandedXmlBytes": 33554432,
+            "decompressionRatio": 100,
+            "redirects": 3,
+            "dnsMs": 3000,
+            "connectTlsMs": 5000,
+            "headersMs": 10000,
+            "retrievalMs": 30000,
+            "parseMs": 20000,
+            "workerMs": 60000,
+            "workerMemoryMiB": 2048,
+            "tokenCount": 4000000,
+            "tokenBytes": 1048576,
+            "axiomCount": 200000,
+            "blankNodeCount": 1000000,
+            "rdfQuadCount": 1000000,
+            "rdfListLength": 1000000,
+            "parserDepth": 128,
+            "entityDeclarations": 64,
+            "entityExpansionDepth": 8,
+            "entityReplacementBytes": 65536,
+            "importFetchCount": 0
+          },
+          "dependencyTranslations": [
+            {
+              "gate": "encodedBytes",
+              "enforcementTarget": "fixture-only:encodedBytes",
+              "unit": "bytes",
+              "value": 33554432,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "decodedBytes",
+              "enforcementTarget": "fixture-only:decodedBytes",
+              "unit": "bytes",
+              "value": 33554432,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "expandedXmlBytes",
+              "enforcementTarget": "fixture-only:expandedXmlBytes",
+              "unit": "bytes",
+              "value": 33554432,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "decompressionRatio",
+              "enforcementTarget": "fixture-only:decompressionRatio",
+              "unit": "ratio",
+              "value": 100,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "redirects",
+              "enforcementTarget": "fixture-only:redirects",
+              "unit": "count",
+              "value": 3,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "dnsMs",
+              "enforcementTarget": "fixture-only:dnsMs",
+              "unit": "milliseconds",
+              "value": 3000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "connectTlsMs",
+              "enforcementTarget": "fixture-only:connectTlsMs",
+              "unit": "milliseconds",
+              "value": 5000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "headersMs",
+              "enforcementTarget": "fixture-only:headersMs",
+              "unit": "milliseconds",
+              "value": 10000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "retrievalMs",
+              "enforcementTarget": "fixture-only:retrievalMs",
+              "unit": "milliseconds",
+              "value": 30000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "parseMs",
+              "enforcementTarget": "fixture-only:parseMs",
+              "unit": "milliseconds",
+              "value": 20000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "workerMs",
+              "enforcementTarget": "fixture-only:workerMs",
+              "unit": "milliseconds",
+              "value": 60000,
+              "scope": "worker",
+              "enforcement": "worker-isolation"
+            },
+            {
+              "gate": "workerMemoryMiB",
+              "enforcementTarget": "fixture-only:workerMemoryMiB",
+              "unit": "mebibytes",
+              "value": 2048,
+              "scope": "worker",
+              "enforcement": "worker-isolation"
+            },
+            {
+              "gate": "tokenCount",
+              "enforcementTarget": "fixture-only:tokenCount",
+              "unit": "count",
+              "value": 4000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "tokenBytes",
+              "enforcementTarget": "fixture-only:tokenBytes",
+              "unit": "bytes",
+              "value": 1048576,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "axiomCount",
+              "enforcementTarget": "fixture-only:axiomCount",
+              "unit": "count",
+              "value": 200000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "blankNodeCount",
+              "enforcementTarget": "fixture-only:blankNodeCount",
+              "unit": "count",
+              "value": 1000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "rdfQuadCount",
+              "enforcementTarget": "fixture-only:rdfQuadCount",
+              "unit": "count",
+              "value": 1000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "rdfListLength",
+              "enforcementTarget": "fixture-only:rdfListLength",
+              "unit": "count",
+              "value": 1000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "parserDepth",
+              "enforcementTarget": "fixture-only:parserDepth",
+              "unit": "depth",
+              "value": 128,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "entityDeclarations",
+              "enforcementTarget": "fixture-only:entityDeclarations",
+              "unit": "count",
+              "value": 64,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "entityExpansionDepth",
+              "enforcementTarget": "fixture-only:entityExpansionDepth",
+              "unit": "depth",
+              "value": 8,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "entityReplacementBytes",
+              "enforcementTarget": "fixture-only:entityReplacementBytes",
+              "unit": "bytes",
+              "value": 65536,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "importFetchCount",
+              "enforcementTarget": "fixture-only:importFetchCount",
+              "unit": "count",
+              "value": 0,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "reject-heuristic-loader-policy-unknown-mode",
+      "schema": "ontology-loader-policy.v1.schema.json",
+      "expectedSchemaValid": false,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "loader-policy",
+        "loaderProfileFingerprint": "834f42813222c180fba978169abbfc77cb4f68609635c47e911609f8341c5ee4",
+        "policy": {
+          "validationContractVersion": 1,
+          "validationProfileId": "ontology-source-document-heuristic-v1",
+          "parseMode": "unsafe",
+          "formatSelectionMode": "automatic",
+          "decodingPolicy": "strict-utf8-v1",
+          "parserBasePolicy": "effective-origin-response-v1",
+          "transportPolicy": "https-preferred-original-http-fallback-v1",
+          "remoteImports": false,
+          "remoteJsonLdContexts": false,
+          "externalXmlResources": false,
+          "sourceAssessmentAdmission": "report-only",
+          "formatInventorySha256": "4444444444444444444444444444444444444444444444444444444444444444",
+          "acceptPreferenceSha256": "5555555555555555555555555555555555555555555555555555555555555555",
+          "requestVariant": {
+            "accept": "text/turtle",
+            "acceptEncoding": "identity",
+            "selectionPolicyVersion": 1
+          },
+          "owlapiArtifact": {
+            "dependencyName": "owlapi",
+            "packageName": "owlapi",
+            "packageVersion": "0.0.0-contract-fixture",
+            "selector": "synthetic-contract-fixture-only",
+            "sourceCommit": "0000000000000000000000000000000000000000",
+            "archiveSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+            "installedPayloadSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+            "dependencyClosureSha256": "3333333333333333333333333333333333333333333333333333333333333333",
+            "runtimeTarget": "synthetic-no-runtime"
+          },
+          "limits": {
+            "encodedBytes": 33554432,
+            "decodedBytes": 33554432,
+            "expandedXmlBytes": 33554432,
+            "decompressionRatio": 100,
+            "redirects": 3,
+            "dnsMs": 3000,
+            "connectTlsMs": 5000,
+            "headersMs": 10000,
+            "retrievalMs": 30000,
+            "parseMs": 20000,
+            "workerMs": 60000,
+            "workerMemoryMiB": 2048,
+            "tokenCount": 4000000,
+            "tokenBytes": 1048576,
+            "axiomCount": 200000,
+            "blankNodeCount": 1000000,
+            "rdfQuadCount": 1000000,
+            "rdfListLength": 1000000,
+            "parserDepth": 128,
+            "entityDeclarations": 64,
+            "entityExpansionDepth": 8,
+            "entityReplacementBytes": 65536,
+            "importFetchCount": 0
+          },
+          "dependencyTranslations": [
+            {
+              "gate": "encodedBytes",
+              "enforcementTarget": "fixture-only:encodedBytes",
+              "unit": "bytes",
+              "value": 33554432,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "decodedBytes",
+              "enforcementTarget": "fixture-only:decodedBytes",
+              "unit": "bytes",
+              "value": 33554432,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "expandedXmlBytes",
+              "enforcementTarget": "fixture-only:expandedXmlBytes",
+              "unit": "bytes",
+              "value": 33554432,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "decompressionRatio",
+              "enforcementTarget": "fixture-only:decompressionRatio",
+              "unit": "ratio",
+              "value": 100,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "redirects",
+              "enforcementTarget": "fixture-only:redirects",
+              "unit": "count",
+              "value": 3,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "dnsMs",
+              "enforcementTarget": "fixture-only:dnsMs",
+              "unit": "milliseconds",
+              "value": 3000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "connectTlsMs",
+              "enforcementTarget": "fixture-only:connectTlsMs",
+              "unit": "milliseconds",
+              "value": 5000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "headersMs",
+              "enforcementTarget": "fixture-only:headersMs",
+              "unit": "milliseconds",
+              "value": 10000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "retrievalMs",
+              "enforcementTarget": "fixture-only:retrievalMs",
+              "unit": "milliseconds",
+              "value": 30000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "parseMs",
+              "enforcementTarget": "fixture-only:parseMs",
+              "unit": "milliseconds",
+              "value": 20000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "workerMs",
+              "enforcementTarget": "fixture-only:workerMs",
+              "unit": "milliseconds",
+              "value": 60000,
+              "scope": "worker",
+              "enforcement": "worker-isolation"
+            },
+            {
+              "gate": "workerMemoryMiB",
+              "enforcementTarget": "fixture-only:workerMemoryMiB",
+              "unit": "mebibytes",
+              "value": 2048,
+              "scope": "worker",
+              "enforcement": "worker-isolation"
+            },
+            {
+              "gate": "tokenCount",
+              "enforcementTarget": "fixture-only:tokenCount",
+              "unit": "count",
+              "value": 4000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "tokenBytes",
+              "enforcementTarget": "fixture-only:tokenBytes",
+              "unit": "bytes",
+              "value": 1048576,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "axiomCount",
+              "enforcementTarget": "fixture-only:axiomCount",
+              "unit": "count",
+              "value": 200000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "blankNodeCount",
+              "enforcementTarget": "fixture-only:blankNodeCount",
+              "unit": "count",
+              "value": 1000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "rdfQuadCount",
+              "enforcementTarget": "fixture-only:rdfQuadCount",
+              "unit": "count",
+              "value": 1000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "rdfListLength",
+              "enforcementTarget": "fixture-only:rdfListLength",
+              "unit": "count",
+              "value": 1000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "parserDepth",
+              "enforcementTarget": "fixture-only:parserDepth",
+              "unit": "depth",
+              "value": 128,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "entityDeclarations",
+              "enforcementTarget": "fixture-only:entityDeclarations",
+              "unit": "count",
+              "value": 64,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "entityExpansionDepth",
+              "enforcementTarget": "fixture-only:entityExpansionDepth",
+              "unit": "depth",
+              "value": 8,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "entityReplacementBytes",
+              "enforcementTarget": "fixture-only:entityReplacementBytes",
+              "unit": "bytes",
+              "value": 65536,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "importFetchCount",
+              "enforcementTarget": "fixture-only:importFetchCount",
+              "unit": "count",
+              "value": 0,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "reject-heuristic-validation-mismatched-profile",
+      "schema": "ontology-validation.v1.schema.json",
+      "expectedSchemaValid": false,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "document-validation",
+        "validationIdentity": "2d48e74475b07cc97ca6081952c5af7295bd4c0a6b867ee968c965f4a68abde6",
+        "identityInputs": {
+          "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+          "formatSelectionMode": "automatic",
+          "explicitFormatId": null,
+          "observedFormatId": "turtle",
+          "owlapiArtifactIdentity": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619",
+          "loaderProfileFingerprint": "2afb887ab1efefbb5070cd55c1fe5e6b362400fae8f247ebf24b0763ee50f418",
+          "validationContractVersion": 1
+        },
+        "validationProfileId": "ontology-source-document-heuristic-v1",
+        "documentState": "DOCUMENT_VALIDATED",
+        "parseMode": "preserve",
+        "sourceBytesRetained": true,
+        "sourceAssessment": "unverified",
+        "profileAssessment": "NOT_EVALUATED",
+        "closureQualification": "UNASSESSED",
+        "consumerAdmission": "NOT_EVALUATED",
+        "diagnosticCodes": [],
+        "diagnosticsTruncated": false,
+        "importDeclarationCount": 1,
+        "ontologyIris": [
+          "https://origin.example.test/v1/root.ttl"
+        ],
+        "declaredVersionIris": [],
+        "identifiersTruncated": false
+      }
+    },
+    {
+      "id": "reject-heuristic-validation-unknown-mode",
+      "schema": "ontology-validation.v1.schema.json",
+      "expectedSchemaValid": false,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "document-validation",
+        "validationIdentity": "2d48e74475b07cc97ca6081952c5af7295bd4c0a6b867ee968c965f4a68abde6",
+        "identityInputs": {
+          "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+          "formatSelectionMode": "automatic",
+          "explicitFormatId": null,
+          "observedFormatId": "turtle",
+          "owlapiArtifactIdentity": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619",
+          "loaderProfileFingerprint": "2afb887ab1efefbb5070cd55c1fe5e6b362400fae8f247ebf24b0763ee50f418",
+          "validationContractVersion": 1
+        },
+        "validationProfileId": "ontology-source-document-heuristic-v1",
+        "documentState": "DOCUMENT_VALIDATED",
+        "parseMode": "unsafe",
+        "sourceBytesRetained": true,
+        "sourceAssessment": "unverified",
+        "profileAssessment": "NOT_EVALUATED",
+        "closureQualification": "UNASSESSED",
+        "consumerAdmission": "NOT_EVALUATED",
+        "diagnosticCodes": [],
+        "diagnosticsTruncated": false,
+        "importDeclarationCount": 1,
+        "ontologyIris": [
+          "https://origin.example.test/v1/root.ttl"
+        ],
+        "declaredVersionIris": [],
+        "identifiersTruncated": false
+      }
+    },
+    {
+      "id": "reject-heuristic-loader-policy-preserve-label",
+      "schema": "ontology-loader-policy.v1.schema.json",
+      "expectedSchemaValid": false,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "loader-policy",
+        "loaderProfileFingerprint": "834f42813222c180fba978169abbfc77cb4f68609635c47e911609f8341c5ee4",
+        "policy": {
+          "validationContractVersion": 1,
+          "validationProfileId": "ontology-source-document-v1",
+          "parseMode": "compatible",
+          "formatSelectionMode": "automatic",
+          "decodingPolicy": "strict-utf8-v1",
+          "parserBasePolicy": "effective-origin-response-v1",
+          "transportPolicy": "https-preferred-original-http-fallback-v1",
+          "remoteImports": false,
+          "remoteJsonLdContexts": false,
+          "externalXmlResources": false,
+          "sourceAssessmentAdmission": "report-only",
+          "formatInventorySha256": "4444444444444444444444444444444444444444444444444444444444444444",
+          "acceptPreferenceSha256": "5555555555555555555555555555555555555555555555555555555555555555",
+          "requestVariant": {
+            "accept": "text/turtle",
+            "acceptEncoding": "identity",
+            "selectionPolicyVersion": 1
+          },
+          "owlapiArtifact": {
+            "dependencyName": "owlapi",
+            "packageName": "owlapi",
+            "packageVersion": "0.0.0-contract-fixture",
+            "selector": "synthetic-contract-fixture-only",
+            "sourceCommit": "0000000000000000000000000000000000000000",
+            "archiveSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+            "installedPayloadSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+            "dependencyClosureSha256": "3333333333333333333333333333333333333333333333333333333333333333",
+            "runtimeTarget": "synthetic-no-runtime"
+          },
+          "limits": {
+            "encodedBytes": 33554432,
+            "decodedBytes": 33554432,
+            "expandedXmlBytes": 33554432,
+            "decompressionRatio": 100,
+            "redirects": 3,
+            "dnsMs": 3000,
+            "connectTlsMs": 5000,
+            "headersMs": 10000,
+            "retrievalMs": 30000,
+            "parseMs": 20000,
+            "workerMs": 60000,
+            "workerMemoryMiB": 2048,
+            "tokenCount": 4000000,
+            "tokenBytes": 1048576,
+            "axiomCount": 200000,
+            "blankNodeCount": 1000000,
+            "rdfQuadCount": 1000000,
+            "rdfListLength": 1000000,
+            "parserDepth": 128,
+            "entityDeclarations": 64,
+            "entityExpansionDepth": 8,
+            "entityReplacementBytes": 65536,
+            "importFetchCount": 0
+          },
+          "dependencyTranslations": [
+            {
+              "gate": "encodedBytes",
+              "enforcementTarget": "fixture-only:encodedBytes",
+              "unit": "bytes",
+              "value": 33554432,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "decodedBytes",
+              "enforcementTarget": "fixture-only:decodedBytes",
+              "unit": "bytes",
+              "value": 33554432,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "expandedXmlBytes",
+              "enforcementTarget": "fixture-only:expandedXmlBytes",
+              "unit": "bytes",
+              "value": 33554432,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "decompressionRatio",
+              "enforcementTarget": "fixture-only:decompressionRatio",
+              "unit": "ratio",
+              "value": 100,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "redirects",
+              "enforcementTarget": "fixture-only:redirects",
+              "unit": "count",
+              "value": 3,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "dnsMs",
+              "enforcementTarget": "fixture-only:dnsMs",
+              "unit": "milliseconds",
+              "value": 3000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "connectTlsMs",
+              "enforcementTarget": "fixture-only:connectTlsMs",
+              "unit": "milliseconds",
+              "value": 5000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "headersMs",
+              "enforcementTarget": "fixture-only:headersMs",
+              "unit": "milliseconds",
+              "value": 10000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "retrievalMs",
+              "enforcementTarget": "fixture-only:retrievalMs",
+              "unit": "milliseconds",
+              "value": 30000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "parseMs",
+              "enforcementTarget": "fixture-only:parseMs",
+              "unit": "milliseconds",
+              "value": 20000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "workerMs",
+              "enforcementTarget": "fixture-only:workerMs",
+              "unit": "milliseconds",
+              "value": 60000,
+              "scope": "worker",
+              "enforcement": "worker-isolation"
+            },
+            {
+              "gate": "workerMemoryMiB",
+              "enforcementTarget": "fixture-only:workerMemoryMiB",
+              "unit": "mebibytes",
+              "value": 2048,
+              "scope": "worker",
+              "enforcement": "worker-isolation"
+            },
+            {
+              "gate": "tokenCount",
+              "enforcementTarget": "fixture-only:tokenCount",
+              "unit": "count",
+              "value": 4000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "tokenBytes",
+              "enforcementTarget": "fixture-only:tokenBytes",
+              "unit": "bytes",
+              "value": 1048576,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "axiomCount",
+              "enforcementTarget": "fixture-only:axiomCount",
+              "unit": "count",
+              "value": 200000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "blankNodeCount",
+              "enforcementTarget": "fixture-only:blankNodeCount",
+              "unit": "count",
+              "value": 1000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "rdfQuadCount",
+              "enforcementTarget": "fixture-only:rdfQuadCount",
+              "unit": "count",
+              "value": 1000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "rdfListLength",
+              "enforcementTarget": "fixture-only:rdfListLength",
+              "unit": "count",
+              "value": 1000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "parserDepth",
+              "enforcementTarget": "fixture-only:parserDepth",
+              "unit": "depth",
+              "value": 128,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "entityDeclarations",
+              "enforcementTarget": "fixture-only:entityDeclarations",
+              "unit": "count",
+              "value": 64,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "entityExpansionDepth",
+              "enforcementTarget": "fixture-only:entityExpansionDepth",
+              "unit": "depth",
+              "value": 8,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "entityReplacementBytes",
+              "enforcementTarget": "fixture-only:entityReplacementBytes",
+              "unit": "bytes",
+              "value": 65536,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "importFetchCount",
+              "enforcementTarget": "fixture-only:importFetchCount",
+              "unit": "count",
+              "value": 0,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "reject-heuristic-validation-preserve-label",
+      "schema": "ontology-validation.v1.schema.json",
+      "expectedSchemaValid": false,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "document-validation",
+        "validationIdentity": "2d48e74475b07cc97ca6081952c5af7295bd4c0a6b867ee968c965f4a68abde6",
+        "identityInputs": {
+          "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+          "formatSelectionMode": "automatic",
+          "explicitFormatId": null,
+          "observedFormatId": "turtle",
+          "owlapiArtifactIdentity": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619",
+          "loaderProfileFingerprint": "2afb887ab1efefbb5070cd55c1fe5e6b362400fae8f247ebf24b0763ee50f418",
+          "validationContractVersion": 1
+        },
+        "validationProfileId": "ontology-source-document-v1",
+        "documentState": "DOCUMENT_VALIDATED",
+        "parseMode": "compatible",
+        "sourceBytesRetained": true,
+        "sourceAssessment": "unverified",
+        "profileAssessment": "NOT_EVALUATED",
+        "closureQualification": "UNASSESSED",
+        "consumerAdmission": "NOT_EVALUATED",
+        "diagnosticCodes": [],
+        "diagnosticsTruncated": false,
+        "importDeclarationCount": 1,
+        "ontologyIris": [
+          "https://origin.example.test/v1/root.ttl"
+        ],
+        "declaredVersionIris": [],
+        "identifiersTruncated": false
+      }
+    },
+    {
+      "id": "anonymous-snapshot-loader-policy",
+      "schema": "ontology-loader-policy.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "loader-policy",
+        "loaderProfileFingerprint": "0f07366e3ba65e72b7de8c0e40eb21afb888288cc0a1d5c2ec40613883d9c186",
+        "policy": {
+          "validationContractVersion": 1,
+          "validationProfileId": "ontology-source-document-heuristic-v1",
+          "parseMode": "compatible",
+          "formatSelectionMode": "automatic",
+          "decodingPolicy": "strict-utf8-v1",
+          "parserBasePolicy": "effective-origin-response-v1",
+          "transportPolicy": "https-preferred-anonymous-public-snapshots-v2",
+          "remoteImports": false,
+          "remoteJsonLdContexts": false,
+          "externalXmlResources": false,
+          "sourceAssessmentAdmission": "report-only",
+          "formatInventorySha256": "4444444444444444444444444444444444444444444444444444444444444444",
+          "acceptPreferenceSha256": "5555555555555555555555555555555555555555555555555555555555555555",
+          "requestVariant": {
+            "accept": "text/turtle",
+            "acceptEncoding": "identity",
+            "selectionPolicyVersion": 2
+          },
+          "owlapiArtifact": {
+            "dependencyName": "owlapi",
+            "packageName": "owlapi",
+            "packageVersion": "0.0.0-contract-fixture",
+            "selector": "synthetic-contract-fixture-only",
+            "sourceCommit": "0000000000000000000000000000000000000000",
+            "archiveSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+            "installedPayloadSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+            "dependencyClosureSha256": "3333333333333333333333333333333333333333333333333333333333333333",
+            "runtimeTarget": "synthetic-no-runtime"
+          },
+          "limits": {
+            "encodedBytes": 33554432,
+            "decodedBytes": 33554432,
+            "expandedXmlBytes": 33554432,
+            "decompressionRatio": 100,
+            "redirects": 3,
+            "dnsMs": 3000,
+            "connectTlsMs": 5000,
+            "headersMs": 10000,
+            "retrievalMs": 30000,
+            "parseMs": 20000,
+            "workerMs": 60000,
+            "workerMemoryMiB": 2048,
+            "tokenCount": 4000000,
+            "tokenBytes": 1048576,
+            "axiomCount": 200000,
+            "blankNodeCount": 1000000,
+            "rdfQuadCount": 1000000,
+            "rdfListLength": 1000000,
+            "parserDepth": 128,
+            "entityDeclarations": 64,
+            "entityExpansionDepth": 8,
+            "entityReplacementBytes": 65536,
+            "importFetchCount": 0
+          },
+          "dependencyTranslations": [
+            {
+              "gate": "encodedBytes",
+              "enforcementTarget": "fixture-only:encodedBytes",
+              "unit": "bytes",
+              "value": 33554432,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "decodedBytes",
+              "enforcementTarget": "fixture-only:decodedBytes",
+              "unit": "bytes",
+              "value": 33554432,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "expandedXmlBytes",
+              "enforcementTarget": "fixture-only:expandedXmlBytes",
+              "unit": "bytes",
+              "value": 33554432,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "decompressionRatio",
+              "enforcementTarget": "fixture-only:decompressionRatio",
+              "unit": "ratio",
+              "value": 100,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "redirects",
+              "enforcementTarget": "fixture-only:redirects",
+              "unit": "count",
+              "value": 3,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "dnsMs",
+              "enforcementTarget": "fixture-only:dnsMs",
+              "unit": "milliseconds",
+              "value": 3000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "connectTlsMs",
+              "enforcementTarget": "fixture-only:connectTlsMs",
+              "unit": "milliseconds",
+              "value": 5000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "headersMs",
+              "enforcementTarget": "fixture-only:headersMs",
+              "unit": "milliseconds",
+              "value": 10000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "retrievalMs",
+              "enforcementTarget": "fixture-only:retrievalMs",
+              "unit": "milliseconds",
+              "value": 30000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "parseMs",
+              "enforcementTarget": "fixture-only:parseMs",
+              "unit": "milliseconds",
+              "value": 20000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "workerMs",
+              "enforcementTarget": "fixture-only:workerMs",
+              "unit": "milliseconds",
+              "value": 60000,
+              "scope": "worker",
+              "enforcement": "worker-isolation"
+            },
+            {
+              "gate": "workerMemoryMiB",
+              "enforcementTarget": "fixture-only:workerMemoryMiB",
+              "unit": "mebibytes",
+              "value": 2048,
+              "scope": "worker",
+              "enforcement": "worker-isolation"
+            },
+            {
+              "gate": "tokenCount",
+              "enforcementTarget": "fixture-only:tokenCount",
+              "unit": "count",
+              "value": 4000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "tokenBytes",
+              "enforcementTarget": "fixture-only:tokenBytes",
+              "unit": "bytes",
+              "value": 1048576,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "axiomCount",
+              "enforcementTarget": "fixture-only:axiomCount",
+              "unit": "count",
+              "value": 200000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "blankNodeCount",
+              "enforcementTarget": "fixture-only:blankNodeCount",
+              "unit": "count",
+              "value": 1000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "rdfQuadCount",
+              "enforcementTarget": "fixture-only:rdfQuadCount",
+              "unit": "count",
+              "value": 1000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "rdfListLength",
+              "enforcementTarget": "fixture-only:rdfListLength",
+              "unit": "count",
+              "value": 1000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "parserDepth",
+              "enforcementTarget": "fixture-only:parserDepth",
+              "unit": "depth",
+              "value": 128,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "entityDeclarations",
+              "enforcementTarget": "fixture-only:entityDeclarations",
+              "unit": "count",
+              "value": 64,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "entityExpansionDepth",
+              "enforcementTarget": "fixture-only:entityExpansionDepth",
+              "unit": "depth",
+              "value": 8,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "entityReplacementBytes",
+              "enforcementTarget": "fixture-only:entityReplacementBytes",
+              "unit": "bytes",
+              "value": 65536,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "importFetchCount",
+              "enforcementTarget": "fixture-only:importFetchCount",
+              "unit": "count",
+              "value": 0,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "reject-snapshot-policy-old-variant",
+      "schema": "ontology-loader-policy.v1.schema.json",
+      "expectedSchemaValid": false,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "loader-policy",
+        "loaderProfileFingerprint": "80676f5ae180c48b580823ac30b77a5ecf9c6171849e03f6c475b2aac4e671d8",
+        "policy": {
+          "validationContractVersion": 1,
+          "validationProfileId": "ontology-source-document-heuristic-v1",
+          "parseMode": "compatible",
+          "formatSelectionMode": "automatic",
+          "decodingPolicy": "strict-utf8-v1",
+          "parserBasePolicy": "effective-origin-response-v1",
+          "transportPolicy": "https-preferred-anonymous-public-snapshots-v2",
+          "remoteImports": false,
+          "remoteJsonLdContexts": false,
+          "externalXmlResources": false,
+          "sourceAssessmentAdmission": "report-only",
+          "formatInventorySha256": "4444444444444444444444444444444444444444444444444444444444444444",
+          "acceptPreferenceSha256": "5555555555555555555555555555555555555555555555555555555555555555",
+          "requestVariant": {
+            "accept": "text/turtle",
+            "acceptEncoding": "identity",
+            "selectionPolicyVersion": 1
+          },
+          "owlapiArtifact": {
+            "dependencyName": "owlapi",
+            "packageName": "owlapi",
+            "packageVersion": "0.0.0-contract-fixture",
+            "selector": "synthetic-contract-fixture-only",
+            "sourceCommit": "0000000000000000000000000000000000000000",
+            "archiveSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+            "installedPayloadSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+            "dependencyClosureSha256": "3333333333333333333333333333333333333333333333333333333333333333",
+            "runtimeTarget": "synthetic-no-runtime"
+          },
+          "limits": {
+            "encodedBytes": 33554432,
+            "decodedBytes": 33554432,
+            "expandedXmlBytes": 33554432,
+            "decompressionRatio": 100,
+            "redirects": 3,
+            "dnsMs": 3000,
+            "connectTlsMs": 5000,
+            "headersMs": 10000,
+            "retrievalMs": 30000,
+            "parseMs": 20000,
+            "workerMs": 60000,
+            "workerMemoryMiB": 2048,
+            "tokenCount": 4000000,
+            "tokenBytes": 1048576,
+            "axiomCount": 200000,
+            "blankNodeCount": 1000000,
+            "rdfQuadCount": 1000000,
+            "rdfListLength": 1000000,
+            "parserDepth": 128,
+            "entityDeclarations": 64,
+            "entityExpansionDepth": 8,
+            "entityReplacementBytes": 65536,
+            "importFetchCount": 0
+          },
+          "dependencyTranslations": [
+            {
+              "gate": "encodedBytes",
+              "enforcementTarget": "fixture-only:encodedBytes",
+              "unit": "bytes",
+              "value": 33554432,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "decodedBytes",
+              "enforcementTarget": "fixture-only:decodedBytes",
+              "unit": "bytes",
+              "value": 33554432,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "expandedXmlBytes",
+              "enforcementTarget": "fixture-only:expandedXmlBytes",
+              "unit": "bytes",
+              "value": 33554432,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "decompressionRatio",
+              "enforcementTarget": "fixture-only:decompressionRatio",
+              "unit": "ratio",
+              "value": 100,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "redirects",
+              "enforcementTarget": "fixture-only:redirects",
+              "unit": "count",
+              "value": 3,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "dnsMs",
+              "enforcementTarget": "fixture-only:dnsMs",
+              "unit": "milliseconds",
+              "value": 3000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "connectTlsMs",
+              "enforcementTarget": "fixture-only:connectTlsMs",
+              "unit": "milliseconds",
+              "value": 5000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "headersMs",
+              "enforcementTarget": "fixture-only:headersMs",
+              "unit": "milliseconds",
+              "value": 10000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "retrievalMs",
+              "enforcementTarget": "fixture-only:retrievalMs",
+              "unit": "milliseconds",
+              "value": 30000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "parseMs",
+              "enforcementTarget": "fixture-only:parseMs",
+              "unit": "milliseconds",
+              "value": 20000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "workerMs",
+              "enforcementTarget": "fixture-only:workerMs",
+              "unit": "milliseconds",
+              "value": 60000,
+              "scope": "worker",
+              "enforcement": "worker-isolation"
+            },
+            {
+              "gate": "workerMemoryMiB",
+              "enforcementTarget": "fixture-only:workerMemoryMiB",
+              "unit": "mebibytes",
+              "value": 2048,
+              "scope": "worker",
+              "enforcement": "worker-isolation"
+            },
+            {
+              "gate": "tokenCount",
+              "enforcementTarget": "fixture-only:tokenCount",
+              "unit": "count",
+              "value": 4000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "tokenBytes",
+              "enforcementTarget": "fixture-only:tokenBytes",
+              "unit": "bytes",
+              "value": 1048576,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "axiomCount",
+              "enforcementTarget": "fixture-only:axiomCount",
+              "unit": "count",
+              "value": 200000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "blankNodeCount",
+              "enforcementTarget": "fixture-only:blankNodeCount",
+              "unit": "count",
+              "value": 1000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "rdfQuadCount",
+              "enforcementTarget": "fixture-only:rdfQuadCount",
+              "unit": "count",
+              "value": 1000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "rdfListLength",
+              "enforcementTarget": "fixture-only:rdfListLength",
+              "unit": "count",
+              "value": 1000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "parserDepth",
+              "enforcementTarget": "fixture-only:parserDepth",
+              "unit": "depth",
+              "value": 128,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "entityDeclarations",
+              "enforcementTarget": "fixture-only:entityDeclarations",
+              "unit": "count",
+              "value": 64,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "entityExpansionDepth",
+              "enforcementTarget": "fixture-only:entityExpansionDepth",
+              "unit": "depth",
+              "value": 8,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "entityReplacementBytes",
+              "enforcementTarget": "fixture-only:entityReplacementBytes",
+              "unit": "bytes",
+              "value": 65536,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "importFetchCount",
+              "enforcementTarget": "fixture-only:importFetchCount",
+              "unit": "count",
+              "value": 0,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "anonymous-snapshot-origin-variation",
+      "schema": "ontology-resolution.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "resolution",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "generation": 1,
+        "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+        "requestedDocumentIri": "https://ontology.example.test/onto#v1",
+        "retrievalIri": "https://ontology.example.test/onto",
+        "effectiveRetrievalIri": "https://origin.example.test/v1/root.ttl",
+        "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+        "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactByteLength": 117,
+        "validationIdentity": "c3a075ad3cb99a4ab91e6054a79f5aea0f39ee0d3fe59adb0eae264da7086509",
+        "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/c3a075ad3cb99a4ab91e6054a79f5aea0f39ee0d3fe59adb0eae264da7086509.json",
+        "loaderProfileFingerprint": "0f07366e3ba65e72b7de8c0e40eb21afb888288cc0a1d5c2ec40613883d9c186",
+        "loaderPolicyIri": "https://cache.example.test/ontology/cache/policies/sha256/0f07366e3ba65e72b7de8c0e40eb21afb888288cc0a1d5c2ec40613883d9c186.json",
+        "owlapiArtifactIdentity": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619",
+        "formatSelectionMode": "automatic",
+        "explicitFormatId": null,
+        "observedFormatId": "turtle",
+        "decodingPolicy": "strict-utf8-v1",
+        "validationContractVersion": 1,
+        "acquiredAt": "2026-10-01T00:00:00.000Z",
+        "checkedAt": "2026-10-01T00:00:00.000Z",
+        "originMetadata": {
+          "status": 200,
+          "contentType": "text/turtle",
+          "contentEncoding": "identity",
+          "cacheControl": "public, s-maxage=2592001",
+          "vary": [
+            "accept",
+            "accept-encoding",
+            "origin"
+          ],
+          "validators": {
+            "etag": "\"fixture-A\""
+          }
+        },
+        "requestVariant": {
+          "accept": "text/turtle",
+          "acceptEncoding": "identity",
+          "selectionPolicyVersion": 2
+        },
+        "requestVariantFingerprint": "610d069cf1f9a4eda749c8faa4c30be4379678fbb5148e41c278408076e279d9",
+        "publicationDisposition": "AUTOMATIC_PUBLIC_ARCHIVE",
+        "sourceAssessment": "unverified",
+        "closureQualification": "UNASSESSED",
+        "resolutionIdentity": "32c8cd570f87459ce4e1bc31b0322b4ce353635d67690a30f56d09ed456b2bfc"
+      }
+    },
+    {
+      "id": "anonymous-snapshot-validation",
+      "schema": "ontology-validation.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "document-validation",
+        "validationIdentity": "c3a075ad3cb99a4ab91e6054a79f5aea0f39ee0d3fe59adb0eae264da7086509",
+        "identityInputs": {
+          "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+          "formatSelectionMode": "automatic",
+          "explicitFormatId": null,
+          "observedFormatId": "turtle",
+          "owlapiArtifactIdentity": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619",
+          "loaderProfileFingerprint": "0f07366e3ba65e72b7de8c0e40eb21afb888288cc0a1d5c2ec40613883d9c186",
+          "validationContractVersion": 1
+        },
+        "validationProfileId": "ontology-source-document-heuristic-v1",
+        "documentState": "DOCUMENT_VALIDATED",
+        "parseMode": "compatible",
+        "sourceBytesRetained": true,
+        "sourceAssessment": "unverified",
+        "profileAssessment": "NOT_EVALUATED",
+        "closureQualification": "UNASSESSED",
+        "consumerAdmission": "NOT_EVALUATED",
+        "diagnosticCodes": [],
+        "diagnosticsTruncated": false,
+        "importDeclarationCount": 1,
+        "ontologyIris": [
+          "https://origin.example.test/v1/root.ttl"
+        ],
+        "declaredVersionIris": [],
+        "identifiersTruncated": false
+      }
+    },
+    {
+      "id": "revalidation-snapshot-loader-policy",
+      "schema": "ontology-loader-policy.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "loader-policy",
+        "loaderProfileFingerprint": "45feeb5decb41764fd7c7c8c2c5f25f3d78b9cea94975662fc06f6a4218d0e87",
+        "policy": {
+          "validationContractVersion": 1,
+          "validationProfileId": "ontology-source-document-heuristic-v1",
+          "parseMode": "compatible",
+          "formatSelectionMode": "automatic",
+          "decodingPolicy": "strict-utf8-v1",
+          "parserBasePolicy": "effective-origin-response-v1",
+          "transportPolicy": "https-preferred-anonymous-public-snapshots-v3",
+          "remoteImports": false,
+          "remoteJsonLdContexts": false,
+          "externalXmlResources": false,
+          "sourceAssessmentAdmission": "report-only",
+          "formatInventorySha256": "4444444444444444444444444444444444444444444444444444444444444444",
+          "acceptPreferenceSha256": "5555555555555555555555555555555555555555555555555555555555555555",
+          "requestVariant": {
+            "accept": "text/turtle",
+            "acceptEncoding": "identity",
+            "selectionPolicyVersion": 3
+          },
+          "owlapiArtifact": {
+            "dependencyName": "owlapi",
+            "packageName": "owlapi",
+            "packageVersion": "0.0.0-contract-fixture",
+            "selector": "synthetic-contract-fixture-only",
+            "sourceCommit": "0000000000000000000000000000000000000000",
+            "archiveSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+            "installedPayloadSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+            "dependencyClosureSha256": "3333333333333333333333333333333333333333333333333333333333333333",
+            "runtimeTarget": "synthetic-no-runtime"
+          },
+          "limits": {
+            "encodedBytes": 33554432,
+            "decodedBytes": 33554432,
+            "expandedXmlBytes": 33554432,
+            "decompressionRatio": 100,
+            "redirects": 3,
+            "dnsMs": 3000,
+            "connectTlsMs": 5000,
+            "headersMs": 10000,
+            "retrievalMs": 30000,
+            "parseMs": 20000,
+            "workerMs": 60000,
+            "workerMemoryMiB": 2048,
+            "tokenCount": 4000000,
+            "tokenBytes": 1048576,
+            "axiomCount": 200000,
+            "blankNodeCount": 1000000,
+            "rdfQuadCount": 1000000,
+            "rdfListLength": 1000000,
+            "parserDepth": 128,
+            "entityDeclarations": 64,
+            "entityExpansionDepth": 8,
+            "entityReplacementBytes": 65536,
+            "importFetchCount": 0
+          },
+          "dependencyTranslations": [
+            {
+              "gate": "encodedBytes",
+              "enforcementTarget": "fixture-only:encodedBytes",
+              "unit": "bytes",
+              "value": 33554432,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "decodedBytes",
+              "enforcementTarget": "fixture-only:decodedBytes",
+              "unit": "bytes",
+              "value": 33554432,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "expandedXmlBytes",
+              "enforcementTarget": "fixture-only:expandedXmlBytes",
+              "unit": "bytes",
+              "value": 33554432,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "decompressionRatio",
+              "enforcementTarget": "fixture-only:decompressionRatio",
+              "unit": "ratio",
+              "value": 100,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "redirects",
+              "enforcementTarget": "fixture-only:redirects",
+              "unit": "count",
+              "value": 3,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "dnsMs",
+              "enforcementTarget": "fixture-only:dnsMs",
+              "unit": "milliseconds",
+              "value": 3000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "connectTlsMs",
+              "enforcementTarget": "fixture-only:connectTlsMs",
+              "unit": "milliseconds",
+              "value": 5000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "headersMs",
+              "enforcementTarget": "fixture-only:headersMs",
+              "unit": "milliseconds",
+              "value": 10000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "retrievalMs",
+              "enforcementTarget": "fixture-only:retrievalMs",
+              "unit": "milliseconds",
+              "value": 30000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "parseMs",
+              "enforcementTarget": "fixture-only:parseMs",
+              "unit": "milliseconds",
+              "value": 20000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "workerMs",
+              "enforcementTarget": "fixture-only:workerMs",
+              "unit": "milliseconds",
+              "value": 60000,
+              "scope": "worker",
+              "enforcement": "worker-isolation"
+            },
+            {
+              "gate": "workerMemoryMiB",
+              "enforcementTarget": "fixture-only:workerMemoryMiB",
+              "unit": "mebibytes",
+              "value": 2048,
+              "scope": "worker",
+              "enforcement": "worker-isolation"
+            },
+            {
+              "gate": "tokenCount",
+              "enforcementTarget": "fixture-only:tokenCount",
+              "unit": "count",
+              "value": 4000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "tokenBytes",
+              "enforcementTarget": "fixture-only:tokenBytes",
+              "unit": "bytes",
+              "value": 1048576,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "axiomCount",
+              "enforcementTarget": "fixture-only:axiomCount",
+              "unit": "count",
+              "value": 200000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "blankNodeCount",
+              "enforcementTarget": "fixture-only:blankNodeCount",
+              "unit": "count",
+              "value": 1000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "rdfQuadCount",
+              "enforcementTarget": "fixture-only:rdfQuadCount",
+              "unit": "count",
+              "value": 1000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "rdfListLength",
+              "enforcementTarget": "fixture-only:rdfListLength",
+              "unit": "count",
+              "value": 1000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "parserDepth",
+              "enforcementTarget": "fixture-only:parserDepth",
+              "unit": "depth",
+              "value": 128,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "entityDeclarations",
+              "enforcementTarget": "fixture-only:entityDeclarations",
+              "unit": "count",
+              "value": 64,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "entityExpansionDepth",
+              "enforcementTarget": "fixture-only:entityExpansionDepth",
+              "unit": "depth",
+              "value": 8,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "entityReplacementBytes",
+              "enforcementTarget": "fixture-only:entityReplacementBytes",
+              "unit": "bytes",
+              "value": 65536,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "importFetchCount",
+              "enforcementTarget": "fixture-only:importFetchCount",
+              "unit": "count",
+              "value": 0,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "revalidation-snapshot-validation",
+      "schema": "ontology-validation.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "document-validation",
+        "validationIdentity": "c488f7d8c0af31f03a0731bc6941d9ef8d72f4ce3b95ab28a00cf32f2d7b7c32",
+        "identityInputs": {
+          "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+          "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+          "formatSelectionMode": "automatic",
+          "explicitFormatId": null,
+          "observedFormatId": "turtle",
+          "owlapiArtifactIdentity": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619",
+          "loaderProfileFingerprint": "45feeb5decb41764fd7c7c8c2c5f25f3d78b9cea94975662fc06f6a4218d0e87",
+          "validationContractVersion": 1
+        },
+        "validationProfileId": "ontology-source-document-heuristic-v1",
+        "documentState": "DOCUMENT_VALIDATED",
+        "parseMode": "compatible",
+        "sourceBytesRetained": true,
+        "sourceAssessment": "unverified",
+        "profileAssessment": "NOT_EVALUATED",
+        "closureQualification": "UNASSESSED",
+        "consumerAdmission": "NOT_EVALUATED",
+        "diagnosticCodes": [],
+        "diagnosticsTruncated": false,
+        "importDeclarationCount": 1,
+        "ontologyIris": [
+          "https://origin.example.test/v1/root.ttl"
+        ],
+        "declaredVersionIris": [],
+        "identifiersTruncated": false
+      }
+    },
+    {
+      "id": "revalidation-snapshot-origin-variation",
+      "schema": "ontology-resolution.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "resolution",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "generation": 1,
+        "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+        "requestedDocumentIri": "https://ontology.example.test/onto#v1",
+        "retrievalIri": "https://ontology.example.test/onto",
+        "effectiveRetrievalIri": "https://origin.example.test/v1/root.ttl",
+        "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+        "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactByteLength": 117,
+        "validationIdentity": "c488f7d8c0af31f03a0731bc6941d9ef8d72f4ce3b95ab28a00cf32f2d7b7c32",
+        "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/c488f7d8c0af31f03a0731bc6941d9ef8d72f4ce3b95ab28a00cf32f2d7b7c32.json",
+        "loaderProfileFingerprint": "45feeb5decb41764fd7c7c8c2c5f25f3d78b9cea94975662fc06f6a4218d0e87",
+        "loaderPolicyIri": "https://cache.example.test/ontology/cache/policies/sha256/45feeb5decb41764fd7c7c8c2c5f25f3d78b9cea94975662fc06f6a4218d0e87.json",
+        "owlapiArtifactIdentity": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619",
+        "formatSelectionMode": "automatic",
+        "explicitFormatId": null,
+        "observedFormatId": "turtle",
+        "decodingPolicy": "strict-utf8-v1",
+        "validationContractVersion": 1,
+        "acquiredAt": "2026-10-01T00:00:00.000Z",
+        "checkedAt": "2026-10-01T00:00:00.000Z",
+        "originMetadata": {
+          "status": 200,
+          "contentType": "text/turtle",
+          "contentEncoding": "identity",
+          "cacheControl": "no-cache, max-age=60",
+          "vary": [
+            "accept",
+            "accept-encoding",
+            "origin",
+            "negotiate",
+            "accept-charset",
+            "accept-language",
+            "accept-features"
+          ],
+          "validators": {
+            "etag": "\"fixture-A\""
+          }
+        },
+        "requestVariant": {
+          "accept": "text/turtle",
+          "acceptEncoding": "identity",
+          "selectionPolicyVersion": 3
+        },
+        "requestVariantFingerprint": "0f398baf91dfd825083e73dd0eff2cb9d92a080435a889d89fd13634113c98d2",
+        "publicationDisposition": "AUTOMATIC_PUBLIC_ARCHIVE",
+        "sourceAssessment": "unverified",
+        "closureQualification": "UNASSESSED",
+        "resolutionIdentity": "b11800792fca415371e5038e212d78b72a37e8d87f0ef91cc416b8d3bc1b8ebe"
+      }
+    },
+    {
+      "id": "reject-revalidation-policy-old-variant",
+      "schema": "ontology-loader-policy.v1.schema.json",
+      "expectedSchemaValid": false,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "loader-policy",
+        "loaderProfileFingerprint": "03ceac0f42fe99921c51fa1485957cbee049bee7398948fc0c114e0995246cf9",
+        "policy": {
+          "validationContractVersion": 1,
+          "validationProfileId": "ontology-source-document-heuristic-v1",
+          "parseMode": "compatible",
+          "formatSelectionMode": "automatic",
+          "decodingPolicy": "strict-utf8-v1",
+          "parserBasePolicy": "effective-origin-response-v1",
+          "transportPolicy": "https-preferred-anonymous-public-snapshots-v3",
+          "remoteImports": false,
+          "remoteJsonLdContexts": false,
+          "externalXmlResources": false,
+          "sourceAssessmentAdmission": "report-only",
+          "formatInventorySha256": "4444444444444444444444444444444444444444444444444444444444444444",
+          "acceptPreferenceSha256": "5555555555555555555555555555555555555555555555555555555555555555",
+          "requestVariant": {
+            "accept": "text/turtle",
+            "acceptEncoding": "identity",
+            "selectionPolicyVersion": 2
+          },
+          "owlapiArtifact": {
+            "dependencyName": "owlapi",
+            "packageName": "owlapi",
+            "packageVersion": "0.0.0-contract-fixture",
+            "selector": "synthetic-contract-fixture-only",
+            "sourceCommit": "0000000000000000000000000000000000000000",
+            "archiveSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+            "installedPayloadSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+            "dependencyClosureSha256": "3333333333333333333333333333333333333333333333333333333333333333",
+            "runtimeTarget": "synthetic-no-runtime"
+          },
+          "limits": {
+            "encodedBytes": 33554432,
+            "decodedBytes": 33554432,
+            "expandedXmlBytes": 33554432,
+            "decompressionRatio": 100,
+            "redirects": 3,
+            "dnsMs": 3000,
+            "connectTlsMs": 5000,
+            "headersMs": 10000,
+            "retrievalMs": 30000,
+            "parseMs": 20000,
+            "workerMs": 60000,
+            "workerMemoryMiB": 2048,
+            "tokenCount": 4000000,
+            "tokenBytes": 1048576,
+            "axiomCount": 200000,
+            "blankNodeCount": 1000000,
+            "rdfQuadCount": 1000000,
+            "rdfListLength": 1000000,
+            "parserDepth": 128,
+            "entityDeclarations": 64,
+            "entityExpansionDepth": 8,
+            "entityReplacementBytes": 65536,
+            "importFetchCount": 0
+          },
+          "dependencyTranslations": [
+            {
+              "gate": "encodedBytes",
+              "enforcementTarget": "fixture-only:encodedBytes",
+              "unit": "bytes",
+              "value": 33554432,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "decodedBytes",
+              "enforcementTarget": "fixture-only:decodedBytes",
+              "unit": "bytes",
+              "value": 33554432,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "expandedXmlBytes",
+              "enforcementTarget": "fixture-only:expandedXmlBytes",
+              "unit": "bytes",
+              "value": 33554432,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "decompressionRatio",
+              "enforcementTarget": "fixture-only:decompressionRatio",
+              "unit": "ratio",
+              "value": 100,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "redirects",
+              "enforcementTarget": "fixture-only:redirects",
+              "unit": "count",
+              "value": 3,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "dnsMs",
+              "enforcementTarget": "fixture-only:dnsMs",
+              "unit": "milliseconds",
+              "value": 3000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "connectTlsMs",
+              "enforcementTarget": "fixture-only:connectTlsMs",
+              "unit": "milliseconds",
+              "value": 5000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "headersMs",
+              "enforcementTarget": "fixture-only:headersMs",
+              "unit": "milliseconds",
+              "value": 10000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "retrievalMs",
+              "enforcementTarget": "fixture-only:retrievalMs",
+              "unit": "milliseconds",
+              "value": 30000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "parseMs",
+              "enforcementTarget": "fixture-only:parseMs",
+              "unit": "milliseconds",
+              "value": 20000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "workerMs",
+              "enforcementTarget": "fixture-only:workerMs",
+              "unit": "milliseconds",
+              "value": 60000,
+              "scope": "worker",
+              "enforcement": "worker-isolation"
+            },
+            {
+              "gate": "workerMemoryMiB",
+              "enforcementTarget": "fixture-only:workerMemoryMiB",
+              "unit": "mebibytes",
+              "value": 2048,
+              "scope": "worker",
+              "enforcement": "worker-isolation"
+            },
+            {
+              "gate": "tokenCount",
+              "enforcementTarget": "fixture-only:tokenCount",
+              "unit": "count",
+              "value": 4000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "tokenBytes",
+              "enforcementTarget": "fixture-only:tokenBytes",
+              "unit": "bytes",
+              "value": 1048576,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "axiomCount",
+              "enforcementTarget": "fixture-only:axiomCount",
+              "unit": "count",
+              "value": 200000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "blankNodeCount",
+              "enforcementTarget": "fixture-only:blankNodeCount",
+              "unit": "count",
+              "value": 1000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "rdfQuadCount",
+              "enforcementTarget": "fixture-only:rdfQuadCount",
+              "unit": "count",
+              "value": 1000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "rdfListLength",
+              "enforcementTarget": "fixture-only:rdfListLength",
+              "unit": "count",
+              "value": 1000000,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "parserDepth",
+              "enforcementTarget": "fixture-only:parserDepth",
+              "unit": "depth",
+              "value": 128,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "entityDeclarations",
+              "enforcementTarget": "fixture-only:entityDeclarations",
+              "unit": "count",
+              "value": 64,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "entityExpansionDepth",
+              "enforcementTarget": "fixture-only:entityExpansionDepth",
+              "unit": "depth",
+              "value": 8,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "entityReplacementBytes",
+              "enforcementTarget": "fixture-only:entityReplacementBytes",
+              "unit": "bytes",
+              "value": 65536,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            },
+            {
+              "gate": "importFetchCount",
+              "enforcementTarget": "fixture-only:importFetchCount",
+              "unit": "count",
+              "value": 0,
+              "scope": "document",
+              "enforcement": "acquisition-owner"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "direct-import-hints-resolution",
+      "schema": "ontology-resolution.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "resolution",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "generation": 1,
+        "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+        "requestedDocumentIri": "https://ontology.example.test/onto#v1",
+        "retrievalIri": "https://ontology.example.test/onto",
+        "effectiveRetrievalIri": "https://origin.example.test/v1/root.ttl",
+        "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+        "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactByteLength": 117,
+        "validationIdentity": "c488f7d8c0af31f03a0731bc6941d9ef8d72f4ce3b95ab28a00cf32f2d7b7c32",
+        "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/c488f7d8c0af31f03a0731bc6941d9ef8d72f4ce3b95ab28a00cf32f2d7b7c32.json",
+        "loaderProfileFingerprint": "45feeb5decb41764fd7c7c8c2c5f25f3d78b9cea94975662fc06f6a4218d0e87",
+        "loaderPolicyIri": "https://cache.example.test/ontology/cache/policies/sha256/45feeb5decb41764fd7c7c8c2c5f25f3d78b9cea94975662fc06f6a4218d0e87.json",
+        "owlapiArtifactIdentity": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619",
+        "formatSelectionMode": "automatic",
+        "explicitFormatId": null,
+        "observedFormatId": "turtle",
+        "decodingPolicy": "strict-utf8-v1",
+        "validationContractVersion": 1,
+        "acquiredAt": "2026-10-01T00:00:00.000Z",
+        "checkedAt": "2026-10-01T00:00:00.000Z",
+        "originMetadata": {
+          "status": 200,
+          "contentType": "text/turtle",
+          "contentEncoding": "identity",
+          "cacheControl": "no-cache, max-age=60",
+          "vary": [
+            "accept",
+            "accept-encoding",
+            "origin",
+            "negotiate",
+            "accept-charset",
+            "accept-language",
+            "accept-features"
+          ],
+          "validators": {
+            "etag": "\"fixture-A\""
+          }
+        },
+        "requestVariant": {
+          "accept": "text/turtle",
+          "acceptEncoding": "identity",
+          "selectionPolicyVersion": 3
+        },
+        "requestVariantFingerprint": "0f398baf91dfd825083e73dd0eff2cb9d92a080435a889d89fd13634113c98d2",
+        "publicationDisposition": "AUTOMATIC_PUBLIC_ARCHIVE",
+        "sourceAssessment": "unverified",
+        "closureQualification": "UNASSESSED",
+        "declaredImports": {
+          "owlMappingStrategy": "heuristic",
+          "iris": [
+            "https://origin.example.test/v1/child.ttl"
+          ],
+          "iriByteLength": 40
+        },
+        "resolutionIdentity": "b9983aa100dd300d6d34072e39ddcec76aa7cf8ecb90b75adcbd357618a2cf50"
+      }
+    },
+    {
+      "id": "reject-duplicate-import-hints",
+      "schema": "ontology-resolution.v1.schema.json",
+      "expectedSchemaValid": false,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "resolution",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "generation": 1,
+        "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+        "requestedDocumentIri": "https://ontology.example.test/onto#v1",
+        "retrievalIri": "https://ontology.example.test/onto",
+        "effectiveRetrievalIri": "https://origin.example.test/v1/root.ttl",
+        "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+        "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactByteLength": 117,
+        "validationIdentity": "c488f7d8c0af31f03a0731bc6941d9ef8d72f4ce3b95ab28a00cf32f2d7b7c32",
+        "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/c488f7d8c0af31f03a0731bc6941d9ef8d72f4ce3b95ab28a00cf32f2d7b7c32.json",
+        "loaderProfileFingerprint": "45feeb5decb41764fd7c7c8c2c5f25f3d78b9cea94975662fc06f6a4218d0e87",
+        "loaderPolicyIri": "https://cache.example.test/ontology/cache/policies/sha256/45feeb5decb41764fd7c7c8c2c5f25f3d78b9cea94975662fc06f6a4218d0e87.json",
+        "owlapiArtifactIdentity": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619",
+        "formatSelectionMode": "automatic",
+        "explicitFormatId": null,
+        "observedFormatId": "turtle",
+        "decodingPolicy": "strict-utf8-v1",
+        "validationContractVersion": 1,
+        "acquiredAt": "2026-10-01T00:00:00.000Z",
+        "checkedAt": "2026-10-01T00:00:00.000Z",
+        "originMetadata": {
+          "status": 200,
+          "contentType": "text/turtle",
+          "contentEncoding": "identity",
+          "cacheControl": "no-cache, max-age=60",
+          "vary": [
+            "accept",
+            "accept-encoding",
+            "origin",
+            "negotiate",
+            "accept-charset",
+            "accept-language",
+            "accept-features"
+          ],
+          "validators": {
+            "etag": "\"fixture-A\""
+          }
+        },
+        "requestVariant": {
+          "accept": "text/turtle",
+          "acceptEncoding": "identity",
+          "selectionPolicyVersion": 3
+        },
+        "requestVariantFingerprint": "0f398baf91dfd825083e73dd0eff2cb9d92a080435a889d89fd13634113c98d2",
+        "publicationDisposition": "AUTOMATIC_PUBLIC_ARCHIVE",
+        "sourceAssessment": "unverified",
+        "closureQualification": "UNASSESSED",
+        "declaredImports": {
+          "owlMappingStrategy": "heuristic",
+          "iris": [
+            "https://origin.example.test/v1/child.ttl",
+            "https://origin.example.test/v1/child.ttl"
+          ],
+          "iriByteLength": 40
+        },
+        "resolutionIdentity": "b9983aa100dd300d6d34072e39ddcec76aa7cf8ecb90b75adcbd357618a2cf50"
+      }
+    },
+    {
+      "id": "reject-import-hint-byte-limit",
+      "schema": "ontology-resolution.v1.schema.json",
+      "expectedSchemaValid": false,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "resolution",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "generation": 1,
+        "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+        "requestedDocumentIri": "https://ontology.example.test/onto#v1",
+        "retrievalIri": "https://ontology.example.test/onto",
+        "effectiveRetrievalIri": "https://origin.example.test/v1/root.ttl",
+        "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+        "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactByteLength": 117,
+        "validationIdentity": "c488f7d8c0af31f03a0731bc6941d9ef8d72f4ce3b95ab28a00cf32f2d7b7c32",
+        "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/c488f7d8c0af31f03a0731bc6941d9ef8d72f4ce3b95ab28a00cf32f2d7b7c32.json",
+        "loaderProfileFingerprint": "45feeb5decb41764fd7c7c8c2c5f25f3d78b9cea94975662fc06f6a4218d0e87",
+        "loaderPolicyIri": "https://cache.example.test/ontology/cache/policies/sha256/45feeb5decb41764fd7c7c8c2c5f25f3d78b9cea94975662fc06f6a4218d0e87.json",
+        "owlapiArtifactIdentity": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619",
+        "formatSelectionMode": "automatic",
+        "explicitFormatId": null,
+        "observedFormatId": "turtle",
+        "decodingPolicy": "strict-utf8-v1",
+        "validationContractVersion": 1,
+        "acquiredAt": "2026-10-01T00:00:00.000Z",
+        "checkedAt": "2026-10-01T00:00:00.000Z",
+        "originMetadata": {
+          "status": 200,
+          "contentType": "text/turtle",
+          "contentEncoding": "identity",
+          "cacheControl": "no-cache, max-age=60",
+          "vary": [
+            "accept",
+            "accept-encoding",
+            "origin",
+            "negotiate",
+            "accept-charset",
+            "accept-language",
+            "accept-features"
+          ],
+          "validators": {
+            "etag": "\"fixture-A\""
+          }
+        },
+        "requestVariant": {
+          "accept": "text/turtle",
+          "acceptEncoding": "identity",
+          "selectionPolicyVersion": 3
+        },
+        "requestVariantFingerprint": "0f398baf91dfd825083e73dd0eff2cb9d92a080435a889d89fd13634113c98d2",
+        "publicationDisposition": "AUTOMATIC_PUBLIC_ARCHIVE",
+        "sourceAssessment": "unverified",
+        "closureQualification": "UNASSESSED",
+        "declaredImports": {
+          "owlMappingStrategy": "heuristic",
+          "iris": [
+            "https://origin.example.test/v1/child.ttl"
+          ],
+          "iriByteLength": 16385
+        },
+        "resolutionIdentity": "b9983aa100dd300d6d34072e39ddcec76aa7cf8ecb90b75adcbd357618a2cf50"
+      }
+    },
+    {
+      "id": "curated-archive-capture",
+      "schema": "ontology-archive-capture.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "curated-historical-capture",
+        "archiveIri": "https://archive.example.test/20240303034107/root.ttl",
+        "originalDocumentIri": "https://origin.example.test/v1/root.ttl",
+        "capturedAt": "2024-03-03T03:41:07.000Z",
+        "archiveMediaType": "text/turtle",
+        "originalRequest": "NOT_RECORDED",
+        "originalResponseStatus": null,
+        "originalResponseHeadersComplete": false,
+        "knownOriginalHeaders": {
+          "etag": "\"fixture-A\""
+        }
+      }
+    },
+    {
+      "id": "curated-archive-resolution",
+      "schema": "ontology-resolution.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "resolution",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "generation": 1,
+        "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+        "requestedDocumentIri": "https://ontology.example.test/onto#v1",
+        "retrievalIri": "https://origin.example.test/v1/root.ttl",
+        "effectiveRetrievalIri": "https://origin.example.test/v1/root.ttl",
+        "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+        "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactByteLength": 117,
+        "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+        "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2.json",
+        "loaderProfileFingerprint": "dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6",
+        "loaderPolicyIri": "https://cache.example.test/ontology/cache/policies/sha256/dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6.json",
+        "owlapiArtifactIdentity": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619",
+        "formatSelectionMode": "automatic",
+        "explicitFormatId": null,
+        "observedFormatId": "turtle",
+        "decodingPolicy": "strict-utf8-v1",
+        "validationContractVersion": 1,
+        "acquiredAt": "2024-03-03T03:41:07.000Z",
+        "checkedAt": "2024-03-03T03:41:07.000Z",
+        "originMetadata": null,
+        "requestVariant": null,
+        "requestVariantFingerprint": "c0149d3ff65fac68290cac06cae1ed20906820b166689f529b59ed20a8b19b00",
+        "publicationDisposition": "CURATED_PUBLIC_ARCHIVE",
+        "sourceAssessment": "valid",
+        "closureQualification": "UNASSESSED",
+        "archiveCapture": {
+          "schemaVersion": 1,
+          "kind": "curated-historical-capture",
+          "archiveIri": "https://archive.example.test/20240303034107/root.ttl",
+          "originalDocumentIri": "https://origin.example.test/v1/root.ttl",
+          "capturedAt": "2024-03-03T03:41:07.000Z",
+          "archiveMediaType": "text/turtle",
+          "originalRequest": "NOT_RECORDED",
+          "originalResponseStatus": null,
+          "originalResponseHeadersComplete": false,
+          "knownOriginalHeaders": {
+            "etag": "\"fixture-A\""
+          }
+        },
+        "resolutionIdentity": "7a7e32bf305bb1c9d0cae77289c5e1858c027afed40a44410d5fe2a2c6833eb1"
+      }
+    },
+    {
+      "id": "reject-automatic-missing-http-facts",
+      "schema": "ontology-resolution.v1.schema.json",
+      "expectedSchemaValid": false,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "resolution",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "generation": 1,
+        "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+        "requestedDocumentIri": "https://ontology.example.test/onto#v1",
+        "retrievalIri": "https://origin.example.test/v1/root.ttl",
+        "effectiveRetrievalIri": "https://origin.example.test/v1/root.ttl",
+        "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+        "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactByteLength": 117,
+        "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+        "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2.json",
+        "loaderProfileFingerprint": "dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6",
+        "loaderPolicyIri": "https://cache.example.test/ontology/cache/policies/sha256/dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6.json",
+        "owlapiArtifactIdentity": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619",
+        "formatSelectionMode": "automatic",
+        "explicitFormatId": null,
+        "observedFormatId": "turtle",
+        "decodingPolicy": "strict-utf8-v1",
+        "validationContractVersion": 1,
+        "acquiredAt": "2024-03-03T03:41:07.000Z",
+        "checkedAt": "2024-03-03T03:41:07.000Z",
+        "originMetadata": null,
+        "requestVariant": null,
+        "requestVariantFingerprint": "c0149d3ff65fac68290cac06cae1ed20906820b166689f529b59ed20a8b19b00",
+        "publicationDisposition": "AUTOMATIC_PUBLIC_ARCHIVE",
+        "sourceAssessment": "valid",
+        "closureQualification": "UNASSESSED",
+        "archiveCapture": {
+          "schemaVersion": 1,
+          "kind": "curated-historical-capture",
+          "archiveIri": "https://archive.example.test/20240303034107/root.ttl",
+          "originalDocumentIri": "https://origin.example.test/v1/root.ttl",
+          "capturedAt": "2024-03-03T03:41:07.000Z",
+          "archiveMediaType": "text/turtle",
+          "originalRequest": "NOT_RECORDED",
+          "originalResponseStatus": null,
+          "originalResponseHeadersComplete": false,
+          "knownOriginalHeaders": {
+            "etag": "\"fixture-A\""
+          }
+        },
+        "resolutionIdentity": "7a7e32bf305bb1c9d0cae77289c5e1858c027afed40a44410d5fe2a2c6833eb1"
+      }
     }
   ],
   "semanticExamples": [
@@ -1422,7 +4102,9 @@
           "contentType": "text/turtle",
           "contentEncoding": "identity",
           "cacheControl": "public, max-age=86400",
-          "vary": ["accept"],
+          "vary": [
+            "accept"
+          ],
           "validators": {
             "etag": "\"fixture-A\""
           }
@@ -1474,7 +4156,9 @@
           "contentType": "text/turtle",
           "contentEncoding": "identity",
           "cacheControl": "public, max-age=86400",
-          "vary": ["accept"],
+          "vary": [
+            "accept"
+          ],
           "validators": {
             "etag": "\"fixture-A\""
           }
@@ -1644,11 +4328,66 @@
         "diagnosticCodes": [],
         "diagnosticsTruncated": false,
         "importDeclarationCount": 1,
-        "ontologyIris": ["https://origin.example.test/v1/root.ttl"],
+        "ontologyIris": [
+          "https://origin.example.test/v1/root.ttl"
+        ],
         "declaredVersionIris": [],
         "identifiersTruncated": false
       },
       "expectedSemanticOutcome": "REJECT_SELECTION_MODE"
+    },
+    {
+      "id": "reject-curated-parser-base-mismatch",
+      "schema": "ontology-resolution.v1.schema.json",
+      "expectedSchemaValid": true,
+      "value": {
+        "schemaVersion": 1,
+        "kind": "resolution",
+        "sourceKey": "2ae413f58ab8c2a6a10ed89e9a2de1039cedcfacd62cea2d0c78db205846ce1f",
+        "generation": 1,
+        "sourceVersionIdentity": "e4480ce208747df882b40b66605b2b2ebffcf164885c1bb5a47becf83015513f",
+        "requestedDocumentIri": "https://ontology.example.test/onto#v1",
+        "retrievalIri": "https://origin.example.test/v1/root.ttl",
+        "effectiveRetrievalIri": "https://origin.example.test/v1/root.ttl",
+        "parserDocumentIri": "https://origin.example.test/v1/root.ttl",
+        "artifactIri": "https://cache.example.test/ontology/cache/artifacts/sha256/4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactSha256": "4a4fb65c00d9b6641c315431c8dd771045027aa70d96825eb009e493ba0db07c",
+        "artifactByteLength": 117,
+        "validationIdentity": "79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2",
+        "validationIri": "https://cache.example.test/ontology/cache/validations/sha256/79849833f2b9e492638ba4110517a4f8fb63282946d349e103ba4de96914eee2.json",
+        "loaderProfileFingerprint": "dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6",
+        "loaderPolicyIri": "https://cache.example.test/ontology/cache/policies/sha256/dc366ee46943a29afe4af4f0091cea3dbe411593ae01ad0f9f50465f785a60c6.json",
+        "owlapiArtifactIdentity": "9c32c512fffeff087905d967e26465734d1ffc9c4c63efdb54990b98e7f22619",
+        "formatSelectionMode": "automatic",
+        "explicitFormatId": null,
+        "observedFormatId": "turtle",
+        "decodingPolicy": "strict-utf8-v1",
+        "validationContractVersion": 1,
+        "acquiredAt": "2024-03-03T03:41:07.000Z",
+        "checkedAt": "2024-03-03T03:41:07.000Z",
+        "originMetadata": null,
+        "requestVariant": null,
+        "requestVariantFingerprint": "c0149d3ff65fac68290cac06cae1ed20906820b166689f529b59ed20a8b19b00",
+        "publicationDisposition": "CURATED_PUBLIC_ARCHIVE",
+        "sourceAssessment": "valid",
+        "closureQualification": "UNASSESSED",
+        "archiveCapture": {
+          "schemaVersion": 1,
+          "kind": "curated-historical-capture",
+          "archiveIri": "https://archive.example.test/20240303034107/root.ttl",
+          "originalDocumentIri": "https://different.example.test/original.ttl",
+          "capturedAt": "2024-03-03T03:41:07.000Z",
+          "archiveMediaType": "text/turtle",
+          "originalRequest": "NOT_RECORDED",
+          "originalResponseStatus": null,
+          "originalResponseHeadersComplete": false,
+          "knownOriginalHeaders": {
+            "etag": "\"fixture-A\""
+          }
+        },
+        "resolutionIdentity": "fab1a9499a1062c2ec6f2341ba02ee411b41bc787bbfc7eabd5ea55f040b6f47"
+      },
+      "expectedSemanticOutcome": "REJECT_ORIGIN_CONTEXT"
     }
   ],
   "rawAdmissionCases": [

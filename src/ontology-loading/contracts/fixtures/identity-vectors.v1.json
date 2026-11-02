@@ -475,7 +475,9 @@
           "contentType": "text/turtle",
           "contentEncoding": "identity",
           "cacheControl": "public, max-age=86400",
-          "vary": ["accept"],
+          "vary": [
+            "accept"
+          ],
           "validators": {
             "etag": "\"fixture-A\""
           }
@@ -528,7 +530,9 @@
           "contentType": "text/turtle",
           "contentEncoding": "identity",
           "cacheControl": "public, max-age=86400",
-          "vary": ["accept"],
+          "vary": [
+            "accept"
+          ],
           "validators": {
             "etag": "\"fixture-A\""
           }
@@ -581,7 +585,9 @@
           "contentType": "text/turtle",
           "contentEncoding": "identity",
           "cacheControl": "public, max-age=86400",
-          "vary": ["accept"],
+          "vary": [
+            "accept"
+          ],
           "validators": {
             "etag": "\"fixture-B\""
           }

@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://haddenindustries.com/ontology/contracts/v1/ontology-archive-capture.v1.schema.json",
+  "title": "Operator-reviewed historical archive capture",
+  "description": "Partial historical evidence, limited to 8192 serialized UTF-8 bytes; absent original headers are unknown, never assertions that the headers were absent.",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "kind": {
+      "const": "curated-historical-capture"
+    },
+    "archiveIri": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/httpsIri"
+    },
+    "originalDocumentIri": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/requestedIri"
+    },
+    "capturedAt": {
+      "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"
+    },
+    "archiveMediaType": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "originalRequest": {
+      "const": "NOT_RECORDED"
+    },
+    "originalResponseStatus": {
+      "type": "null"
+    },
+    "originalResponseHeadersComplete": {
+      "const": false
+    },
+    "knownOriginalHeaders": {
+      "type": "object",
+      "properties": {
+        "cache-control": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/headerValue"
+        },
+        "content-type": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/headerValue"
+        },
+        "content-encoding": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/headerValue"
+        },
+        "content-length": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/headerValue"
+        },
+        "date": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/headerValue"
+        },
+        "etag": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/headerValue"
+        },
+        "last-modified": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/headerValue"
+        },
+        "vary": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/headerValue"
+        },
+        "expires": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/headerValue"
+        },
+        "age": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/headerValue"
+        },
+        "www-authenticate": {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/headerValue"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "kind",
+    "archiveIri",
+    "originalDocumentIri",
+    "capturedAt",
+    "archiveMediaType",
+    "originalRequest",
+    "originalResponseStatus",
+    "originalResponseHeadersComplete",
+    "knownOriginalHeaders"
+  ],
+  "additionalProperties": false
+}

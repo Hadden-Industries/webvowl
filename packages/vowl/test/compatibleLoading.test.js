@@ -1,4 +1,4 @@
-import { fromOwl } from "vowl/owl";
+import { fromOwl, openOwl } from "vowl/owl";
 import { ResourceBudget } from "../src/resourceBudget.js";
 import { snapshotBytes } from "../src/snapshot.js";
 import { documentContext } from "../src/owl/loading.js";
@@ -10,6 +10,140 @@ const text = new TextEncoder();
 const prefix =
   "@prefix owl: <http://www.w3.org/2002/07/owl#>. @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>. @prefix xsd: <http://www.w3.org/2001/XMLSchema#>. ";
 const options = { documentIri: "urn:source", mediaType: "text/turtle" };
+
+test("interactive mapping defaults to heuristic and unambiguous rejects unresolved roles", async () => {
+  const bytes = text.encode(
+    prefix +
+      "<urn:p> a owl:ObjectProperty, owl:AnnotationProperty; rdfs:domain <urn:C>. <urn:C> a owl:Class.",
+  );
+  await expect(openOwl(bytes, options)).resolves.toHaveProperty("model");
+  await expect(
+    openOwl(bytes, { ...options, owlMappingStrategy: "heuristic" }),
+  ).resolves.toHaveProperty("model");
+  await expect(
+    openOwl(bytes, { ...options, owlMappingStrategy: "unambiguous" }),
+  ).rejects.toMatchObject({ code: "MAPPING_AMBIGUOUS" });
+});
+
+test.each([
+  ["heuristic", "compatible"],
+  ["unambiguous", "preserve"],
+])(
+  "%s mode reaches every imported document with original source bytes retained",
+  async (owlMappingStrategy, nativeParserMode) => {
+    const imported = prefix + "<urn:Imported> a owl:Class.";
+    const observed = [];
+    const prepared = await prepare(
+      prefix + "<urn:root> a owl:Ontology; owl:imports <urn:import>.",
+      {
+        owlMappingStrategy,
+        resolveImport: async (iri) => {
+          observed.push(iri);
+          return {
+            bytes: text.encode(imported),
+            documentIri: "urn:import-document",
+            mediaType: "text/turtle",
+          };
+        },
+      },
+    );
+    expect(observed).toEqual(["urn:import"]);
+    if (owlMappingStrategy === "unambiguous") {
+      expect(
+        prepared.loaded.documents.every(
+          ({ context }) => context.sourceStructure.policy === "preserve",
+        ),
+      ).toBe(true);
+    }
+    expect(prepared.retained.evidence.parsingMode).toBe(nativeParserMode);
+    expect(
+      prepared.sourceDocuments.find(
+        ({ documentIri }) => documentIri === "urn:import-document",
+      ).bytes,
+    ).toEqual(text.encode(imported));
+  },
+);
+
+test("unambiguous mapping also rejects unresolved roles in imported vocabulary", async () => {
+  const source = text.encode(
+    prefix + "<urn:root> a owl:Ontology; owl:imports <urn:import>.",
+  );
+  const resolveImport = async () => ({
+    bytes: text.encode(
+      prefix +
+        "<urn:p> a owl:ObjectProperty, owl:AnnotationProperty; rdfs:domain <urn:C>. <urn:C> a owl:Class.",
+    ),
+    documentIri: "urn:import-document",
+    mediaType: "text/turtle",
+  });
+  await expect(
+    openOwl(source, { ...options, resolveImport }),
+  ).resolves.toHaveProperty("model");
+  await expect(
+    openOwl(source, {
+      ...options,
+      resolveImport,
+      owlMappingStrategy: "unambiguous",
+    }),
+  ).rejects.toMatchObject({ code: "MAPPING_AMBIGUOUS" });
+});
+
+test.each([null, true, "strict", "", "compatible", "preserve"])(
+  "invalid OWL mapping strategy %j is rejected before import acquisition",
+  async (owlMappingStrategy) => {
+    await expect(
+      openOwl(text.encode(prefix + "<urn:C> a owl:Class."), {
+        ...options,
+        owlMappingStrategy,
+      }),
+    ).rejects.toMatchObject({
+      code: "OPTION_INVALID",
+      pointer: "/owlMappingStrategy",
+    });
+  },
+);
+
+test.each(["heuristic", "unambiguous"])(
+  "%s mapping detects root and import syntax independently of strategy",
+  async (owlMappingStrategy) => {
+    const result = await openOwl(
+      text.encode(
+        prefix + "<urn:root> a owl:Ontology; owl:imports <urn:import>.",
+      ),
+      {
+        documentIri: "urn:source",
+        owlMappingStrategy,
+        resolveImport: async () => ({
+          bytes: text.encode(prefix + "<urn:Imported> a owl:Class."),
+          documentIri: "urn:import-document",
+        }),
+      },
+    );
+    expect(result).toHaveProperty("model");
+  },
+);
+
+test("the native parsingMode option is not a WebVOWL strategy alias", async () => {
+  await expect(
+    openOwl(text.encode(prefix + "<urn:C> a owl:Class."), {
+      ...options,
+      parsingMode: "compatible",
+    }),
+  ).rejects.toMatchObject({ code: "OPTION_INVALID" });
+});
+
+test.each(["heuristic", "unambiguous"])(
+  "%s keeps finite input limits",
+  async (owlMappingStrategy) => {
+    await expect(
+      openOwl(text.encode(prefix + "<urn:C> a owl:Class."), {
+        ...options,
+        owlMappingStrategy,
+        limits: { inputBytes: 1 },
+      }),
+    ).rejects.toMatchObject({ code: "INPUT_RESOURCE_LIMIT" });
+  },
+);
 async function prepare(source, extra = {}) {
   const opts = { ...options, ...extra };
   const budget = new ResourceBudget(opts, performance.now());
@@ -24,6 +158,33 @@ async function prepare(source, extra = {}) {
     budget.dispose();
   }
 }
+
+test.each([
+  ["heuristic", "compatible"],
+  ["unambiguous", "preserve"],
+])(
+  "%s parsing evidence survives archive recovery and rejects unknown modes",
+  async (owlMappingStrategy, nativeParserMode) => {
+    const { retained } = await prepare(prefix + "<urn:C> a owl:Class.", {
+      owlMappingStrategy,
+    });
+    const saved = transportArchive(await checkpoint(retained));
+    const recovered = await recoverArchive(saved);
+    expect(recovered.evidence.parsingMode).toBe(nativeParserMode);
+    const invalid = transportArchive(saved);
+    invalid.evidence.parsingMode = "strict";
+    await expect(recoverArchive(invalid)).rejects.toMatchObject({
+      code: "CHECKPOINT_INVALID",
+    });
+    if (owlMappingStrategy === "heuristic") {
+      const legacy = transportArchive(saved);
+      delete legacy.evidence.parsingMode;
+      await expect(recoverArchive(legacy)).resolves.toHaveProperty(
+        "evidence.documents",
+      );
+    }
+  },
+);
 
 test("compatible property-role choice is retained as owning diagnostics while fromOwl stays preserve-mode", async () => {
   const source =

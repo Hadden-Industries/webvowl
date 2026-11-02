@@ -2,6 +2,42 @@ import canonicalize from "canonicalize";
 import { isIri } from "@hyperjump/uri";
 
 const encoder = new TextEncoder();
+// SHA-256 is a pure function of the exact preimage. Reuse only bounded textual
+// identity preimages; decoded artifact bytes are always independently digested.
+const identityDigests = new Map();
+const maximumCachedIdentities = 128;
+const maximumCachedIdentityCharacters = 16384;
+function textIdentityDigest(text) {
+  if (text.length > maximumCachedIdentityCharacters) {
+    return ontologySha256(encoder.encode(text));
+  }
+  if (identityDigests.has(text)) {
+    const digest = identityDigests.get(text);
+    identityDigests.delete(text);
+    identityDigests.set(text, digest);
+    return digest;
+  }
+  const digest = ontologySha256(encoder.encode(text));
+  if (identityDigests.size >= maximumCachedIdentities) {
+    identityDigests.delete(identityDigests.keys().next().value);
+  }
+  identityDigests.set(text, digest);
+  void digest.catch(() => {
+    if (identityDigests.get(text) === digest) {
+      identityDigests.delete(text);
+    }
+  });
+  return digest;
+}
+
+/** Import metadata uses logical IRIs; lexer failures are not wire error details. */
+export function isOntologyImportIri(value) {
+  try {
+    return typeof value === "string" && value.isWellFormed() && isIri(value);
+  } catch {
+    return false;
+  }
+}
 
 /** Stable, bounded consumer failures never expose remote messages or source excerpts. */
 export class OntologyCacheError extends Error {
@@ -46,15 +82,13 @@ export async function ontologySha256(bytes) {
 }
 
 export function ontologySourceKey(iri) {
-  return ontologySha256(encoder.encode(ontologySourceIri(iri)));
+  return textIdentityDigest(ontologySourceIri(iri));
 }
 
 /** Provider-owned domain separation and RFC 8785 encoding, using the native JCS library. */
 export function ontologyRecordIdentity(domain, value) {
-  return ontologySha256(
-    encoder.encode(
-      `hadden-ontology-cache/${domain}/v1\n${canonicalize(value)}`,
-    ),
+  return textIdentityDigest(
+    `hadden-ontology-cache/${domain}/v1\n${canonicalize(value)}`,
   );
 }
 

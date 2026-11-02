@@ -128,12 +128,18 @@ describe("page-local visualization artifact ownership", () => {
       propertyLabels: [],
       links: [],
     };
-    const metadata = await service.createVisualizationArtifact({
+    const request = {
       format: "latex",
       filename: "People",
       source,
       renderedDrawingSnapshot,
-    });
+    };
+    const publishing = service.createVisualizationArtifact(request);
+    request.filename = "Changed";
+    source.displayName = "changed.json";
+    renderedDrawingSnapshot.loadGeneration = 8;
+    renderedDrawingSnapshot.bounds.bottomPx = 400;
+    const metadata = await publishing;
     const blob = objectUrlApi.createObjectURL.mock.calls.at(-1)[0];
     const text = await blob.text();
     expect(text).toContain("\\begin{tikzpicture}");
@@ -144,12 +150,51 @@ describe("page-local visualization artifact ownership", () => {
       filename: "People.tex",
       mediaType: "application/x-tex",
       loadGeneration: 7,
-      source,
+      source: { kind: "vowl-json-text", displayName: "people.json" },
       byteLength: Buffer.byteLength(text),
       sha256Hex: expectedSha256Hex(text),
     });
     expect(svgSerializer.serializeRenderedSvgSnapshot).not.toHaveBeenCalled();
   });
+
+  test.each(["cancel", "dispose"])(
+    "does not publish when %s wins while the LaTeX formatter loads",
+    async (stop) => {
+      const service = createArtifactService();
+      const controller = new AbortController();
+      const cancellation = new Error("cancelled LaTeX export");
+      const publishing = service.createVisualizationArtifact(
+        {
+          format: "latex",
+          filename: "People",
+          source: { kind: "vowl-json-text", displayName: "people.json" },
+          renderedDrawingSnapshot: {
+            loadGeneration: 7,
+            bounds: { leftPx: 0, topPx: 0, rightPx: 300, bottomPx: 200 },
+            compactNotation: false,
+            nodes: [],
+            propertyLabels: [],
+            links: [],
+          },
+        },
+        { signal: controller.signal },
+      );
+      if (stop === "cancel") {
+        controller.abort(cancellation);
+        await expect(publishing).rejects.toBe(cancellation);
+      } else {
+        service.dispose();
+        await expect(publishing).rejects.toMatchObject({
+          code: "EXPORT_FAILED",
+          details: { exportStage: "artifact-lifecycle" },
+        });
+      }
+      expect(objectUrlApi.createObjectURL).not.toHaveBeenCalled();
+      expect(
+        visualizationArtifactPublicationPort.publishPageLocalArtifact,
+      ).not.toHaveBeenCalled();
+    },
+  );
 
   test("publishes Turtle bytes verbatim without regenerating ontology content", async () => {
     const turtleText =

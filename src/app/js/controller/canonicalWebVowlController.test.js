@@ -23,6 +23,71 @@ function deferred() {
   return { promise, resolve, reject };
 }
 
+test("bounded import preparation completes before the model job starts", async () => {
+  const h = setup();
+  const gate = deferred();
+  h.acquisition.createImportContext = () => ({
+    prepare: () => gate.promise,
+  });
+  const loading = h.load("urn:prepared");
+  try {
+    for (let index = 0; index < 8; index++) {
+      await Promise.resolve();
+    }
+    expect(h.controller.getState().status).toBe("loading");
+    expect(h.session.load).not.toHaveBeenCalled();
+    gate.resolve();
+    await loading;
+    expect(h.session.load).toHaveBeenCalledTimes(1);
+    expect(h.controller.getState().status).toBe("ready");
+  } finally {
+    gate.resolve();
+    await loading.catch(() => {});
+    h.controller.dispose();
+  }
+});
+
+test("OWL mapping preference is captured before acquisition and an explicit option overrides it", async () => {
+  let selected = "unambiguous";
+  const h = setup({ readOwlMappingStrategy: () => selected });
+  const gate = deferred();
+  h.acquisition.remote.mockImplementationOnce(() => gate.promise);
+  const pending = h.load("urn:mode");
+  selected = "heuristic";
+  gate.resolve({ operation: "open-owl-model", documentIri: "urn:mode" });
+  await pending;
+  expect(h.session.load.mock.calls[0][0].owlMappingStrategy).toBe(
+    "unambiguous",
+  );
+  h.acquisition.remote.mockResolvedValueOnce({
+    operation: "open-owl-model",
+    documentIri: "urn:explicit",
+  });
+  await h.controller.loadOntology(
+    { source: { kind: "ontology-document-iri", documentIri: "urn:explicit" } },
+    { owlMappingStrategy: "unambiguous" },
+  );
+  expect(h.session.load.mock.calls[1][0].owlMappingStrategy).toBe(
+    "unambiguous",
+  );
+  h.controller.dispose();
+});
+
+test("an invalid OWL mapping strategy does not acquire or retire the current document", async () => {
+  const h = setup();
+  await h.load("urn:accepted");
+  const before = h.controller.getState();
+  await expect(
+    h.controller.loadOntology(
+      { source: { kind: "ontology-document-iri", documentIri: "urn:invalid" } },
+      { owlMappingStrategy: "unknown" },
+    ),
+  ).rejects.toThrow("OWL mapping strategy");
+  expect(h.controller.getState()).toEqual(before);
+  expect(h.acquisition.remote).toHaveBeenCalledTimes(1);
+  h.controller.dispose();
+});
+
 function setup({ artifactService, ...dependencies } = {}) {
   let listener;
   let accepted;

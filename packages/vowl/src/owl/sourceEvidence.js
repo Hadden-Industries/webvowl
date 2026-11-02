@@ -1,6 +1,6 @@
 import { IRI } from "owlapi/model";
 import { fail } from "../errors.js";
-import { snapshotSource, deepFreeze, checkString } from "../snapshot.js";
+import { snapshotSource, freezeOwnedSource, checkString } from "../snapshot.js";
 import { ownSourceArchive } from "../sourceArchive.js";
 
 /** Copy public owning evidence without invoking JSON hooks or retaining OWL objects. */
@@ -131,9 +131,10 @@ export async function retainCompatibleEvidence(prepared, budget) {
             ),
     });
   }
-  const evidence = deepFreeze(
+  const evidence = freezeOwnedSource(
     snapshotSource(
       {
+        parsingMode: prepared.owlMappingParserMode,
         documents,
         imports: importEvidence(prepared, documents, budget),
         diagnostics: copyEvidence(prepared.diagnostics, budget),

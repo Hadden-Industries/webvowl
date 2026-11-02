@@ -27,7 +27,7 @@ import {
 import {
   liveState,
   openCanonicalState,
-  openOwlState,
+  openOwnedOwlState,
   inspectLiveModel,
   editLiveModel,
   checkpointLiveModel,
@@ -61,7 +61,10 @@ function rememberModel(result, budget) {
 }
 
 registerOwlAdmission(inspectModel, (source, archive, documentIri, budget) =>
-  rememberModel(openOwlState(source, archive, documentIri, budget), budget),
+  rememberModel(
+    openOwnedOwlState(source, archive, documentIri, budget),
+    budget,
+  ),
 );
 
 function requireModel(model) {

@@ -10,6 +10,10 @@ import { profileCheckLimits } from "./policy.js";
 import { buildModel } from "./modelBuilder.js";
 import { snapshotSource } from "../snapshot.js";
 import { retainCompatibleEvidence } from "./sourceEvidence.js";
+import {
+  owlMappingStrategies,
+  selectOwlMappingStrategy,
+} from "../owlMappingStrategy.js";
 
 /** Prepare typed retained content without treating a profile assessment as view admission. */
 export async function prepareCompatibleView(bytes, context, options, budget) {
@@ -36,9 +40,18 @@ export async function prepareCompatibleView(bytes, context, options, budget) {
     diagnostic,
     recover: diagnostic,
   });
+  performance.measure("webvowl.owl-model-projection", {
+    start: startedAt,
+    end: performance.now(),
+  });
   budget.check();
   const result = { ...prepared, source, projectionDiagnostics };
+  const retentionStartedAt = performance.now();
   const retained = await retainCompatibleEvidence(result, budget);
+  performance.measure("webvowl.owl-evidence-retention", {
+    start: retentionStartedAt,
+    end: performance.now(),
+  });
   performance.measure("webvowl.owl-retention", {
     start: startedAt,
     end: performance.now(),
@@ -53,10 +66,15 @@ export async function prepareCompatibleView(bytes, context, options, budget) {
  * The caller retains this operation budget through later model/evidence admission.
  */
 export async function loadCompatibleClosure(bytes, context, options, budget) {
+  const owlMappingStrategy = selectOwlMappingStrategy(
+    options.owlMappingStrategy,
+  );
+  const owlMappingParserMode = owlMappingStrategies[owlMappingStrategy];
   const sourceDocuments = [];
   const diagnostics = [];
   const loaded = await loadClosure(bytes, context, options, budget, {
-    parsingMode: "compatible",
+    parsingMode: owlMappingParserMode,
+    automaticFormats: true,
     strict: false,
     observeSource(sourceBytes, sourceContext, acquisition = null) {
       budget.check();
@@ -124,6 +142,7 @@ export async function loadCompatibleClosure(bytes, context, options, budget) {
   );
   budget.check();
   return {
+    owlMappingParserMode,
     loaded,
     sourceDocuments,
     documents,

@@ -2,6 +2,12 @@ import {
   canonicalFailureDetails,
   canonicalLoadingMessage,
 } from "./canonicalVowlFailure.js";
+import {
+  createValidatedOwlResultCache,
+  importRequestKey,
+  sameSourceBytes,
+} from "./validatedOwlResultCache.js";
+import { createOwnedWorkerResult } from "./canonicalVowlWorkerResultOwnership.js";
 
 import {
   APPLICATION_LIMITS,
@@ -265,6 +271,10 @@ export function createCanonicalVowlWorkerClient({
   let nextRequestId = 0;
   let disposed = false;
   const pending = new Set();
+  const cache = createValidatedOwlResultCache({
+    measure: (result, maximum) =>
+      measureCheckpointInput(result, maximum, APPLICATION_LIMITS.depth + 1),
+  });
 
   return Object.freeze({
     async run(
@@ -275,6 +285,7 @@ export function createCanonicalVowlWorkerClient({
         signal,
         resolveImport,
         deferNodeOrdering = false,
+        reuseValidatedResult = true,
       } = {},
     ) {
       if (disposed) {
@@ -353,6 +364,10 @@ export function createCanonicalVowlWorkerClient({
       }
       const payload =
         checkpointPayload ?? structuredClone({ ...request, bytes });
+      // The serialized payload owns the options the parser will actually see.
+      // Do not reread caller accessors to decide whether validation may be reused.
+      const explicitLimits =
+        payload.limits !== undefined || Object.keys(limits).length > 0;
       if (modelOperations.has(request.operation)) {
         payload.limits = { ...payload.limits, deadlineMs };
       }
@@ -364,7 +379,16 @@ export function createCanonicalVowlWorkerClient({
         loadGeneration,
         baseRevision,
       };
-      const worker = createWorker();
+      const cacheScope = {
+        explicitLimits,
+        deadlineMs,
+        inputLimit,
+      };
+      const candidate =
+        reuseValidatedResult === true
+          ? cache.candidate(payload, cacheScope)
+          : undefined;
+      let worker = candidate ? undefined : createWorker();
       return new Promise((resolve, reject) => {
         const acquisition = new AbortController();
         const importIds = new Set();
@@ -374,6 +398,11 @@ export function createCanonicalVowlWorkerClient({
         let previewDelivered = false;
         let orderingStarted = false;
         let finishOrdering;
+        let ownedPreview;
+        const importRequests = [];
+        const probedImports = new Map();
+        const probedCharges = new Set();
+        const expiresAt = performance.now() + deadlineMs;
         const cancelDeadline = armDeadline(deadlineMs, () =>
           settle(
             failure("DEADLINE_EXCEEDED", {
@@ -386,13 +415,40 @@ export function createCanonicalVowlWorkerClient({
           if (finished) {
             return;
           }
+          if (!error && signal?.aborted) {
+            error = failure("LOAD_ABORTED");
+          }
+          if (!error && performance.now() >= expiresAt) {
+            error = failure("DEADLINE_EXCEEDED", {
+              stage: "worker",
+              resource: "deadlineMs",
+            });
+          }
+          if (!error && worker && result) {
+            cache.remember(
+              { ...payload, bytes },
+              cacheScope,
+              importRequests,
+              result,
+              ownedPreview,
+            );
+            if (signal?.aborted || performance.now() >= expiresAt) {
+              cache.clear();
+              error = signal?.aborted
+                ? failure("LOAD_ABORTED")
+                : failure("DEADLINE_EXCEEDED", {
+                    stage: "worker",
+                    resource: "deadlineMs",
+                  });
+            }
+          }
           finished = true;
           cancelDeadline();
           clearTimeout(resultTimer);
           clearTimeout(previewTimer);
           signal?.removeEventListener("abort", abort);
           acquisition.abort();
-          worker.terminate();
+          worker?.terminate();
           pending.delete(abort);
           if (previewDelivered) {
             finishOrdering(error ? { error } : result);
@@ -407,160 +463,298 @@ export function createCanonicalVowlWorkerClient({
         }
         pending.add(abort);
         signal?.addEventListener("abort", abort, { once: true });
-        const peerFailure = () => {
-          if (resultTimer === undefined) {
-            settle(failure("CANONICAL_WORKER_FAILED"));
+        async function probeCandidate() {
+          if (!sameSourceBytes(bytes, candidate.root)) {
+            return false;
           }
-        };
-        worker.onerror = peerFailure;
-        worker.onmessageerror = peerFailure;
-        worker.onmessage = async ({ data }) => {
-          if (
-            finished ||
-            resultTimer !== undefined ||
-            !data ||
-            Object.keys(context).some((key) => data[key] !== context[key])
-          ) {
-            return;
-          }
-          if (data.type === "preview") {
-            if (
-              !deferNodeOrdering ||
-              request.operation !== "open-owl-model" ||
-              previewTimer !== undefined ||
-              previewDelivered
-            ) {
-              settle(failure("CANONICAL_WORKER_FAILED"));
-              return;
+          for (const expected of candidate.recipe) {
+            if (finished) {
+              return false;
             }
-            const ready = new Promise((done) => {
-              finishOrdering = done;
-            });
-            previewTimer = setTimeout(() => {
-              previewTimer = undefined;
-              if (finished) {
-                return;
-              }
-              previewDelivered = true;
-              resolve({
-                ...context,
-                ...data.result,
-                nodeOrdering: {
-                  ready,
-                  start() {
-                    if (finished || orderingStarted) {
-                      return;
-                    }
-                    orderingStarted = true;
-                    try {
-                      worker.postMessage({
-                        type: "continue-ordering",
-                        ...context,
-                      });
-                    } catch {
-                      settle(failure("CANONICAL_WORKER_FAILED"));
-                    }
-                  },
-                },
-              });
-            }, 0);
-          } else if (data.type === "result") {
-            if (
-              previewTimer !== undefined ||
-              (previewDelivered && !orderingStarted)
-            ) {
-              settle(failure("CANONICAL_WORKER_FAILED"));
-              return;
-            }
-            // Receiving a large structured clone already uses the main thread.
-            // Start consumer processing in another task so input/cancellation
-            // can run before scene construction or the next request snapshot.
-            if (resultTimer === undefined) {
-              resultTimer = setTimeout(() => settle(null, data.result), 0);
-            }
-          } else if (data.type === "failure") {
-            const code = data.failure?.code;
-            settle(
-              failure(
-                typeof code === "string" && /^[A-Z][A-Z0-9_]{0,95}$/u.test(code)
-                  ? code
-                  : "CANONICAL_OPERATION_FAILED",
-                data.failure?.details,
-              ),
+            const key = importRequestKey(
+              expected.importIri,
+              expected.importingDocumentIri,
             );
-          } else if (data.type === "import") {
-            if (
-              !Number.isSafeInteger(data.importId) ||
-              data.importId < 1 ||
-              importIds.has(data.importId)
-            ) {
-              settle(failure("CANONICAL_WORKER_FAILED"));
-              return;
-            }
-            importIds.add(data.importId);
+            let imported;
             try {
-              if (typeof resolveImport !== "function") {
-                throw failure("IMPORT_FAILED");
-              }
-              const imported = await resolveImport(data.importIri, {
-                importingDocumentIri: data.importingDocumentIri,
+              imported = await resolveImport(expected.importIri, {
+                importingDocumentIri: expected.importingDocumentIri,
                 signal: acquisition.signal,
               });
+            } catch (error) {
+              probedImports.set(key, { error });
+              return false;
+            }
+            if (finished) {
+              return false;
+            }
+            probedImports.set(key, { value: imported });
+            let descriptors;
+            try {
+              if (
+                ![Object.prototype, null].includes(
+                  Object.getPrototypeOf(imported),
+                )
+              ) {
+                return false;
+              }
+              descriptors = Object.getOwnPropertyDescriptors(imported);
+              if (
+                ["bytes", "documentIri", "mediaType"].some(
+                  (field) => !descriptors[field] && field in imported,
+                )
+              ) {
+                return false;
+              }
+              const view = descriptors.bytes?.value;
+              if (
+                !(view instanceof Uint8Array) ||
+                Object.getPrototypeOf(view) !== Uint8Array.prototype ||
+                ["slice", "buffer", "constructor"].some((field) =>
+                  Object.hasOwn(view, field),
+                )
+              ) {
+                return false;
+              }
+            } catch {
+              return false;
+            }
+            if (
+              !["bytes", "documentIri", "mediaType"].every(
+                (field) => !descriptors[field] || "value" in descriptors[field],
+              )
+            ) {
+              return false;
+            }
+            let copy;
+            try {
+              copy = copyBytes(descriptors.bytes?.value);
+            } catch {
+              return false;
+            }
+            const value = {
+              bytes: copy,
+              documentIri: descriptors.documentIri?.value,
+              mediaType: descriptors.mediaType?.value,
+            };
+            probedImports.set(key, { value });
+            acquiredBytes += copy.byteLength;
+            probedCharges.add(key);
+            if (acquiredBytes > inputLimit) {
+              throw failure("RESOURCE_LIMIT_EXCEEDED");
+            }
+            if (
+              value.documentIri !== expected.documentIri ||
+              value.mediaType !== expected.mediaType ||
+              !sameSourceBytes(copy, expected.bytes)
+            ) {
+              return false;
+            }
+          }
+          return true;
+        }
+        function startWorker() {
+          worker ??= createWorker();
+          const peerFailure = () => {
+            if (resultTimer === undefined) {
+              settle(failure("CANONICAL_WORKER_FAILED"));
+            }
+          };
+          worker.onerror = peerFailure;
+          worker.onmessageerror = peerFailure;
+          worker.onmessage = async ({ data }) => {
+            if (
+              finished ||
+              resultTimer !== undefined ||
+              !data ||
+              Object.keys(context).some((key) => data[key] !== context[key])
+            ) {
+              return;
+            }
+            if (data.type === "preview") {
+              if (
+                !deferNodeOrdering ||
+                request.operation !== "open-owl-model" ||
+                previewTimer !== undefined ||
+                previewDelivered
+              ) {
+                settle(failure("CANONICAL_WORKER_FAILED"));
+                return;
+              }
+              // Move the native receiver's private value. Public payload reads
+              // copy lazily; the session/cache can share the unexposed value.
+              const preview = createOwnedWorkerResult(data.result, context);
+              ownedPreview = cache.capture(payload, cacheScope, preview);
+              const ready = new Promise((done) => {
+                finishOrdering = done;
+              });
+              previewTimer = setTimeout(() => {
+                previewTimer = undefined;
+                if (finished) {
+                  return;
+                }
+                previewDelivered = true;
+                resolve(
+                  Object.assign(preview, {
+                    nodeOrdering: {
+                      ready,
+                      start() {
+                        if (finished || orderingStarted) {
+                          return;
+                        }
+                        orderingStarted = true;
+                        try {
+                          worker.postMessage({
+                            type: "continue-ordering",
+                            ...context,
+                          });
+                        } catch {
+                          settle(failure("CANONICAL_WORKER_FAILED"));
+                        }
+                      },
+                    },
+                  }),
+                );
+              }, 0);
+            } else if (data.type === "result") {
+              if (
+                previewTimer !== undefined ||
+                (previewDelivered && !orderingStarted)
+              ) {
+                settle(failure("CANONICAL_WORKER_FAILED"));
+                return;
+              }
+              // Receiving a large structured clone already uses the main thread.
+              // Start consumer processing in another task so input/cancellation
+              // can run before scene construction or the next request snapshot.
+              if (resultTimer === undefined) {
+                resultTimer = setTimeout(() => settle(null, data.result), 0);
+              }
+            } else if (data.type === "failure") {
+              const code = data.failure?.code;
+              settle(
+                failure(
+                  typeof code === "string" &&
+                    /^[A-Z][A-Z0-9_]{0,95}$/u.test(code)
+                    ? code
+                    : "CANONICAL_OPERATION_FAILED",
+                  data.failure?.details,
+                ),
+              );
+            } else if (data.type === "import") {
+              if (
+                !Number.isSafeInteger(data.importId) ||
+                data.importId < 1 ||
+                importIds.has(data.importId)
+              ) {
+                settle(failure("CANONICAL_WORKER_FAILED"));
+                return;
+              }
+              importIds.add(data.importId);
+              try {
+                if (typeof resolveImport !== "function") {
+                  throw failure("IMPORT_FAILED");
+                }
+                const importKey = importRequestKey(
+                  data.importIri,
+                  data.importingDocumentIri,
+                );
+                const probed = probedImports.get(importKey);
+                probedImports.delete(importKey);
+                if (probed && Object.hasOwn(probed, "error")) {
+                  throw probed.error;
+                }
+                const imported = probed
+                  ? probed.value
+                  : await resolveImport(data.importIri, {
+                      importingDocumentIri: data.importingDocumentIri,
+                      signal: acquisition.signal,
+                    });
+                if (finished) {
+                  return;
+                }
+                const importBytes = copyBytes(imported.bytes);
+                if (!probedCharges.delete(importKey)) {
+                  acquiredBytes += importBytes.byteLength;
+                }
+                if (acquiredBytes > inputLimit) {
+                  settle(failure("RESOURCE_LIMIT_EXCEEDED"));
+                  return;
+                }
+                const document = {
+                  bytes: importBytes,
+                  mediaType: imported.mediaType,
+                  documentIri: imported.documentIri,
+                };
+                importRequests.push({
+                  importIri: data.importIri,
+                  importingDocumentIri: data.importingDocumentIri,
+                  documentIri: document.documentIri,
+                  mediaType: document.mediaType,
+                });
+                worker.postMessage(
+                  {
+                    type: "import-result",
+                    ...context,
+                    importId: data.importId,
+                    document,
+                  },
+                  [importBytes.buffer],
+                );
+              } catch {
+                if (!finished) {
+                  worker.postMessage({
+                    type: "import-result",
+                    ...context,
+                    importId: data.importId,
+                    failure: true,
+                  });
+                }
+              }
+            }
+          };
+          if (signal?.aborted) {
+            abort();
+            return;
+          }
+          try {
+            worker.postMessage(
+              {
+                type: "run",
+                ...context,
+                request: payload,
+                ...(deferNodeOrdering ? { deferNodeOrdering: true } : {}),
+              },
+              bytes ? [payload.bytes.buffer] : [],
+            );
+          } catch {
+            settle(failure("CANONICAL_WORKER_FAILED"));
+          }
+        }
+        if (candidate) {
+          void probeCandidate()
+            .then((hit) => {
               if (finished) {
                 return;
               }
-              const importBytes = copyBytes(imported.bytes);
-              acquiredBytes += importBytes.byteLength;
-              if (acquiredBytes > inputLimit) {
-                settle(failure("RESOURCE_LIMIT_EXCEEDED"));
-                return;
-              }
-              worker.postMessage(
-                {
-                  type: "import-result",
-                  ...context,
-                  importId: data.importId,
-                  document: {
-                    bytes: importBytes,
-                    mediaType: imported.mediaType,
-                    documentIri: imported.documentIri,
-                  },
-                },
-                [importBytes.buffer],
-              );
-            } catch {
-              if (!finished) {
-                worker.postMessage({
-                  type: "import-result",
-                  ...context,
-                  importId: data.importId,
-                  failure: true,
+              if (hit) {
+                settle(null, {
+                  ...cache.copy(candidate),
+                  reusedValidatedResult: true,
                 });
+              } else {
+                startWorker();
               }
-            }
-          }
-        };
-        if (signal?.aborted) {
-          abort();
-          return;
-        }
-        try {
-          worker.postMessage(
-            {
-              type: "run",
-              ...context,
-              request: payload,
-              ...(deferNodeOrdering ? { deferNodeOrdering: true } : {}),
-            },
-            bytes ? [payload.bytes.buffer] : [],
-          );
-        } catch {
-          settle(failure("CANONICAL_WORKER_FAILED"));
+            })
+            .catch((error) => settle(error));
+        } else {
+          startWorker();
         }
       });
     },
     dispose() {
       disposed = true;
+      cache.clear();
       for (const abort of pending) {
         abort();
       }

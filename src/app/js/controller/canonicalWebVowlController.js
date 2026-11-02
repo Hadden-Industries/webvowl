@@ -1,4 +1,5 @@
 import isEqual from "lodash/isEqual.js";
+import { selectOwlMappingStrategy } from "./owlMappingStrategy.js";
 import { createNodeCountAdjustment } from "./nodeCountAdjustment.js";
 import { createControllerOperationLifecycle } from "./controllerOperationLifecycle.js";
 import { createCanonicalVowlDocumentSession } from "./canonicalVowlDocumentSession.js";
@@ -88,6 +89,7 @@ export function createCanonicalWebVowlController({
   requestOntologyCreation,
   reconcileScene,
   nodeCountAdjustmentClock,
+  readOwlMappingStrategy = () => selectOwlMappingStrategy(),
 } = {}) {
   let state = createWebVowlControllerState(idle);
   let disposed = false;
@@ -881,14 +883,20 @@ export function createCanonicalWebVowlController({
         : null;
     },
     async loadOntology(
-      { source },
+      { source, reuseCachedOntology },
       {
         signal,
         initialVisualization,
         useAutomaticNodesShown,
         cacheBindings,
+        owlMappingStrategy,
       } = {},
     ) {
+      const selectedOwlMappingStrategy = selectOwlMappingStrategy(
+        owlMappingStrategy === undefined
+          ? readOwlMappingStrategy()
+          : owlMappingStrategy,
+      );
       const initial = createInitialVisualizationRequest(
         initialVisualization ?? {},
       );
@@ -955,11 +963,18 @@ export function createCanonicalWebVowlController({
         }
         combined.throwIfAborted();
         let attempt;
+        if (request.operation === "open-owl-model") {
+          request = {
+            ...request,
+            owlMappingStrategy: selectedOwlMappingStrategy,
+          };
+        }
         let awaitingFormat = false;
         const imports = acquisition.createImportContext?.(
           request.bytes?.byteLength ?? 0,
           {
             selectedBindings: cacheBindings,
+            owlMappingStrategy: selectedOwlMappingStrategy,
             onFormatRequired: () => {
               awaitingFormat = true;
               attempt?.abort();
@@ -968,12 +983,17 @@ export function createCanonicalWebVowlController({
             rootBytes: request.bytes,
           },
         );
+        await imports?.prepare?.({ signal: combined });
+        combined.throwIfAborted();
         let accepted;
         for (;;) {
           awaitingFormat = false;
           attempt = new AbortController();
           try {
             accepted = await session.load(request, {
+              reuseValidatedResult:
+                reuseCachedOntology === undefined ||
+                reuseCachedOntology === true,
               signal: AbortSignal.any([combined, attempt.signal]),
               resolveImport:
                 imports?.resolveImport ?? acquisition.resolveImport,
@@ -1041,6 +1061,9 @@ export function createCanonicalWebVowlController({
           documentRevision: accepted.documentRevision,
           source: {
             kind: retained.kind,
+            ...(request.operation === "open-owl-model"
+              ? { owlMappingStrategy: selectedOwlMappingStrategy }
+              : {}),
             ...(retained.documentIri || retained.url
               ? { identity: retained.documentIri ?? retained.url }
               : {}),

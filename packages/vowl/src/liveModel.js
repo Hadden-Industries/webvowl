@@ -2,13 +2,19 @@ import { fail } from "./errors.js";
 import { profiles, categories, namespaces } from "./profiles.js";
 import { envelope } from "./modelContract.js";
 import { validateFields, walkTyped } from "./typedValues.js";
+import { walkTypedSelected } from "./selectedTraversal.js";
 import {
   validateGraph,
   validateMeaning,
   createAssertionSupportLookup,
 } from "./validateGraph.js";
 import { validateProjection } from "./projection.js";
-import { snapshotSource, deepFreeze } from "./snapshot.js";
+import {
+  snapshotSource,
+  validateOwnedSource,
+  deepFreeze,
+  freezeOwnedSource,
+} from "./snapshot.js";
 import { createPreservedSupportLookup } from "./supportPreservation.js";
 import { readmitSourceArchive } from "./sourceArchive.js";
 import {
@@ -80,7 +86,7 @@ function relabel(structural, budget) {
       replacements.set(id, `live:${prefix}:${index}`);
     });
   }
-  walkTyped(
+  walkTypedSelected(
     { structural },
     envelope(profiles.structuralContent),
     (value, shape, _pointer, parent, field) => {
@@ -89,6 +95,8 @@ function relabel(structural, budget) {
         parent[field] = replacements.get(value);
       }
     },
+    budget,
+    "handles",
   );
   budget.check();
   return replacements;
@@ -96,6 +104,10 @@ function relabel(structural, budget) {
 
 function admit(state, budget, archive) {
   state = snapshotSource(state, budget);
+  return validateAndPublishState(state, budget, archive);
+}
+
+function validateAndPublishState(state, budget, archive) {
   const assertionSupport = validateStructure(state.structural, budget);
   return publishValidatedState(state, budget, archive, assertionSupport);
 }
@@ -110,7 +122,7 @@ function publishValidatedState(state, budget, archive, assertionSupport) {
     validateQualifications(state, budget);
   }
   const model = Object.freeze({ revision: state.revision });
-  deepFreeze(state);
+  freezeOwnedSource(state);
   budget.check();
   models.set(model, state);
   inspections.set(model, inspection(state, archive, budget, assertionSupport));
@@ -206,41 +218,47 @@ export function inspectLiveModel(model) {
   return inspections.get(model) ?? inspection(state);
 }
 
-export function openOwlState(source, archive, documentIri, budget) {
-  const owned = snapshotSource({ structural: source.structural }, budget);
-  const replacements = relabel(owned.structural, budget);
+/** Adapter-only move of buildModel's private draft; no caller data may enter here. */
+export function openOwnedOwlState(source, archive, documentIri, budget) {
+  // buildModel allocates its own containers and snapshots every generated
+  // record. Its result stays private through evidence retention. Keep the full
+  // safety walk before publication, without making a second ownership copy.
+  validateOwnedSource({ structural: source.structural }, budget);
+  // This is the same private draft, rather than an external handle transfer.
+  // Its builder-issued handles are already local and unique. Retain them and
+  // make the safety proof immutable before the independent admission checks.
+  freezeOwnedSource(source.structural);
   const root = archive.evidence.documents.find(
     (document) => document.documentIri === documentIri,
   );
   if (!root) {
     fail("MODEL_NOT_ADMITTED");
   }
-  const model = admit(
-    {
-      revision: 0,
-      origin: {
-        kind: "owl",
-        profile: compatibleViewPolicy,
-        inputDigest: root.digest,
-        sourceAccess: "available",
-      },
-      structural: owned.structural,
-      supports: allRecords(owned.structural).map(({ id }) => ({
-        record: id,
-        assertions: [],
-        derivations: [{ rule: sourceMappingRule, records: [] }],
-        origin: "generated",
-      })),
+  // The structural tree is the private draft above. Every other container
+  // below is freshly allocated here; archive metadata contributes only strings.
+  // Keep snapshot validation/accounting without copying the
+  // already-owned tree a second time. External/edit/checkpoint paths still copy.
+  const state = {
+    revision: 0,
+    origin: {
+      kind: "owl",
+      profile: compatibleViewPolicy,
+      inputDigest: root.digest,
+      sourceAccess: "available",
     },
-    budget,
-    archive,
-  );
+    structural: source.structural,
+    supports: allRecords(source.structural).map(({ id }) => ({
+      record: id,
+      assertions: [],
+      derivations: [{ rule: sourceMappingRule, records: [] }],
+      origin: "generated",
+    })),
+  };
+  validateOwnedSource(state, budget);
+  const model = validateAndPublishState(state, budget, archive);
   return deepFreeze({
     model,
-    correspondence: [...replacements].map(([previous, current]) => ({
-      previous,
-      current,
-    })),
+    correspondence: identity(source.structural, budget),
   });
 }
 
@@ -466,9 +484,12 @@ export function editLiveModel(model, changes, budget) {
 
 export function checkpointLiveModel(model, budget) {
   const state = liveState(model);
-  const checkpoint = deepFreeze(
-    snapshotSource({ version: 1, policy, implementation, ...state }, budget),
-  );
+  // Publication already recursively froze every reachable state container.
+  // Share those immutable records with inspection in the transport graph;
+  // recovery still snapshots and fully readmits caller-supplied checkpoints.
+  const checkpoint = { version: 1, policy, implementation, ...state };
+  validateOwnedSource(checkpoint, budget);
+  Object.freeze(checkpoint);
   const archive = archives.get(model);
   return archive
     ? Object.freeze({ ...checkpoint, source: archive.checkpoint(budget) })

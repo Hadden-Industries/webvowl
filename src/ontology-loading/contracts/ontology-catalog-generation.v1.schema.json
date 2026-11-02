@@ -40,6 +40,10 @@
       "description": "Bound by the normative serialized/aggregate catalog byte and work limits, not a permanent archive population ceiling."
     }
   },
-  "required": ["schemaVersion", "kind", "mappings"],
+  "required": [
+    "schemaVersion",
+    "kind",
+    "mappings"
+  ],
   "additionalProperties": false
 }

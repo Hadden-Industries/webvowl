@@ -1,7 +1,13 @@
 import { fail } from "./errors.js";
 import { optionRecord } from "./resourceBudget.js";
-import { snapshotBytes, snapshotSource, deepFreeze } from "./snapshot.js";
+import {
+  snapshotBytes,
+  snapshotSource,
+  validateOwnedSource,
+  freezeOwnedSource,
+} from "./snapshot.js";
 import { validateFields } from "./typedValues.js";
+import { isOwlMappingParserMode } from "./owlMappingStrategy.js";
 
 const ontologyIdentity = {
   fields: { iri: "IRI", versionIri: "IRI" },
@@ -39,7 +45,17 @@ async function hash(bytes, budget) {
 
 /** Validate archive references and declared bytes; these historical reports are not admission authority. */
 function validateEvidence(evidence, budget) {
-  exact(evidence, evidenceFields);
+  const hasParsingMode =
+    evidence !== null &&
+    evidence !== undefined &&
+    Object.hasOwn(evidence, "parsingMode");
+  exact(
+    evidence,
+    hasParsingMode ? [...evidenceFields, "parsingMode"] : evidenceFields,
+  );
+  if (hasParsingMode && !isOwlMappingParserMode(evidence.parsingMode)) {
+    fail("CHECKPOINT_INVALID");
+  }
   for (const name of [
     "documents",
     "imports",
@@ -246,7 +262,7 @@ function term(value, kinds) {
 }
 
 function ownedArchive(evidence, sources) {
-  deepFreeze(evidence);
+  freezeOwnedSource(evidence);
   return Object.freeze({
     evidence,
     readBytes(id, budget) {
@@ -266,10 +282,13 @@ function ownedArchive(evidence, sources) {
           Object.freeze({ document, bytes: snapshotBytes(bytes, budget) }),
         );
       }
-      // Typed arrays are defensive copies, not frozen buffers or ownership tokens.
+      // Evidence was privately owned and deeply frozen at archive publication.
+      // Keep its exact accounting, but share the immutable graph. Typed arrays
+      // remain defensive copies, not frozen buffers or ownership tokens.
+      validateOwnedSource(evidence, budget);
       return Object.freeze({
         version: 1,
-        evidence: deepFreeze(snapshotSource(evidence, budget)),
+        evidence,
         sources: Object.freeze(entries),
       });
     },

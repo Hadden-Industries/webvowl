@@ -16,6 +16,19 @@ const ajv = new Ajv2020({
 const validators = new WeakMap();
 const scalarValidators = new Map();
 const namedScalarValidators = new Map();
+// Lexical validity is context-free for an exact immutable IRI string. Retain
+// only successes within one operation; this cache confers no shape, graph or
+// resource authority. Its capacity changes reuse, never document acceptance.
+const iriDomainsByOperation = new WeakMap();
+const maximumCachedIris = 4096;
+// A bounded positive proof for an ASCII subset of RFC 3987 section 2.2:
+// HTTP(S), simple reg-name, path-abempty, query and fragment. No Unicode,
+// percent escapes, userinfo, port or IP literal is interpreted here; all such
+// inputs retain the owning grammar. The final lookahead requires absolute EOF,
+// including after a line terminator (unlike JavaScript's standalone $ anchor).
+const maximumIriProofLength = 1024;
+const simpleAsciiHttpIri =
+  /^[hH][tT][tT][pP][sS]?:\/\/(?=[A-Za-z0-9.-]*[A-Za-z])[A-Za-z0-9]+(?:[.-][A-Za-z0-9]+)*(?:\/[A-Za-z0-9._~!$&'()*+,;=:@/-]*)?(?:\?[A-Za-z0-9._~!$&'()*+,;=:@/?-]*)?(?:#[A-Za-z0-9._~!$&'()*+,;=:@/?-]*)?(?![\s\S])/u;
 const keywordOrder = {
   required: 0,
   additionalProperties: 1,
@@ -52,10 +65,22 @@ export function descriptorFor(value, descriptor, pointer) {
 }
 
 /** Validate scalar domains without URL rewriting, language registry replacement or value coercion. */
-function scalar(value, descriptor, pointer) {
+function scalar(value, descriptor, pointer, budget) {
   if (descriptor === "IRI" || descriptor?.iriConstant) {
-    if (!isIri(value)) {
-      fail("IRI_INVALID", pointer);
+    let known = iriDomainsByOperation.get(budget);
+    if (!known?.has(value)) {
+      const proven =
+        value.length <= maximumIriProofLength && simpleAsciiHttpIri.test(value);
+      if (!proven && !isIri(value)) {
+        fail("IRI_INVALID", pointer);
+      }
+      if (!known) {
+        known = new Set();
+        iriDomainsByOperation.set(budget, known);
+      }
+      if (known.size < maximumCachedIris) {
+        known.add(value);
+      }
     }
   } else if (descriptor === "Decimal" && !/^(0|[1-9][0-9]*)$/.test(value)) {
     fail("DECIMAL_INVALID", pointer);
@@ -196,21 +221,28 @@ function validateField(value, descriptor, budget, pointer) {
     shallowValidate(value, resolved, pointer);
     if (resolved.fields) {
       for (const name of Object.keys(value).sort()) {
-        value[name] = validateField(
-          value[name],
+        const previous = value[name];
+        const validated = validateField(
+          previous,
           resolved.fields[name],
           budget,
           at(pointer, name),
         );
+        if (validated !== previous) {
+          value[name] = validated;
+        }
       }
     } else {
       value.forEach((member, index) => {
-        value[index] = validateField(
+        const validated = validateField(
           member,
           resolved.items,
           budget,
           at(pointer, index),
         );
+        if (validated !== member) {
+          value[index] = validated;
+        }
       });
     }
     return value;
@@ -218,7 +250,7 @@ function validateField(value, descriptor, budget, pointer) {
   if (!scalarValidator(resolved)(value)) {
     fail("DOCUMENT_TYPE", pointer);
   }
-  return scalar(value, resolved, pointer);
+  return scalar(value, resolved, pointer, budget);
 }
 
 /** Reuse the grammar's scalar validators without rebuilding their schemas per value. */

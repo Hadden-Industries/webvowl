@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://haddenindustries.com/ontology/contracts/v1/ontology-loader-policy.v1.schema.json",
   "title": "Finite document validation policy evidence",
-  "description": "Draft contract 1.0.0-draft.2; review artifact, not a deployed service promise.",
+  "description": "Draft contract 1.0.0-draft.3; review artifact, not a deployed service promise.",
   "type": "object",
   "properties": {
     "schemaVersion": {
@@ -21,10 +21,10 @@
           "const": 1
         },
         "validationProfileId": {
-          "const": "ontology-source-document-v1"
+          "type": "string"
         },
         "parseMode": {
-          "const": "preserve"
+          "type": "string"
         },
         "formatSelectionMode": {
           "const": "automatic"
@@ -36,7 +36,11 @@
           "const": "effective-origin-response-v1"
         },
         "transportPolicy": {
-          "const": "https-preferred-original-http-fallback-v1"
+          "enum": [
+            "https-preferred-original-http-fallback-v1",
+            "https-preferred-anonymous-public-snapshots-v2",
+            "https-preferred-anonymous-public-snapshots-v3"
+          ]
         },
         "remoteImports": {
           "const": false
@@ -232,10 +236,18 @@
                 "maximum": 9007199254740991
               },
               "scope": {
-                "enum": ["document", "attempt", "worker"]
+                "enum": [
+                  "document",
+                  "attempt",
+                  "worker"
+                ]
               },
               "enforcement": {
-                "enum": ["public-api", "acquisition-owner", "worker-isolation"]
+                "enum": [
+                  "public-api",
+                  "acquisition-owner",
+                  "worker-isolation"
+                ]
               },
               "enforcementTarget": {
                 "type": "string",
@@ -276,9 +288,67 @@
         "limits",
         "dependencyTranslations"
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "ontology-contract-common.v1.schema.json#/$defs/documentValidationProfile"
+        },
+        {
+          "if": {
+            "properties": {
+              "transportPolicy": {
+                "const": "https-preferred-anonymous-public-snapshots-v2"
+              }
+            },
+            "required": [
+              "transportPolicy"
+            ]
+          },
+          "then": {
+            "properties": {
+              "requestVariant": {
+                "type": "object",
+                "properties": {
+                  "selectionPolicyVersion": {
+                    "const": 2
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "transportPolicy": {
+                "const": "https-preferred-anonymous-public-snapshots-v3"
+              }
+            },
+            "required": [
+              "transportPolicy"
+            ]
+          },
+          "then": {
+            "properties": {
+              "requestVariant": {
+                "type": "object",
+                "properties": {
+                  "selectionPolicyVersion": {
+                    "const": 3
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
     }
   },
-  "required": ["schemaVersion", "kind", "loaderProfileFingerprint", "policy"],
+  "required": [
+    "schemaVersion",
+    "kind",
+    "loaderProfileFingerprint",
+    "policy"
+  ],
   "additionalProperties": false
 }

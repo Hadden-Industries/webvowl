@@ -264,16 +264,24 @@ export async function loadClosure(bytes, context, options, budget, policy) {
           }
           let result;
           try {
-            result = await waitForResult(
-              options.resolveImport(
-                request.importIRI.value,
-                Object.freeze({
-                  importingDocumentIri: request.importingDocumentIRI.value,
-                  signal: budget.signal,
-                }),
-              ),
-              budget,
-            );
+            const acquisitionStartedAt = performance.now();
+            try {
+              result = await waitForResult(
+                options.resolveImport(
+                  request.importIRI.value,
+                  Object.freeze({
+                    importingDocumentIri: request.importingDocumentIRI.value,
+                    signal: budget.signal,
+                  }),
+                ),
+                budget,
+              );
+            } finally {
+              performance.measure("webvowl.owl-import-acquisition", {
+                start: acquisitionStartedAt,
+                end: performance.now(),
+              });
+            }
           } catch (error) {
             // Callback failure is acquisition failure. Cancellation/deadline takes precedence.
             budget.check();
@@ -316,7 +324,7 @@ export async function loadClosure(bytes, context, options, budget, policy) {
             response.mediaType,
             budget,
             "/resolveImport",
-            policy.parsingMode === "compatible",
+            policy.automaticFormats === true,
           );
           policy.observeSource?.(snapshot, importedContext, {
             requestedIri: request.importIRI.value,
@@ -363,7 +371,7 @@ export async function loadClosure(bytes, context, options, budget, policy) {
     for (const { context: loadedContext } of loaded.documents) {
       budget.check();
       for (const diagnostic of loadedContext.diagnostics) {
-        if (policy.parsingMode === "compatible") {
+        if (policy.observeDiagnostic) {
           policy.observeDiagnostic(diagnostic, loadedContext);
         } else if (diagnostic.code === "MISSING_IMPORT") {
           policy.recover(

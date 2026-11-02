@@ -2,6 +2,7 @@ import { fail } from "./errors.js";
 import { envelope, dataRangeKinds } from "./modelContract.js";
 import { namespaces, profiles, collectionTypeNames } from "./profiles.js";
 import { validateFields, walkTyped, descriptorFor } from "./typedValues.js";
+import { walkTypedSelected } from "./selectedTraversal.js";
 import { semanticKey } from "./semanticKeys.js";
 import { validateGraph, validateMeaning } from "./validateGraph.js";
 import { generateProjection, occurrenceKey } from "./projection.js";
@@ -190,6 +191,22 @@ export function normalizeDraft(source, budget, reservedHandles = []) {
     }
   }
   const aliases = new Map();
+  // This view belongs only to the current, unchanged normalization phase.
+  // Mutations discard it; complete final validation never consumes this cache.
+  let phaseGraph;
+  const invalidateGraph = () => {
+    phaseGraph = undefined;
+  };
+  const normalizationGraph = () => {
+    budget.check();
+    return (phaseGraph ??= validateGraph(
+      source,
+      profiles.structuralContent,
+      budget,
+      false,
+      true,
+    ));
+  };
   let rewrittenAliases = 0;
   const resolve = (id) => {
     const visited = [];
@@ -210,7 +227,8 @@ export function normalizeDraft(source, budget, reservedHandles = []) {
     if (aliases.size === rewrittenAliases) {
       return;
     }
-    walkTyped(
+    invalidateGraph();
+    walkTypedSelected(
       source,
       envelope(profiles.structuralContent),
       (value, descriptor, _pointer, parent, key) => {
@@ -219,6 +237,7 @@ export function normalizeDraft(source, budget, reservedHandles = []) {
           parent[key] = resolve(value);
         }
       },
+      budget,
     );
     rewrittenAliases = aliases.size;
   };
@@ -259,13 +278,16 @@ export function normalizeDraft(source, budget, reservedHandles = []) {
             value[write++] = member;
           }
         }
-        value.length = write;
+        if (write !== value.length) {
+          value.length = write;
+          invalidateGraph();
+        }
       }
     }
   }
   validateFields(source, envelope(profiles.structuralContent), budget);
   // Check handles, typed references and cycles before any normalization can erase evidence.
-  validateGraph(source, profiles.structuralContent, budget, false, true);
+  normalizationGraph();
   deduplicateSets(source, envelope(profiles.structuralContent));
   deduplicate("subjects", (record) =>
     record.iri === undefined ? [record.id] : record.iri,
@@ -311,21 +333,19 @@ export function normalizeDraft(source, budget, reservedHandles = []) {
     }
   }
   const removeAliasedRoles = () => {
+    const length = model.roles.length;
     model.roles = model.roles.filter((role) => {
       budget.poll();
       return !aliases.has(role.id);
     });
+    if (model.roles.length !== length) {
+      invalidateGraph();
+    }
   };
   removeAliasedRoles();
   rewrite();
   function expressions() {
-    const graph = validateGraph(
-      source,
-      profiles.structuralContent,
-      budget,
-      false,
-      true,
-    );
+    const graph = normalizationGraph();
     deduplicate("expressions", (record) => graph.expressionKeys.get(record.id));
   }
   expressions();
@@ -347,6 +367,7 @@ export function normalizeDraft(source, budget, reservedHandles = []) {
       budget,
     );
     model[collection].push(snapshot.structural[collection][0]);
+    invalidateGraph();
     return model[collection].at(-1);
   }
   const aggregates = new Map();
@@ -374,13 +395,7 @@ export function normalizeDraft(source, budget, reservedHandles = []) {
       ),
     ];
     if (targets.length > 1) {
-      endpointGraph ??= validateGraph(
-        source,
-        profiles.structuralContent,
-        budget,
-        false,
-        true,
-      );
+      endpointGraph ??= normalizationGraph();
       const data = targets.map((id) => {
         budget.poll();
         const record = endpointGraph.get(id);
@@ -486,13 +501,7 @@ export function normalizeDraft(source, budget, reservedHandles = []) {
   });
   // Signature discovery may promote many roles; rewrite the complete model once.
   flushRoleAliases();
-  const graph = validateGraph(
-    source,
-    profiles.structuralContent,
-    budget,
-    false,
-    true,
-  );
+  const graph = normalizationGraph();
   const reached = new Set();
   function reach(id) {
     budget.poll();

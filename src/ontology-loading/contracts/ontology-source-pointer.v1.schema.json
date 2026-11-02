@@ -77,7 +77,12 @@
               "$ref": "ontology-contract-common.v1.schema.json#/$defs/httpsIri"
             }
           },
-          "required": ["refreshAttemptId", "state", "admittedAt", "statusIri"],
+          "required": [
+            "refreshAttemptId",
+            "state",
+            "admittedAt",
+            "statusIri"
+          ],
           "additionalProperties": false
         }
       },
@@ -114,7 +119,10 @@
           "$ref": "ontology-contract-common.v1.schema.json#/$defs/generation"
         },
         "accessState": {
-          "enum": ["WITHDRAWN", "QUARANTINED"]
+          "enum": [
+            "WITHDRAWN",
+            "QUARANTINED"
+          ]
         },
         "withdrawnAt": {
           "$ref": "ontology-contract-common.v1.schema.json#/$defs/timestamp"

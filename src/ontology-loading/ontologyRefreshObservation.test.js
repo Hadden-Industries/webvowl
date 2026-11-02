@@ -1,11 +1,14 @@
 import { jest } from "@jest/globals";
 import { createOntologyRefreshObservation } from "./ontologyRefreshObservation.js";
 
-function fixture() {
+function fixture(additionalSources = []) {
   const source = {
     requestedDocumentIri: "https://origin.test/root",
     resolution: {
       sourceVersionIdentity: "old",
+      sourceKey: "a".repeat(64),
+      resolutionIdentity: "b".repeat(64),
+      artifactIri: `https://cache.example.test/ontology/cache/artifacts/sha256/${"c".repeat(64)}`,
       acquiredAt: "2026-10-01T00:00:00.000Z",
       checkedAt: "2026-10-02T00:00:00.000Z",
     },
@@ -29,9 +32,10 @@ function fixture() {
       },
     })),
     confirm: jest.fn(async () => selected),
+    acquireBinding: jest.fn(async () => selected),
   };
   const observation = createOntologyRefreshObservation({
-    sources: [source],
+    sources: [source, ...additionalSources],
     client,
     readIdentity: () => identity,
     onStatus,
@@ -47,6 +51,109 @@ test("a fresh archived open creates no timer or provider call", () => {
   expect(onStatus).toHaveBeenLastCalledWith(
     expect.objectContaining({ status: "archived", hasUpdate: false }),
   );
+  observation.dispose();
+});
+
+function importUpdateFixture() {
+  const child = {
+    requestedDocumentIri: "https://origin.test/import",
+    resolution: { sourceVersionIdentity: "import-old" },
+  };
+  const h = fixture([child]);
+  const { source, client } = h;
+  client.refresh.mockImplementation(async (iri) => ({
+    state: iri === source.requestedDocumentIri ? "UNCHANGED" : "CHANGED",
+    resultBinding: {
+      sourceVersionIdentity:
+        iri === source.requestedDocumentIri ? "old" : "import-new",
+      resolutionIdentity: "import-binding",
+    },
+  }));
+  return { ...h, child };
+}
+
+test("an import-only apply preserves the exact accepted root instead of rediscovering a stale pointer", async () => {
+  const { observation, source, client, selected, child } =
+    importUpdateFixture();
+  await observation.refresh();
+  const bindings = await observation.selectUpdate();
+  expect(bindings.get(source.requestedDocumentIri)).toBe(selected);
+  expect(bindings.get(child.requestedDocumentIri)).toBe(selected);
+  expect(client.acquireBinding).toHaveBeenCalledWith(
+    source.requestedDocumentIri,
+    `${source.resolution.artifactIri}?source=${source.resolution.sourceKey}&binding=${source.resolution.resolutionIdentity}`,
+    expect.objectContaining({ signal: expect.any(AbortSignal) }),
+  );
+  expect(client.confirm).toHaveBeenCalledTimes(1);
+  expect(client.confirm.mock.calls[0].slice(0, 2)).toEqual([
+    child.requestedDocumentIri,
+    "import-binding",
+  ]);
+  observation.dispose();
+});
+
+test("withdrawal of an unchanged member refuses the whole offered update", async () => {
+  const { observation, client } = importUpdateFixture();
+  await observation.refresh();
+  client.acquireBinding.mockRejectedValue(
+    Object.assign(new Error("Withdrawn"), { code: "SOURCE_WITHDRAWN" }),
+  );
+  await expect(observation.selectUpdate()).rejects.toHaveProperty(
+    "code",
+    "SOURCE_WITHDRAWN",
+  );
+  expect(client.confirm).not.toHaveBeenCalled();
+  await expect(observation.selectUpdate()).rejects.toHaveProperty(
+    "code",
+    "CACHE_OFFER_EXPIRED",
+  );
+  observation.dispose();
+});
+
+test("a late preserved binding cannot cross an intervening document revision", async () => {
+  const { observation, client, selected, identity } = importUpdateFixture();
+  await observation.refresh();
+  let finish;
+  client.acquireBinding.mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+  );
+  const waiting = observation.selectUpdate();
+  identity.documentRevision++;
+  finish(selected);
+  await expect(waiting).rejects.toHaveProperty("code", "CACHE_OFFER_EXPIRED");
+  expect(client.confirm).not.toHaveBeenCalled();
+  observation.dispose();
+});
+
+test("a concurrent check cannot replace the offer clicked while unchanged members are being verified", async () => {
+  const { observation, client, selected, child } = importUpdateFixture();
+  await observation.refresh();
+  let finish;
+  client.acquireBinding.mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+  );
+  const applying = observation.selectUpdate();
+  client.refresh.mockImplementation(async (iri) => ({
+    state: iri === child.requestedDocumentIri ? "CHANGED" : "UNCHANGED",
+    resultBinding: {
+      sourceVersionIdentity:
+        iri === child.requestedDocumentIri ? "import-newer" : "old",
+      resolutionIdentity: "newer-offer",
+    },
+  }));
+  await observation.refresh();
+  finish(selected);
+  await applying;
+  expect(client.confirm.mock.calls[0].slice(0, 2)).toEqual([
+    child.requestedDocumentIri,
+    "import-binding",
+  ]);
   observation.dispose();
 });
 

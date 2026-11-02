@@ -7,13 +7,14 @@ import { resolve } from "node:path";
 import {
   openJsonRepositorySession,
   runJsonQualityCli,
-} from "../tooling/json/public-api.mjs";
+} from "@hadden-industries/json-quality";
 import { capturedCorpusJson } from "../packages/vowl/scripts/captured-corpus-json.mjs";
+import { GENERATED_ASSET_MANIFEST } from "./generatedAssetCleanup.mjs";
 
 const repositoryRoot = fileURLToPath(new URL("../", import.meta.url));
 const requiredGeneratedOutputs = [
   "deploy/data/*.json",
-  "deploy/.vite/webvowl-generated-js.json",
+  `deploy/${GENERATED_ASSET_MANIFEST}`,
 ];
 
 const logicalProviders = () => [

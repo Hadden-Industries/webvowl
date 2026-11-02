@@ -17,6 +17,10 @@ import {
 } from "node:util";
 import { assertQuiescentMachine } from "./benchmarkEnvironment.mjs";
 import {
+  GENERATED_ASSET_MANIFEST,
+  verifyGeneratedAssetManifest,
+} from "./generatedAssetCleanup.mjs";
+import {
   reserveReport,
   retainFunctionalResult,
   sourceIdentity,
@@ -191,11 +195,8 @@ try {
     isDeepStrictEqual(sourceIdentity(process.cwd()), receipt.sourceIdentity),
     "Source changed during the owned build",
   );
-  const manifestPath = resolve(
-    productionDirectory,
-    ".vite/webvowl-generated-js.json",
-  );
-  const manifest = JSON.parse(readFileSync(manifestPath));
+  const manifestPath = resolve(productionDirectory, GENERATED_ASSET_MANIFEST);
+  const manifest = verifyGeneratedAssetManifest(productionDirectory);
   const workers = manifest.files.filter((path) =>
     /^assets\/canonicalVowlWorker-[^/]+\.js$/u.test(path),
   );

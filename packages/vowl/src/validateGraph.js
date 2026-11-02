@@ -4,6 +4,7 @@ import { categories, namespaces } from "./profiles.js";
 import { semanticKey } from "./semanticKeys.js";
 import { occurrenceKey } from "./projection.js";
 import { walkTyped } from "./typedValues.js";
+import { walkTypedSelected } from "./selectedTraversal.js";
 
 const categoryNames = {
   subjects: "S",
@@ -66,6 +67,7 @@ export function validateGraph(
   const index = new Map();
   const locations = new Map();
   const references = [];
+  const setContainers = [];
   const shape = envelope(profile);
   for (const collection of Object.keys(categories).sort()) {
     model[collection].forEach((record, i) => {
@@ -87,12 +89,24 @@ export function validateGraph(
       locations.set(record.id, pointer);
     });
   }
-  walkTyped(source, shape, (value, descriptor, pointer) => {
-    budget.poll();
-    if (descriptor?.reference) {
-      references.push({ value, descriptor, pointer });
-    }
-  });
+  walkTypedSelected(
+    source,
+    shape,
+    (value, descriptor, pointer) => {
+      budget.poll();
+      if (descriptor?.reference) {
+        references.push({ value, descriptor, pointer });
+      }
+      // Nothing mutates the owned source during this validation. Retain set
+      // positions in the same traversal order, but check them only after all
+      // reference, cycle and record-identity failures, as required by A7.
+      if (!normalizing && descriptor?.items && !descriptor.sequence) {
+        setContainers.push({ value, descriptor, pointer });
+      }
+    },
+    budget,
+    normalizing ? "references" : "references-and-sets",
+  );
   for (const { value, pointer } of references) {
     budget.poll();
     if (!index.has(value)) {
@@ -128,13 +142,18 @@ export function validateGraph(
     visiting.add(id);
     const record = index.get(id).record;
     const children = [];
-    walkTyped(record, "Expression", (value, descriptor) => {
-      budget.poll();
-      if (descriptor?.reference && index.get(value).category === "X") {
-        children.push(value);
-        visitExpression(value, depth + 1);
-      }
-    });
+    walkTypedSelected(
+      record,
+      "Expression",
+      (value, descriptor) => {
+        budget.poll();
+        if (descriptor?.reference && index.get(value).category === "X") {
+          children.push(value);
+          visitExpression(value, depth + 1);
+        }
+      },
+      budget,
+    );
     expressionChildren.set(id, children);
     const height = children.reduce(
       (maximum, child) => Math.max(maximum, expressionHeights.get(child) + 1),
@@ -225,24 +244,22 @@ export function validateGraph(
       seen?.add(key);
     }
   }
-  walkTyped(source, shape, (value, descriptor, pointer) => {
+  for (const { value, descriptor, pointer } of setContainers) {
     budget.poll();
-    if (descriptor?.items && !descriptor.sequence) {
-      const seen = new Set();
-      value.forEach((member, i) => {
-        budget.poll();
-        // Primary identity is checked above; two distinct anonymous subjects stay distinct.
-        const key =
-          member && typeof member === "object" && Object.hasOwn(member, "id")
-            ? member.id
-            : semanticKey(member, descriptor.items, undefined, budget);
-        if (seen.has(key)) {
-          fail("SOURCE_DUPLICATE_SET_MEMBER", at(pointer, i));
-        }
-        seen.add(key);
-      });
-    }
-  });
+    const seen = new Set();
+    value.forEach((member, i) => {
+      budget.poll();
+      // Primary identity is checked above; two distinct anonymous subjects stay distinct.
+      const key =
+        member && typeof member === "object" && Object.hasOwn(member, "id")
+          ? member.id
+          : semanticKey(member, descriptor.items, undefined, budget);
+      if (seen.has(key)) {
+        fail("SOURCE_DUPLICATE_SET_MEMBER", at(pointer, i));
+      }
+      seen.add(key);
+    });
+  }
   budget.check();
   return {
     index,

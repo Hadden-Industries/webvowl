@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
-import { readFile, readdir, writeFile, mkdir } from "node:fs/promises";
+import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { productionManifest } from "./productionPerformance.mjs";
 import { resolve, extname, sep } from "node:path";
 import { pathToFileURL, fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
@@ -21,10 +22,10 @@ const fixture = JSON.parse(
     ),
   ),
 );
-const workerFile = (await readdir(resolve(deployment, "assets"))).find((name) =>
-  /^canonicalVowlWorker-.*\.js$/.test(name),
-);
-assert(workerFile);
+const workers = productionManifest(deployment).workers;
+assert.equal(workers.length, 1);
+const workerPath = workers[0];
+const workerFile = workerPath.split("/").at(-1);
 const childText =
   "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n<> a owl:Ontology .\n<#Child> a owl:Class .\n";
 const receipt = {
@@ -89,51 +90,60 @@ try {
             createWorker: () =>
               new globalThis.Worker(workerUrl, { type: "module" }),
           });
-          const imports = [];
           try {
-            const result = await client.run(
-              {
-                operation: "open-owl-model",
-                bytes: new TextEncoder().encode(
-                  fixture.ontologySource.utf8Text,
-                ),
-                documentIri: fixture.ontologySource.parserDocumentIri,
-              },
-              {
-                loadGeneration: 1,
-                baseRevision: 0,
-                resolveImport: async (iri) => {
-                  imports.push(iri);
-                  return {
-                    bytes: new TextEncoder().encode(childText),
-                    documentIri: iri,
-                  };
+            const modes = [];
+            for (const owlMappingStrategy of ["heuristic", "unambiguous"]) {
+              const imports = [];
+              const result = await client.run(
+                {
+                  operation: "open-owl-model",
+                  bytes: new TextEncoder().encode(
+                    fixture.ontologySource.utf8Text,
+                  ),
+                  documentIri: fixture.ontologySource.parserDocumentIri,
+                  owlMappingStrategy,
                 },
-              },
-            );
-            const digests = [];
-            for (const source of result.checkpoint.source.sources) {
-              const digest = await crypto.subtle.digest(
-                "SHA-256",
-                source.bytes,
+                {
+                  loadGeneration: 1,
+                  baseRevision: 0,
+                  resolveImport: async (iri) => {
+                    imports.push(iri);
+                    return {
+                      bytes: new TextEncoder().encode(childText),
+                      documentIri: iri,
+                    };
+                  },
+                },
               );
-              digests.push(
-                [...new Uint8Array(digest)]
-                  .map((x) => x.toString(16).padStart(2, "0"))
-                  .join(""),
-              );
+              const digests = [];
+              for (const source of result.checkpoint.source.sources) {
+                const digest = await crypto.subtle.digest(
+                  "SHA-256",
+                  source.bytes,
+                );
+                digests.push(
+                  [...new Uint8Array(digest)]
+                    .map((x) => x.toString(16).padStart(2, "0"))
+                    .join(""),
+                );
+              }
+              modes.push({
+                owlMappingStrategy,
+                parsingMode: result.checkpoint.source.evidence.parsingMode,
+                documents: result.inspection.documents.map(
+                  (x) => x.documentIri,
+                ),
+                imports,
+                digests,
+              });
             }
-            return {
-              documents: result.inspection.documents.map((x) => x.documentIri),
-              imports,
-              digests,
-            };
+            return modes;
           } finally {
             client.dispose();
           }
         },
         {
-          workerUrl: `${base}/assets/${workerFile}`,
+          workerUrl: `${base}/${workerPath}`,
           fixture,
           childText,
           clientUrl: new URL(
@@ -142,22 +152,28 @@ try {
           ).href,
         },
       );
-      assert.deepEqual(result.imports, [
-        fixture.ontologySource.expectedResolvedImportIri,
-      ]);
       assert.deepEqual(
-        new Set(result.documents),
-        new Set([
-          fixture.ontologySource.parserDocumentIri,
+        result.map(({ parsingMode }) => parsingMode),
+        ["compatible", "preserve"],
+      );
+      for (const mode of result) {
+        assert.deepEqual(mode.imports, [
           fixture.ontologySource.expectedResolvedImportIri,
-        ]),
-      );
-      assert(result.digests.includes(fixture.ontologySource.artifactSha256));
-      assert(
-        result.digests.includes(
-          createHash("sha256").update(childText).digest("hex"),
-        ),
-      );
+        ]);
+        assert.deepEqual(
+          new Set(mode.documents),
+          new Set([
+            fixture.ontologySource.parserDocumentIri,
+            fixture.ontologySource.expectedResolvedImportIri,
+          ]),
+        );
+        assert(mode.digests.includes(fixture.ontologySource.artifactSha256));
+        assert(
+          mode.digests.includes(
+            createHash("sha256").update(childText).digest("hex"),
+          ),
+        );
+      }
       await page.evaluate(
         async (url) => void (await import(url)),
         `${base}/js/cachedOntologySourceAcquisition.js`,
@@ -167,7 +183,7 @@ try {
         engine,
         version: browser.version(),
         status: "PASS",
-        ...result,
+        modes: result,
       });
     } finally {
       await browser.close();
@@ -180,7 +196,7 @@ try {
     { flag: "wx" },
   );
   process.stdout.write(
-    "Production worker: PASS in Chromium, Firefox and WebKit; exact retained root/import bytes and parser contexts.\n",
+    "Production worker: PASS in Chromium, Firefox and WebKit; both mapping modes, exact retained root/import bytes and parser contexts.\n",
   );
 } finally {
   server.closeAllConnections();
