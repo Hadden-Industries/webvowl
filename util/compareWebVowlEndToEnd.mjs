@@ -122,7 +122,12 @@ export function installPaintProbe({
       constructor(url, options) {
         const workerId = ++sequence;
         const moduleUrl = new URL(url, globalThis.location.href).href;
-        const wrapper = `const send=self.postMessage.bind(self),queued=[];self.onmessage=e=>queued.push(e);self.postMessage=(message,...rest)=>{if(message.type==="preview"||message.type==="result")send({type:"comparison-worker-measures",measures:performance.getEntriesByType("measure").map(e=>({name:e.name,duration:e.duration}))});send(message,...rest)};await import(${JSON.stringify(moduleUrl)});for(const event of queued)self.onmessage(event);`;
+        const specifier = JSON.stringify(moduleUrl).replace(
+          /[<>\u2028\u2029]/gu,
+          (character) =>
+            "\\u" + character.charCodeAt(0).toString(16).padStart(4, "0"),
+        );
+        const wrapper = `const send=self.postMessage.bind(self),queued=[];self.onmessage=e=>queued.push(e);self.postMessage=(message,...rest)=>{if(message.type==="preview"||message.type==="result")send({type:"comparison-worker-measures",measures:performance.getEntriesByType("measure").map(e=>({name:e.name,duration:e.duration}))});send(message,...rest)};await import(${specifier});for(const event of queued)self.onmessage(event);`;
         const blob = URL.createObjectURL(
           new Blob([wrapper], { type: "text/javascript" }),
         );

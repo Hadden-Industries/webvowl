@@ -61,6 +61,7 @@ test("remote roots and imports defer missing or misleading format hints to nativ
   const acquisition = createCanonicalVowlSourceAcquisition({
     resolver,
     requestFormat,
+    cache: { enabled: false },
   });
   const result = await acquisition.remote("https://example.org/root.owl");
   expect(result).toEqual({
@@ -97,7 +98,10 @@ test("root and catalog imports retain final context and exact bytes with cancell
       };
     }),
   };
-  const source = createCanonicalVowlSourceAcquisition({ resolver });
+  const source = createCanonicalVowlSourceAcquisition({
+    resolver,
+    cache: { enabled: false },
+  });
   const signal = new AbortController().signal;
   expect(await source.remote("https://example.org/root", { signal })).toEqual({
     operation: "open-owl-model",
@@ -154,6 +158,7 @@ test("automatic import context retains bounded cached bytes without asking for a
   const acquisition = createCanonicalVowlSourceAcquisition({
     resolver,
     requestFormat,
+    cache: { enabled: false },
   });
   const context = acquisition.createImportContext(10);
   await context.resolveImport("urn:import");
@@ -518,7 +523,10 @@ test("disabled cache never speculates even when a transport supplies import meta
       },
     })),
   };
-  const source = createCanonicalVowlSourceAcquisition({ resolver });
+  const source = createCanonicalVowlSourceAcquisition({
+    resolver,
+    cache: { enabled: false },
+  });
   const request = await source.remote(root);
   const imports = source.createImportContext(1, {
     rootBytes: request.bytes,

@@ -66,7 +66,10 @@ export async function canonicalControllerHarness({
     requestOntologyCreation,
     renderedGraphRuntime: wrapRuntime(double.runtime),
     documentSession: session,
-    sourceAcquisition: createCanonicalVowlSourceAcquisition({ resolver }),
+    sourceAcquisition: createCanonicalVowlSourceAcquisition({
+      resolver,
+      cache: { enabled: false },
+    }),
     applicationUrl: "https://example.test/webvowl/",
     visualizationArtifactService: {
       async createVisualizationArtifact(value, { signal } = {}) {

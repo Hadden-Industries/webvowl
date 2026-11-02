@@ -61,6 +61,15 @@ const fixture = [
 ];
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
 
+export function createBenchmarkWorkerSource(moduleUrl) {
+  const specifier = JSON.stringify(moduleUrl).replace(
+    /[<>\u2028\u2029]/gu,
+    (character) =>
+      "\\u" + character.charCodeAt(0).toString(16).padStart(4, "0"),
+  );
+  return `const send=self.postMessage.bind(self),queued=[];self.onmessage=e=>queued.push(e);self.postMessage=(message,...rest)=>{if(message.type==="result")send({type:"benchmark-measures",measures:performance.getEntriesByType("measure").map(e=>({name:e.name,duration:e.duration}))});send(message,...rest)};await import(${specifier});for(const event of queued)self.onmessage(event);`;
+}
+
 export function legacyNamedEntities(document) {
   return Object.fromEntries(
     ["class", "property"].map((kind) => {
@@ -267,10 +276,13 @@ async function compare(options) {
     await page.evaluate(async () =>
       (await import(globalThis.benchmarkMain)).application.dispose(),
     );
+    const workerSource = createBenchmarkWorkerSource(
+      new URL("/app/js/controller/canonicalVowlWorker.js", page.url()).href,
+    );
     const current = [];
     for (let iteration = 0; iteration < iterations; iteration++) {
       const sample = await page.evaluate(
-        async ({ inputs, rootIri }) => {
+        async ({ inputs, rootIri, workerSource }) => {
           const sources = new Map(
             inputs.map(({ documentIri, base64 }) => [
               documentIri,
@@ -282,13 +294,8 @@ async function compare(options) {
           const { createCanonicalVowlWorkerClient } =
             await import("/app/js/controller/canonicalVowlWorkerClient.js");
           const measures = [];
-          const moduleUrl = new URL(
-            "/app/js/controller/canonicalVowlWorker.js",
-            globalThis.location.href,
-          ).href;
-          const wrapper = `const send=self.postMessage.bind(self),queued=[];self.onmessage=e=>queued.push(e);self.postMessage=(message,...rest)=>{if(message.type==="result")send({type:"benchmark-measures",measures:performance.getEntriesByType("measure").map(e=>({name:e.name,duration:e.duration}))});send(message,...rest)};await import(${JSON.stringify(moduleUrl)});for(const event of queued)self.onmessage(event);`;
           const blob = URL.createObjectURL(
-            new Blob([wrapper], { type: "text/javascript" }),
+            new Blob([workerSource], { type: "text/javascript" }),
           );
           const client = createCanonicalVowlWorkerClient({
             createWorker() {
@@ -362,7 +369,7 @@ async function compare(options) {
             URL.revokeObjectURL(blob);
           }
         },
-        { inputs, rootIri },
+        { inputs, rootIri, workerSource },
       );
       assertLegacyCoverage(expected, sample);
       current.push(sample);
