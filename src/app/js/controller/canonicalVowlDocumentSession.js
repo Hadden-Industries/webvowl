@@ -585,6 +585,7 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
         initialVisualization,
         useAutomaticNodesShown = false,
         onNodeOrdering,
+        onDrawingPrepared,
         reuseValidatedResult = true,
       } = {},
     ) {
@@ -733,6 +734,13 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
         const acceptance = presentationTail.then(async () => {
           checkCurrent();
           if (renderedGraphRuntime) {
+            onDrawingPrepared?.({
+              drawingNodeCount: projection.nodes.filter((row) => !row.hidden)
+                .length,
+              drawingRelationshipCount: projection.edges.filter(
+                (row) => !row.hidden,
+              ).length,
+            });
             let previous;
             const previousView = Object.keys(nativeInitial).length
               ? renderedGraphRuntime.readVisualizationView()

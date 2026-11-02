@@ -282,6 +282,16 @@ export const WEB_MCP_TOOL_DEFINITIONS = Object.freeze([
     }),
   }),
   Object.freeze({
+    name: "cancel_ontology_load",
+    description:
+      "Cancel the current ontology load, retaining the previously accepted graph. Read load state to observe cancellation completion.",
+    annotations: Object.freeze({
+      readOnlyHint: false,
+      untrustedContentHint: true,
+    }),
+    inputSchema: closedObjectSchema({}),
+  }),
+  Object.freeze({
     name: "get_ontology_summary",
     description:
       "Summarize the loaded ontology, imports, namespaces, languages, diagnostics, and active visible view without reading SVG markup.",
@@ -1525,6 +1535,23 @@ function minimalToolResultEnvelope(toolName, toolResult) {
       MAXIMUM_PROJECTED_TEXT_CHARACTERS,
     );
   }
+  // A large retained view must not hide the current load's measured activity.
+  // Source text stays in the full state; this fallback retains bounded facts.
+  const progress = toolResult.loadProgress;
+  if (progress && ["source", "reading", "drawing"].includes(progress.stage)) {
+    minimalEnvelope.loadProgress = { stage: progress.stage };
+    for (const field of [
+      "requestId",
+      "receivedDocumentCount",
+      "receivedByteCount",
+      "drawingNodeCount",
+      "drawingRelationshipCount",
+    ]) {
+      if (Number.isSafeInteger(progress[field]) && progress[field] >= 0) {
+        minimalEnvelope.loadProgress[field] = progress[field];
+      }
+    }
+  }
   return minimalEnvelope;
 }
 
@@ -1695,6 +1722,13 @@ export function projectWebMcpToolFailure(toolName, thrownError) {
 // map is the whole routing table: a tool with no entry cannot be called, and a
 // controller operation with no entry is not reachable from an agent.
 const WEB_MCP_TOOL_ROUTES = Object.freeze({
+  cancel_ontology_load: Object.freeze({
+    normalizeToolInput: (input = {}) => {
+      assertOnlyAllowedFieldNames(input, [], "cancel_ontology_load input");
+      return Object.freeze({});
+    },
+    controllerOperationName: "cancelOntologyLoad",
+  }),
   reveal_ontology_neighborhood: Object.freeze({
     normalizeToolInput: (input) => {
       assertOnlyAllowedFieldNames(

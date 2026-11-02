@@ -672,8 +672,6 @@ export function createWebVowlApplication({
       configMenu.setCheckBoxValue("showZoomSliderConfigCheckbox", false);
     }
 
-    loadingModule.checkForScreenSize(viewport);
-
     adjustSliderSize(viewport.height);
 
     navigationMenu.updateScrollButtonVisibility();

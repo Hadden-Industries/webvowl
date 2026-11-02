@@ -36,6 +36,10 @@ test("bounded import preparation completes before the model job starts", async (
       await Promise.resolve();
     }
     expect(h.controller.getState().status).toBe("loading");
+    expect(h.controller.getState().loadProgress).toMatchObject({
+      stage: "reading",
+      receivedDocumentCount: 1,
+    });
     expect(h.session.load).not.toHaveBeenCalled();
     gate.resolve();
     await loading;
@@ -245,6 +249,98 @@ test.each(["ready", "failed"])(
     }
   },
 );
+
+test("loading reports received documents and drawing milestones, then retires its progress callbacks", async () => {
+  const h = setup();
+  const updates = [];
+  h.controller.subscribeToState((state) => updates.push(state.loadProgress));
+  h.acquisition.remote.mockResolvedValueOnce({
+    documentIri: "urn:root",
+    bytes: new Uint8Array([1, 2]),
+  });
+  h.acquisition.resolveImport = async () => ({
+    documentIri: "urn:import",
+    bytes: new Uint8Array([3, 4, 5]),
+  });
+  const accept = h.session.load.getMockImplementation();
+  h.session.load.mockImplementationOnce(async (request, options) => {
+    expect(h.controller.getState().loadProgress.stage).toBe("reading");
+    await options.resolveImport("urn:import", {});
+    await options.resolveImport("urn:import", {});
+    options.onDrawingPrepared({
+      drawingNodeCount: 50,
+      drawingRelationshipCount: 63,
+    });
+    return accept(request, options);
+  });
+  try {
+    await h.load("urn:root");
+    expect(updates.filter(Boolean).map((value) => value.stage)).toEqual(
+      expect.arrayContaining(["source", "reading", "drawing"]),
+    );
+    expect(updates.filter(Boolean).at(-1)).toMatchObject({
+      receivedDocumentCount: 2,
+      receivedByteCount: 5,
+      drawingNodeCount: 50,
+      drawingRelationshipCount: 63,
+    });
+    expect(h.controller.getState().loadProgress).toBeNull();
+    const oldDrawing = h.session.load.mock.calls[0][1].onDrawingPrepared;
+    const gate = deferred();
+    h.acquisition.remote.mockImplementationOnce(() => gate.promise);
+    const newer = h.load("urn:new");
+    const current = h.controller.getState().loadProgress;
+    oldDrawing({ drawingNodeCount: 999, drawingRelationshipCount: 999 });
+    expect(h.controller.getState().loadProgress).toBe(current);
+    expect(current).toMatchObject({
+      requestId: 2,
+      sourceLabel: "urn:new",
+      stage: "source",
+    });
+    gate.resolve({ documentIri: "urn:new", bytes: new Uint8Array([6]) });
+    await newer;
+  } finally {
+    h.controller.dispose();
+  }
+});
+
+test("cancelling a replacement aborts acquisition and restores the accepted graph and controls", async () => {
+  const h = setup();
+  try {
+    await h.load("urn:accepted");
+    const before = h.controller.getState();
+    h.acquisition.remote.mockImplementationOnce(
+      (_iri, { signal }) =>
+        new Promise((_resolve, reject) => {
+          signal.addEventListener("abort", () => reject(signal.reason), {
+            once: true,
+          });
+        }),
+    );
+    const replacement = h.load("urn:cancel");
+    expect(h.controller.getState().loadProgress.sourceLabel).toBe("urn:cancel");
+    const dispatch = createWebMcpToolDispatch({
+      webVowlController: h.controller,
+    });
+    await expect(
+      dispatch.callWebMcpTool("cancel_ontology_load", { source: "other" }),
+    ).resolves.toMatchObject({ isSuccess: false });
+    await expect(
+      dispatch.callWebMcpTool("cancel_ontology_load", {}),
+    ).resolves.toMatchObject({
+      isSuccess: true,
+      toolResult: { isCancellationRequested: true },
+    });
+    await expect(replacement).rejects.toMatchObject({ name: "AbortError" });
+    expect(h.controller.getState()).toEqual(before);
+    expect(h.controller.cancelOntologyLoad()).toEqual({
+      isCancellationRequested: false,
+    });
+    expect(h.controller.getState()).toEqual(before);
+  } finally {
+    h.controller.dispose();
+  }
+});
 
 test("background ordering updates only its current document and count commands share the readiness guard", async () => {
   const { controller, session, load } = setup();

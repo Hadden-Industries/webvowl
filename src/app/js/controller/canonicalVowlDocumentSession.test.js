@@ -9,6 +9,7 @@ import { createVisualizationArtifactService } from "./visualizationArtifactServi
 import { webcrypto } from "node:crypto";
 import { canonicalExampleSource } from "../canonicalExamples.js";
 import { createCanonicalVowlRenderProjection } from "./canonicalVowlRenderProjection.js";
+import { createCanonicalRenderedGraphRuntimeDouble } from "../../test/canonicalRenderedGraphRuntimeDouble.js";
 
 const bytes = new Uint8Array(
   readFileSync(
@@ -190,6 +191,43 @@ test("fresh loads show exactly 50, explicit zero wins and saved visibility reope
     session.dispose();
   }
 });
+
+test.each([0, 2])(
+  "drawing progress counts only the visible projection with a node limit of %i",
+  async (requestedCount) => {
+    const { session } = setup();
+    const onDrawingPrepared = jest.fn();
+    const { runtime } = createCanonicalRenderedGraphRuntimeDouble();
+    const replaceCanonicalDrawing = jest.fn(runtime.replaceCanonicalDrawing);
+    try {
+      const accepted = await session.load(previewRequest(), {
+        initialVisualization: {
+          view: { nodesShown: { mode: "exact", requestedCount } },
+        },
+        onDrawingPrepared,
+        renderedGraphRuntime: { ...runtime, replaceCanonicalDrawing },
+      });
+      const drawing = replaceCanonicalDrawing.mock.calls[0][0].drawing;
+      expect(onDrawingPrepared).toHaveBeenCalledTimes(1);
+      expect(onDrawingPrepared).toHaveBeenCalledWith({
+        drawingNodeCount: drawing.nodes.filter((row) => !row.hidden).length,
+        drawingRelationshipCount: drawing.edges.filter((row) => !row.hidden)
+          .length,
+      });
+      expect(accepted.nodeCountStatus.shownNodeCount).toBe(requestedCount);
+      expect(onDrawingPrepared.mock.calls[0][0]).toEqual({
+        drawingNodeCount: requestedCount,
+        drawingRelationshipCount: requestedCount === 0 ? 0 : 1,
+      });
+      expect(onDrawingPrepared.mock.invocationCallOrder[0]).toBeLessThan(
+        replaceCanonicalDrawing.mock.invocationCallOrder[0],
+      );
+    } finally {
+      session.dispose();
+      runtime.dispose();
+    }
+  },
+);
 
 test.each(["fresh", "explicit-camera", "supplied", "saved"])(
   "initial framing respects the %s placement and camera authority",
@@ -659,14 +697,16 @@ function setup() {
   };
 }
 
-const previewRequest = () => ({
-  operation: "open-owl-model",
-  documentIri: "urn:preview",
-  mediaType: "text/owl-functional",
-  bytes: new TextEncoder().encode(
-    "Ontology(<urn:preview> Declaration(Class(<urn:A>)) Declaration(Class(<urn:B>)) SubClassOf(<urn:A> <urn:B>))",
-  ),
-});
+function previewRequest() {
+  return {
+    operation: "open-owl-model",
+    documentIri: "urn:preview",
+    mediaType: "text/owl-functional",
+    bytes: new TextEncoder().encode(
+      "Ontology(<urn:preview> Declaration(Class(<urn:A>)) Declaration(Class(<urn:B>)) SubClassOf(<urn:A> <urn:B>))",
+    ),
+  };
+}
 
 function deferOrdering(control, gate, start = jest.fn()) {
   let keys;

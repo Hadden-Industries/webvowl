@@ -36,6 +36,7 @@ const MAXIMUM_PARAMETER_DESCRIPTION_LENGTH = 150;
 
 const EXPECTED_TOOL_NAMES = Object.freeze([
   "load_ontology",
+  "cancel_ontology_load",
   "get_ontology_summary",
   "find_ontology_elements",
   "reveal_ontology_neighborhood",
@@ -52,6 +53,37 @@ const EXPECTED_TOOL_NAMES = Object.freeze([
   "get_ontology_element_details",
   "get_visualization_share_link",
 ]);
+
+test("a bounded state response retains loading activity when a large view requires truncation", () => {
+  const projected = projectWebMcpToolSuccess("get_visualization_state", {
+    status: "loading",
+    loadGeneration: 1,
+    loadProgress: {
+      requestId: 2,
+      stage: "reading",
+      receivedDocumentCount: 8,
+      receivedByteCount: 12000,
+      sourceLabel: "x".repeat(2048),
+    },
+    view: Object.fromEntries(
+      Array.from({ length: 30 }, (_, index) => [
+        String(index),
+        "x".repeat(300),
+      ]),
+    ),
+  });
+  expect(projected.toolResult).toMatchObject({
+    isTruncated: true,
+    status: "loading",
+    loadProgress: {
+      requestId: 2,
+      stage: "reading",
+      receivedDocumentCount: 8,
+      receivedByteCount: 12000,
+    },
+  });
+  expect(JSON.stringify(projected).length).toBeLessThanOrEqual(1500);
+});
 
 test("focus input preserves an exact semantic role and rejects mismatched role kinds", () => {
   expect(
@@ -89,6 +121,8 @@ const EXPECTED_TOOL_DESCRIPTIONS = Object.freeze({
     "Restore visualization defaults, clear focus and selection, and resume layout. Retain the loaded ontology and label language.",
   load_ontology:
     "Load an ontology into the visible WebVOWL graph from an HTTP(S) ontology document IRI, VOWL JSON URL, or supplied ontology text.",
+  cancel_ontology_load:
+    "Cancel the current ontology load, retaining the previously accepted graph. Read load state to observe cancellation completion.",
   get_ontology_summary:
     "Summarize the loaded ontology, imports, namespaces, languages, diagnostics, and active visible view without reading SVG markup.",
   find_ontology_elements:
@@ -136,6 +170,7 @@ const EXPECTED_TOOL_ANNOTATIONS = Object.freeze({
   },
   reset_visualization: { readOnlyHint: false, untrustedContentHint: true },
   load_ontology: { readOnlyHint: false, untrustedContentHint: true },
+  cancel_ontology_load: { readOnlyHint: false, untrustedContentHint: true },
   get_ontology_summary: { readOnlyHint: true, untrustedContentHint: true },
   find_ontology_elements: { readOnlyHint: true, untrustedContentHint: true },
   set_visualization_view: { readOnlyHint: false, untrustedContentHint: true },
@@ -1874,7 +1909,7 @@ describe("WebMCP tool dispatch", () => {
       },
       selection: focus,
       error: null,
-      renderProgress: null,
+      loadProgress: null,
       editorMode: null,
     };
     const { webVowlController } = createControllerSpy({

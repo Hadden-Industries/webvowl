@@ -62,7 +62,11 @@ Only `ontology-document-iri` and `ontology-text` produce one; `vowl-json-url` an
    Occurrence identity — which of six drawn `owl:Thing` nodes was clicked — **MUST NOT** cross the seam.
    A focus request naming an entity correctly marks every occurrence of it, and the selected halo, `pickAndPin` and drag remain renderer-local because none of them outlives a mount.
 
-6. `WebVowlControllerState` **MUST** have a closed field set asserted at its defining contract, including `selection` and `renderProgress`, and generation-scoped fields **MUST** be reset when a new load generation begins.
+6. `WebVowlControllerState` **MUST** have a closed field set asserted at its defining contract, including `selection` and `loadProgress`, and generation-scoped fields **MUST** be reset when a new load generation begins.
+   The loading presentation introduced on 2026-11-02 replaces `renderProgress` with `loadProgress`, without an alias.
+   Its request ID binds acquisition, import receipt counts and first-drawing milestones to the current load attempt; the accepted document generation remains unchanged until admission.
+   Progress reports measured work rather than an inferred percentage or time estimate.
+   Cancellation restores the previously accepted document.
 
 7. Renderer-owned continuous state **MUST** reach the interface as a published fact, never by the interface reading the renderer.
    `viewport-changed`, already specified with payload `{ zoomScale, translationXPx, translationYPx }` and never published, **MUST** be published by the adapter and reduced into controller state.

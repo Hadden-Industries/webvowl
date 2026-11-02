@@ -40,6 +40,7 @@ export const CONTROLLER_OPERATION_CLASSES = Object.freeze({
 
 export const CONTROLLER_APPLICATION_MEMBERS = Object.freeze({
   getState: "observation",
+  cancelOntologyLoad: "load-cancellation",
   getOntologyEditorOptions: "observation",
   getVisualizationFocus: "observation",
   subscribeToState: "subscription",

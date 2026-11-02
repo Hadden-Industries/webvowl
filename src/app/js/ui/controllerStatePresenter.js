@@ -34,7 +34,7 @@ const LOAD_STATE_FIELD_NAMES = Object.freeze([
   "source",
   "hasReusedCachedVisualization",
   "warnings",
-  "renderProgress",
+  "loadProgress",
   "error",
 ]);
 

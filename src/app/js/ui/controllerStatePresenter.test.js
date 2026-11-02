@@ -39,7 +39,7 @@ function createControllerState(overrides = {}) {
     translation: null,
     layout: { status: "settled" },
     selection: [],
-    renderProgress: null,
+    loadProgress: null,
     editorMode: null,
     temporaryPresentation: null,
     error: null,
@@ -276,12 +276,12 @@ describe("controller state presentation", () => {
     presenter.present(
       createControllerState({
         status: "loading",
-        renderProgress: {
+        loadProgress: {
           completedRenderedElementCount: 40,
           totalRenderedElementCount: 100,
         },
       }),
-      ["renderProgress"],
+      ["loadProgress"],
     );
 
     expect(presentationSpies.renderLoadState).toHaveBeenCalledTimes(1);
