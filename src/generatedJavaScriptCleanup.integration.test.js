@@ -29,6 +29,79 @@ afterEach(async () => {
   );
 });
 
+test("successive Vite builds retire changed worker entries and lazy chunks while preserving foreign files", async () => {
+  const temporaryDirectory = await mkdtemp(
+    join(tmpdir(), "webvowl-worker-rollover-"),
+  );
+  temporaryDirectories.push(temporaryDirectory);
+  const verificationSource = `
+    import assert from "node:assert/strict";
+    import { createHash } from "node:crypto";
+    import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+    import { join } from "node:path";
+    import { build } from "vite";
+    import { createGeneratedJavaScriptCleanupPlugin } from "./util/generatedJavaScriptCleanup.mjs";
+
+    const root = process.env.WEBVOWL_WORKER_ROLLOVER_ROOT;
+    const output = join(root, "deploy");
+    const manifestPath = join(output, ".vite/webvowl-generated-js.json");
+    writeFileSync(join(root, "index.html"), '<script type="module" src="/main.js"></script>');
+    writeFileSync(join(root, "main.js"), 'globalThis.worker = new Worker(new URL("./canonicalVowlWorker.js", import.meta.url), { type: "module" });');
+    writeFileSync(join(root, "canonicalVowlWorker.js"), 'self.onmessage = async () => self.postMessage((await import("./worker-dependency.js")).value);');
+    const dependency = join(root, "worker-dependency.js");
+    const readManifest = () => JSON.parse(readFileSync(manifestPath, "utf8"));
+    const buildFixture = () => build({
+      root,
+      configFile: false,
+      publicDir: false,
+      logLevel: "silent",
+      worker: { format: "es" },
+      build: { outDir: output, emptyOutDir: false },
+      plugins: [createGeneratedJavaScriptCleanupPlugin({
+        manifestName: ".vite/webvowl-generated-js.json", legacyFiles: [],
+      })],
+    });
+    writeFileSync(dependency, 'export const value = "first build";');
+    await buildFixture();
+    const first = readManifest();
+    const firstWorkers = first.files.filter((file) => /^assets\\/canonicalVowlWorker-[^/]+\\.js$/u.test(file));
+    assert.equal(firstWorkers.length, 1, "First build must record the actual worker entry");
+    const firstLazy = first.files.filter((file) => /^assets\\/worker-dependency-[^/]+\\.js$/u.test(file));
+    assert.equal(firstLazy.length, 1, "First build must record the lazy worker chunk");
+    const foreign = join(output, "assets/canonicalVowlWorker-foreign.js");
+    const data = join(output, "data/user.json");
+    mkdirSync(join(output, "data"));
+    writeFileSync(foreign, "user-owned JavaScript");
+    writeFileSync(data, "user-owned data");
+
+    writeFileSync(dependency, 'export const value = "second build";');
+    await buildFixture();
+    const second = readManifest();
+    const obsolete = first.files.filter((file) => !second.files.includes(file));
+    assert(obsolete.includes(firstWorkers[0]), "Changing a worker dependency must change the worker entry hash");
+    assert(obsolete.includes(firstLazy[0]), "Changing lazy worker bytes must change its chunk hash");
+    for (const file of obsolete) assert(!existsSync(join(output, file)), "Old generated JavaScript survived: " + file);
+    for (const file of second.files) {
+      assert.equal(createHash("sha256").update(readFileSync(join(output, file))).digest("hex"), second.hashes[file]);
+    }
+    assert.equal(readFileSync(foreign, "utf8"), "user-owned JavaScript");
+    assert.equal(readFileSync(data, "utf8"), "user-owned data");
+    const actualWorkers = readdirSync(join(output, "assets")).filter((file) => /^canonicalVowlWorker-.*\\.js$/u.test(file));
+    assert.equal(actualWorkers.length, 2, "Only the current worker and unrelated foreign file may remain");
+  `;
+  execFileSync(
+    process.execPath,
+    ["--input-type=module", "--eval", verificationSource],
+    {
+      cwd: repositoryRoot,
+      encoding: "utf8",
+      env: { ...process.env, WEBVOWL_WORKER_ROLLOVER_ROOT: temporaryDirectory },
+      timeout: 15_000,
+      windowsHide: true,
+    },
+  );
+});
+
 test("a production build removes obsolete owned JavaScript without deleting unknown files", async () => {
   const temporaryDirectory = await mkdtemp(
     join(tmpdir(), "webvowl-generated-javascript-"),
