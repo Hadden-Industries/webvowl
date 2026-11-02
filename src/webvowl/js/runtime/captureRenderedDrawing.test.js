@@ -2,6 +2,68 @@ import { expect, test } from "@jest/globals";
 import { serializeRenderedDrawingAsTikz } from "../../../app/js/controller/tikzSerializer.js";
 import { captureRenderedDrawing } from "./captureRenderedDrawing.js";
 
+test.each([
+  [false, false],
+  [false, true],
+  [true, false],
+  [true, true],
+])(
+  "exports only visible inverse label glyphs (hidden=%s,%s)",
+  (primaryHidden, inverseHidden) => {
+    const property = (name, hidden) => ({
+      labelForCurrentLanguage: () => name,
+      labelVisible: () => !hidden,
+      type: () => "owl:ObjectProperty",
+      attributes: () => [],
+      backgroundColor: () => "#aaf",
+      textWidth: () => 80,
+    });
+    const primary = property("forward label", primaryHidden);
+    const inverse = property("reverse label", inverseHidden);
+    primary.inverse = () => inverse;
+    const drawing = captureRenderedDrawing({
+      nodes: [],
+      propertyLabels: [{ x: 50, y: 40, property: () => primary }],
+      links: [],
+      math: {},
+      compactNotation: false,
+      viewport: {
+        widthPx: 400,
+        heightPx: 300,
+        zoomScale: 1,
+        translationXPx: 0,
+        translationYPx: 0,
+      },
+      svgRoot: {
+        getBoundingClientRect: () => ({ left: 0, top: 0 }),
+        querySelectorAll: () => [],
+      },
+      readComputedStyle: () => ({}),
+    });
+    const names = drawing.propertyLabels.flatMap((row) => [
+      row.label,
+      ...(row.inverse ? [row.inverse.label] : []),
+    ]);
+    expect(names).toEqual([
+      ...(primaryHidden ? [] : ["forward label"]),
+      ...(inverseHidden ? [] : ["reverse label"]),
+    ]);
+    expect(drawing.propertyLabels).toHaveLength(
+      primaryHidden && inverseHidden ? 0 : 1,
+    );
+    if (!primaryHidden || !inverseHidden) {
+      expect(drawing.propertyLabels[0]).toMatchObject({ x: 50, y: 40 });
+    }
+    expect(() => structuredClone(drawing)).not.toThrow();
+    const tex = serializeRenderedDrawingAsTikz({
+      loadGeneration: 1,
+      ...drawing,
+    });
+    expect(tex.includes("forward label")).toBe(!primaryHidden);
+    expect(tex.includes("reverse label")).toBe(!inverseHidden);
+  },
+);
+
 test("keeps a small visible drawing within TeX dimensions at minimum zoom", () => {
   const drawing = captureRenderedDrawing({
     nodes: [],

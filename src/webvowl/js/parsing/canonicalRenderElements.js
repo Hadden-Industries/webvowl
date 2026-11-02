@@ -42,6 +42,16 @@ export function installCanonicalRenderPlacements(elements) {
     }
   }
   elements.placements.length = 0;
+  // One legacy force label has one pin, including when either glyph is hidden.
+  // Apply this only inside installation, after both scene rows are installed.
+  for (const property of elements.properties) {
+    const inverse = property.inverse();
+    if (inverse && property.pinned() !== inverse.pinned()) {
+      const pinned = property.pinned() || inverse.pinned();
+      property.pinned(pinned);
+      inverse.pinned(pinned);
+    }
+  }
 }
 
 /** Materialize existing SVG primitives directly from authoritative drawing rows. */
@@ -143,6 +153,15 @@ export function createCanonicalRenderElements(graph, drawing, retained) {
       continue;
     }
     const labels = labelsByEdge.get(edge.occurrence) ?? [];
+    const forward =
+      edge.kind === "inverse-edge"
+        ? labels.find((label) => label.direction === "forward")
+        : undefined;
+    const reverse =
+      edge.kind === "inverse-edge"
+        ? labels.find((label) => label.direction === "reverse")
+        : undefined;
+    const edgeProperties = new Map();
     const rows = labels.length ? labels : [undefined];
     for (const label of rows) {
       const type =
@@ -157,18 +176,36 @@ export function createCanonicalRenderElements(graph, drawing, retained) {
       if (!Prototype) {
         throw new TypeError("Unsupported admitted edge drawing kind.");
       }
-      const reverse = label?.direction === "reverse";
-      const from = elements.get(reverse ? edge.to : edge.from);
-      const to = elements.get(reverse ? edge.from : edge.to);
+      const isReverse = label?.direction === "reverse";
+      const from = elements.get(isReverse ? edge.to : edge.from);
+      const to = elements.get(isReverse ? edge.from : edge.to);
       if (!from || !to) {
         throw new TypeError("Missing admitted drawing endpoint.");
       }
       const id = label?.occurrence ?? edge.occurrence;
       const previous = retainedProperties.get(id);
+      const inverseRow =
+        label && forward && reverse
+          ? label === forward
+            ? reverse
+            : forward
+          : undefined;
+      const inverseId = inverseRow?.occurrence;
+      const previousInverse = inverseId
+        ? retainedProperties.get(inverseId)
+        : undefined;
       // Endpoints and the entire link/label/force aggregate must agree. A
       // surviving string key alone cannot rebind the closures in a Label.
       const property =
-        previous?.domain() === from && previous.range() === to
+        previous?.domain() === from &&
+        previous.range() === to &&
+        previous.type() === type &&
+        previous.inverse() === previousInverse &&
+        (!inverseId ||
+          (previousInverse &&
+            previousInverse.inverse() === previous &&
+            previousInverse.type() ===
+              propertyTypes[inverseRow.principal.kind]))
           ? previous
           : new Prototype(graph);
       const placement = label ?? {
@@ -223,8 +260,8 @@ export function createCanonicalRenderElements(graph, drawing, retained) {
         }
         dirty.add(property);
       }
-      // An inverse occurrence has two routed directions, each bound to its own
-      // label placement. Legacy inverse pairing would collapse those placements.
+      // Keep both semantic bindings even when the legacy renderer shares their
+      // connection, force label and stacked glyphs.
       bindings.set(id, {
         occurrence: edge.occurrence,
         ...(label
@@ -234,6 +271,15 @@ export function createCanonicalRenderElements(graph, drawing, retained) {
         positionable: Boolean(label),
       });
       properties.push(property);
+      edgeProperties.set(id, property);
+    }
+    if (forward && reverse) {
+      const primary = edgeProperties.get(forward.occurrence);
+      const inverse = edgeProperties.get(reverse.occurrence);
+      if (primary.inverse() !== inverse) {
+        primary.inverse(inverse);
+        inverse.inverse(primary);
+      }
     }
   }
   return {

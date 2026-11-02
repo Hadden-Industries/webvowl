@@ -65,6 +65,49 @@ describe("finite SVG rendering guard", () => {
     expect(element.getAttribute("d")).toBe("M0,0 Q40,100 50,100 Q60,100 100,0");
   });
 
+  test.each([
+    [{ x: 0, y: 0 }, { x: 100, y: 30 }, "M0,0 L100,30"],
+    [{ x: 5, y: -7 }, { x: 5, y: -7 }, "M5,-7 L5,-7"],
+  ])(
+    "draws finite straight chords without redundant writes (%j to %j)",
+    (start, end, path) => {
+      const element = createSvgElement("path");
+      expect(svgRenderingGuard.setLinePath(element, start, end)).toBe(true);
+      expect(element.getAttribute("d")).toBe(path);
+      const write = jest.spyOn(element, "setAttribute");
+      svgRenderingGuard.setLinePath(element, start, end);
+      expect(write).not.toHaveBeenCalled();
+      element.setAttribute("d", "M9,8 L7,6");
+      write.mockClear();
+      svgRenderingGuard.setLinePath(element, start, end);
+      expect(write).toHaveBeenCalledWith("d", path);
+    },
+  );
+
+  test.each([
+    [
+      { x: NaN, y: 0 },
+      { x: 1, y: 1 },
+    ],
+    [
+      { x: 0, y: 0 },
+      { x: 1, y: Infinity },
+    ],
+    [undefined, { x: 1, y: 1 }],
+    [
+      { x: "0", y: 0 },
+      { x: 1, y: 1 },
+    ],
+  ])(
+    "preserves the previous chord for invalid points (%j to %j)",
+    (start, end) => {
+      const element = createSvgElement("path");
+      element.setAttribute("d", "M1,2 L3,4");
+      expect(svgRenderingGuard.setLinePath(element, start, end)).toBe(false);
+      expect(element.getAttribute("d")).toBe("M1,2 L3,4");
+    },
+  );
+
   test("does not invalidate unchanged geometry and repairs external edits", () => {
     const node = createSvgElement("g");
     const link = createSvgElement("path");
