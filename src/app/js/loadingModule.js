@@ -1,5 +1,4 @@
 import { readVisualizationShareLink } from "./controller/visualizationShareLink.js";
-import { presentOntologySources } from "./ui/ontologySourcePresentation.js";
 import {
   ONTOLOGY_LIFECYCLE_STATES,
   isOntologyModelAvailable,
@@ -58,26 +57,6 @@ export function createLoadingModule({
   let isSetup = false;
   let fileReadSequence = 0;
   let pendingInput;
-  const cacheSource =
-    typeof document === "undefined"
-      ? null
-      : document.querySelector("#ontologyCacheSource");
-  const cacheStatus =
-    typeof document === "undefined"
-      ? null
-      : document.querySelector("#ontologyCacheSourceStatus");
-  const cacheStorage =
-    typeof document === "undefined"
-      ? null
-      : document.querySelector("#ontologyCacheStorage");
-  const checkSource =
-    typeof document === "undefined"
-      ? null
-      : document.querySelector("#checkOntologySourceUpdate");
-  const applySource =
-    typeof document === "undefined"
-      ? null
-      : document.querySelector("#applyOntologySourceUpdate");
 
   function supersedeInput() {
     fileReadSequence += 1;
@@ -231,25 +210,6 @@ export function createLoadingModule({
       return;
     }
     isSetup = true;
-    for (const [button, action] of [
-      [checkSource, "refreshOntologySource"],
-      [applySource, "applyOntologySourceUpdate"],
-    ]) {
-      button?.addEventListener(
-        "click",
-        async () => {
-          button.disabled = true;
-          try {
-            await webVowlController[action]();
-          } catch (_error) {
-            if (!lifecycleAbortController.signal.aborted) {
-              loadingModule.renderControllerState(webVowlController.getState());
-            }
-          }
-        },
-        { signal: lifecycleAbortController.signal },
-      );
-    }
     // create connections for close and details button;
     loadingInfoContainer.classList.toggle("hidden", !showLoadingDetails);
     detailsButton.addEventListener(
@@ -655,22 +615,6 @@ export function createLoadingModule({
   loadingModule.renderControllerState = function (controllerState) {
     if (controllerState === null || typeof controllerState !== "object") {
       return;
-    }
-    if (cacheSource) {
-      const presentation = presentOntologySources(controllerState);
-      cacheSource.hidden = !presentation.visible;
-      cacheSource.classList.toggle(
-        "source-needs-attention",
-        presentation.attention,
-      );
-      if (cacheStatus.textContent !== presentation.message) {
-        cacheStatus.textContent = presentation.message;
-      }
-      cacheStorage.textContent = presentation.storage;
-      checkSource.textContent = presentation.checkLabel;
-      checkSource.disabled = presentation.expired || presentation.checking;
-      applySource.hidden = !presentation.hasUpdate;
-      applySource.disabled = presentation.expired || presentation.checking;
     }
     if (controllerState.status === "loading") {
       // Every controller load, including an agent input, supersedes a file

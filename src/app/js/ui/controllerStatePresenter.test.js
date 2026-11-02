@@ -116,14 +116,14 @@ describe("controller state presentation", () => {
     expect(presentationSpies.renderViewport).not.toHaveBeenCalled();
   });
 
-  test("an edit refreshes only the active archive offer's source controls", () => {
+  test("editing a cached source does not present a source load", () => {
     const { presenter, presentationSpies } = mountPresenter();
     const state = createControllerState({
       documentRevision: 2,
       source: { cache: { documentRevision: 1, hasUpdate: true } },
     });
     presenter.present(state, ["documentRevision"]);
-    expect(presentationSpies.renderLoadState).toHaveBeenCalledWith(state);
+    expect(presentationSpies.renderLoadState).not.toHaveBeenCalled();
     expect(presentationSpies.renderViewport).not.toHaveBeenCalled();
   });
 

@@ -37,9 +37,6 @@ function fixture() {
         (child) => child !== this,
       );
     }
-    closest() {
-      return this.hidden ? this : this.parent?.closest();
-    }
     focus() {
       doc.activeElement = this;
     }
@@ -58,9 +55,6 @@ function fixture() {
     }
     return elements.get(id);
   };
-  doc
-    .getElementById("ontologyCacheSource")
-    .append(doc.getElementById("ontology-sources-open"));
   let state = {
     status: "ready",
     loadGeneration: 1,
@@ -96,6 +90,7 @@ function fixture() {
       return unsubscribe;
     },
     refreshOntologySource: jest.fn(async () => {}),
+    applyOntologySourceUpdate: jest.fn(async () => {}),
   };
   const overview = createOntologyOverview({
     controller,
@@ -104,9 +99,9 @@ function fixture() {
     openFacts: jest.fn(),
     reloadSource: jest.fn(),
   });
-  const publish = (next) => {
+  const publish = (next, fields = ["source"]) => {
     state = next;
-    listener(state, ["source"]);
+    listener(state, fields);
   };
   return {
     doc,
@@ -119,15 +114,11 @@ function fixture() {
   };
 }
 
-test("View sources focuses the source heading and close returns to its visible invoker", () => {
+test("Overview focuses its heading and returns focus to the Ontology menu button", () => {
   const h = fixture();
-  h.get("ontology-sources-open").dispatchEvent(new Event("click"));
+  h.get("ontology-overview-open").dispatchEvent(new Event("click"));
   expect(h.get("ontology-overview-dialog").open).toBe(true);
-  expect(h.doc.activeElement).toBe(h.get("ontology-source-heading"));
-  h.get("ontology-overview-dialog").close();
-  expect(h.doc.activeElement).toBe(h.get("ontology-sources-open"));
-  h.get("ontology-sources-open").dispatchEvent(new Event("click"));
-  h.get("ontologyCacheSource").hidden = true;
+  expect(h.doc.activeElement).toBe(h.get("ontology-overview-heading"));
   h.get("ontology-overview-dialog").close();
   expect(h.doc.activeElement).toBe(h.get("ontology-menu-open"));
   h.overview.dispose();
@@ -198,18 +189,100 @@ test("parsing findings have a readable summary and retain their original diagnos
 
 test("an intervening edit disables both update actions in the overview", () => {
   const h = fixture();
-  h.publish({
-    ...h.state,
-    documentRevision: 1,
-    source: {
-      ...h.state.source,
-      cache: { ...h.state.source.cache, hasUpdate: true },
+  h.publish(
+    {
+      ...h.state,
+      documentRevision: 1,
+      source: {
+        ...h.state.source,
+        cache: { ...h.state.source.cache, hasUpdate: true },
+      },
     },
-  });
+    ["documentRevision"],
+  );
   expect(h.get("ontology-overview-check-sources").disabled).toBe(true);
   expect(h.get("ontology-overview-apply-sources").disabled).toBe(true);
   expect(h.get("ontology-overview-source-status").textContent).toContain(
     "graph has edits",
   );
+  h.overview.dispose();
+});
+
+test.each([
+  [
+    "ontology-overview-apply-sources",
+    "applyOntologySourceUpdate",
+    "update-failed",
+    "CACHE_OFFER_SUPERSEDED",
+    "The available update changed. Check for source updates again before reloading.",
+  ],
+  [
+    "ontology-overview-check-sources",
+    "refreshOntologySource",
+    "check-failed",
+    "CACHE_UNAVAILABLE",
+    "Couldn’t check SKOS for changes. The loaded graph is still available.",
+  ],
+])(
+  "Overview preserves the graph and presents a failed %s action",
+  async (button, action, status, code, message) => {
+    const h = fixture();
+    h.publish({
+      ...h.state,
+      source: {
+        ...h.state.source,
+        cache: { ...h.state.source.cache, hasUpdate: true },
+      },
+    });
+    h.get("ontology-overview-open").dispatchEvent(new Event("click"));
+    h.controller[action].mockImplementation(async () => {
+      h.publish({
+        ...h.state,
+        source: {
+          ...h.state.source,
+          cache: { ...h.state.source.cache, status, code, hasUpdate: false },
+        },
+      });
+      throw new Error("Source action failed");
+    });
+    h.get(button).dispatchEvent(new Event("click"));
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(h.controller[action]).toHaveBeenCalledTimes(1);
+    expect(h.controller.getState().status).toBe("ready");
+    expect(h.get("ontology-overview-dialog").open).toBe(true);
+    if (action === "applyOntologySourceUpdate") {
+      expect(h.doc.activeElement).toBe(h.get("ontology-overview-heading"));
+    }
+    expect(h.get("ontology-overview-source-status").textContent).toBe(message);
+    expect(h.get("ontology-overview-apply-sources").hidden).toBe(true);
+    expect(h.get("ontology-overview-check-sources").disabled).toBe(false);
+    h.overview.dispose();
+  },
+);
+
+test("Overview stays open while applying an update and closes after success", async () => {
+  const h = fixture();
+  h.publish({
+    ...h.state,
+    source: {
+      ...h.state.source,
+      cache: { ...h.state.source.cache, hasUpdate: true },
+    },
+  });
+  let finish;
+  h.controller.applyOntologySourceUpdate.mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+  );
+  h.get("ontology-overview-open").dispatchEvent(new Event("click"));
+  h.get("ontology-overview-apply-sources").dispatchEvent(new Event("click"));
+  expect(h.get("ontology-overview-dialog").open).toBe(true);
+  expect(h.get("ontology-overview-apply-sources").disabled).toBe(true);
+  finish();
+  await new Promise((resolve) => setImmediate(resolve));
+  expect(h.get("ontology-overview-dialog").open).toBe(false);
+  expect(h.doc.activeElement).toBe(h.get("ontology-menu-open"));
   h.overview.dispose();
 });

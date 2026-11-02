@@ -94,7 +94,7 @@ function acquisitionDescription(source) {
   }
 }
 
-/** User-facing provenance and status shared by the compact summary and Overview. */
+/** User-facing source provenance and update status for Ontology Overview. */
 export function presentOntologySources(state, importedIris = []) {
   const cache = state.source?.cache;
   const saved = cache?.sources ?? [];
@@ -117,7 +117,6 @@ export function presentOntologySources(state, importedIris = []) {
     (source) => source.checkOutcome === "failed",
   ).length;
   const importCount = saved.filter((source) => source.role === "import").length;
-  const storageLocations = [...new Set(saved.map(storageName))];
   let message = only
     ? only.role === "import"
       ? `Includes a saved copy of ${name}.`
@@ -194,20 +193,12 @@ export function presentOntologySources(state, importedIris = []) {
       saved.length && ["ready", "relaxing"].includes(state.status),
     ),
     message,
-    storage:
-      storageLocations.length === 1
-        ? `Stored by ${storageLocations[0]}.`
-        : `Stored by ${storageLocations.length} ontology services. View sources for locations.`,
     checkLabel: only
       ? `Check ${name} for updates`
       : "Check saved sources for updates",
     expired,
     checking: cache?.status === "checking",
     hasUpdate: Boolean(cache?.hasUpdate),
-    attention:
-      expired ||
-      cache?.hasUpdate ||
-      ["check-failed", "update-failed"].includes(cache?.status),
     sources: sources.map((source) => ({
       ...source,
       storage: storageName(source),

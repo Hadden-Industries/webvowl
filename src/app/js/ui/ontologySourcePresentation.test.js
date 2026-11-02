@@ -40,7 +40,9 @@ test("a direct root with a saved import names that import and its storage operat
   ]);
   expect(view.message).toBe("Includes a saved copy of SKOS.");
   expect(view.checkLabel).toBe("Check SKOS for updates");
-  expect(view.storage).toContain("Hadden Industries ontology service");
+  expect(view.sources[1].description).toContain(
+    "Hadden Industries ontology service",
+  );
   expect(
     view.sources.map(({ role, saved, requestedDocumentIri }) => ({
       role,
@@ -77,7 +79,11 @@ test("root provenance is identified by role even when imports precede it", () =>
   });
   expect(view.sources).toHaveLength(2);
   expect(view.message).toBe("Ontology and 1 import loaded from saved copies.");
-  expect(view.storage).toContain("Hadden Industries ontology service");
+  expect(
+    view.sources.every((source) =>
+      source.description.includes("Hadden Industries ontology service"),
+    ),
+  ).toBe(true);
   expect(view.checkLabel).toBe("Check saved sources for updates");
 });
 
@@ -105,7 +111,12 @@ test("partial failures preserve individual outcomes and identify their scope", (
   expect(view.message).toBe(
     "Checked 1 of 3 saved sources; reused 1 recent result. 1 document could not be checked.",
   );
-  expect(view.attention).toBe(true);
+  expect(view.sources[0].saved).toBe(false);
+  expect(
+    view.sources
+      .filter((source) => source.saved)
+      .map((source) => source.checkOutcome),
+  ).toEqual(["checked", "reused", "failed"]);
 });
 
 test("available updates describe the loaded graph separately from the newer copy", () => {
@@ -147,7 +158,7 @@ test("update selection failure is attributed to its document while other check r
     "available update changed",
   );
   expect(view.hasUpdate).toBe(false);
-  expect(view.attention).toBe(true);
+  expect(view.message).toContain("The available update changed");
 });
 
 test.each([
@@ -205,7 +216,7 @@ describe("readable and safe provenance", () => {
     expect(
       presentOntologySources(
         state([{ ...skos, artifactIri: "https://other.example/copy" }]),
-      ).storage,
-    ).toBe("Stored by https://other.example.");
+      ).sources[1].description,
+    ).toBe("Loaded from a copy stored by https://other.example.");
   });
 });

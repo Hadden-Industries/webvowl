@@ -307,7 +307,6 @@ html {
   padding-left: 60px;
 }
 
-.ontology-source-action,
 #reloadOntologySource {
   cursor: pointer;
 
@@ -332,21 +331,18 @@ html {
     opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-#reloadOntologySource:hover:not(:disabled),
-.ontology-source-action:hover:not(:disabled) {
+#reloadOntologySource:hover:not(:disabled) {
   border-color: var(--theme-color-accent, #d90);
   color: #fff;
   background: #2c3e50;
 }
 
-#reloadOntologySource:focus-visible,
-.ontology-source-action:focus-visible {
+#reloadOntologySource:focus-visible {
   outline: 2px solid var(--theme-color-accent, #d90);
   outline-offset: 2px;
 }
 
-#reloadOntologySource:disabled,
-.ontology-source-action:disabled {
+#reloadOntologySource:disabled {
   cursor: not-allowed;
 
   border-color: #4a5568;
@@ -368,28 +364,6 @@ html {
   right: calc(50px + var(--safe-area-right));
 }
 
-#ontologyCacheSource {
-  position: absolute;
-  z-index: 10;
-  inset-block-end: 8px;
-  inset-inline-start: max(12px, var(--safe-area-left));
-
-  overflow: auto;
-
-  box-sizing: border-box;
-  max-inline-size: min(42rem, calc(100% - 76px));
-  max-block-size: 40%;
-  padding: 10px 12px;
-  border: 1px solid #b8c6d1;
-  border-radius: 6px;
-
-  font-size: 14px;
-  line-height: 1.5;
-  color: #24374a;
-
-  background: #ecf0f1;
-}
-
 .ontology-source-actions {
   display: flex;
   flex-wrap: wrap;
@@ -397,28 +371,12 @@ html {
   margin-block-start: 8px;
 }
 
-#ontologyCacheSource p {
-  margin: 0;
-  overflow-wrap: anywhere;
-}
-
-#ontologyCacheSourceStatus {
-  font-weight: 600;
-}
-
-#ontologyCacheSource.source-needs-attention {
-  border-color: #8a5a00;
-  background: #fff4db;
-}
-
 .ontology-source-actions button {
   min-block-size: 44px;
   white-space: normal;
 }
 
-.ontology-source-action[hidden],
-.ontology-source-actions[hidden],
-#ontologyCacheSource[hidden] {
+.ontology-source-actions[hidden] {
   display: none;
 }
 

@@ -18,8 +18,6 @@ export function createOntologyOverview({
   const lifecycle = new AbortController();
   const dialog = doc.getElementById("ontology-overview-dialog");
   const invoker = doc.getElementById("ontology-overview-open");
-  const sourcesInvoker = doc.getElementById("ontology-sources-open");
-  const sourceHeading = doc.getElementById("ontology-source-heading");
   const sourceStatus = doc.getElementById("ontology-overview-source-status");
   const sourceHelp = doc.getElementById("ontology-source-check-help");
   const sourceActions = doc.getElementById("ontology-overview-source-actions");
@@ -34,7 +32,6 @@ export function createOntologyOverview({
   const notesSummary = doc.getElementById("ontology-overview-notes-summary");
   const content = doc.getElementById("ontology-overview-content");
   const sourceCards = new Map();
-  let returnFocus = invoker;
   let importedIris = [];
   let summaryGeneration;
   doc.getElementById("ontology-overview-body").append(content);
@@ -42,24 +39,13 @@ export function createOntologyOverview({
   function on(element, type, listener) {
     element.addEventListener(type, listener, { signal: lifecycle.signal });
   }
-  function open(fromSources) {
-    returnFocus = fromSources
-      ? sourcesInvoker
-      : doc.getElementById("ontology-menu-open");
+  on(invoker, "click", () => {
     hideNavigationMenus();
     dialog.showModal();
-    (fromSources
-      ? sourceHeading
-      : doc.getElementById("ontology-overview-heading")
-    ).focus();
-  }
-  on(invoker, "click", () => open(false));
-  on(sourcesInvoker, "click", () => open(true));
+    doc.getElementById("ontology-overview-heading").focus();
+  });
   on(dialog, "close", () => {
-    (returnFocus.closest("[hidden]")
-      ? doc.getElementById("ontology-menu-open")
-      : returnFocus
-    ).focus();
+    doc.getElementById("ontology-menu-open").focus();
   });
   for (const [button, action] of [
     [checkSources, "refreshOntologySource"],
@@ -67,14 +53,20 @@ export function createOntologyOverview({
   ]) {
     on(button, "click", async () => {
       button.disabled = true;
-      if (action === "applyOntologySourceUpdate") {
-        returnFocus = doc.getElementById("ontology-menu-open");
-        dialog.close();
-      }
       try {
         await controller[action]();
+        if (action === "applyOntologySourceUpdate") {
+          dialog.close();
+        }
       } catch {
         // The source observer publishes the scoped failure and preserves the graph.
+        if (
+          action === "applyOntologySourceUpdate" &&
+          dialog.open &&
+          !lifecycle.signal.aborted
+        ) {
+          doc.getElementById("ontology-overview-heading").focus();
+        }
       } finally {
         if (!lifecycle.signal.aborted) {
           renderState(controller.getState());

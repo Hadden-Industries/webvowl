@@ -58,8 +58,6 @@ global.window = {
 };
 
 beforeAll(async () => {
-  const { presentOntologySources } =
-    await import("./ui/ontologySourcePresentation.js");
   const { readVisualizationShareLink } =
     await import("./controller/visualizationShareLink.js");
   const loadingModuleUrl = new URL("./loadingModule.js", import.meta.url);
@@ -88,15 +86,6 @@ beforeAll(async () => {
     resolveFetchUrlModuleUrl,
   );
   await loadingModuleSource.link((specifier) => {
-    if (specifier === "./ui/ontologySourcePresentation.js") {
-      return new SyntheticModule(
-        ["presentOntologySources"],
-        function provideSourcePresentation() {
-          this.setExport("presentOntologySources", presentOntologySources);
-        },
-        { context: loadingModuleContext, identifier: specifier },
-      );
-    }
     if (specifier === "./controller/visualizationShareLink.js") {
       return new SyntheticModule(
         ["readVisualizationShareLink"],
@@ -522,64 +511,6 @@ describe("loading module controller state presentation", () => {
     loadingModule?.dispose();
     loadingModuleContext.document = undefined;
   });
-
-  test.each([
-    [
-      "CACHE_OFFER_SUPERSEDED",
-      "The available update changed. Check for source updates again before reloading.",
-    ],
-    [
-      "CACHE_UNAVAILABLE",
-      "Couldn’t check SKOS for changes. The loaded graph is still available.",
-    ],
-  ])(
-    "source-action failure retains its controller status: %s",
-    async (code, message) => {
-      const state = {
-        status: "ready",
-        loadGeneration: 1,
-        documentRevision: 0,
-        source: {
-          cache: {
-            loadGeneration: 1,
-            documentRevision: 0,
-            status: "check-failed",
-            code,
-            hasUpdate: false,
-            sources: [
-              {
-                requestedDocumentIri: "http://www.w3.org/2004/02/skos/core",
-                role: "import",
-                acquiredAt: "2026-10-01T00:00:00.000Z",
-                checkedAt: "2026-10-02T00:00:00.000Z",
-              },
-            ],
-          },
-        },
-      };
-      const applyOntologySourceUpdate = jest.fn(async () => {
-        throw new Error("confirmation failed");
-      });
-      loadingModule.dispose();
-      loadingModule = createLoadingModule({
-        webVowlController: {
-          getState: () => state,
-          applyOntologySourceUpdate,
-        },
-      });
-      loadingModule.setup();
-      controls
-        .get("#applyOntologySourceUpdate")
-        .dispatchEvent(new Event("click"));
-      await new Promise((resolve) => setImmediate(resolve));
-      expect(applyOntologySourceUpdate).toHaveBeenCalledTimes(1);
-      expect(controls.get("#ontologyCacheSourceStatus").textContent).toContain(
-        message,
-      );
-      expect(controls.get("#applyOntologySourceUpdate").hidden).toBe(true);
-      expect(controls.get("#checkOntologySourceUpdate").disabled).toBe(false);
-    },
-  );
 
   test("shows layout progress while the controller reports a load", () => {
     loadingModule.renderControllerState({
