@@ -13,6 +13,7 @@ import {
 import { WebVowlOperationError } from "./webVowlControllerContracts.js";
 import { createWebMcpToolDispatch } from "../webmcp/webMcpToolContracts.js";
 import { createVisualizationArtifactService } from "./visualizationArtifactService.js";
+import { createCanonicalRenderedGraphRuntimeDouble } from "../../test/canonicalRenderedGraphRuntimeDouble.js";
 
 function deferred() {
   let resolve, reject;
@@ -129,6 +130,7 @@ function setup({ artifactService, ...dependencies } = {}) {
     }),
     snapshot: () => accepted,
     identity: () => accepted,
+    nodeCountStatus: () => accepted.nodeCountStatus,
     dispose() {},
     exportCanonicalArtifact: jest.fn(async () => ({ format: "vowl-json" })),
     exportTurtleArtifact: jest.fn(async () => ({ format: "turtle" })),
@@ -160,6 +162,89 @@ function setup({ artifactService, ...dependencies } = {}) {
     emit: (event) => listener(event),
   };
 }
+
+test.each(["ready", "failed"])(
+  "ordering that finishes before IRI-load publication does not leave the node controls preparing (%s)",
+  async (orderingStatus) => {
+    const { runtime } = createCanonicalRenderedGraphRuntimeDouble();
+    const session = createCanonicalVowlDocumentSession({
+      workerClient: {
+        async run(request, context) {
+          // Exercise the real package operation across its plain DTO boundary;
+          // control only when the worker's second, ordering result arrives.
+          const received = JSON.parse(
+            JSON.stringify({ ...request, bytes: undefined }),
+          );
+          received.bytes = new Uint8Array(request.bytes);
+          const result = await runCanonicalVowlOperation(
+            received,
+            undefined,
+            context,
+          );
+          const ordering = deferred();
+          return {
+            ...result,
+            loadGeneration: context.loadGeneration,
+            baseRevision: context.baseRevision,
+            displayOrderKeys: undefined,
+            nodeOrdering: {
+              ready: ordering.promise,
+              start() {
+                if (orderingStatus === "failed") {
+                  ordering.reject(new Error("Ordering failed."));
+                } else {
+                  ordering.resolve({
+                    displayOrderKeys: result.displayOrderKeys,
+                  });
+                }
+              },
+            },
+          };
+        },
+        dispose() {},
+      },
+    });
+    const controller = createCanonicalWebVowlController({
+      renderedGraphRuntime: runtime,
+      documentSession: session,
+      visualizationArtifactService: { dispose() {} },
+      sourceAcquisition: {
+        async remote(documentIri) {
+          return {
+            operation: "open-owl-model",
+            documentIri,
+            mediaType: "text/owl-functional",
+            bytes: new TextEncoder().encode(
+              `Ontology(<${documentIri}> Declaration(Class(<urn:A>)) Declaration(Class(<urn:B>)) SubClassOf(<urn:A> <urn:B>))`,
+            ),
+          };
+        },
+      },
+    });
+    const published = [];
+    controller.subscribeToState((state) => {
+      if (state.status === "ready") {
+        published.push(state.nodeCountStatus);
+      }
+    });
+    try {
+      await controller.loadOntology({
+        source: {
+          kind: "ontology-document-iri",
+          documentIri: "https://example.test/ontology",
+        },
+      });
+      // The session has finished before the controller accepts the first load.
+      expect(session.nodeCountStatus().orderingStatus).toBe(orderingStatus);
+      expect(published).toEqual([session.nodeCountStatus()]);
+      expect(controller.getState().nodeCountStatus.orderingStatus).toBe(
+        orderingStatus,
+      );
+    } finally {
+      controller.dispose();
+    }
+  },
+);
 
 test("background ordering updates only its current document and count commands share the readiness guard", async () => {
   const { controller, session, load } = setup();

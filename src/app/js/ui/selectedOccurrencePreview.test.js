@@ -1,6 +1,15 @@
 import { expect, jest, test } from "@jest/globals";
 import { createSelectedOccurrencePreview } from "./selectedOccurrencePreview.js";
 
+function contains(root, element) {
+  for (let node = element; node; node = node.parentElement) {
+    if (node === root) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function setup() {
   const frames = new Map();
   let nextFrame = 0;
@@ -22,9 +31,14 @@ function setup() {
     offsetHeight: 160,
     dataset: {},
     style,
-    contains: () => false,
+    contains: (element) => contains(preview, element),
     animate: jest.fn(() => ({ cancel: cancelled })),
   };
+  const host = {
+    getBoundingClientRect: measure,
+    contains: (element) => contains(host, element),
+  };
+  const zoomSlider = { getClientRects: () => [] };
   const note = { textContent: "" };
   const doc = Object.assign(new EventTarget(), {
     hidden: false,
@@ -32,8 +46,9 @@ function setup() {
     getElementById: (id) =>
       ({
         "entity-preview": preview,
-        graph: { getBoundingClientRect: measure },
+        graph: host,
         canvasArea: { getBoundingClientRect: measure },
+        zoomSlider,
         "entity-preview-visibility": note,
       })[id],
   });
@@ -76,6 +91,8 @@ function setup() {
     win,
     note,
     preview,
+    host,
+    zoomSlider,
     reduced,
     measure,
     cancelled,
@@ -109,6 +126,41 @@ const anchor = (xPx, extra = {}) => ({
   occurrenceCount: 1,
   ...extra,
 });
+
+test.each([false, true])(
+  "focusing a preview action does not move it away from the pointer after SVG focus (descendant: %s)",
+  (descendant) => {
+    const h = setup();
+    const graphBox = { left: 0, top: 0, width: 698, height: 840 };
+    h.measure.mockReturnValue(graphBox);
+    h.win.innerWidth = graphBox.width;
+    h.preview.offsetWidth = 674;
+    h.preview.offsetHeight = 188.5;
+    const svg = { parentElement: h.host };
+    const focused = descendant ? { parentElement: svg } : svg;
+    focused.closest = (selector) => (selector === "svg" ? svg : null);
+    focused.getClientRects = () => [graphBox];
+    focused.getBoundingClientRect = () => graphBox;
+    h.zoomSlider.getClientRects = () => [{}];
+    h.zoomSlider.getBoundingClientRect = () => ({
+      left: 636,
+      top: 550,
+      width: 46,
+      height: 274,
+    });
+    h.doc.activeElement = focused;
+    h.emit(anchor(200));
+    h.flush();
+    const before = h.preview.style.setProperty.mock.calls.at(-1)[1];
+    // Pointer activation focuses the real button before releasing the click.
+    h.doc.activeElement = { parentElement: h.preview };
+    h.doc.dispatchEvent(new Event("focusin"));
+    h.flush();
+    expect(h.preview.style.setProperty.mock.calls.at(-1)[1]).toBe(before);
+    expect(before).toBe("translate(12px, 64px)");
+    h.presenter.dispose();
+  },
+);
 
 test.each([1000, 10000])(
   "%i observations queue one placement and no repeated box reads",

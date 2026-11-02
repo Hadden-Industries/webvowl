@@ -1075,9 +1075,9 @@ export function createCanonicalWebVowlController({
             accepted.diagnostics ?? accepted.inspection.diagnostics
           ).map(({ message }) => message),
           view: readView(),
-          ...(accepted.nodeCountStatus
-            ? { nodeCountStatus: accepted.nodeCountStatus }
-            : {}),
+          // Ordering may finish before this load's generation is published.
+          // Read the session now instead of restoring its captured preview status.
+          nodeCountStatus: session.nodeCountStatus(),
           ...runtime.readVisualizationViewport(),
           layout: {
             status: layout.isPaused

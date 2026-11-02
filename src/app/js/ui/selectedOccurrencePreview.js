@@ -53,7 +53,11 @@ export function createSelectedOccurrencePreview({
         element &&
         element !== doc.body &&
         element !== doc.documentElement &&
-        !preview.contains(element),
+        !preview.contains(element) &&
+        // Graph focus can be the entire SVG viewport. Its selected glyph is
+        // already the anchor; treating the canvas as a control moves the card
+        // when a pointer press focuses Details or Close, losing the click.
+        !(host.contains(element) && element.closest("svg")),
     );
     const obstacles = controls
       .filter((element) => element.getClientRects().length)
