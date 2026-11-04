@@ -5,12 +5,13 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  realpathSync,
   writeFileSync,
   rmSync,
   symlinkSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join, relative, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import {
   captureGraph,
@@ -421,7 +422,10 @@ describe("independently expected selection and discovery", () => {
     expect(normal.status).toBe(0);
     expect(
       JSON.parse(normal.stdout)
-        .map((path) => path.slice(root.length + 1).replaceAll("\\", "/"))
+        // Jest reports long paths even when the temporary root is an 8.3 spelling.
+        .map((path) =>
+          relative(realpathSync.native(root), path).replaceAll("\\", "/"),
+        )
         .sort(),
     ).toEqual(actual);
   }, 30000);

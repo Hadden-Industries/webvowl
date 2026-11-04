@@ -5,6 +5,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  realpathSync,
   writeFileSync,
   rmSync,
 } from "node:fs";
@@ -122,11 +123,16 @@ export function discoverTests(root, admission = admitJest(root)) {
     inventory.length > limits.sources
   )
     throw new Error("Invalid full Jest inventory");
+  // Jest reports canonical long paths; a Windows 8.3 short root such as RUNNER~1
+  // would otherwise make every entry appear to escape the root.
+  const canonicalRoot = realpathSync.native(root);
   const tests = inventory
     .map((path) => {
       if (typeof path !== "string" || !isAbsolute(path))
         throw new Error("Non-absolute Jest inventory entry");
-      const local = safePath(relative(root, path).replaceAll("\\", "/"));
+      const local = safePath(
+        relative(canonicalRoot, path).replaceAll("\\", "/"),
+      );
       if (local.split("/").includes("node_modules"))
         throw new Error("Dependency tests escaped discovery");
       readOwned(root, local);
