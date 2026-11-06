@@ -2,15 +2,17 @@
 
 [Back to README](../README.md)
 
-On a browser that offers the experimental WebMCP host API, a WebVOWL page registers fourteen tools an agent can call.
+On a browser that offers the experimental WebMCP host API, a WebVOWL page registers sixteen tools an agent can call.
 They share the human interface's non-editing actions: load, summarize, search, inspect details, select and arrange drawn elements, change the view, tune display modes and distances, reset, share the view settings, and export SVG, saved VOWL JSON, Turtle or LaTeX.
 
 This is experimental and entirely optional.
 A browser without the API is an ordinary WebVOWL page with nothing missing and nothing logged, because an absent API is not a fault.
 Only a top-level page registers anything: a WebVOWL page inside an iframe does not read the API at all, and never inspects or proxies the document that embeds it.
 
-**What an agent can change, and what it cannot.**
+## Change the visualization
+
 Every change a tool makes is one the reader can see in the visualization and undo through the ordinary controls: a language, the visibility filters, which elements are focused, whether automatic layout motion is paused or resumed, and the viewport.
+
 `layout: "pause"` retains the arrangement by stopping motion; `"resume"` restarts it.
 Omitting `layout` leaves the current choice alone.
 `viewport: "zoom-and-center"` performs the same zoom and pan as the human **Zoom and center graph** button.
@@ -22,25 +24,31 @@ Arrangement addresses generation-scoped drawn occurrences, including position an
 Experimental ontology editing remains human-only.
 Turtle export uses the existing generator; this integration does not certify or rewrite its RDF content.
 
-**What it accepts as a source.**
+## Choose an ontology source
+
 An ontology document IRI over HTTP(S), a VOWL JSON URL over HTTP(S), ontology text supplied directly with its syntax named, or supplied VOWL JSON text.
 A location using any other scheme, or carrying credentials, is refused.
 Human users can still choose or drop a local file; WebMCP has no filesystem-path access.
 
-**Privacy and artifacts.**
+## Privacy and exported files
+
 Ontology content is fetched and parsed by the page in your browser; nothing is uploaded anywhere by this application.
 An export is a browser-local artifact reachable through an object URL that the page retires when it is superseded or the page goes away.
+
 Retrieving the file is a manual download, and whether a particular agent client can attach that download to its conversation is that client's behaviour, not something this page can promise.
 Only the latest export remains available.
 Export tool results contain bounded metadata, never exported document content or object URLs.
 SVG results include dimensions, layout outcome, source identity and SHA-256.
 
-**One implementation, no fallback.**
+## Application controller
+
 The tools and the human interface call the same `WebVowlController`.
 There is no legacy callback route, no compatibility adapter, and no second transport for loading or exporting; an architecture test fails the build if one appears.
 
 For an application-level embedding, `app.getWebVowlController()` returns the controller.
 The concrete renderer and options entry points were removed deliberately and have no aliases.
+
+### Wait for a load or node ordering
 
 During a replacement load, document-content reads, view changes, temporary-view actions and captures return `LOAD_PENDING` with `isRetryable: true`.
 Retry after the load finishes.
@@ -49,6 +57,7 @@ Human editing retains its separate `EDIT_REJECTED` response while a load is pend
 
 Fresh ontology loads can become ready with the first drawing visible while node-count ordering continues in the same worker.
 `nodeCountStatus.orderingStatus` reports `preparing`, then `ready`; the field is absent on paths that complete ordering during loading, including saved VOWL views.
+
 During preparation, count changes and reset return retryable `NODE_ORDERING_PENDING`; read/search/selection and unrelated view controls remain usable.
 Wait for ordering readiness before retrying a count change.
 Completion preserves the visible nodes and enables the human count controls.
@@ -57,6 +66,8 @@ If preparation fails, the graph stays visible, the status becomes `failed`, and 
 Cancelling a view request stops the caller's wait while retaining standing choices that have already been applied.
 The published state reports those applied choices.
 A superseded operation cannot publish a result, restore an old scene or resume a newer document's layout.
+
+### Inspect a temporary neighborhood
 
 `get_visualization_state` includes `temporaryPresentation`: `null` for the ordinary view, or a `neighborhood` descriptor with `loadGeneration`, `documentRevision` and node/edge/label counts.
 Human search and agent reveals publish the same status.
@@ -105,6 +116,7 @@ An oversized required core fails explicitly; identity IRIs are never shortened.
 
 Request a section with `{ "section": "ontologyHeader" }`, then repeat that section with the returned `continuation` until it is null.
 Concatenate the `jsonFragment` strings in offset order and parse the completed JSON once.
+
 Sections include the header, source, visible graph counts, namespaces, imports, languages, selected language, filters and warnings.
 This retrieves complete summary text and collections within the same 1,500-character response ceiling.
 `isTruncated` on section pages reports upstream incompleteness, not whether another page exists; use `continuation` for traversal completion.

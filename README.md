@@ -24,6 +24,7 @@ Load an ontology, inspect its structure, and export a figure for a paper, lectur
 
 This Hadden Industries continuation moves ontology ingestion and VOWL conversion into the browser, using the JavaScript [owlapi](https://github.com/Hadden-Industries/owlapi) library.
 The application can therefore run on **purely static hosting**: a university ontologist can publish it on an existing static website without asking IT to provision and maintain a dedicated Java backend.
+
 No Java conversion service, Docker, or server-side Node.js process is required to serve the built application.
 Local files are parsed in the browser; URL loading still depends on the source host's access rules.
 
@@ -51,16 +52,35 @@ See [WebMCP usage and limits](docs/webmcp.md) and the [recorded browser qualific
 
 ## Run locally
 
+After cloning, run these commands from the repository root using the prerequisites below.
+Open the local URL printed by the development server.
+
+```sh
+npm run setup:development
+npm run dev
+```
+
+### Local development requirements
+
 Clone this repository, then use its selected **Node.js** ([version](.node-version)), **npm** ([native minimum](package.json)), and **stable Python** ([minimum and CI reference](.python-version)).
 Each runtime has one maintained declaration: those files and the **uv** [CI selector](.uv-version).
+
 Native npm `devEngines` enforces its minimum; CI installs that same minimum as its exact reproducible reference, while local setup accepts eligible newer npm versions.
 The shared [runtime reader](util/runtimeTargets.mjs) validates these declarations for setup and CI; run `node util/runtimeTargets.mjs` to display all four selections.
+
+### Select and verify the OwlAPI dependency
+
 Registry development dependencies use floating `>=` minimums; the committed lockfile selects the exact qualified graph for `npm ci`.
 Both application and VOWL consumers retain the `owlapi` import name and share one source selector: `dependencies.owlapi` in the root [package.json](package.json).
+
 Set that field to `npm:PACKAGE_NAME@EXACT_VERSION` for a published package, or `git+https://github.com/Hadden-Industries/owlapi.git#FULL_40_CHARACTER_COMMIT` for an immutable source commit.
 The root `overrides.owlapi` references `$owlapi`; the private VOWL workspace uses `*`, so neither repeats the chosen package name, version or commit.
+
 Regenerate the root lock with `npm install --package-lock-only --ignore-scripts`, then run `npm ci --ignore-scripts` and the consumer checks; generated lock records are not independent settings.
 See [OwlAPI dependency selection](docs/owlapi-git-adoption.md) for payload verification and the lessons from Universal Ontology's transition.
+
+### What setup installs
+
 Run `npm run setup:development` to install locked root npm dependencies, including Markdown and JSON Quality, with lifecycle scripts disabled, and prepare `.venv` from the [hashed Python lock](requirements.lock.txt).
 Python installation requires hashes and wheels except for PyYAML, whose latest release requires a source build on Python 3.15, then runs `pip check`.
 The [development requirements](requirements-dev.txt) declare minimum versions without upper bounds; routine setup and CI install the exact locked versions.
@@ -96,6 +116,7 @@ For opt-in dependency views and conservative affected Jest feedback, see [Depend
 
 The standard `npm run format`, `npm run format:check`, and `npm run lint` commands cover application files, maintained JavaScript in `util/` and `tooling/`, Python, authored Markdown and owned JSON.
 `npm run fix:all` applies application and tooling JavaScript lint fixes, safe Python lint fixes, and all formatting.
+
 Node.js helpers use Node globals and do not receive browser-compatibility checks.
 Markdown formatting and prose diagnostics are checked by both `lint` and `format:check`.
 Run `npm run check:python` for Python formatting checks, Ruff linting, setup tests, and prose-tooling tests.
@@ -142,9 +163,11 @@ Verified immutable PR evidence permits their reuse on a matching merge; otherwis
 Root `package.json` declares `@hadden-industries/json-quality` as an ordinary `>=1.0.0-rc.2` devDependency.
 Root `npm ci --ignore-scripts` installs it and its matching optional platform package using the root npm lockfile.
 Consumers import its public API and ESLint plugin directly; npm owns dependency resolution and package integrity alongside the other development dependencies.
+
 `npm run inspect:json -- --json` runs complete checks and streams their inventory and outcomes.
 `npm run check:json` checks bytes, strict syntax, duplicate and meaningful keys, numeric and Unicode interoperability, all-string NFC and presentation.
 `-- --json` requests cohort-3 newline-delimited events; only the final `execution-terminal` closes repository obligations.
+
 Capacity flags such as `-- --max-files 100000` and `-- --no-capacity-limits` override admission controls without weakening semantic checks.
 Policy and object API admission overrides use `capacityLimits`; explicit `false` removes those admission ceilings, while finite `runtimeControls` still govern managed memory, scratch, depth, elapsed time and concurrency.
 
@@ -153,6 +176,7 @@ The repository adapter exposes `openRepositoryJsonSession()`; consume its `event
 Literal writer selection follows `--`.
 Checking always covers the complete owned repository scope.
 Normalization requires a nonempty writable file selection.
+
 Supplied bytes use `openJsonSourceSession()` with a trusted source opener and source contract.
 Finite pure transformations use `formatJsonSource(text)` or `normalizeJsonSource(text)`; file replacement remains a separate guarded repository operation.
 Aggregate results, request/response envelopes and protected-scope/check-only formatting flags have been retired without compatibility aliases.
@@ -161,9 +185,11 @@ Markdown-tool CLI names remain governed by its own installed package.
 All owned physical JSON is checked by default, including untracked and ignored generated files.
 The adapter streams all 5,851 inventory-declared bundled JSON members from captured containers; JSONL is checked per record.
 Native linked-source admission verifies exact selected payload identities and applies the same JSON rules.
+
 `npm run check:corpus-storage` separately verifies all 7,227 corpus members, 64 bundles, JSON locators and absence of obsolete loose copies.
 The JSON adapter does not decode N-Quads, repeat that audit or require sorted arrays.
 Both JSON quality and corpus storage are required CI jobs, including application-evidence reuse and documentation-only runs.
+
 `npm run check:json -- --require-generated` additionally requires current Vite JSON outputs.
 The [policy](.json-quality.json) lists only explicit exceptions, each with an owner and reason.
 External installations and named local state are scope boundaries; `.mcp.json` remains checked.
@@ -172,6 +198,7 @@ Tracked JSON always overrides an external boundary.
 Conformance vectors remain fully checked.
 Canonical JSON retains its producer's compact presentation and pinned byte identity; corpus, archives, evidence, deployment outputs and npm locks are protected against generic rewrites.
 Exact expected-negative contracts retain visible diagnostics and independently pinned bytes; they never excuse an extra violation.
+
 Narrow NFC preservation covers six exact decoded strings in two fixtures, with a unique JSONL record selector.
 Changed or missing values fail, and every key and other string remains checked.
 Three separately byte-pinned W3C fixtures retain their original literal spelling.
@@ -185,8 +212,10 @@ Existing VOWL/schema/domain validators retain their separate obligations.
 The shared ESLint guard rejects raw `JSON.stringify` used as semantic identity.
 Intentional ordered scalar tuples, byte contracts and digest preimages require one immediately attached `json-identity-contract` declaration with an owner and reason; stale declarations and unused ESLint suppressions fail.
 Structured comparisons use existing library/native equality, preserving ordered arrays.
+
 Python CI uses pinned uv tooling to read `.python-version` and activate an isolated runner environment before creating the repository's `.venv` and installing its hash-locked requirements.
 Both feed the existing required `WebVOWL application` job.
+
 The application build continues to require only its existing Node.js tooling.
 Its `prebuild` runs `format:app:check` and `lint:app` explicitly.
 The full `check` runs each check once, then calls `build:bundle` to avoid repeating the application checks through `prebuild`.
@@ -204,6 +233,7 @@ An absent corpus is a missing test prerequisite.
 The independent `util/set_up_mcp_servers.py` utility remains available.
 External skills use the independently deployed `tools/repository-skills.pyz`, remote declarations and acquisition metadata in `skills-lock.json`, and agent targets and invocation policies in `repository-skills.json`.
 Run `npm run plan:skill-reconciliation`, review its exact diff, then use `npm run apply:skill-reconciliation-plan -- PLAN_ID` to publish that saved candidate without reacquisition.
+
 The CLI resolves `skills@latest` once per plan and supports optional per-skill branch, tag or commit refs; floating refs do not become mandatory pins.
 Unrelated installed skills and native lock entries survive; removing a declaration never prunes an installation.
 Use `node util/runRepositoryPython.mjs tools/repository-skills.pyz recover PLAN_ID` to recover an interrupted publication.

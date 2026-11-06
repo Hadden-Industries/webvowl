@@ -4,6 +4,7 @@ The root [package.json](../package.json) field `dependencies.owlapi` is the only
 It accepts either `npm:PACKAGE_NAME@EXACT_VERSION` or `git+https://github.com/Hadden-Industries/owlapi.git#FULL_40_CHARACTER_COMMIT`.
 The root native npm override `owlapi: "$owlapi"` makes the private workspace's `owlapi: "*"` dependency resolve to that same selection.
 The local import name remains `owlapi` for either source.
+
 The generated lockfile records resolution and archive integrity; do not edit those records by hand.
 This reuses the registry alias integration that preceded commit `4ef3e7c5`, rather than introducing a new package resolver.
 Existing WebVOWL loading and profile deadlines remain explicit consumer policy.
@@ -40,10 +41,13 @@ Ordinary browser loading and the real large-ontology path need browser verificat
 The [consumer test](../src/owlapiConsumerBoundary.architecture.test.js) reads the selected source from the root manifest and verifies its generated lock and installed metadata.
 It then fetches that source with npm's bundled package fetcher, as installation does, without lifecycle scripts.
 A registry version's archive must match the generated lock's SHA-512 integrity.
+
 A Git commit is packed with npm's own file selection; npm compares no integrity for Git dependencies ([npm/rfcs#525](https://github.com/npm/rfcs/pull/525)), so the commit itself is the source's identity.
+
 The fetcher reads npm's cache first and uses the network only for what the cache lacks.
 It then compares every installed package file against that source by relative path and SHA-256, without another hard-coded package version, commit, archive digest or file count.
 Nested `node_modules` dependencies are excluded from this package payload and retain their own lockfile identities.
+
 Symlinks and unexpected non-file payload entries are rejected.
 Run `npm ci` before these tests, which also leaves a registry archive in npm's cache.
 The reference payload comes from the selected source, never from the installed files being tested.

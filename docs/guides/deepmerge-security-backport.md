@@ -16,6 +16,7 @@ The original copyright and license are retained in [LICENSE](../../tooling/vendo
 [GHSA-gcqx-w48m-w2h4](https://github.com/advisories/GHSA-gcqx-w48m-w2h4) describes returned-object prototype poisoning in `mergeObject`.
 The correction excludes the string `__proto__` in the shared own-key enumeration used by both the target and source copy loops, before property reads or writes.
 It covers null-prototype targets, null or primitive placeholders, and an own unsafe key on the target.
+
 Other enumerable string keys, enumerable symbols, array behavior, cloning and custom merge options keep their existing behavior.
 Formatting and removal of an unused catch binding are the only other changes to the CommonJS implementation.
 

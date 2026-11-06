@@ -1,8 +1,11 @@
 # Proportional continuous integration
 
+## Determine which checks apply
+
 Pull requests and pushes to `main` compare the event's base commit with the checked-out revision.
 Changes limited to root Markdown files and Markdown under `docs/` use the documentation path.
 `AGENTS.md` is repository policy and always selects full checks.
+
 Any other changed path, including a deleted source file or a file renamed from source into documentation, selects full checks.
 Missing history, invalid event data and manual runs also select full checks.
 
@@ -19,8 +22,11 @@ Full checks retain application tests and builds, the Ubuntu and Windows Python t
 For fresh runs, the required `WebVOWL application` status accepts skipped application and Python jobs only when scope selection succeeded and explicitly selected the documentation path.
 Failures, cancellations and unexpected skipped jobs fail that status.
 
+## Reuse evidence after merge
+
 Normal merges to `main` can reuse an immutable, successful same-repository PR receipt when the tested tree, parents, workflow, check scope and hosted identity match.
 The verifier requires the complete successful PR job inventory, including JSON quality on Ubuntu and Windows.
+
 With verified reuse, the application, Python, Markdown and JSON jobs are skipped on the merge; the required gate checks the retained provenance and expected skips.
 Missing, invalid or expired evidence falls back to fresh execution, and JSON still runs on documentation-only PRs and manual runs.
 Corpus storage checks continue to execute on every route.
@@ -30,6 +36,7 @@ The `Dependency review` status remains present for documentation-only pull reque
 CodeQL uses the same classification and skips analysis for documentation-only changes.
 Scheduled and manual runs always analyze all three configured languages.
 The required `CodeQL gate` status accepts a documentation-only skip; otherwise, it requires successful analysis and, on pull requests, the external CodeQL security verdict for the current head commit.
+
 Analysis waits for uploaded results to finish processing before the gate reads that verdict.
 Missing results, blocking alerts, failed analyses and API errors prevent the gate from passing.
 

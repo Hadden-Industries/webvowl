@@ -37,6 +37,7 @@ Endpoint discovery never enables it.
 There is no URL-query or user-input endpoint override.
 
 An enabled test/approved deployment supplies `enabled: true`, one HTTPS `serviceOrigin`, and exact `approvedPolicyFingerprints`. An optional `catalogIri` selects the curated OASIS catalog; no dynamic archive is enumerated. An empty policy list admits no cached evidence. Approval of a policy fingerprint requires the exact provider/package/runtime and loader-policy qualification in the plan.
+
 Fixture fingerprints are synthetic and must never be enabled in production.
 `deadlineMs` may shorten the finite 60-second acquisition allowance.
 
@@ -53,6 +54,7 @@ Pending work follows only its bounded, source-specific status location and Retry
 
 Each cached read checks closed provider schemas, exact logical source identity, resolution/version/validation/policy identities, approved policy, origin parser context and artifact length/SHA-256.
 Metadata links are constructed against the configured service origin.
+
 Logical IRI spelling and fragments remain distinct identities; CDN artifact paths never become parser bases.
 Service parser hints do not force an automatic browser syntax choice.
 The real `vowl/owl` worker still owns parsing, managed imports, source evidence, model admission and resource checks.
@@ -71,6 +73,7 @@ Closing/replacing a document cancels its observation, not a shared backend attem
 A committed different source version offers an update without replacing the graph.
 A 304 or evidence-only requalification updates check information without an update offer.
 Failed checks preserve the graph and previous successful-check date.
+
 Applying an offer first confirms the exact candidate through the uncached source-status endpoint, then seeds ordinary root/import readmission with those verified bytes and bindings.
 Stale discovery cannot replace that explicit selection.
 Superseded, withdrawn or unconfirmed candidates preserve the current graph.
@@ -95,4 +98,9 @@ Repeat for `firefox` and `webkit`.
 It checks the default-disabled production composition, cold root/relative import materialization through native preflight/303, real-worker admission, warm reads, refresh notice and explicit application despite stale static discovery.
 It is consumer qualification against controlled external protocol boundaries, not real-provider, CloudFront, source-rights, capacity or live activation acceptance.
 
-The separate `util/qualify-production-ontology-worker.mjs` check serves the current `deploy/` output, rejects production startup errors or disabled cache traffic, and exercises the built worker with exact root/import bytes and parser contexts in all three engines. Run it after building, supplying the installed Playwright module, development-server URL and an external evidence directory; an optional fourth argument selects an installed Firefox executable. This retains the production chunk-ordering regression check alongside the consumer protocol harness. The self-signed protocol fixture records observed HTTP 304 responses separately; actual deployed CDN/browser cache and 304 qualification remains an activation gate.
+The separate `util/qualify-production-ontology-worker.mjs` check serves the current `deploy/` output, rejects production startup errors or disabled cache traffic, and exercises the built worker with exact root/import bytes and parser contexts in all three engines.
+
+Run it after building, supplying the installed Playwright module, development-server URL and an external evidence directory; an optional fourth argument selects an installed Firefox executable.
+This retains the production chunk-ordering regression check alongside the consumer protocol harness.
+
+The self-signed protocol fixture records observed HTTP 304 responses separately; actual deployed CDN/browser cache and 304 qualification remains an activation gate.

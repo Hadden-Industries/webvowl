@@ -4,6 +4,11 @@ Producer-neutral canonical VOWL for the proposed structural-content and artifact
 This package is private while the [implementation plan](../../docs/plans/2026-09-24-canonical-vowl-implementation-plan.md) is being qualified.
 Profile freeze, adapter qualification, browser application cutover and stable publication are separate gates.
 
+## Encode and verify a document
+
+The example starts with a complete normalized source and an abort signal.
+Encode the canonical document to bytes, then decode them for verification.
+
 ```js
 import { canonicalize, decode, edit, encode, profiles, VowlError } from "vowl";
 
@@ -18,6 +23,7 @@ const verified = await decode(bytes, { signal });
 
 `canonicalize` requires the complete normalized source, including every required occurrence and, for `profiles.artifact`, complete portable visualization state.
 It snapshots ordinary data synchronously, validates the closed schema and graph invariants, applies RDFC-1.0 to the whole typed profile, issues category IDs and sorts sets, then admits a deeply frozen document.
+
 It does not infer missing facts, repair invalid source, fetch imports or choose coordinates.
 An ID is local to that admitted document; relabelling after a structural or artifact-state change is expected.
 
@@ -29,6 +35,7 @@ Copying or freezing an object does not grant admission.
 
 The approved [atomic editing amendment](../../docs/specs/2026-09-30-canonical-vowl-editing-amendment.md) adds `edit(document, changes, {signal, limits})` to the same root surface.
 It owns normalization and occurrence regeneration and returns `{document, correspondence, created}` with an admitted structural document.
+
 The application supplies complete artifact state after reconciling operation-local correspondence.
 Commands are `insert`, `replace`, `remove`, `set-endpoint` and `set-ontology`; the amendment defines their closed shapes and annotation rules.
 Removal does not implicitly cascade and an ambiguous annotated aggregate edit fails.
@@ -36,10 +43,12 @@ Removal does not implicitly cascade and an ambiguous annotated aggregate edit fa
 The compatible-view implementation now includes the canonical-origin live-model path on the root surface.
 `openCanonical(document, {signal, limits})` requires local canonical admission and returns `{model, correspondence}`.
 The opaque, immutable live token carries a revision; `inspectModel(model)` exposes frozen retained records, occurrences and support with original-source coverage explicitly unavailable.
+
 It conveys neither source-preservation evidence nor canonical encoding authority.
 Inspection also exposes `dependencies`, one `{record, requires}` row per semantic record, and `ontologyDependencies` for ontology annotations.
 These include typed references, finite annotation/literal signature requirements, and exact declaration/direct/normalized-endpoint assertion support.
 They are revision-local dependency information, not permission to cascade deletion.
+
 Applications can prepare explicit removal batches from them, then inspect the pure `editModel` result and correspondence to describe all actual losses before accepting the candidate.
 No dependency information changes frozen canonical bytes or grants encoding authority.
 
@@ -53,6 +62,7 @@ The returned bytes are a disposable copy and remain the original input after edi
 The closed scope report contains `revision`, `kind: "flattened-retained-closure"`, `mediaType: "text/turtle"` and `qualified`.
 This is an edited ontology export, not original-source recovery or a portable qualification artifact.
 The package owns the OWL/RDF mapping and preserves expressible retained RDF without choosing a new property category.
+
 Unrepresentable graph scope, directed literals or unresolved residual-to-structural blank-node identity fail with `RDF_EXPORT_UNREPRESENTABLE` before any publication.
 The existing finite budgets and cancellation apply to both operations; neither changes canonical profile bytes.
 Readmission performs no network acquisition or canonicalization.
@@ -61,6 +71,7 @@ The application must preserve and reconcile the complete scene alongside the che
 `captureModel(model, {profile, visualization, signal, limits})` validates and canonicalizes a snapshot, returning `{document, correspondence}` without replacing live handles.
 `readModelRankingIdentity(model, {signal, limits})` returns `{revision, correspondence}` for occurrence handles and their structural canonical keys, including OWL-origin models.
 It uses the producer's structural RDF mapping, compatible-mapping partition refinement and bounded RDFC issuance, without visualization, qualifications or source-archive metadata.
+
 Ranking keys are not a promise of canonical v1 artifact IDs; the operation does not grant artifact authority, replace live handles or weaken capture qualification checks.
 Cache keys by structural revision and handle failed/cancelled identity work without replacing the previous view.
 Symmetric representations compare through the canonical isomorphism, not arbitrary source handles.
@@ -69,6 +80,7 @@ Symmetric representations compare through the canonical isomorphism, not arbitra
 Its `purpose` is `display-order-v1`, exported as `DISPLAY_ORDER_KEY_PURPOSE`.
 The [finite display mapping](../../docs/plans/2026-10-23-display-ranking-identity-decision.md#b1-finite-experiment-mapping) retains typed semantic anchors and complete display incidence, excluding annotations, appearance, visibility and count.
 It uses the same bounded refinement/RDFC policy on that smaller graph.
+
 Keys are unique within a revision; interchangeable anonymous occurrences have only the cross-load correspondence supported by the encoded topology.
 These keys must not replace semantic, renderer, saved-view or canonical artifact identifiers.
 The application selects this purpose for its versioned connected/fair node ordering; the full structural identity operation remains available separately.
@@ -77,26 +89,34 @@ The visualization field is required for artifact capture and forbidden for struc
 Failed editing, recovery or capture leaves the previous model usable.
 `openOwl(bytes, {documentIri, mediaType, owlMappingStrategy, resolveImport, signal, limits})` on `vowl/owl` admits a diagnostic live model and returns `{model, correspondence}` without RDFC.
 `owlMappingStrategy` defaults to `heuristic`, allowing the owning parser's heuristic OWL mapping.
+
 The explicit `unambiguous` strategy instead requires unambiguous OWL mapping and rejects unresolved interpretations.
 Only the dependency adapter translates these strategies to OwlAPI's native `compatible` and `preserve` tokens; those tokens are not accepted as strategy aliases.
 The selected mode applies to the root and its imported documents; both modes retain the original acquired bytes and diagnostic view/profile assessments.
+
 Neither mode guarantees OWL 2 DL validity or exhaustive projection of the source into VOWL.
 Historical checkpoint evidence records the actual native mode; older checkpoints without that field retain their implicit `compatible` interpretation.
+
 For live opening, `mediaType` is optional: omission delegates format recognition to the public OwlAPI loader, once, using the acquired bytes.
 An explicit media type still selects exactly one owning parser; document/base identity remains required independently of format.
 Live import responses likewise allow `{bytes, documentIri}` without a media type.
 Retained evidence records the owning loader's actual format and its public primary media type when selection was automatic.
+
 The source-preserving `fromOwl` contract still requires explicit media types for roots and imports.
 It retains the acquired closure bytes and historical parser/profile reports in a defensive checkpoint, with digests verified on recovery.
 Inspection exposes qualified interpretation and original assessment separately from current typed records; exhaustive statement-to-record provenance remains unavailable.
+
 Edits depending on unresolved source interpretation fail atomically while unrelated edits remain available.
 The root surface also exports the experimental `compatibleArtifactProfile` identifier, separately from the frozen v1 `profiles` inventory.
 `captureModel(model, {profile: compatibleArtifactProfile, visualization})` captures retained structure, complete scene and portable interpretation qualifications together.
+
 `decode`, `encode` and `openCanonical` support this profile; reopened artifacts remain editable through `editModel` and can be captured again.
 The frozen `edit(document, ...)` operation still returns structural content and therefore rejects qualified artifacts; use the live-model editing operations to retain qualifications.
 Explicit v1 capture of an OWL-origin or qualified model fails with `CAPTURE_QUALIFICATION_UNREPRESENTABLE` rather than discarding qualifications.
+
 Portable qualifications retain selected ontology identity, document/import relationships and typed assessment details, but omit acquired bytes, retrieval locations, digests and diagnostic prose.
 Reopened artifacts report original bytes and statement associations as unavailable; their claimed qualifications do not establish original-source authenticity.
+
 Public unparsed RDF statements are retained separately from typed OWL, including document-scoped anonymous identity, exact literal lexical text, datatype, language and any reported direction.
 They survive compatible capture and live reopening without acquiring an invented OWL interpretation or cross-document blank-node identity.
 Edits whose dependencies touch these unresolved statements remain guarded after reopening; unrelated edits remain available.
@@ -122,12 +142,14 @@ const canonicalBytes = encode(result.document);
 There is no implicit fetcher or syntax sniffing.
 Compatibility is the default mapping profile; the explicit strict identifier is `https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/strict/v1`.
 Both profiles validate the complete loaded closure before excluding unsupported content and return deeply frozen `{document, mappingProfile, diagnostics}`.
+
 The document is structural content; the adapter does not choose artifact state.
 Source document IRIs provide parsing context and do not fill missing ontology identity.
 
 Accepted media types come from the pinned dependency's public `OWLDocumentFormats` metadata in `owlapi/formats`.
 Each root or imported document must select exactly one format by an exact published media type; unknown or ambiguous types fail before parsing.
 VOWL maintains no separate format allowlist.
+
 The owning parser runs in `preserve` mode, and the adapter checks its source assessment over the complete closure before projecting structural OWL.
 Parser errors remain fatal: for example, KRSS1 `:right-identity` is explicitly unsupported.
 The [format admission evidence](../../docs/reviews/canonical-vowl-owl-format-admission.md) records the dependency revision, parser regressions and verification status.
@@ -161,9 +183,11 @@ Legacy IDs are used only for operation-local correspondence.
 
 All asynchronous operations share their counters and one monotonic deadline across their stages.
 Each value counts once in an operation, however often the operation copies it: neither a live-model operation nor the canonicalization that an adapter hands its normalized source to counts a value again.
+
 Under the [unbounded-limits amendment](../../docs/specs/2026-10-27-canonical-vowl-unbounded-limits-amendment.md), `operationLimitDefaults` keeps a default only for `depth`, `rdfDeepIterations`, `deadlineMs` and `expandedXmlBytes`; every other limit is unbounded unless the caller sets it.
 Each limit accepts a positive safe integer or `Infinity`, which lifts it, and `rdfDeepIterations` also accepts zero.
 Limits affect acceptance, never successful bytes; cancellation and resource exhaustion yield a `VowlError` with a stable `code` and bounded diagnostic metadata.
+
 A runtime limit, such as the call stack, yields `HOST_RESOURCE_LIMIT`.
 Unexpected standards-library failures are not replaced by another algorithm.
 The approved [A8 resource-policy amendment](../../docs/specs/2026-09-30-canonical-vowl-resource-policy-amendment.md) uses `min(B * B, rdfDeepIterations)` for finite RDFC work, and the same successful canonical bytes.
