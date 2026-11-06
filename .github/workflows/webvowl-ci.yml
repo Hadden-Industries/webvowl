@@ -170,7 +170,7 @@ jobs:
         run: npm run check:json -- --require-generated
 
   application:
-    needs: scope
+    needs: [scope, corpus]
     if: needs.scope.outputs.full == 'true' && needs.scope.outputs.reuse != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
@@ -207,8 +207,8 @@ jobs:
         run: |
           node util/installSelectedNpm.mjs
           npm ci --ignore-scripts
-      - run: npm test -- --runInBand
       - run: npm run build
+      - run: npm test -- --runInBand
       - name: Check deterministic production byte and worker-closure budgets
         run: node util/check-production-budgets.mjs deploy
 

@@ -98,9 +98,12 @@ The standard `npm run format`, `npm run format:check`, and `npm run lint` comman
 `npm run fix:all` applies application and tooling JavaScript lint fixes, safe Python lint fixes, and all formatting.
 Node.js helpers use Node globals and do not receive browser-compatibility checks.
 Markdown formatting and prose diagnostics are checked by both `lint` and `format:check`.
-Run `npm run check:python` for Ruff linting, Python formatting checks, setup tests, and prose-tooling tests.
+Run `npm run check:python` for Python formatting checks, Ruff linting, setup tests, and prose-tooling tests.
 Run `npm run check:docs` for Markdown Quality formatting, prose diagnostics and local-link checks.
 Run `npm run check` for these checks, the Jest suite, the application build, and JSON qualification of fresh generated outputs.
+It checks formatting before lint and verifies corpus storage before setup and product tests.
+CI runs the existing application build, including its formatting and lint prerequisites, before Jest, and retains the final generated JSON check after the build.
+The application job also waits for the independent corpus-storage check; expensive work remains parallel after its prerequisites pass.
 The full check requires the [test corpus](#test-corpus).
 
 | Command                       | Purpose                                                                  |
