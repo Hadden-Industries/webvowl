@@ -143,14 +143,6 @@ export function setUpDevelopmentEnvironment({
     "--ignore-scripts",
   ]);
 
-  for (const kind of ["markdown"]) {
-    runRequiredCommand(
-      `Isolated ${kind} quality-tool installation`,
-      process.execPath,
-      [npmCliPath, "run", `install:${kind}`],
-    );
-  }
-
   if (!pythonVirtualEnvironmentStats) {
     console.log(
       `Creating Python virtual environment: ${pythonVirtualEnvironmentPath}`,

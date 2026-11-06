@@ -11,7 +11,7 @@ Adding a change to `src/`, a dependency lockfile or a workflow selects full chec
 A docs-only pull request still shows successful required statuses for `WebVOWL application`, `Dependency review` and `CodeQL gate`, while application, Python tooling and CodeQL analysis jobs are skipped.
 
 Documentation-only and mixed changes run the same Linux Markdown job against the complete authored corpus.
-The job acquires the isolated locked Markdown Quality graph with lifecycle scripts disabled, then runs `npm run check:docs` and the consumer integration probes.
+The job selects the managed npm version and installs the root lock with `npm ci --include=dev --ignore-scripts`, then runs `npm run check:docs` and `npm run test:markdown` in that order.
 The public package command owns selection, formatting checks, GFM linting, local links, result semantics and bounded checker execution.
 Tracked Markdown is reconciled through the same selector, including missing selected documents.
 
@@ -33,23 +33,21 @@ The required `CodeQL gate` status accepts a documentation-only skip; otherwise, 
 Analysis waits for uploaded results to finish processing before the gate reads that verdict.
 Missing results, blocking alerts, failed analyses and API errors prevent the gate from passing.
 
-Local `npm run check:docs` checks the same full authored scope.
-`.markdown-quality.json` is the only Markdown policy authority: its schema 2 exclusions explicitly preserve the former omissions of the `docs/owlapi-js/`, `docs/sdlc/`, `docs/reviews/` and `docs/evaluations/` archives.
-Git and Prettier ignore files continue serving their own tools and have no Markdown-selection authority.
-The migration retained all 69 previously selected document paths and includes `AGENTS.md` at the owner's request, bringing the corpus to 70 documents.
+Local `npm run check:docs` checks the same full authored scope using the root-installed Markdown Quality package.
+The root manifest declares `@hadden-industries/markdown-quality` with the `>=3.0.0` minimum; `package-lock.json` freezes the core and matching optional platform packages.
+There is one npm dependency graph for application and tooling dependencies.
 
-The isolated graph in `tooling/markdown/` installs committed core and Windows/Linux archives from producer source [`47febbe1b6f3282814e77db7ea13eac72b4928ed`](https://github.com/Hadden-Industries/markdown-quality/tree/47febbe1b6f3282814e77db7ea13eac72b4928ed).
-The lockfile records their exact integrities; the core archive carries its clean source/tree/producer-lock identity and the AGPL source and notices.
-Package version `1.0.3` alone does not identify this source adoption.
-Commands use the supported public package bins and API/schema exports rather than private implementation entry points.
+Markdown Quality uses `authored-gfm@2` defaults.
+`.markdown-quality.json` supplies only schema-3 ownership exclusions for preserved reference material and historical evidence.
+Git and Prettier ignore files serve their own tools and have no Markdown-selection authority.
+Use `npm exec -- markdown-quality inspect --root . --json` to review the current selected and omitted paths; no fixed historical corpus count defines acceptance.
 
-`.markdown-quality-execution.json` supplies finite local and hosted bounds: six samples, 30 seconds per checker, a 180 second window, a 1024 MiB memory limit, 128 MiB Node/worker heaps and exact runtime declarations.
-Windows observes cumulative Job peak committed bytes; Linux samples process-group RSS, so their resource measurements have different boundaries.
-Six passing samples describe the observed window and do not guarantee future tail performance.
+`npm run format:docs` writes formatting and accepts literal paths after `-- --`, for example `npm run format:docs -- -- README.md`.
+Preview with `npm exec -- markdown-quality format --dry-run --root . -- README.md`.
+The write script already supplies `--write`; a preview must use the direct command so it supplies only `--dry-run`.
+Both preview and selected-path checks describe their selected inputs; complete authored-scope cleanliness requires the complete `npm run check:docs` verdict.
 
-The manually dispatched trusted qualification caller uses the reusable producer workflow pinned to [`fa1188a867b29bddd0b972a080b7fcd0261bdec3`](https://github.com/Hadden-Industries/markdown-quality/tree/fa1188a867b29bddd0b972a080b7fcd0261bdec3).
-This workflow revision advances independently of the retained, qualified 1.0.3 package archives.
-It accepts distinct full trusted and candidate commits and processes candidate content as data through the installed producer-owned staging and observer contracts.
-The owner must first accept the exact reviewed trusted policy/profile/lock/archive tuple, then accept the attributable positive and adversarial hosted results before normal integration.
-An ordinary green CI status is not that trust decision.
-No consumer checker, staging implementation, observer or compatibility fallback is retained.
+Commands use public package bins and SDK exports, with finite package execution defaults and any explicit repository execution-profile overrides.
+The documentation gate checks repository content; it does not produce an archive-based trusted qualification receipt.
+The retired manual archive qualification caller has no role in CI evidence reuse, which remains owned by the ordinary application workflow and its immutable PR receipt verifier.
+Historical qualification records retain their original package, archive and workflow identities.

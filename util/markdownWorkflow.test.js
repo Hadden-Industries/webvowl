@@ -3,91 +3,22 @@ import { parse } from "yaml";
 
 const load = (path) =>
   parse(readFileSync(new URL(path, import.meta.url), "utf8"));
-const workflow = load("../.github/workflows/markdown-quality.yml");
 const application = load("../.github/workflows/webvowl-ci.yml");
-const producer = "fa1188a867b29bddd0b972a080b7fcd0261bdec3";
-
-function assertTrustedCaller(candidate) {
-  expect(Object.keys(candidate.on)).toEqual(["workflow_dispatch"]);
-  expect(candidate.permissions).toEqual({});
-  expect(candidate).not.toHaveProperty("env");
-  expect(Object.keys(candidate.on.workflow_dispatch.inputs).sort()).toEqual([
-    "candidate_repository",
-    "candidate_sha",
-    "trusted_sha",
-  ]);
-  for (const input of Object.values(candidate.on.workflow_dispatch.inputs)) {
-    expect(input.required).toBe(true);
-    expect(input.type).toBe("string");
-  }
-  expect(
-    candidate.on.workflow_dispatch.inputs.candidate_repository.default,
-  ).toBe("Hadden-Industries/webvowl");
-  expect(Object.keys(candidate.jobs)).toEqual(["markdown"]);
-  const job = candidate.jobs.markdown;
-  expect(Object.keys(job).sort()).toEqual(["permissions", "uses", "with"]);
-  expect(job.permissions).toEqual({ contents: "read" });
-  expect(job.uses).toBe(
-    `Hadden-Industries/markdown-quality/.github/workflows/markdown-quality.yml@${producer}`,
-  );
-  expect(job.with).toEqual({
-    "trusted-repository": "Hadden-Industries/webvowl",
-    "trusted-sha": "${{ inputs.trusted_sha }}",
-    "candidate-repository": "${{ inputs.candidate_repository }}",
-    "candidate-sha": "${{ inputs.candidate_sha }}",
-    profile: ".markdown-quality-execution.json",
-  });
-}
-
-test("qualification calls the immutable producer with separate accepted trust and candidate inputs", () => {
-  assertTrustedCaller(workflow);
-});
-
-test.each([
-  (x) => {
-    x.on.pull_request_target = {};
-  },
-  (x) => {
-    x.jobs.markdown.permissions.contents = "write";
-  },
-  (x) => {
-    x.jobs.markdown.with["trusted-sha"] = "main";
-  },
-  (x) => {
-    x.jobs.markdown.with["trusted-sha"] = "${{ inputs.candidate_sha }}";
-  },
-  (x) => {
-    x.jobs.markdown.uses = x.jobs.markdown.uses.replace(producer, "main");
-  },
-  (x) => {
-    x.jobs.markdown.with.profile = "candidate/profile.json";
-  },
-  (x) => {
-    x.jobs.markdown.secrets = "inherit";
-  },
-  (x) => {
-    x.jobs.markdown.if = "false";
-  },
-  (x) => {
-    x.jobs.markdown["continue-on-error"] = true;
-  },
-])("unsafe consumer trust mutation is rejected (%#)", (mutate) => {
-  const changed = structuredClone(workflow);
-  mutate(changed);
-  expect(() => assertTrustedCaller(changed)).toThrow();
-});
-
-test("CI executes the complete authored corpus unless verified PR evidence is reused", () => {
+function assertDocumentationGate(application) {
   const documentation = application.jobs.documentation;
   expect(documentation.if).toBe("needs.scope.outputs.reuse != 'true'");
   const acquire = documentation.steps.findIndex((step) =>
-    step.run?.includes("npm ci --prefix tooling/markdown --ignore-scripts"),
+    step.run?.includes("npm ci --include=dev --ignore-scripts"),
   );
   const check = documentation.steps.findIndex((step) =>
     step.run?.includes("npm run check:docs && npm run test:markdown"),
   );
   expect(acquire).toBeGreaterThan(-1);
   expect(check).toBeGreaterThan(acquire);
+  expect(documentation.steps[acquire]).not.toHaveProperty("if");
+  expect(documentation.steps[acquire].run).toMatch(
+    /node util\/installSelectedNpm\.mjs\s+npm ci/,
+  );
   expect(documentation.steps[check]).not.toHaveProperty("if");
   expect(documentation.steps[check].run).not.toMatch(
     /files-json|selected|changed/,
@@ -98,6 +29,8 @@ test("CI executes the complete authored corpus unless verified PR evidence is re
   expect(application.jobs.tooling.if).toBe(
     "needs.scope.outputs.full == 'true' && needs.scope.outputs.reuse != 'true'",
   );
+  expect(application.jobs.required.name).toBe("WebVOWL application");
+  expect(application.jobs.required.if).toBe("always()");
   expect(application.jobs.required.needs).toEqual([
     "scope",
     "application",
@@ -106,4 +39,46 @@ test("CI executes the complete authored corpus unless verified PR evidence is re
     "corpus",
     "json",
   ]);
+}
+
+test("CI executes the complete authored corpus unless verified PR evidence is reused", () => {
+  assertDocumentationGate(application);
+});
+
+test.each([
+  (x) => {
+    x.jobs.documentation.if = "needs.scope.outputs.full == 'true'";
+  },
+  (x) => {
+    x.jobs.documentation.steps.find((step) =>
+      step.run?.includes("npm ci"),
+    ).run = "npm ci --ignore-scripts";
+  },
+  (x) => {
+    x.jobs.documentation.steps.find((step) =>
+      step.run?.includes("npm run check:docs"),
+    ).if = "false";
+  },
+  (x) => {
+    x.jobs.documentation.steps.find((step) =>
+      step.run?.includes("npm run check:docs"),
+    ).run += " -- --files-json '[]'";
+  },
+  (x) => {
+    x.jobs.documentation.steps.find((step) =>
+      step.run?.includes("npm run check:docs"),
+    ).run = "npm run check:docs";
+  },
+  (x) => {
+    x.jobs.required.needs = x.jobs.required.needs.filter(
+      (job) => job !== "documentation",
+    );
+  },
+  (x) => {
+    x.jobs.required.name = "Markdown checks";
+  },
+])("CI documentation gate regression is rejected (%#)", (mutate) => {
+  const changed = structuredClone(application);
+  mutate(changed);
+  expect(() => assertDocumentationGate(changed)).toThrow();
 });

@@ -61,15 +61,16 @@ Set that field to `npm:PACKAGE_NAME@EXACT_VERSION` for a published package, or `
 The root `overrides.owlapi` references `$owlapi`; the private VOWL workspace uses `*`, so neither repeats the chosen package name, version or commit.
 Regenerate the root lock with `npm install --package-lock-only --ignore-scripts`, then run `npm ci --ignore-scripts` and the consumer checks; generated lock records are not independent settings.
 See [OwlAPI dependency selection](docs/owlapi-git-adoption.md) for payload verification and the lessons from Universal Ontology's transition.
-Run `npm run setup:development` to install locked npm dependencies, the isolated Markdown and JSON tool graphs with lifecycle scripts disabled, and prepare `.venv` from the [hashed Python lock](requirements.lock.txt).
+Run `npm run setup:development` to install locked root npm dependencies, including Markdown and JSON Quality, with lifecycle scripts disabled, and prepare `.venv` from the [hashed Python lock](requirements.lock.txt).
 Python installation requires hashes and wheels except for PyYAML, whose latest release requires a source build on Python 3.15, then runs `pip check`.
 The [development requirements](requirements-dev.txt) declare minimum versions without upper bounds; routine setup and CI install the exact locked versions.
 
-Run `npm run install:markdown` explicitly to install the exact shared Markdown graph without lifecycle scripts.
-The Markdown execution profile reads the same Node and Python version files; it has no separate runtime pins.
-Markdown checking always covers the full authored corpus, including when CI skips application jobs for documentation-only changes.
-Use `npm run format:docs -- -- "docs/example.md"` for literal paths or `--files-json` for a JSON array.
-Exceptions and upgrades remain governed by the shared capability and exact trusted-run owner acceptance.
+Markdown Quality is a root development dependency installed by the same `npm ci --ignore-scripts` command as other tooling.
+Markdown checking covers the full authored corpus, including when CI skips application jobs for documentation-only changes.
+Use `npm run check:docs` to check it and `npm run format:docs -- -- "docs/example.md"` to write formatting for a literal path.
+Preview without writes using `npm exec -- markdown-quality format --dry-run --root . -- "docs/example.md"`.
+Inspect scope using `npm exec -- markdown-quality inspect --root . --json`.
+See [continuous integration](docs/continuous-integration.md) for selection and CI evidence reuse.
 Setup preserves an existing usable environment and does not activate agent configuration.
 
 To regenerate the Python lock with the resolver installed in `.venv`, run:
@@ -98,7 +99,7 @@ The standard `npm run format`, `npm run format:check`, and `npm run lint` comman
 Node.js helpers use Node globals and do not receive browser-compatibility checks.
 Markdown formatting and prose diagnostics are checked by both `lint` and `format:check`.
 Run `npm run check:python` for Ruff linting, Python formatting checks, setup tests, and prose-tooling tests.
-Run `npm run check:docs` for Prettier Markdown formatting and Snapper's semantic line checks.
+Run `npm run check:docs` for Markdown Quality formatting, prose diagnostics and local-link checks.
 Run `npm run check` for these checks, the Jest suite, the application build, and JSON qualification of fresh generated outputs.
 The full check requires the [test corpus](#test-corpus).
 
@@ -108,29 +109,30 @@ The full check requires the [test corpus](#test-corpus).
 | `npm run lint:python`         | Check Python, including import ordering.                                 |
 | `npm run lint:python:fix`     | Apply Ruff's safe lint fixes.                                            |
 | `npm run format:python:check` | Check Python formatting without rewriting files.                         |
-| `npm run format:docs`         | Format Markdown with the isolated shared Markdown Quality capability.    |
+| `npm run format:docs`         | Write Markdown formatting using the installed Markdown Quality package.  |
 | `npm run format:docs:check`   | Check Markdown formatting and prose diagnostics without rewriting files. |
 | `npm run test:prose`          | Test prose selection, literal preservation, and check-mode behavior.     |
 
 Both Python tools run from this checkout's `.venv`; rerun `npm run setup:development` after pulling dependency changes.
 Ruff's target is generated from [.python-version](.python-version); run `node util/pythonTarget.mjs --write` after changing the pin.
 Ruff uses 88-character lines and disables unsafe fixes.
-Snapper uses its native formatter with one sentence per source line, no fixed column limit, and no clause splitting.
-Prettier preserves prose wrapping and disables embedded-language formatting, but it can still normalize whitespace inside code fences.
-Put `<!-- prettier-ignore -->` immediately before a literal example whose exact whitespace must be preserved, such as a Markdown example containing two-space hard breaks.
-The prose tests exercise the complete Prettier, native Snapper, and Prettier sequence, including literal examples and repeated-run stability.
-These checks do not include Python type checking or Markdown link validation.
-
-Markdown formatting covers root documents and `docs/**/*.md`, including repository-owned designs and plans.
-It excludes `AGENTS.md`, the historical `docs/owlapi-js` and `docs/sdlc` archives, `docs/evaluations`, and `docs/reviews`.
-Snapper uses Prettier's own ignore handling for `.prettierignore` and `.gitignore`, so both Markdown formatters share the same exclusion rules.
+Markdown Quality uses its `authored-gfm@2` defaults for formatting, GFM diagnostics, local targets and fragments.
+Its schema-3 policy in `.markdown-quality.json` records repository ownership exclusions; Git and Prettier ignore files do not control Markdown selection.
+Root documents, maintained documentation and package Markdown use the default `**/*.md` selection, including `AGENTS.md`.
+Preserved reference material and historical evidence keep their recorded bytes through the policy's explicit exclusions.
+Use `npm run --silent check:docs -- --json -- README.md` for one complete JSON result on stdout for a selected literal path.
+A selected-path check or formatting preview does not establish that the complete repository is clean.
+Physical formatting requires exactly one repair mode: the `format:docs` script supplies `--write`, while direct preview uses `--dry-run`.
+Do not append `--dry-run` to the write script.
+For an external working directory, use `npm --prefix <absolute-repository-root> run check:docs` to keep the explicit root at this checkout.
+The retained prose-tooling tests also cover the older Python/Prettier tooling contracts.
 Ruff excludes the same preserved documentation directories for Python files.
 Prose tests require the locked Node dependencies as well as the Python environment.
 Installed skills, environments, generated data, and fixtures are outside the formatting scope.
 
 CI runs Python checks on Windows and Linux and Markdown checks on Linux.
-Fresh JSON jobs run on Ubuntu 24.04 and Windows 2025 for every workflow route, including documentation-only changes and runs reusing application evidence.
-The required gate rejects missing, skipped or failed JSON checks.
+Fresh JSON jobs run on Ubuntu 24.04 and Windows 2025, including documentation-only changes.
+Verified immutable PR evidence permits their reuse on a matching merge; otherwise, the required gate rejects missing, skipped or failed JSON checks.
 
 ### JSON quality and producer ownership
 
