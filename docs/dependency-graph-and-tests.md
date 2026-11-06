@@ -4,13 +4,17 @@ These opt-in developer commands use the installed dependency-cruiser and Jest.
 Ordinary `npm test`, `npm run check`, specialized architecture suites and hosted checks keep their independent scope.
 A full Jest result is not full product assurance: Python, Markdown, build, browser and external corpus obligations remain separate.
 
-```powershell
-npm run graph:dependencies -- --output C:/new-external-directory/webvowl-graph
-npm run check:affected -- --base <full-commit-object-id> --list
-npm run check:affected -- --base <full-commit-object-id> --path src/example.js --list
-npm run check:affected -- --base <full-commit-object-id> --shadow
-npm run check:affected
-```
+## Choose a command
+
+| Task                                                   | Command                                                                                 |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| Export the graph to a new external directory           | `npm run graph:dependencies -- --output C:/new-external-directory/webvowl-graph`        |
+| List affected files without running tests              | `npm run check:affected -- --base <full-commit-object-id> --list`                       |
+| Widen that list with a literal path                    | `npm run check:affected -- --base <full-commit-object-id> --path src/example.js --list` |
+| Compare the selected run with the full suite           | `npm run check:affected -- --base <full-commit-object-id> --shadow`                     |
+| Run the full current Jest inventory without a baseline | `npm run check:affected`                                                                |
+
+## Read the graph bundle
 
 Graph output requires a new external directory.
 Existing destinations and linked parents are refused.
@@ -29,6 +33,8 @@ Each source snapshot resolves `vowl` through its own package exports before inst
 Historical source is read from Git blobs into an owned temporary directory; historical code, config, hooks and dependency installations never run.
 JavaScript and package manifests retain exact blob bytes; other authored resources are empty resolution leaves.
 Resource contents are never interpreted by the historical import graph, and resource changes force full testing.
+
+## Select a baseline and interpret fallback
 
 Supply an immutable full commit ID representing the entire intended comparison.
 Intermediate implementation commits do not authorize moving that comparison forward.
@@ -50,6 +56,8 @@ Arbitrary forwarded Jest options are not accepted.
 The repository's selected Python environment supplies a small native containment adapter: Windows uses a non-breakaway job assigned before the suspended Jest process starts; Linux uses a private child subreaper and pidfds.
 Unsupported or unavailable containment fails before a successful result can be reported.
 This helper does not substitute for repository Python qualification.
+
+## Compare and retain test results
 
 Shadow mode discovers full inventory again independently, runs selected files, then runs the full inventory and compares outcomes for the selected files.
 Any full failure, selected failure, missing result or disagreement remains nonzero.

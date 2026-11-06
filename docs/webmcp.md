@@ -26,9 +26,10 @@ Turtle export uses the existing generator; this integration does not certify or 
 
 ## Choose an ontology source
 
-An ontology document IRI over HTTP(S), a VOWL JSON URL over HTTP(S), ontology text supplied directly with its syntax named, or supplied VOWL JSON text.
-A location using any other scheme, or carrying credentials, is refused.
-Human users can still choose or drop a local file; WebMCP has no filesystem-path access.
+- **Load from a URL:** supply an HTTP(S) ontology document IRI or VOWL JSON URL.
+- **Load from supplied text:** provide ontology text with its syntax, or provide VOWL JSON text.
+  A location using any other scheme, or carrying credentials, is refused.
+  Human users can still choose or drop a local file; WebMCP has no filesystem-path access.
 
 ## Privacy and exported files
 
@@ -50,18 +51,17 @@ The concrete renderer and options entry points were removed deliberately and hav
 
 ### Wait for a load or node ordering
 
-During a replacement load, document-content reads, view changes, temporary-view actions and captures return `LOAD_PENDING` with `isRetryable: true`.
-Retry after the load finishes.
-`get_visualization_state` remains available and reports the loading status; application resizing, diagnostics and editor preferences also remain available.
-Human editing retains its separate `EDIT_REJECTED` response while a load is pending.
+Check `get_visualization_state` before retrying a request.
+A graph can already be visible while node-count ordering is still in progress.
 
-Fresh ontology loads can become ready with the first drawing visible while node-count ordering continues in the same worker.
-`nodeCountStatus.orderingStatus` reports `preparing`, then `ready`; the field is absent on paths that complete ordering during loading, including saved VOWL views.
+| Response                             | What is available                                                                                                                                                 | Next action                                                                                  |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `LOAD_PENDING` (`isRetryable: true`) | Loading status, application resizing, diagnostics and editor preferences. Document reads, view changes, temporary-view actions and captures wait for replacement. | Retry after the load finishes. Human editing has its own `EDIT_REJECTED` response.           |
+| `NODE_ORDERING_PENDING`              | The first drawing, search, selection, reads and unrelated view controls. Count changes and reset are pending.                                                     | Wait for `nodeCountStatus.orderingStatus` to change from `preparing` to `ready`, then retry. |
+| `NODE_ORDERING_UNAVAILABLE`          | The graph stays visible with ordering status `failed`.                                                                                                            | Reload the ontology to retry ordering.                                                       |
 
-During preparation, count changes and reset return retryable `NODE_ORDERING_PENDING`; read/search/selection and unrelated view controls remain usable.
-Wait for ordering readiness before retrying a count change.
-Completion preserves the visible nodes and enables the human count controls.
-If preparation fails, the graph stays visible, the status becomes `failed`, and count commands return `NODE_ORDERING_UNAVAILABLE`; reload the ontology to retry preparation.
+Completing ordering preserves the visible nodes and enables the count controls.
+The ordering status field is absent when ordering completes during loading, including saved VOWL views.
 
 Cancelling a view request stops the caller's wait while retaining standing choices that have already been applied.
 The published state reports those applied choices.

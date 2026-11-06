@@ -25,15 +25,27 @@ This transition follows [Universal Ontology's adoption commit](https://github.co
 ## Installing and checking
 
 Use the repository's selected Node.js and npm versions.
-After an approved source change, regenerate the root lockfile without refreshing unrelated dependencies:
+After an approved source change:
 
-```sh
-npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-npm ci --ignore-scripts --no-audit --no-fund
-npm test -- --runInBand --runTestsByPath src/owlapiConsumerBoundary.architecture.test.js
-```
+1. Regenerate the root lockfile without refreshing unrelated dependencies.
 
-Review the lockfile diff before clean installation.
+   ```sh
+   npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+   ```
+
+2. Review the lockfile diff.
+   Once the source and resolved package are correct, install the locked dependencies into a clean dependency tree.
+
+   ```sh
+   npm ci --ignore-scripts --no-audit --no-fund
+   ```
+
+3. Verify the installed OwlAPI against the selected source.
+
+   ```sh
+   npm test -- --runInBand --runTestsByPath src/owlapiConsumerBoundary.architecture.test.js
+   ```
+
 The source transition requires no Vite alias, sibling repository link, vendored OwlAPI source, lifecycle-script permission or CI configuration change.
 Run the full relevant tests and checked production build before deployment; focused package checks alone do not establish browser compatibility or performance.
 Ordinary browser loading and the real large-ontology path need browser verification.

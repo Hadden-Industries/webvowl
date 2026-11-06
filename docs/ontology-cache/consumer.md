@@ -1,13 +1,15 @@
 # Ontology cache consumer
 
-The WebVOWL consumer defaults to **disabled**.
-Ordinary root/import acquisition, local inputs and original-source export continue to use the existing worker and document session.
-A disabled consumer creates no cache requests, refresh timers or update controls.
-The provider may be absent.
+The ontology cache is **disabled by default**.
+WebVOWL loads root ontologies, imports and local files through the ordinary document session.
+It can export the original source without a cache provider.
 
-This delivery implements the consumer checkpoint of cache SLICE-005 and its offline SLICE-001/004/006 contracts.
-It does not implement or qualify the AWS provider, deploy infrastructure, publish seeds, activate production caching or establish source republication rights.
-Those acceptance gates remain in the [implementation plan](../plans/validated-ontology-materialization-cache-implementation-plan.md).
+- **Inspecting an open graph?**
+  See [source checks and updates](#source-checks-and-updates) for the meaning of a check date or update offer.
+  These controls appear only when caching is enabled.
+- **Integrating a provider?**
+  Start with [explicit composition](#explicit-composition), then check [acquisition and admission](#acquisition-and-admission).
+  A disabled deployment makes no cache requests and starts no refresh timers.
 
 ## Provider contract
 
@@ -47,7 +49,17 @@ Returning to the default disabled composition restores direct-only acquisition a
 
 ## Acquisition and admission
 
-Enabled precedence is per-load acquired/explicitly selected binding, optional curated catalog, exact source pointer, direct acquisition, then one eligible materialization submission. Per-load catalogs, bytes and policy evidence are reused. A fresh open gets a new context. Canonical/legacy JSON downloads never enter materialization; their ontology imports may use the same controlled acquisition owner.
+With the cache enabled, WebVOWL tries these sources in order for a load:
+
+1. The binding already acquired or explicitly selected for this load.
+2. The curated catalog, if configured.
+3. The exact source pointer.
+4. Direct acquisition.
+5. One materialization submission, if the direct failure qualifies as described below.
+
+A fresh open gets a new context.
+Within a load, WebVOWL reuses its catalog, bytes and policy evidence.
+Canonical and legacy JSON downloads stay outside materialization, though their ontology imports can use this process.
 
 Only a browser network/CORS failure reported by the direct resolver's native `MissingImportError` with a `TypeError` cause permits materialization. Readable HTTP failures, cancellation, parser/profile failures and resource/host limits do not.
 Pending work follows only its bounded, source-specific status location and Retry-After; status observation never resubmits work.
@@ -70,9 +82,11 @@ A due pointer may initiate one background `if-due` observation after admission; 
 There is no origin scheduler.
 Closing/replacing a document cancels its observation, not a shared backend attempt.
 
-A committed different source version offers an update without replacing the graph.
-A 304 or evidence-only requalification updates check information without an update offer.
-Failed checks preserve the graph and previous successful-check date.
+| Source-check result                                 | What happens to the open graph                                         |
+| --------------------------------------------------- | ---------------------------------------------------------------------- |
+| A different source version is committed             | An update is offered. The current graph stays open until you apply it. |
+| HTTP 304 or only the qualification evidence changes | Check information is refreshed. The graph stays open.                  |
+| The check fails                                     | The graph and the previous successful-check date are preserved.        |
 
 Applying an offer first confirms the exact candidate through the uncached source-status endpoint, then seeds ordinary root/import readmission with those verified bytes and bindings.
 Stale discovery cannot replace that explicit selection.
@@ -83,6 +97,10 @@ Editing invalidates replacement; reopen the source to apply updates after editin
 Original-source exports remain tied to the bytes actually admitted; semantic exports remain tied to the edited model.
 
 ## Verification
+
+This delivery implements the consumer checkpoint of cache SLICE-005 and its offline SLICE-001/004/006 contracts.
+It does not implement or qualify the AWS provider, deploy infrastructure, publish seeds, activate production caching or establish source republication rights.
+Those acceptance gates remain in the [implementation plan](../plans/validated-ontology-materialization-cache-implementation-plan.md).
 
 `npm run check` includes the consumer's protocol/identity/schema, catalog, acquisition, refresh, controller, worker and diagnostic regressions.
 The exact-source metadata fixtures are synthetic provider examples, not server parser or AWS evidence.
