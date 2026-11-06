@@ -47,7 +47,9 @@ Preview with `npm exec -- markdown-quality format --dry-run --root . -- README.m
 The write script already supplies `--write`; a preview must use the direct command so it supplies only `--dry-run`.
 Both preview and selected-path checks describe their selected inputs; complete authored-scope cleanliness requires the complete `npm run check:docs` verdict.
 
-Commands use public package bins and SDK exports, with finite package execution defaults and any explicit repository execution-profile overrides.
+Commands use the installed public CLI, with finite package execution defaults and the repository execution-profile override.
+Three root npm consumer checks cover maintained selection, independently expected preserved records, literal bytes, read-only checks and native exit propagation.
+`format:check` delegates Markdown quality to the canonical `check:docs` command.
 The documentation gate checks repository content; it does not produce an archive-based trusted qualification receipt.
 The retired manual archive qualification caller has no role in CI evidence reuse, which remains owned by the ordinary application workflow and its immutable PR receipt verifier.
 Historical qualification records retain their original package, archive and workflow identities.
