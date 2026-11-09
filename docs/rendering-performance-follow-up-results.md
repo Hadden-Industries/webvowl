@@ -104,3 +104,38 @@ The final committed candidate's consolidated suite, checked build, review dispos
 No deployment is part of this implementation request.
 There is no schema migration or persisted-data backfill.
 Recovery is a compatible source reversal or a bounded forward correction; no unverified deployed rollback artifact is promised.
+
+## Compare graph data
+
+[The data-tree comparator](../src/shared/js/util/equalDataTree.js) compares controller state, cached ranking and visibility signatures, editor refresh inputs, and browser recovery snapshots.
+It matches record fields regardless of key order and distinguishes a missing field from a field set to `undefined`.
+It compares arrays in order and checks only the visible bytes of a `Uint8Array` view.
+It treats both signs of zero as equal and matches `NaN` with itself.
+Distinct copies can compare equal across JavaScript realms.
+
+Pick & Pin counts distinct shared links by object identity.
+The renderer uses a native lookup for the selected color mode.
+The application dropped its direct Lodash dependency after replacing these calls.
+
+Run the focused regression tests from the repository root.
+
+```sh
+npm test -- --runInBand src/shared/js/util/equalDataTree.test.js src/shared/js/modules/pickAndPin.test.js
+```
+
+### Measure comparison cost
+
+The comparison benchmark used the same 2,298,206-byte `20260912-full` ontology described above.
+It loaded the ontology through WebVOWL before timing and measured equal comparisons on Node 26.13.0 for Windows.
+The table shows medians from the first run of 15 warmed, alternating batches.
+
+| Workload          | Before   | After    |
+| ----------------- | -------- | -------- |
+| Source bytes      | 11.73 ms | 1.34 ms  |
+| Model checkpoint  | 21.14 ms | 10.53 ms |
+| Model inspection  | 12.25 ms | 11.79 ms |
+| Ranking signature | 2.82 µs  | 2.40 µs  |
+
+The second run showed similar gains on source bytes and checkpoints.
+The tail of the late-inspection mismatch varied between runs.
+These measurements isolate the comparator from ontology loading, rendering, and browser interaction.
