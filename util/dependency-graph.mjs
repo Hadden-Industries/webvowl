@@ -228,9 +228,11 @@ export function sourcePaths(root) {
 
 export function snapshot(root) {
   root = resolve(root);
+  // Git reports long Windows paths; only the native resolver also expands 8.3
+  // short names such as RUNNER~1, so both sides use it.
   if (
-    realpathSync(root) !==
-    realpathSync(git(root, ["rev-parse", "--show-toplevel"]).trim())
+    realpathSync.native(root) !==
+    realpathSync.native(git(root, ["rev-parse", "--show-toplevel"]).trim())
   )
     throw new Error("Wrong repository root");
   const paths = [

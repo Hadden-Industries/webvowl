@@ -82,6 +82,9 @@ export function canonicalFailureDetails(value) {
 
 /** Application-owned explanations for stable failure reasons. */
 export function canonicalLoadingMessage(error) {
+  if (error?.name === "TimeoutError") {
+    return "Retrieving the ontology source took too long. Check the source URL and try again.";
+  }
   if (
     [
       "RESOURCE_LIMIT_EXCEEDED",

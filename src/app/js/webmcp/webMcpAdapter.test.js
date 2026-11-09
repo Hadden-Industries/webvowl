@@ -11,6 +11,7 @@ beforeAll(async () => {
 
 const EXPECTED_TOOL_NAMES = Object.freeze([
   "load_ontology",
+  "cancel_ontology_load",
   "get_ontology_summary",
   "find_ontology_elements",
   "reveal_ontology_neighborhood",
@@ -32,6 +33,7 @@ function createControllerDouble(overrides = {}) {
   return {
     getState: () => ({ loadGeneration: 1, status: "ready" }),
     loadOntology: async () => ({ loadGeneration: 2 }),
+    cancelOntologyLoad: () => ({ isCancellationRequested: false }),
     getOntologySummary: () => ({ loadGeneration: 1 }),
     findOntologyElements: () => ({ loadGeneration: 1, matches: [] }),
     setVisualizationView: async () => ({ loadGeneration: 1 }),

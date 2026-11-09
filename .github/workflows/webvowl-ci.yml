@@ -86,16 +86,9 @@ jobs:
         run: |
           node util/installSelectedNpm.mjs
           npm ci --ignore-scripts
-      - name: Read selected runtime versions
-        id: runtimes
-        run: node util/runtimeTargets.mjs --github-output
-      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          version: ${{ steps.runtimes.outputs.uv }}
-          activate-environment: true
-          venv-path: ${{ runner.temp }}/python
-          no-project: true
-          enable-cache: false
+          python-version-file: .python-version
       - name: Create isolated Python environment
         run: python -m venv .venv
       - name: Install Python tooling requirements
@@ -118,10 +111,10 @@ jobs:
         with:
           node-version-file: .node-version
           package-manager-cache: false
-      - name: Acquire the exact isolated Markdown graph
-        run: npm ci --prefix tooling/markdown --ignore-scripts --no-audit --no-fund
-      - name: Select package manager before root documentation commands
-        run: node util/installSelectedNpm.mjs
+      - name: Select package manager and install locked root dependencies
+        run: |
+          node util/installSelectedNpm.mjs
+          npm ci --include=dev --ignore-scripts
       - name: Check the full authored corpus
         run: npm run check:docs && npm run test:markdown
 
@@ -167,10 +160,10 @@ jobs:
       - name: Produce current Vite JSON outputs without formatting source
         run: npm run build:bundle
       - name: Require every owned physical, logical and generated JSON document
-        run: npm run check:json -- --require-generated
+        run: node util/verifyGeneratedRepositoryJson.mjs
 
   application:
-    needs: scope
+    needs: [scope, corpus]
     if: needs.scope.outputs.full == 'true' && needs.scope.outputs.reuse != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
@@ -207,8 +200,8 @@ jobs:
         run: |
           node util/installSelectedNpm.mjs
           npm ci --ignore-scripts
-      - run: npm test -- --runInBand
       - run: npm run build
+      - run: npm test -- --runInBand
       - name: Check deterministic production byte and worker-closure budgets
         run: node util/check-production-budgets.mjs deploy
 

@@ -7,7 +7,7 @@ import {
 import { createLanguageTools } from "../../shared/js/util/languageTools.js";
 import { PROTECTED_ONTOLOGY_EDITOR_PREFIXES } from "./controller/ontologyEditorPrefixes.js";
 import { namespaces } from "vowl";
-import isEqual from "lodash/isEqual.js";
+import { equalDataTree } from "../../shared/js/util/equalDataTree.js";
 
 // This presentation reads immutable document records. Only application
 // operations can accept an edit; no drawn element is an editing authority.
@@ -340,7 +340,7 @@ export function createOntologyEditorSidebar({
       language,
       selectedTarget,
     ]);
-    if (force || !isEqual(presentedSelection, selection)) {
+    if (force || !equalDataTree(presentedSelection, selection)) {
       renderSelectedRecord();
       presentedSelection = selection;
     }
@@ -348,7 +348,7 @@ export function createOntologyEditorSidebar({
       state.editorMode?.isEditorMode,
       snapshot.prefixes,
     ]);
-    if (force || !isEqual(prefixes, presentedPrefixes)) {
+    if (force || !equalDataTree(prefixes, presentedPrefixes)) {
       prefixControlsAbortController.abort();
       prefixControlsAbortController = new AbortController();
       document.getElementById("prefixURL_Container").replaceChildren();

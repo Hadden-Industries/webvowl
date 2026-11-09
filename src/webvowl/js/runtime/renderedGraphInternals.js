@@ -179,6 +179,16 @@ const svgRenderingGuard = Object.freeze({
     }
     return true;
   },
+  setLinePath(element, start, end) {
+    if (!isFinitePoint(start) || !isFinitePoint(end)) {
+      return false;
+    }
+    const path = `M${start.x},${start.y} L${end.x},${end.y}`;
+    if (element.getAttribute("d") !== path) {
+      element.setAttribute("d", path);
+    }
+    return true;
+  },
 });
 
 function createInvalidGeometryReporter(raiseRenderWarning) {
@@ -702,14 +712,19 @@ function createGraph(
         const property = label.property();
         // Mounted labels always belong to the accepted canonical drawing.
         const positionable =
-          canonicalElements.bindings.get(property.id())?.positionable === true;
+          canonicalElements.bindings.get(property.id())?.positionable ===
+            true && !isSolitaryLabel(label);
         return {
           rendererKey: `label:${property.id()}`,
           element: property,
           position: label,
           kind: "property-label",
           canMove: positionable,
-          canPin: positionable,
+          canPin:
+            positionable &&
+            (label.link().isLoop()
+              ? label.link().domain().links().length > 1
+              : label.link().layers().length > 1),
           rendererElementIds: [
             String(property.id()),
             ...(property.inverse() ? [String(property.inverse().id())] : []),
@@ -976,12 +991,8 @@ function createGraph(
     if (!d) {
       return false;
     }
-    if (canonicalElements) {
-      const property = elementTools.isLabel(d) ? d.property() : d;
-      if (canonicalElements.bindings.get(property.id())?.positionable) {
-        return false;
-      }
-    }
+    // Canonical placements preserve identities; link topology still determines
+    // midpoint constraints and interaction authority, as in WebVOWL 1.1.7.
     let link;
     if (elementTools.isLabel(d) || elementTools.isProperty(d)) {
       link = d.link();
@@ -1065,6 +1076,8 @@ function createGraph(
           return;
         }
         activeMouseDrag = captureMouseGesture(event, "drag") ?? activeMouseDrag;
+        // D3 owns the gesture so dragging a constrained label cannot pan the
+        // canvas. Its callbacks leave the label and simulation unchanged.
         if (isSolitaryLabel(d)) {
           return;
         }
@@ -1587,15 +1600,26 @@ function createGraph(
           skippedUpdates++;
           return;
         }
-        const pathStart = math.calculateIntersection(curvePoint, l.domain(), 1);
-        const pathEnd = math.calculateIntersection(curvePoint, l.range(), 1);
+        const straight = isSolitaryLabel(curvePoint);
+        const pathStart = math.calculateIntersection(
+          straight ? l.range() : curvePoint,
+          l.domain(),
+          1,
+        );
+        const pathEnd = math.calculateIntersection(
+          straight ? l.domain() : curvePoint,
+          l.range(),
+          1,
+        );
 
         if (
-          !svgRenderingGuard.setCurvePath(this, [
-            pathStart,
-            curvePoint,
-            pathEnd,
-          ])
+          !(straight
+            ? svgRenderingGuard.setLinePath(this, pathStart, pathEnd)
+            : svgRenderingGuard.setCurvePath(this, [
+                pathStart,
+                curvePoint,
+                pathEnd,
+              ]))
         ) {
           skippedUpdates++;
         }
@@ -1734,10 +1758,25 @@ function createGraph(
         skippedUpdates++;
         return;
       }
-      const pathStart = math.calculateIntersection(curvePoint, l.domain(), 1);
-      const pathEnd = math.calculateIntersection(curvePoint, l.range(), 1);
+      const straight = isSolitaryLabel(curvePoint);
+      const pathStart = math.calculateIntersection(
+        straight ? l.range() : curvePoint,
+        l.domain(),
+        1,
+      );
+      const pathEnd = math.calculateIntersection(
+        straight ? l.domain() : curvePoint,
+        l.range(),
+        1,
+      );
       if (
-        !svgRenderingGuard.setCurvePath(this, [pathStart, curvePoint, pathEnd])
+        !(straight
+          ? svgRenderingGuard.setLinePath(this, pathStart, pathEnd)
+          : svgRenderingGuard.setCurvePath(this, [
+              pathStart,
+              curvePoint,
+              pathEnd,
+            ]))
       ) {
         skippedUpdates++;
         return;
@@ -2369,7 +2408,7 @@ function createGraph(
     const subclassLabels = [];
     const otherLabels = [];
     for (const label of labelNodes) {
-      if (label.property().labelVisible()) {
+      if (label.property().labelVisible() || label.inverse()?.labelVisible()) {
         (elementTools.isRdfsSubClassOf(label.property())
           ? subclassLabels
           : otherLabels
@@ -2389,7 +2428,8 @@ function createGraph(
       if (
         reuse &&
         this.childNodes.length &&
-        !canonicalElements.dirty.has(label.property())
+        !canonicalElements.dirty.has(label.property()) &&
+        !canonicalElements.dirty.has(label.inverse())
       ) {
         label.property().addMouseListeners();
         label.inverse()?.addMouseListeners();
@@ -2710,6 +2750,7 @@ function createGraph(
       .on("end.runtimeLayout", publishLayoutState);
     force.stop();
     loadGraphData(candidate.elements);
+    installCanonicalRenderPlacements(candidate.elements);
     refreshGraphData();
     for (let i = 0; i < labelNodes.length; i++) {
       const label = labelNodes[i];
@@ -2785,6 +2826,17 @@ function createGraph(
     const previous = {
       drawing: acceptedDrawing,
       state: graph.readCanonicalDrawingState(),
+      motion: new Map(
+        arrangedElements().map(({ rendererKey, position }) => [
+          rendererKey,
+          Object.fromEntries(
+            ["x", "y", "px", "py", "vx", "vy", "fx", "fy"].map((field) => [
+              field,
+              position[field],
+            ]),
+          ),
+        ]),
+      ),
       scale: zoomFactor,
       translation: [...graphTranslation],
       display: {
@@ -2844,6 +2896,12 @@ function createGraph(
         recoveredDrawing.camera = previous.state.camera;
         const recovered = prepareCanonicalDrawing(recoveredDrawing);
         install(recovered, previous.display);
+        for (const { rendererKey, position } of arrangedElements()) {
+          const motion = previous.motion.get(rendererKey);
+          if (motion) {
+            Object.assign(position, motion);
+          }
+        }
       } catch (recoveryError) {
         const failure = new AggregateError(
           [error, recoveryError],
@@ -2869,18 +2927,20 @@ function createGraph(
       throw new Error("No canonical drawing is mounted.");
     }
     return {
-      placements: arrangedElements().flatMap(({ element, position }) => {
-        const binding = canonicalElements.bindings.get(element.id());
-        return binding?.positionable
-          ? [
-              {
-                occurrence: binding.label ?? binding.occurrence,
-                position: { x: position.x, y: position.y },
-                pinned: element.pinned() === true,
-              },
-            ]
-          : [];
-      }),
+      placements: arrangedElements().flatMap(({ element, position }) =>
+        [element, element.inverse?.()].filter(Boolean).flatMap((owner) => {
+          const binding = canonicalElements.bindings.get(owner.id());
+          return binding?.positionable
+            ? [
+                {
+                  occurrence: binding.label ?? binding.occurrence,
+                  position: { x: position.x, y: position.y },
+                  pinned: owner.pinned() === true,
+                },
+              ]
+            : [];
+        }),
+      ),
       camera: {
         center: {
           x:
@@ -3158,7 +3218,10 @@ function createGraph(
     for (const position of labelNodes) {
       const primary = position.property();
       const inverse = primary.inverse();
-      const offset = inverse ? primary.height() / 2 + 1 : 0;
+      const offset =
+        inverse && primary.labelVisible() && inverse.labelVisible()
+          ? primary.height() / 2 + 1
+          : 0;
       liveLabelsById.set(String(primary.id()), {
         element: primary,
         position,
@@ -3303,6 +3366,28 @@ function createGraph(
   /** --------------------------------------------------------- **/
   /** -- halo and localization functions --                     **/
   /** --------------------------------------------------------- **/
+  function updatePropertyHalo(node, property, inverse) {
+    if (!property) {
+      return;
+    }
+    if (
+      !property.labelVisible() ||
+      !highlightedElementIds.includes(property.id())
+    ) {
+      property.removeHalo();
+      return;
+    }
+    if (
+      property.getHalos()?.node()?.parentNode !==
+      property.labelElement()?.node()
+    ) {
+      property.drawHalo();
+    }
+    if (property.getHalos()) {
+      computeDistanceToCenter(node, inverse);
+    }
+  }
+
   function updateHaloRadius() {
     if (pulseNodeIds && pulseNodeIds.length > 0) {
       const forceNodes = force.nodes();
@@ -3310,37 +3395,12 @@ function createGraph(
         const node = forceNodes[pulseNodeIds[i]];
         if (node) {
           if (node.property) {
-            // match search strings with property label
-            if (node.property().inverse) {
-              // The halo belongs on whichever of the property and its inverse
-              // the reader actually selected. The runtime reports that set, so
-              // membership answers it exactly rather than by matching text.
-              if (highlightedElementIds.includes(node.property().id())) {
-                computeDistanceToCenter(node);
-              } else {
-                node.property().removeHalo();
-                if (node.property().inverse()) {
-                  if (!node.property().inverse().getHalos()) {
-                    node.property().inverse().drawHalo();
-                  }
-                  computeDistanceToCenter(node, true);
-                }
-                if (node.property().equivalents()) {
-                  const eq = node.property().equivalents();
-                  for (let e = 0; e < eq.length; e++) {
-                    if (!eq[e].getHalos()) {
-                      eq[e].drawHalo();
-                    }
-                  }
-                  if (!node.property().getHalos()) {
-                    node.property().drawHalo();
-                  }
-                  computeDistanceToCenter(node, false);
-                }
-              }
-            }
+            // The shared force point does not merge the two semantic selections.
+            updatePropertyHalo(node, node.property(), false);
+            updatePropertyHalo(node, node.inverse(), true);
+          } else {
+            computeDistanceToCenter(node);
           }
-          computeDistanceToCenter(node);
         }
       }
     }
@@ -3780,9 +3840,10 @@ function createGraph(
         if (le_node.property) {
           if (pulseNodeIds.indexOf(forceId) === -1) {
             pulseNodeIds.push(forceId);
-            le_node.property().foreground();
-            le_node.property().drawHalo();
           }
+          const property = liveLabelsById.get(String(selectedId))?.element;
+          property?.foreground();
+          property?.drawHalo();
         }
       } else {
         missedIds.push(selectedId);

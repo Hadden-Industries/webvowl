@@ -182,12 +182,12 @@ export function createCanonicalVowlSourceAcquisition({
       const sources = new Map(
         (imports?.cacheEvidence?.() ?? []).map((entry) => [
           entry.requestedDocumentIri,
-          entry,
+          { ...entry, role: "import" },
         ]),
       );
       const root = sourceEvidence.get(rootBytes);
       if (root) {
-        sources.set(root.requestedDocumentIri, root);
+        sources.set(root.requestedDocumentIri, { ...root, role: "ontology" });
       }
       if (sources.size === 0) {
         return undefined;

@@ -39,7 +39,7 @@ function createControllerState(overrides = {}) {
     translation: null,
     layout: { status: "settled" },
     selection: [],
-    renderProgress: null,
+    loadProgress: null,
     editorMode: null,
     temporaryPresentation: null,
     error: null,
@@ -116,14 +116,14 @@ describe("controller state presentation", () => {
     expect(presentationSpies.renderViewport).not.toHaveBeenCalled();
   });
 
-  test("an edit refreshes only the active archive offer's source controls", () => {
+  test("editing a cached source does not present a source load", () => {
     const { presenter, presentationSpies } = mountPresenter();
     const state = createControllerState({
       documentRevision: 2,
       source: { cache: { documentRevision: 1, hasUpdate: true } },
     });
     presenter.present(state, ["documentRevision"]);
-    expect(presentationSpies.renderLoadState).toHaveBeenCalledWith(state);
+    expect(presentationSpies.renderLoadState).not.toHaveBeenCalled();
     expect(presentationSpies.renderViewport).not.toHaveBeenCalled();
   });
 
@@ -276,12 +276,12 @@ describe("controller state presentation", () => {
     presenter.present(
       createControllerState({
         status: "loading",
-        renderProgress: {
+        loadProgress: {
           completedRenderedElementCount: 40,
           totalRenderedElementCount: 100,
         },
       }),
-      ["renderProgress"],
+      ["loadProgress"],
     );
 
     expect(presentationSpies.renderLoadState).toHaveBeenCalledTimes(1);

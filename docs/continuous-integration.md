@@ -1,55 +1,124 @@
-# Proportional continuous integration
+# Continuous integration
 
-Pull requests and pushes to `main` compare the event's base commit with the checked-out revision.
-Changes limited to root Markdown files and Markdown under `docs/` use the documentation path.
-`AGENTS.md` is repository policy and always selects full checks.
-Any other changed path, including a deleted source file or a file renamed from source into documentation, selects full checks.
-Missing history, invalid event data and manual runs also select full checks.
+## Determine which checks apply
 
-For example, editing only `README.md` and `docs/webmcp.md` selects documentation checks.
-Adding a change to `src/`, a dependency lockfile or a workflow selects full checks instead.
-A docs-only pull request still shows successful required statuses for `WebVOWL application`, `Dependency review` and `CodeQL gate`, while application, Python tooling and CodeQL analysis jobs are skipped.
+For pull requests and pushes to `main`, the [scope selector](../util/selectCiChecks.mjs) compares the event's base commit with the checked-out revision.
+Changes limited to root Markdown and Markdown under `docs/` use the documentation path.
+A change to `AGENTS.md`, any other changed path, a manual run, or an unavailable comparison triggers full checks.
+A source file renamed into documentation still counts as a source change.
 
-Documentation-only and mixed changes run the same Linux Markdown job against the complete authored corpus.
-The job acquires the isolated locked Markdown Quality graph with lifecycle scripts disabled, then runs `npm run check:docs` and the consumer integration probes.
-The public package command owns selection, formatting checks, GFM linting, local links, result semantics and bounded checker execution.
-Tracked Markdown is reconciled through the same selector, including missing selected documents.
+| Check                      | Fresh documentation-only run | Fresh full run     |
+| -------------------------- | ---------------------------- | ------------------ |
+| Markdown                   | Ubuntu                       | Ubuntu             |
+| JSON quality               | Ubuntu and Windows           | Ubuntu and Windows |
+| Corpus storage             | Ubuntu                       | Ubuntu             |
+| Python tooling             | Skipped                      | Ubuntu and Windows |
+| Application build and Jest | Skipped                      | Ubuntu             |
 
-Full checks retain application tests and builds, the Ubuntu and Windows Python tooling jobs, and checks of all tracked authored documents.
-For fresh runs, the required `WebVOWL application` status accepts skipped application and Python jobs only when scope selection succeeded and explicitly selected the documentation path.
-Failures, cancellations and unexpected skipped jobs fail that status.
+The application job waits for corpus storage, builds with the normal formatting and lint checks, runs Jest, and checks the production bundle budgets.
+The required `WebVOWL application` status accepts skipped application and Python jobs when scope selection explicitly chooses the documentation path.
+Failures, cancellations, and unexpected skips fail the gate.
+`Dependency review` reports that analysis is inapplicable on the documentation path.
 
-Normal merges to `main` can reuse an immutable, successful same-repository PR receipt when the tested tree, parents, workflow, check scope and hosted identity match.
-The verifier requires the complete successful PR job inventory, including JSON quality on Ubuntu and Windows.
-With verified reuse, the application, Python, Markdown and JSON jobs are skipped on the merge; the required gate checks the retained provenance and expected skips.
-Missing, invalid or expired evidence falls back to fresh execution, and JSON still runs on documentation-only PRs and manual runs.
-Corpus storage checks continue to execute on every route.
+## Check Markdown
 
-The `Dependency review` status remains present for documentation-only pull requests and reports that dependency analysis is not applicable.
+| Task                                | Command                                                               |
+| ----------------------------------- | --------------------------------------------------------------------- |
+| Check all authored Markdown         | `npm run check:docs`                                                  |
+| Inspect selected and excluded paths | `npm exec -- markdown-quality inspect --root . --json`                |
+| Check one path and emit JSON        | `npm run --silent check:docs -- --json -- README.md`                  |
+| Preview formatting for one path     | `npm exec -- markdown-quality format --dry-run --root . -- README.md` |
+| Write formatting for one path       | `npm run format:docs -- -- README.md`                                 |
 
-CodeQL uses the same classification and skips analysis for documentation-only changes.
-Scheduled and manual runs always analyze all three configured languages.
-The required `CodeQL gate` status accepts a documentation-only skip; otherwise, it requires successful analysis and, on pull requests, the external CodeQL security verdict for the current head commit.
-Analysis waits for uploaded results to finish processing before the gate reads that verdict.
-Missing results, blocking alerts, failed analyses and API errors prevent the gate from passing.
+The root npm lock installs Markdown Quality 3.0.1 and its matching native package alongside the other development dependencies.
+The Linux job installs the root lock with `npm ci --include=dev --ignore-scripts`, runs `check:docs`, then runs `test:markdown`.
+The scope probe checks that maintained paths are selected and tracked preserved records are explicitly excluded.
 
-Local `npm run check:docs` checks the same full authored scope.
-`.markdown-quality.json` is the only Markdown policy authority: its schema 2 exclusions explicitly preserve the former omissions of the `docs/owlapi-js/`, `docs/sdlc/`, `docs/reviews/` and `docs/evaluations/` archives.
-Git and Prettier ignore files continue serving their own tools and have no Markdown-selection authority.
-The migration retained all 69 previously selected document paths and includes `AGENTS.md` at the owner's request, bringing the corpus to 70 documents.
+The checker uses `authored-gfm@2` defaults for formatting, GFM diagnostics, and local link and fragment checks.
+[The Markdown policy](../.markdown-quality.json) uses schema 3 to exclude preserved reference material and historical evidence.
+Git and Prettier ignore files govern their own tools.
+For a result covering the whole authored scope, run `npm run check:docs`.
 
-The isolated graph in `tooling/markdown/` installs committed core and Windows/Linux archives from producer source [`47febbe1b6f3282814e77db7ea13eac72b4928ed`](https://github.com/Hadden-Industries/markdown-quality/tree/47febbe1b6f3282814e77db7ea13eac72b4928ed).
-The lockfile records their exact integrities; the core archive carries its clean source/tree/producer-lock identity and the AGPL source and notices.
-Package version `1.0.3` alone does not identify this source adoption.
-Commands use the supported public package bins and API/schema exports rather than private implementation entry points.
+The write script already supplies `--write`.
+Use the direct `--dry-run` command to preview.
+From outside the checkout, run `npm --prefix <absolute-repository-root> run check:docs`.
 
-`.markdown-quality-execution.json` supplies finite local and hosted bounds: six samples, 30 seconds per checker, a 180 second window, a 1024 MiB memory limit, 128 MiB Node/worker heaps and exact runtime declarations.
-Windows observes cumulative Job peak committed bytes; Linux samples process-group RSS, so their resource measurements have different boundaries.
-Six passing samples describe the observed window and do not guarantee future tail performance.
+## Check JSON and corpus storage
 
-The manually dispatched trusted qualification caller uses the reusable producer workflow pinned to [`fa1188a867b29bddd0b972a080b7fcd0261bdec3`](https://github.com/Hadden-Industries/markdown-quality/tree/fa1188a867b29bddd0b972a080b7fcd0261bdec3).
-This workflow revision advances independently of the retained, qualified 1.0.3 package archives.
-It accepts distinct full trusted and candidate commits and processes candidate content as data through the installed producer-owned staging and observer contracts.
-The owner must first accept the exact reviewed trusted policy/profile/lock/archive tuple, then accept the attributable positive and adversarial hosted results before normal integration.
-An ordinary green CI status is not that trust decision.
-No consumer checker, staging implementation, observer or compatibility fallback is retained.
+| Task                                  | Command                         |
+| ------------------------------------- | ------------------------------- |
+| Check the complete owned JSON scope   | `npm run check:json`            |
+| Stream version-5 NDJSON events        | `npm run --silent inspect:json` |
+| Run the focused WebVOWL policy probes | `npm run test:json`             |
+| Verify corpus bytes and locators      | `npm run check:corpus-storage`  |
+
+The JSON job runs on Ubuntu 24.04 and Windows 2025.
+It runs the focused probes, builds with `npm run build:bundle`, then invokes [the post-build verifier](../util/verifyGeneratedRepositoryJson.mjs).
+Run those steps from the repository root to reproduce the JSON job locally.
+
+```sh
+npm run test:json
+npm run build:bundle
+node util/verifyGeneratedRepositoryJson.mjs
+```
+
+The verifier uses one JSON Quality session to check owned physical files and bundled JSON, require the generated data and Vite asset manifest under `deploy/`, and confirm that the check observes each bundled JSON path in the storage inventory exactly once.
+A successful run requires a complete repository result.
+The focused probes cover presentation ownership, scoped NFC exemptions, and the missing or duplicate path checks.
+
+The independent [corpus storage check](../packages/vowl/conformance/STORAGE.md) verifies bundle and member hashes, JSON locators, and the absence of obsolete loose copies.
+It also covers stored N-Quads.
+This job runs even when CI reuses a verified PR receipt.
+
+### Inspect policy and repair eligible files
+
+The root lock selects JSON Quality 1.0.0 and its matching native package.
+The [schema-4 policy](../.json-quality.json) uses `allowSourceRewrites` for write protection, `excludeUntrackedSources` for external installations and named local state, and `nfcExemptStringValues` for exact string exemptions.
+Tracked files remain in scope, including `.mcp.json`.
+Owned generated files are checked when present.
+`npm run check:json -- --require-generated` also requires the generated outputs.
+
+Expected-negative fixtures retain their byte identities and exact diagnostics.
+Canonical JSON follows its producer's compact presentation, while protected bundles, archives, evidence, deployment outputs, and npm locks are repaired through their owners.
+The two narrowly exempted NFC fixtures retain six exact strings, including five values scoped to one identified JSONL record.
+
+`npm run format:json:check` runs the same complete read-only check as `npm run check:json`.
+`npm run format:json` and `npm run normalize:json` pass `--write`.
+Put literal paths after `-- --`, and supply at least one writable path for normalization.
+Use `npm run check:json -- --max-source-bytes 67108864` to select a per-source admission ceiling for a check.
+`--no-capacity-limits` removes admission ceilings for that invocation.
+Runtime controls such as the configured check deadline still apply.
+
+The [repository adapter](../util/runRepositoryJsonQuality.mjs) exposes `openRepositoryJsonSession()` for programmatic checks.
+Consume `session.check()` through `execution-terminal` and close the session in `finally`.
+Use `openJsonSourceSession()` for supplied bytes under an explicit source contract.
+`formatJsonSource(text)` and `normalizeJsonSource(text)` return text for finite in-memory transformations.
+
+The shared ESLint rule rejects raw `JSON.stringify` as a semantic identity key.
+Ordered scalar tuples, exact byte contracts, and digest preimages require an attached `json-identity-contract` declaration with an owner and reason.
+
+## Check Python tooling
+
+The Ubuntu and Windows jobs use the SHA-pinned `actions/setup-python` v7.1.0 action with [.python-version](../.python-version).
+Each job creates `.venv`, installs the [hash-locked requirements](../requirements.lock.txt), and runs `npm run check:python`.
+The lock selects Ruff 0.17.4, Click 8.5.1, and pip 26.3.
+The check runs Ruff formatting and lint checks, then the Python setup tests.
+
+## Reuse evidence after merge
+
+A merge to `main` can reuse an immutable, successful PR receipt from the same repository when the tested tree, parents, workflow, check scope, and hosted identity match.
+The verifier requires the complete successful PR job inventory, including JSON quality on both platforms.
+
+With verified reuse, the application, Python, Markdown, and JSON jobs skip execution on the merge.
+The required gate checks the retained evidence and expected skips.
+Missing, invalid, or expired evidence triggers fresh checks.
+
+## Read the CodeQL result
+
+[The CodeQL workflow](../.github/workflows/codeql.yml) pins both initialization and analysis to v4.39.3.
+It uses the same scope classification, and scheduled and manual runs analyze GitHub Actions, JavaScript and TypeScript, and Python.
+
+The required `CodeQL gate` accepts a documentation-only skip.
+For analysis runs, it requires successful jobs and waits for uploaded results to finish processing.
+On pull requests it also checks the external security verdict for the current head commit.
+Missing results, blocking alerts, failed analyses, and API errors fail the gate.

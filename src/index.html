@@ -118,68 +118,121 @@
         </script>
         <output id="visualizationActionStatus" hidden></output>
         <div id="loading-info" class="hidden">
-          <div id="loading-progress">
-            <div class="hidden">Loading ontology...</div>
-            <div id="layoutLoadingProgressBarContainer">
-              <h2 id="currentLoadingStep">Layout optimization</h2>
-              <div id="progressBarContext">
-                <label class="sr-only" for="progressBarValue"
-                  >Layout optimization progress</label
+          <section id="loading-progress" aria-labelledby="currentLoadingStep">
+            <header class="loading-header">
+              <h2 id="currentLoadingStep">Opening ontology</h2>
+              <p id="loading-source-label">Ontology source</p>
+            </header>
+            <ol class="loading-stages" aria-label="Loading stages">
+              <li id="loading-stage-source">
+                <span
+                  id="loading-stage-source-marker"
+                  class="loading-stage-marker"
+                  aria-hidden="true"
+                  >1</span
                 >
-                <progress id="progressBarValue" max="100"></progress>
-                <output
-                  id="progressBarLabel"
-                  for="progressBarValue"
-                  aria-live="polite"
-                ></output>
-              </div>
+                <div>
+                  <h3>Get ontology source</h3>
+                  <p id="loading-stage-source-description">
+                    Retrieving the ontology document
+                  </p>
+                  <progress
+                    id="loading-stage-source-progress"
+                    aria-label="Retrieving the ontology source"
+                  ></progress>
+                </div>
+              </li>
+              <li id="loading-stage-reading">
+                <span
+                  id="loading-stage-reading-marker"
+                  class="loading-stage-marker"
+                  aria-hidden="true"
+                  >2</span
+                >
+                <div>
+                  <h3>Read classes and relationships</h3>
+                  <p id="loading-stage-reading-description">
+                    Waiting for the source document
+                  </p>
+                  <progress
+                    id="loading-stage-reading-progress"
+                    aria-label="Reading the ontology and its imports"
+                    hidden
+                  ></progress>
+                </div>
+              </li>
+              <li id="loading-stage-drawing">
+                <span
+                  id="loading-stage-drawing-marker"
+                  class="loading-stage-marker"
+                  aria-hidden="true"
+                  >3</span
+                >
+                <div>
+                  <h3>Draw the graph</h3>
+                  <p id="loading-stage-drawing-description">
+                    Waiting for the ontology
+                  </p>
+                  <progress
+                    id="loading-stage-drawing-progress"
+                    aria-label="Preparing the first visible graph"
+                    hidden
+                  ></progress>
+                </div>
+              </li>
+            </ol>
+            <div class="loading-time">
+              <span id="loading-elapsed">00:00 elapsed</span
+              ><span id="loading-estimate"
+                >Time remaining is not yet known</span
+              >
             </div>
-            <p id="loadingErrorMessage" role="status" hidden></p>
+            <p id="loadingErrorMessage" hidden></p>
             <div id="loadingInfo_msgBox">
               <button
                 id="show-loadingInfo-button"
-                class="accordion-trigger noselect"
+                aria-expanded="false"
+                aria-controls="loadingInfo-container"
                 type="button"
               >
-                Details
+                Technical details
               </button>
-              <div id="loadingInfo-container">
+              <div id="loadingInfo-container" hidden>
+                <dl class="loading-technical">
+                  <dt>Source</dt>
+                  <dd id="loading-source-detail"></dd>
+                  <dt>Current activity</dt>
+                  <dd id="loading-current-activity"></dd>
+                  <dt>Current import</dt>
+                  <dd id="loading-current-document"></dd>
+                  <dt>Received</dt>
+                  <dd id="loading-received"></dd>
+                </dl>
                 <ul id="bulletPoint_container"></ul>
               </div>
             </div>
-            <div>
-              <button id="loadingIndicator_closeButton" class="" type="button">
-                Close Warning
+            <footer class="loading-actions">
+              <button id="loading-primary-action" type="button">
+                Cancel loading
               </button>
+              <button id="loadingIndicator_closeButton" type="button">
+                Hide progress
+              </button>
+            </footer>
+          </section>
+          <div id="loading-compact" hidden>
+            <div>
+              <strong id="loading-compact-title">Opening ontology</strong
+              ><span id="loading-compact-elapsed">00:00 elapsed</span>
             </div>
+            <button id="loading-show-progress" type="button">
+              Show progress
+            </button>
           </div>
         </div>
+        <span id="loading-announcement" class="sr-only" role="status"></span>
 
         <div id="additionalInformationContainer">
-          <section
-            id="ontologyCacheSource"
-            aria-label="Archived ontology source"
-            hidden
-          >
-            <p id="ontologyCacheSourceStatus" role="status"></p>
-            <div>
-              <button
-                id="checkOntologySourceUpdate"
-                class="ontology-source-action"
-                type="button"
-              >
-                Check source
-              </button>
-              <button
-                id="applyOntologySourceUpdate"
-                class="ontology-source-action"
-                type="button"
-                hidden
-              >
-                Apply source update
-              </button>
-            </div>
-          </section>
           <button id="reloadOntologySource" type="button" class="hidden">
             <svg
               class="bi bi-arrow-clockwise reloadOntologySourceIcon"
@@ -1814,12 +1867,41 @@
           <button type="submit">Close overview</button>
         </form>
       </div>
-      <div id="ontology-overview-body"></div>
       <section aria-labelledby="ontology-source-heading">
-        <h3 id="ontology-source-heading">Source and loading information</h3>
-        <dl id="ontology-source-provenance"></dl>
-        <ul id="ontology-overview-warnings"></ul>
+        <h3 id="ontology-source-heading">Sources</h3>
+        <p id="ontology-overview-source-status" role="status"></p>
+        <p id="ontology-source-check-help" hidden>
+          Update checks look for changes to saved source documents at their
+          recorded publisher URLs. They do not assess OWL correctness or
+          standards conformance. The graph changes only when you load an update.
+        </p>
+        <div id="ontology-source-provenance"></div>
+        <div
+          class="ontology-source-actions"
+          id="ontology-overview-source-actions"
+          hidden
+        >
+          <button id="ontology-overview-check-sources" type="button">
+            Check saved sources for updates
+          </button>
+          <button id="ontology-overview-apply-sources" type="button" hidden>
+            Reload with updated sources
+          </button>
+        </div>
       </section>
+      <section
+        id="ontology-overview-notes"
+        aria-labelledby="ontology-notes-heading"
+        hidden
+      >
+        <h3 id="ontology-notes-heading">Parsing and visualization notes</h3>
+        <p id="ontology-overview-notes-summary"></p>
+        <details>
+          <summary>View parsing and mapping details</summary>
+          <ul id="ontology-overview-warnings"></ul>
+        </details>
+      </section>
+      <div id="ontology-overview-body"></div>
       <div class="ontology-dialog-actions">
         <button id="ontology-overview-facts" type="button" disabled>
           Ontology facts

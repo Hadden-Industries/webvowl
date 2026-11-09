@@ -1,4 +1,4 @@
-import isEqual from "lodash/isEqual.js";
+import { equalDataTree } from "../../../shared/js/util/equalDataTree.js";
 import { selectOwlMappingStrategy } from "./owlMappingStrategy.js";
 import { createNodeCountAdjustment } from "./nodeCountAdjustment.js";
 import { createControllerOperationLifecycle } from "./controllerOperationLifecycle.js";
@@ -62,7 +62,7 @@ const idle = {
   layout: { status: "unavailable" },
   selection: [],
   selectedDocumentRecord: null,
-  renderProgress: null,
+  loadProgress: null,
   nodeCountStatus: null,
   nodeCountAdjustment: null,
   editorMode: null,
@@ -105,6 +105,8 @@ export function createCanonicalWebVowlController({
   let replacementLayoutHold;
   let cacheObservation;
   let loadedSource;
+  let pendingLoadCancellation;
+  let nextLoadRequestId = 0;
   const lifecycle = createControllerOperationLifecycle({
     readIdentity: () => session.identity(),
     retirePresentation: () => clearNeighborhood(),
@@ -333,7 +335,9 @@ export function createCanonicalWebVowlController({
       retainedState = state;
     }
     const fields = Object.freeze(
-      Object.keys(changes).filter((key) => !isEqual(previous[key], state[key])),
+      Object.keys(changes).filter(
+        (key) => !equalDataTree(previous[key], state[key]),
+      ),
     );
     const published = state;
     if (fields.includes("selection") && state.selection.length === 0) {
@@ -882,6 +886,14 @@ export function createCanonicalWebVowlController({
         ? observation
         : null;
     },
+    cancelOntologyLoad() {
+      const isCancellationRequested =
+        state.status === "loading" && pendingLoadCancellation !== undefined;
+      if (isCancellationRequested) {
+        pendingLoadCancellation.abort();
+      }
+      return Object.freeze({ isCancellationRequested });
+    },
     async loadOntology(
       { source, reuseCachedOntology },
       {
@@ -907,8 +919,44 @@ export function createCanonicalWebVowlController({
       countAdjustment.cancel();
       ticket.prepareScene();
       ticket.accept();
-      const combined = ticket.signal;
+      const cancellation = new AbortController();
+      pendingLoadCancellation = cancellation;
+      const combined = AbortSignal.any([ticket.signal, cancellation.signal]);
       const previous = retainedState;
+      const received = new Map();
+      let progress = {
+        requestId: ++nextLoadRequestId,
+        stage: "source",
+        sourceLabel: String(
+          retained.displayName ??
+            retained.documentIri ??
+            retained.url ??
+            "Pasted ontology",
+        ).slice(0, 2048),
+        receivedDocumentCount: 0,
+        receivedByteCount: 0,
+      };
+      function reportProgress(changes) {
+        if (
+          !ticket.isCurrent() ||
+          combined.aborted ||
+          state.status !== "loading"
+        ) {
+          return;
+        }
+        progress = { ...progress, ...changes };
+        publish({ loadProgress: progress });
+      }
+      function receiveDocument(documentIri, bytes) {
+        received.set(documentIri, bytes?.byteLength ?? 0);
+        reportProgress({
+          receivedDocumentCount: received.size,
+          receivedByteCount: [...received.values()].reduce(
+            (sum, size) => sum + size,
+            0,
+          ),
+        });
+      }
       let releaseLayout = () => {};
       try {
         combined.throwIfAborted();
@@ -916,6 +964,7 @@ export function createCanonicalWebVowlController({
         ticket.assertCurrent();
         publish({
           status: "loading",
+          loadProgress: progress,
           ...(replacementLayoutHold ? { layout: layoutState("paused") } : {}),
           selection: [],
           selectedDocumentRecord: null,
@@ -962,6 +1011,14 @@ export function createCanonicalWebVowlController({
           );
         }
         combined.throwIfAborted();
+        receiveDocument(
+          request.documentIri ??
+            retained.documentIri ??
+            retained.url ??
+            "local",
+          request.bytes,
+        );
+        reportProgress({ stage: "reading" });
         let attempt;
         if (request.operation === "open-owl-model") {
           request = {
@@ -995,8 +1052,24 @@ export function createCanonicalWebVowlController({
                 reuseCachedOntology === undefined ||
                 reuseCachedOntology === true,
               signal: AbortSignal.any([combined, attempt.signal]),
-              resolveImport:
-                imports?.resolveImport ?? acquisition.resolveImport,
+              resolveImport: async (importIri, options) => {
+                reportProgress({ currentDocumentIri: importIri });
+                const imported = await (
+                  imports?.resolveImport ?? acquisition.resolveImport
+                )(importIri, options);
+                receiveDocument(
+                  imported.documentIri ?? importIri,
+                  imported.bytes,
+                );
+                reportProgress({ currentDocumentIri: null });
+                return imported;
+              },
+              onDrawingPrepared: (counts) =>
+                reportProgress({
+                  stage: "drawing",
+                  ...counts,
+                  currentDocumentIri: null,
+                }),
               renderedGraphRuntime: runtime,
               useAutomaticNodesShown,
               onNodeOrdering: ({
@@ -1075,9 +1148,9 @@ export function createCanonicalWebVowlController({
             accepted.diagnostics ?? accepted.inspection.diagnostics
           ).map(({ message }) => message),
           view: readView(),
-          ...(accepted.nodeCountStatus
-            ? { nodeCountStatus: accepted.nodeCountStatus }
-            : {}),
+          // Ordering may finish before this load's generation is published.
+          // Read the session now instead of restoring its captured preview status.
+          nodeCountStatus: session.nodeCountStatus(),
           ...runtime.readVisualizationViewport(),
           layout: {
             status: layout.isPaused
@@ -1121,6 +1194,7 @@ export function createCanonicalWebVowlController({
           const cancelled = combined.aborted || cause?.name === "AbortError";
           publish({
             ...previous,
+            loadProgress: cancelled ? previous.loadProgress : progress,
             ...(previous.nodeCountStatus && session.nodeCountStatus
               ? { nodeCountStatus: session.nodeCountStatus() }
               : {}),
@@ -1146,6 +1220,9 @@ export function createCanonicalWebVowlController({
         }
         throw cause;
       } finally {
+        if (pendingLoadCancellation === cancellation) {
+          pendingLoadCancellation = undefined;
+        }
         releaseLayout();
         ticket.release();
       }

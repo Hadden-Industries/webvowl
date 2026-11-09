@@ -22,6 +22,7 @@ class LoadingControl extends EventTarget {
     this.scrollHeight = 0;
     this.scrollTop = 0;
     this.textContent = "";
+    this.dataset = {};
     this.classes = new Set();
     this.classList = {
       add: (...classNames) =>
@@ -58,6 +59,8 @@ global.window = {
 };
 
 beforeAll(async () => {
+  const { createLoadingProgressPresenter } =
+    await import("./ui/loadingProgressPresenter.js");
   const { readVisualizationShareLink } =
     await import("./controller/visualizationShareLink.js");
   const loadingModuleUrl = new URL("./loadingModule.js", import.meta.url);
@@ -86,6 +89,18 @@ beforeAll(async () => {
     resolveFetchUrlModuleUrl,
   );
   await loadingModuleSource.link((specifier) => {
+    if (specifier === "./ui/loadingProgressPresenter.js") {
+      return new SyntheticModule(
+        ["createLoadingProgressPresenter"],
+        function () {
+          this.setExport(
+            "createLoadingProgressPresenter",
+            createLoadingProgressPresenter,
+          );
+        },
+        { context: loadingModuleContext, identifier: specifier },
+      );
+    }
     if (specifier === "./controller/visualizationShareLink.js") {
       return new SyntheticModule(
         ["readVisualizationShareLink"],
@@ -512,74 +527,26 @@ describe("loading module controller state presentation", () => {
     loadingModuleContext.document = undefined;
   });
 
-  test.each([
-    [
-      "CACHE_OFFER_SUPERSEDED",
-      "The offered source has changed. Check the source again.",
-    ],
-    [
-      "CACHE_UNAVAILABLE",
-      "Source check failed; the archived graph remains open",
-    ],
-  ])(
-    "source-action failure retains its controller status: %s",
-    async (code, message) => {
-      const state = {
-        status: "ready",
-        loadGeneration: 1,
-        documentRevision: 0,
-        source: {
-          cache: {
-            loadGeneration: 1,
-            documentRevision: 0,
-            status: "check-failed",
-            code,
-            hasUpdate: false,
-            sources: [
-              {
-                acquiredAt: "2026-10-01T00:00:00.000Z",
-                checkedAt: "2026-10-02T00:00:00.000Z",
-              },
-            ],
-          },
-        },
-      };
-      const applyOntologySourceUpdate = jest.fn(async () => {
-        throw new Error("confirmation failed");
-      });
-      loadingModule.dispose();
-      loadingModule = createLoadingModule({
-        webVowlController: {
-          getState: () => state,
-          applyOntologySourceUpdate,
-        },
-      });
-      loadingModule.setup();
-      controls
-        .get("#applyOntologySourceUpdate")
-        .dispatchEvent(new Event("click"));
-      await new Promise((resolve) => setImmediate(resolve));
-      expect(applyOntologySourceUpdate).toHaveBeenCalledTimes(1);
-      expect(controls.get("#ontologyCacheSourceStatus").textContent).toContain(
-        message,
-      );
-      expect(controls.get("#applyOntologySourceUpdate").hidden).toBe(true);
-      expect(controls.get("#checkOntologySourceUpdate").disabled).toBe(false);
-    },
-  );
-
-  test("shows layout progress while the controller reports a load", () => {
+  test("shows measured drawing counts without inventing a completion percentage", () => {
     loadingModule.renderControllerState({
       status: "loading",
       loadGeneration: 1,
-      renderProgress: {
-        completedRenderedElementCount: 40,
-        totalRenderedElementCount: 100,
+      loadProgress: {
+        requestId: 1,
+        stage: "drawing",
+        sourceLabel: "example.owl",
+        receivedDocumentCount: 1,
+        receivedByteCount: 1024,
+        drawingNodeCount: 40,
+        drawingRelationshipCount: 60,
       },
     });
 
     expect(loadingModule.getMessageVisibilityStatus()).toBe(true);
-    expect(controls.get("#progressBarLabel").textContent).toBe("40%");
+    expect(controls.get("#loading-current-activity").textContent).toBe(
+      "Drawing 40 nodes and 60 connections",
+    );
+    expect(controls.get("#loading-stage-drawing").dataset.state).toBe("active");
     expect(loadingModule.state()).toBe("rendering");
   });
 
@@ -610,7 +577,7 @@ describe("loading module controller state presentation", () => {
     loadingModule.renderControllerState({
       status: "relaxing",
       loadGeneration: 1,
-      renderProgress: {
+      loadProgress: {
         completedRenderedElementCount: 80,
         totalRenderedElementCount: 100,
       },
@@ -815,7 +782,9 @@ describe("loading module canonical controller sources", () => {
       expect(controls.get("#currentLoadingStep").textContent).toBe(
         "Loading failed",
       );
-      expect(loadingModule.getProgressBarMode()).toBe(0);
+      expect(controls.get("#loading-primary-action").textContent).toBe(
+        "Choose ontology",
+      );
       expect(loadingModule.state()).toBe(expectedState);
       loadingModule.renderControllerState({ status: "ready" });
       expect(inlineError.hidden).toBe(true);
@@ -1006,6 +975,57 @@ describe("loading module canonical controller sources", () => {
     expect(controls.get("#currentLoadingStep").className).toBe("step-error");
   });
 
+  test.each(["link", "file", "selection", "new"])(
+    "%s input errors discard earlier attempt progress and identify the current input",
+    async (kind) => {
+      const state = {
+        status: "error",
+        loadGeneration: 1,
+        source: { identity: "accepted.owl" },
+        layout: { status: "paused" },
+        loadProgress: {
+          requestId: 5,
+          stage: "drawing",
+          sourceLabel: "previous.owl",
+          receivedDocumentCount: 10,
+          receivedByteCount: 10000,
+        },
+      };
+      const fail = async () => {
+        throw new Error("Input unavailable.");
+      };
+      loadingModule =
+        kind === "link"
+          ? createLoadingModuleForLocation(
+              "https://example.test/#file=current.owl",
+              state,
+            )
+          : createLoadingModule({
+              webVowlController: { getState: () => state },
+              ...(kind === "selection" ? { selectLocalSource: fail } : {}),
+              ...(kind === "new" ? { createOntologySource: fail } : {}),
+            });
+      if (kind === "link") {
+        await loadingModule.loadOntologyFromLocation();
+      } else if (kind === "new") {
+        await loadingModule.createNewOntology();
+      } else {
+        await loadingModule.loadLocalFile({ name: "current.owl", text: fail });
+      }
+      expect(controls.get("#loading-source-detail").textContent).toBe(
+        kind === "new" ? "New ontology" : "current.owl",
+      );
+      expect(controls.get("#loading-received").textContent).toBe(
+        "Waiting for the source document",
+      );
+      expect(controls.get("#loading-stage-source").dataset.state).toBe(
+        "failed",
+      );
+      expect(loadingModule.state()).toBe("ready");
+      expect(state.loadProgress.sourceLabel).toBe("previous.owl");
+    },
+  );
+
   test("a slow earlier file cannot replace a newer selected file", async () => {
     loadingModule = createLoadingModuleForLocation(
       "https://example.test/webvowl/#foaf",
@@ -1107,7 +1127,7 @@ describe("loading module control availability", () => {
   });
 
   test("reports graph controls available when ready", () => {
-    loadingModule.markReady();
+    loadingModule.renderControllerState({ status: "ready" });
 
     // The renderer settings object no longer carries interface modules, so a
     // lookup there would silently leave the zoom controls disabled.
@@ -1115,8 +1135,8 @@ describe("loading module control availability", () => {
   });
 
   test("disables graph controls again while a load is in flight", () => {
-    loadingModule.markReady();
-    loadingModule.markLoading();
+    loadingModule.renderControllerState({ status: "ready" });
+    loadingModule.renderControllerState({ status: "loading" });
 
     expect(zoomSliderMenuModes).toEqual([true, false]);
   });

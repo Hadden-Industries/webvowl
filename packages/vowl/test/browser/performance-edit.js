@@ -9,7 +9,7 @@ import {
 } from "../../src/index.js";
 import { createCanonicalVowlWorkerClient } from "../../../../src/app/js/controller/canonicalVowlWorkerClient.js";
 import { createCanonicalVowlDocumentSession } from "../../../../src/app/js/controller/canonicalVowlDocumentSession.js";
-import isEqual from "lodash/isEqual.js";
+import { equalDataTree } from "../../../../src/shared/js/util/equalDataTree.js";
 import { createRenderedGraphInternals } from "../../../../src/webvowl/js/runtime/renderedGraphInternals.js";
 import { createD3RenderedGraphAdapter } from "../../../../src/webvowl/js/runtime/d3RenderedGraphAdapter.js";
 
@@ -185,7 +185,7 @@ async function smallLifecycle(original, cycle) {
       context(1),
     );
     check(
-      isEqual(recovery.checkpoint, edited.checkpoint),
+      equalDataTree(recovery.checkpoint, edited.checkpoint),
       `exact-recovery:${cycle}`,
     );
     const capture = await client.run(
@@ -483,7 +483,7 @@ async function qualifyConsumerLimits() {
         context(1),
       );
       check(
-        isEqual(recovered.checkpoint, edited.checkpoint),
+        equalDataTree(recovered.checkpoint, edited.checkpoint),
         "consumer-overrides-recover-exactly",
       );
     }
@@ -530,7 +530,7 @@ async function qualifyConsumerLimits() {
       context(0),
     );
     check(
-      isEqual(recoveredSource.checkpoint, owl.checkpoint),
+      equalDataTree(recoveredSource.checkpoint, owl.checkpoint),
       "consumer-infinity-source-byte-checkpoint-recovers",
     );
     await expectCode(
@@ -649,7 +649,7 @@ try {
           );
           if (recovered) {
             check(
-              isEqual(recovered.checkpoint, edited.checkpoint),
+              equalDataTree(recovered.checkpoint, edited.checkpoint),
               "chain-exact-recovery",
             );
           }
@@ -759,7 +759,7 @@ try {
             );
             if (recovered) {
               check(
-                isEqual(recovered.checkpoint, edited.checkpoint),
+                equalDataTree(recovered.checkpoint, edited.checkpoint),
                 "urd-exact-recovery",
               );
             }

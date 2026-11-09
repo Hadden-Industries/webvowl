@@ -5,6 +5,7 @@ import { beforeAll, expect, jest, test } from "@jest/globals";
 import { readFileSync } from "node:fs";
 import { canonicalControllerHarness } from "../../../app/test/canonicalControllerHarness.js";
 import { createCanonicalDrawingRequest } from "../../../app/js/controller/renderedGraphRuntimeContracts.js";
+import { createMath } from "../../../shared/js/util/math.js";
 
 const createdDragBehaviours = [];
 const createdSimulations = [];
@@ -593,6 +594,603 @@ function withoutOccurrences(drawing, ids) {
   }
   return next;
 }
+
+const LEGACY_PROPERTY_CASES = [
+  ["object property", "property-edge", "object-property", "class"],
+  ["datatype property", "property-edge", "data-property", "datatype"],
+  ["RDF property", "property-edge", "rdf-property", "class"],
+  ["subclass", "subclass-edge", "object-property", "class"],
+  ["restriction", "restriction-edge", "object-property", "class"],
+  ["disjointness", "disjoint-edge", "object-property", "class"],
+  ["set operator", "operator-edge", "object-property", "class"],
+];
+
+function legacyPropertyDrawing(edgeKind, propertyKind, rangeKind = "class") {
+  const drawing = reuseDrawing();
+  drawing.nodes = drawing.nodes.slice(0, 2);
+  drawing.nodes[1].principal.kind = rangeKind;
+  if (rangeKind === "datatype") {
+    drawing.nodes[1].principal.iri = "http://www.w3.org/2001/XMLSchema#string";
+    delete drawing.nodes[1].radiusFactor;
+  }
+  drawing.edges = [{ ...drawing.edges[0], kind: edgeKind }];
+  drawing.labels = [
+    {
+      ...drawing.labels[0],
+      principal: { ...drawing.labels[0].principal, kind: propertyKind },
+    },
+  ];
+  return drawing;
+}
+
+function dragPrimitive(h, primitive, dx, dy) {
+  const element = primitive.property
+    ? h.document
+        .querySelectorAll(".labelGroup")
+        .find((group) => group.__data__ === primitive)
+    : h.graph
+        .graphNodeElements()
+        .nodes()
+        .find((group) => group.__data__ === primitive);
+  const initial = { x: primitive.x, y: primitive.y };
+  const event = (type, x = 0, y = 0) => ({
+    identifier: "mouse",
+    button: 0,
+    x: initial.x + x,
+    y: initial.y + y,
+    sourceEvent: {
+      type,
+      clientX: 100 + x,
+      clientY: 100 + y,
+      view: h.document.defaultView,
+      stopPropagation() {},
+    },
+  });
+  if (!h.drag.filter().call(element, event("mousedown"), primitive)) {
+    return false;
+  }
+  h.drag.on("start").call(element, event("mousedown"), primitive);
+  h.drag.on("drag").call(element, event("mousemove", dx, dy), primitive);
+  h.drag.on("end").call(element, event("mouseup", dx, dy), primitive);
+  return primitive.x !== initial.x || primitive.y !== initial.y;
+}
+
+function expectLegacyMidpoint(label) {
+  // WebVOWL 1.1.7 graph.js: single-layer, non-loop links use the midpoint
+  // between the endpoint borders. This oracle does not call the runtime's eligibility helper.
+  const math = createMath();
+  const link = label.link();
+  const a = math.calculateIntersection(link.range(), link.domain(), 0);
+  const b = math.calculateIntersection(link.domain(), link.range(), 0);
+  expect(label.x).toBeCloseTo((a.x + b.x) / 2, 8);
+  expect(label.y).toBeCloseTo((a.y + b.y) / 2, 8);
+  expect(link.pathObj().node().getAttribute("d")).toMatch(/^M[^ ]+ L[^ ]+$/);
+}
+
+function inversePropertyDrawing() {
+  const drawing = legacyPropertyDrawing("inverse-edge", "object-property");
+  drawing.labels.push({
+    ...drawing.labels[0],
+    occurrence: "reverse",
+    direction: "reverse",
+    position: { x: 9, y: 200 },
+    name: "reverse",
+    principal: {
+      ...drawing.labels[0].principal,
+      record: "reverse",
+      iri: "urn:reverse",
+    },
+    records: ["reverse"],
+  });
+  return drawing;
+}
+
+test.each(
+  LEGACY_PROPERTY_CASES.flatMap((entry) =>
+    [false, true].flatMap((editor) =>
+      [false, true].map((paused) => [...entry, editor, paused]),
+    ),
+  ),
+)(
+  "legacy 1.1.7 single %s routing (edge=%s, property=%s, range=%s, editor=%s, paused=%s)",
+  (_name, edgeKind, propertyKind, rangeKind, editor, paused) => {
+    const h = mountCanonicalGraph(
+      legacyPropertyDrawing(edgeKind, propertyKind, rangeKind),
+    );
+    try {
+      h.graph.setRenderedGraphEventPort({ publishGraphLayoutState() {} });
+      h.graph.editorMode(editor);
+      h.graph.paused(paused);
+      const simulation = createdSimulations.at(-1);
+      simulation.stop();
+      const label = h.graph.graphLabelElements()[0];
+      expectLegacyMidpoint(label);
+      const group = h.document.querySelectorAll(".labelGroup")[0];
+      expect(h.drag.filter().call(group, { button: 0 }, label)).toBe(true);
+      const alpha = simulation.alpha();
+      const camera = h.graph.readCanonicalDrawingState().camera;
+      expect(dragPrimitive(h, label, 40, 90)).toBe(false);
+      expect(simulation.alpha()).toBe(alpha);
+      expect(h.graph.readCanonicalDrawingState().camera).toEqual(camera);
+      expectLegacyMidpoint(label);
+      const range = label.link().range();
+      const initial = { x: range.x, y: range.y };
+      expect(dragPrimitive(h, range, 40, 90)).toBe(true);
+      expect(range.x).toBeCloseTo(initial.x + 40, 8);
+      expect(range.y).toBeCloseTo(initial.y + 90, 8);
+      if (!paused) {
+        simulation.tick();
+        simulation.stop();
+      }
+      expectLegacyMidpoint(label);
+      expect(h.graph.paused()).toBe(paused);
+      const arrangement = h.graph.readArrangement();
+      expect(
+        arrangement.find((row) => row.kind === "property-label"),
+      ).toMatchObject({ canMove: false, canPin: false });
+      const before = h.graph.readCanonicalDrawingState();
+      expect(() =>
+        h.graph.applyArrangement([
+          { rendererKey: arrangement[0].rendererKey, xPx: 999, yPx: 888 },
+          {
+            rendererKey: arrangement.find(
+              (row) => row.kind === "property-label",
+            ).rendererKey,
+            xPx: 333,
+            yPx: 222,
+          },
+        ]),
+      ).toThrow("cannot accept");
+      expect(h.graph.readCanonicalDrawingState()).toEqual(before);
+    } finally {
+      h.dispose();
+    }
+  },
+);
+
+test("legacy 1.1.7 inverse properties share one straight connection and a stacked label group", () => {
+  const drawing = inversePropertyDrawing();
+  const h = mountCanonicalGraph(drawing);
+  try {
+    const labels = h.graph.graphLabelElements();
+    expect(labels).toHaveLength(1);
+    expect(createdSimulations.at(-1).nodes()).toHaveLength(3);
+    expect(createdSimulations.at(-1).links()).toHaveLength(2);
+    expect(h.document.querySelectorAll(".labelGroup")).toHaveLength(1);
+    expect(labels[0].inverse()).toBeDefined();
+    const path = labels[0].link().pathObj().node();
+    expect(path.getAttribute("marker-start")).toContain("reverse");
+    expect(path.getAttribute("marker-end")).toContain(
+      drawing.labels[0].occurrence,
+    );
+    expect(labels[0].property().labelElement().attr("transform")).toBe(
+      "translate(0,-15)",
+    );
+    expect(labels[0].inverse().labelElement().attr("transform")).toBe(
+      "translate(0,15)",
+    );
+    expectLegacyMidpoint(labels[0]);
+    const placements = h.graph.readCanonicalDrawingState().placements;
+    expect(placements.map((row) => row.occurrence)).toEqual(
+      expect.arrayContaining([drawing.labels[0].occurrence, "reverse"]),
+    );
+    expect(
+      placements.find((row) => row.occurrence === "reverse").position,
+    ).toEqual(
+      placements.find((row) => row.occurrence === drawing.labels[0].occurrence)
+        .position,
+    );
+  } finally {
+    h.dispose();
+  }
+});
+
+test.each([
+  [false, false],
+  [false, true],
+  [true, false],
+  [true, true],
+])(
+  "inverse visibility stays correct through retained revisions (hidden=%s,%s)",
+  (primaryHidden, inverseHidden) => {
+    const drawing = inversePropertyDrawing();
+    const h = mountCanonicalGraph(drawing);
+    try {
+      const before = h.graph.graphLabelElements()[0];
+      drawing.labels[0].hidden = primaryHidden;
+      drawing.labels[1].hidden = inverseHidden;
+      h.graph.applyCanonicalDrawingRevision(drawing, { sameRevision: true });
+      expect(h.graph.graphLabelElements()[0]).toBe(before);
+      expect(
+        h.document
+          .querySelectorAll(".label")
+          .map((element) => element.__data__.id()),
+      ).toEqual(
+        drawing.labels
+          .filter((row) => !row.hidden)
+          .map((row) => row.occurrence),
+      );
+      expect(h.document.querySelectorAll(".labelGroup")).toHaveLength(
+        primaryHidden && inverseHidden ? 0 : 1,
+      );
+      if (!primaryHidden || !inverseHidden) {
+        expectLegacyMidpoint(before);
+      }
+      drawing.labels.forEach((row) => {
+        row.hidden = false;
+      });
+      h.graph.applyCanonicalDrawingRevision(drawing, { sameRevision: true });
+      expect(h.document.querySelectorAll(".label")).toHaveLength(2);
+      expectLegacyMidpoint(before);
+      expect(h.graph.readCanonicalDrawingState().placements).toHaveLength(4);
+    } finally {
+      h.dispose();
+    }
+  },
+);
+
+test("legacy parallel labels and loops retain their curved routes and native drag permissions", () => {
+  const h = mountCanonicalGraph(reuseDrawing());
+  try {
+    const labels = h.graph.graphLabelElements();
+    for (const id of ["label:ab", "label:parallel", "label:loop"]) {
+      const label = labels.find((item) => item.property().id() === id);
+      const before = { x: label.x, y: label.y };
+      expect(dragPrimitive(h, label, 40, 90)).toBe(true);
+      expect(label.x).toBeCloseTo(before.x + 40, 8);
+      expect(label.y).toBeCloseTo(before.y + 90, 8);
+      expect(label.link().pathObj().node().getAttribute("d")).toMatch(/[QC]/);
+      expect(
+        h.graph
+          .readArrangement()
+          .find((row) => row.rendererKey === `label:${id}`),
+      ).toMatchObject({ canMove: true, canPin: true });
+    }
+    expectLegacyMidpoint(
+      labels.find((item) => item.property().id() === "label:bc"),
+    );
+  } finally {
+    h.dispose();
+  }
+});
+
+test("a connection switches between parallel routing and a constrained midpoint without stale drag authority", () => {
+  const drawing = reuseDrawing();
+  const h = mountCanonicalGraph(drawing);
+  try {
+    const label = h.graph
+      .graphLabelElements()
+      .find((item) => item.property().id() === "label:ab");
+    expect(dragPrimitive(h, label, 10, 20)).toBe(true);
+    h.graph.applyCanonicalDrawingRevision(
+      withoutOccurrences(drawing, ["parallel"]),
+      { sameRevision: true },
+    );
+    expect(
+      h.graph
+        .graphLabelElements()
+        .find((item) => item.property().id() === "label:ab"),
+    ).toBe(label);
+    expectLegacyMidpoint(label);
+    expect(
+      dragPrimitive(
+        { ...h, drag: createdDragBehaviours.at(-1) },
+        label,
+        10,
+        20,
+      ),
+    ).toBe(false);
+    h.graph.applyCanonicalDrawingRevision(drawing, { sameRevision: true });
+    expect(
+      dragPrimitive(
+        { ...h, drag: createdDragBehaviours.at(-1) },
+        label,
+        10,
+        20,
+      ),
+    ).toBe(true);
+    expect(label.link().pathObj().node().getAttribute("d")).toMatch(/Q/);
+  } finally {
+    h.dispose();
+  }
+});
+
+test.each(["isolated", "incident edge", "second loop"])(
+  "self-loop arrangement pinning agrees with native 1.1.7 eligibility (%s)",
+  (topology) => {
+    const drawing = reuseDrawing();
+    drawing.nodes = drawing.nodes.filter(
+      (row) =>
+        row.occurrence === "b" ||
+        (topology === "incident edge" && row.occurrence === "a"),
+    );
+    drawing.edges = drawing.edges.filter(
+      (row) =>
+        row.occurrence === "loop" ||
+        (topology === "incident edge" && row.occurrence === "ab"),
+    );
+    drawing.labels = drawing.labels.filter((row) =>
+      drawing.edges.some((edge) => edge.occurrence === row.edge),
+    );
+    if (topology === "second loop") {
+      drawing.edges.push({ ...drawing.edges[0], occurrence: "second loop" });
+      drawing.labels.push({
+        ...drawing.labels[0],
+        occurrence: "second loop label",
+        edge: "second loop",
+      });
+    }
+    const h = mountCanonicalGraph(drawing);
+    try {
+      const property = h.graph
+        .graphLabelElements()
+        .find((label) => label.property().id() === "label:loop")
+        .property();
+      const arrangement = h.graph
+        .readArrangement()
+        .find((row) => row.rendererElementIds.includes(property.id()));
+      const canPin = topology !== "isolated";
+      expect(arrangement).toMatchObject({ canMove: true, canPin });
+      const native = h.graph.options().pickAndPinModule();
+      native.enabled(true);
+      native.handle(undefined, property, true);
+      expect(property.pinned()).toBe(canPin);
+      h.graph.applyArrangement([
+        { rendererKey: arrangement.rendererKey, isPinned: false },
+      ]);
+      const pin = () =>
+        h.graph.applyArrangement([
+          { rendererKey: arrangement.rendererKey, isPinned: true },
+        ]);
+      if (canPin) {
+        expect(pin).not.toThrow();
+        expect(property.pinned()).toBe(true);
+      } else {
+        expect(pin).toThrow("cannot accept");
+      }
+    } finally {
+      h.dispose();
+    }
+  },
+);
+
+test("inverse membership changes rebuild the pair without mutating retained primitives during preparation", () => {
+  const drawing = inversePropertyDrawing();
+  const h = mountCanonicalGraph(drawing);
+  try {
+    const before = h.graph.graphLabelElements()[0];
+    const inverse = before.inverse();
+    const single = {
+      ...drawing,
+      edges: [{ ...drawing.edges[0], kind: "property-edge" }],
+      labels: [drawing.labels[0]],
+    };
+    h.graph.applyCanonicalDrawingRevision(single, { sameRevision: true });
+    const label = h.graph.graphLabelElements()[0];
+    expect(label).not.toBe(before);
+    expect(label.inverse()).toBeUndefined();
+    expect(before.inverse()).toBe(inverse);
+    expect(inverse.inverse()).toBe(before.property());
+    expectLegacyMidpoint(label);
+    h.graph.applyCanonicalDrawingRevision(drawing, { sameRevision: true });
+    expect(h.graph.graphLabelElements()).toHaveLength(1);
+    expect(h.graph.graphLabelElements()[0].inverse().id()).toBe("reverse");
+  } finally {
+    h.dispose();
+  }
+});
+
+test("saved inverse arrangements reopen with both identities at the shared legacy anchor", () => {
+  const drawing = inversePropertyDrawing();
+  let h = mountCanonicalGraph(drawing);
+  try {
+    const before = h.graph.readCanonicalDrawingState();
+    for (const row of [...drawing.nodes, ...drawing.labels]) {
+      const saved = before.placements.find(
+        (placement) => placement.occurrence === row.occurrence,
+      );
+      row.position = saved.position;
+      row.pinned = saved.pinned;
+    }
+    h.dispose();
+    h = mountCanonicalGraph(drawing);
+    expect(h.graph.readCanonicalDrawingState()).toEqual(before);
+    expectLegacyMidpoint(h.graph.graphLabelElements()[0]);
+  } finally {
+    h.dispose();
+  }
+});
+
+test("stacked inverse labels keep separate selection and highlight geometry", () => {
+  const h = mountCanonicalGraph(inversePropertyDrawing());
+  try {
+    h.graph.editorMode(false);
+    const selections = [];
+    h.graph.setRenderedGraphEventPort({
+      publishRenderedElementSelection: (ids) => selections.push(ids),
+    });
+    const label = h.graph.graphLabelElements()[0];
+    for (const property of [label.property(), label.inverse()]) {
+      const group = property.labelElement();
+      group
+        .on("click")
+        .call(group.node(), { defaultPrevented: false }, property);
+      expect(selections.at(-1)).toEqual([property.id()]);
+      expect(property.focused()).toBe(true);
+    }
+    expect(label.property().focused()).toBe(false);
+    const primaryGeometry = h.graph.readOccurrenceGeometry(
+      label.property().id(),
+    );
+    const inverseGeometry = h.graph.readOccurrenceGeometry(
+      label.inverse().id(),
+    );
+    expect(primaryGeometry.xPx).toBe(inverseGeometry.xPx);
+    expect(inverseGeometry.yPx - primaryGeometry.yPx).toBe(
+      30 * h.graph.scaleFactor(),
+    );
+  } finally {
+    h.dispose();
+  }
+});
+
+test("parallel inverse properties share one movable and pinnable arrangement", () => {
+  const drawing = inversePropertyDrawing();
+  drawing.edges.push({
+    ...drawing.edges[0],
+    occurrence: "parallel",
+    kind: "property-edge",
+  });
+  drawing.labels.push({
+    ...drawing.labels[0],
+    occurrence: "parallel:label",
+    edge: "parallel",
+    position: { x: 150, y: 120 },
+  });
+  const h = mountCanonicalGraph(drawing);
+  try {
+    const arrangement = h.graph
+      .readArrangement()
+      .find((row) => row.rendererElementIds.includes("reverse"));
+    expect(arrangement).toMatchObject({
+      canMove: true,
+      canPin: true,
+      rendererElementIds: [drawing.labels[0].occurrence, "reverse"],
+    });
+    h.graph.applyArrangement([
+      {
+        rendererKey: arrangement.rendererKey,
+        xPx: 160,
+        yPx: -90,
+        isPinned: true,
+      },
+    ]);
+    for (const id of arrangement.rendererElementIds) {
+      expect(
+        h.graph
+          .readCanonicalDrawingState()
+          .placements.find((row) => row.occurrence === id),
+      ).toMatchObject({ position: { x: 160, y: -90 }, pinned: true });
+    }
+    h.graph.applyArrangement([
+      { rendererKey: arrangement.rendererKey, isPinned: false },
+    ]);
+    for (const id of arrangement.rendererElementIds) {
+      expect(
+        h.graph
+          .readCanonicalDrawingState()
+          .placements.find((row) => row.occurrence === id).pinned,
+      ).toBe(false);
+    }
+  } finally {
+    h.dispose();
+  }
+});
+
+test.each(
+  [false, true].flatMap((primaryHidden) =>
+    [false, true].flatMap((inverseHidden) =>
+      ["primary", "inverse", "both"].map((selected) => [
+        primaryHidden,
+        inverseHidden,
+        selected,
+      ]),
+    ),
+  ),
+)(
+  "public highlighting follows inverse semantic identities after retained visibility changes (hidden=%s,%s; selected=%s)",
+  (primaryHidden, inverseHidden, selected) => {
+    const drawing = inversePropertyDrawing();
+    const h = mountCanonicalGraph(drawing);
+    try {
+      drawing.labels[0].hidden = primaryHidden;
+      drawing.labels[1].hidden = inverseHidden;
+      h.graph.applyCanonicalDrawingRevision(drawing, { sameRevision: true });
+      const label = h.graph.graphLabelElements()[0];
+      const members = [label.property(), label.inverse()];
+      const ids = (
+        selected === "both"
+          ? members
+          : [members[selected === "primary" ? 0 : 1]]
+      ).map((property) => property.id());
+      expect(() => h.graph.highLightNodes(ids)).not.toThrow();
+      for (const property of members) {
+        const halo = property.getHalos()?.node();
+        expect(Boolean(halo?.parentNode)).toBe(
+          property.labelVisible() && ids.includes(property.id()),
+        );
+      }
+      drawing.labels.forEach((row) => {
+        row.hidden = false;
+      });
+      h.graph.applyCanonicalDrawingRevision(drawing, { sameRevision: true });
+      for (const property of members) {
+        const halo = property.getHalos()?.node();
+        expect(Boolean(halo?.parentNode)).toBe(ids.includes(property.id()));
+      }
+      h.graph.resetSearchHighlight();
+      expect(h.document.querySelectorAll(".searchResultA")).toHaveLength(0);
+    } finally {
+      h.dispose();
+    }
+  },
+);
+
+test.each(
+  [false, true].flatMap((primaryHidden) =>
+    [false, true].flatMap((inverseHidden) =>
+      [0, 1].map((pinnedIndex) => [primaryHidden, inverseHidden, pinnedIndex]),
+    ),
+  ),
+)(
+  "inverse pins belong to the shared label across visibility states (hidden=%s,%s; pinned member=%s)",
+  (primaryHidden, inverseHidden, pinnedIndex) => {
+    const drawing = inversePropertyDrawing();
+    drawing.nodes.forEach((row) => {
+      row.pinned = false;
+    });
+    drawing.edges.push({
+      ...drawing.edges[0],
+      occurrence: "parallel",
+      kind: "property-edge",
+    });
+    drawing.labels.push({
+      ...drawing.labels[0],
+      occurrence: "parallel:label",
+      edge: "parallel",
+      position: { x: 150, y: 120 },
+    });
+    drawing.labels[0].hidden = primaryHidden;
+    drawing.labels[1].hidden = inverseHidden;
+    drawing.labels[pinnedIndex].pinned = true;
+    const h = mountCanonicalGraph(drawing);
+    try {
+      const label = h.graph.graphLabelElements()[0];
+      const arrangement = h.graph
+        .readArrangement()
+        .find((row) => row.rendererElementIds.includes("reverse"));
+      expect(arrangement.isPinned).toBe(true);
+      expect(label.property().pinned()).toBe(true);
+      expect(label.inverse().pinned()).toBe(true);
+      expect(h.document.querySelectorAll(".pin")).toHaveLength(
+        primaryHidden && inverseHidden ? 0 : 1,
+      );
+      for (const property of [label.property(), label.inverse()]) {
+        if (property.labelVisible()) {
+          expect(() => property.drawHalo(false)).not.toThrow();
+        }
+      }
+      h.graph.applyArrangement([
+        { rendererKey: arrangement.rendererKey, isPinned: false },
+      ]);
+      expect(h.document.querySelectorAll(".pin")).toHaveLength(0);
+      expect(label.property().pinned()).toBe(false);
+      expect(label.inverse().pinned()).toBe(false);
+    } finally {
+      h.dispose();
+    }
+  },
+);
 
 test("joins retain delimiter-rich occurrence IDs and ignore nested and non-element children", () => {
   const drawing = reuseDrawing();
@@ -1510,7 +2108,7 @@ test.each([
       expect(
         graph.getUnfilteredData().properties.map(({ x, y }) => [x, y]),
       ).toEqual([
-        [0, -30],
+        [50, 40],
         [30, 70],
       ]);
       expect(graph.translation()).toEqual([380, 260]);
@@ -1526,13 +2124,12 @@ test.each([
       expect(
         graph.getUnfilteredData().properties.map(({ x, y }) => [x, y]),
       ).toEqual([
-        [0, -30],
+        [50, 40],
         [30, 70],
       ]);
       expect(graph.readVisibleElementIds().nodeIds).toEqual(["c1", "c2"]);
       expect(graph.readCanonicalDrawingState().camera).toEqual(drawing.camera);
-      // A single property label is still an independent canonical placement.
-      // Legacy rendering would silently force it to the endpoint midpoint.
+      // Canonical label identities survive the legacy midpoint constraint.
       graph.load(3, {
         canonicalDrawing: {
           ...drawing,
@@ -1541,7 +2138,7 @@ test.each([
           camera: { ...drawing.camera, zoom: 10 },
         },
       });
-      // Canonical placement authority does not depend on scanning endpoint links.
+      // Eligibility comes from the projected link, without rescanning endpoints.
       const linkReads = graph.getUnfilteredData().nodes.map((node) =>
         jest.spyOn(node, "links").mockImplementation(() => {
           throw new Error("Arrangement must use canonical placement bindings.");
@@ -1552,19 +2149,21 @@ test.each([
           .readArrangement()
           .find(({ kind }) => kind === "property-label");
         expect(labelArrangement).toMatchObject({
-          xPx: 0,
-          yPx: -30,
-          canMove: true,
-          canPin: true,
+          xPx: 50,
+          yPx: 40,
+          canMove: false,
+          canPin: false,
         });
-        graph.applyArrangement([
-          {
-            rendererKey: labelArrangement.rendererKey,
-            xPx: 75,
-            yPx: -90,
-            isPinned: true,
-          },
-        ]);
+        expect(() =>
+          graph.applyArrangement([
+            {
+              rendererKey: labelArrangement.rendererKey,
+              xPx: 75,
+              yPx: -90,
+              isPinned: true,
+            },
+          ]),
+        ).toThrow("cannot accept");
       } finally {
         linkReads.forEach((read) => read.mockRestore());
       }
@@ -1575,7 +2174,7 @@ test.each([
       });
       expect(graph.readCanonicalDrawingState().placements).toContainEqual({
         occurrence: "forward",
-        position: { x: 75, y: -90 },
+        position: { x: 50, y: 40 },
         pinned: true,
       });
       const svg = document.querySelector("svg");
@@ -1622,7 +2221,7 @@ test.each([
       expect(graph.readCanonicalDrawingState().camera).toEqual(prior.camera);
       expect(graph.readCanonicalDrawingState().placements).toContainEqual({
         occurrence: "successor",
-        position: { x: 0, y: -99 },
+        position: { x: 50, y: 40 },
         pinned: true,
       });
       graph.load(4, {

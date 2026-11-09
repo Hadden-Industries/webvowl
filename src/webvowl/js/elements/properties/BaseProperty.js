@@ -279,7 +279,9 @@ const BaseProperty = (function () {
       }
 
       if (!that.labelVisible()) {
-        return undefined;
+        return that.inverse()?.labelVisible()
+          ? that.inverse().draw(labelGroup)
+          : undefined;
       }
       if (graph.options().dynamicLabelWidth() === true) {
         myWidth = Math.min(that.getMyWidth(), graph.options().maxLabelWidth());
@@ -289,7 +291,7 @@ const BaseProperty = (function () {
 
       that.labelElement(attachLabel(that));
       // Draw an inverse label and reposition both labels deterministically
-      if (that.inverse()) {
+      if (that.inverse()?.labelVisible()) {
         const yTransformation = that.height() / 2 + 1; /* additional space */
         that.inverse().labelElement(attachLabel(that.inverse()));
 
@@ -313,10 +315,8 @@ const BaseProperty = (function () {
         }
       }
 
-      if (that.pinned()) {
+      if (that.pinned() || that.inverse()?.pinned()) {
         that.drawPin();
-      } else if (that.inverse() && that.inverse().pinned()) {
-        that.inverse().drawPin();
       }
 
       if (that.halo()) {
@@ -659,13 +659,20 @@ const BaseProperty = (function () {
       if (that.inverse()) {
         that.inverse().pinned(true);
       }
+      pinGroupElement?.remove();
+      that.inverse()?.getPin()?.remove();
+      pinGroupElement = undefined;
       if (graph.options().dynamicLabelWidth() === true) {
         myWidth = that.getMyWidth();
       } else {
         myWidth = defaultWidth;
       }
 
-      if (that.inverse()) {
+      let pinProperty = that.labelVisible() ? that : that.inverse();
+      if (!pinProperty?.labelVisible() || !pinProperty.labelElement()) {
+        return;
+      }
+      if (that.labelVisible() && that.inverse()?.labelVisible()) {
         // check which element is rendered on top and add a pin to it
         const tr_that = that.labelElement()
           ? that.labelElement().attr("transform")
@@ -683,35 +690,16 @@ const BaseProperty = (function () {
         const thatY = matchThat ? parseFloat(matchThat[2]) : -15;
         const invY = matchInv ? parseFloat(matchInv[2]) : 15;
 
-        if (thatY < invY) {
-          pinGroupElement = drawTools.drawPin(
-            that.labelElement(),
-            -0.5 * that.width() + 10,
-            -25,
-            this.removePin,
-            graph.options().showDraggerObject,
-            graph.options().useAccuracyHelper(),
-          );
-        } else {
-          pinGroupElement = drawTools.drawPin(
-            that.inverse().labelElement(),
-            -0.5 * that.inverse().width() + 10,
-            -25,
-            this.removePin,
-            graph.options().showDraggerObject,
-            graph.options().useAccuracyHelper(),
-          );
-        }
-      } else {
-        pinGroupElement = drawTools.drawPin(
-          that.labelElement(),
-          -0.5 * that.width() + 10,
-          -25,
-          this.removePin,
-          graph.options().showDraggerObject,
-          graph.options().useAccuracyHelper(),
-        );
+        pinProperty = thatY < invY ? that : that.inverse();
       }
+      pinGroupElement = drawTools.drawPin(
+        pinProperty.labelElement(),
+        -0.5 * pinProperty.width() + 10,
+        -25,
+        this.removePin,
+        graph.options().showDraggerObject,
+        graph.options().useAccuracyHelper(),
+      );
     };
 
     /**
@@ -722,9 +710,9 @@ const BaseProperty = (function () {
       if (that.inverse()) {
         that.inverse().pinned(false);
       }
-      if (pinGroupElement) {
-        pinGroupElement.remove();
-      }
+      pinGroupElement?.remove();
+      that.inverse()?.getPin()?.remove();
+      pinGroupElement = undefined;
       graph.updateStyle();
     };
 
@@ -756,16 +744,18 @@ const BaseProperty = (function () {
     };
 
     this.drawHalo = function (pulseAnimation) {
+      const labelNode = that.labelElement()?.node();
+      if (!that.labelVisible() || !labelNode?.parentNode) {
+        that.removeHalo();
+        return;
+      }
       that.halo(true);
       const offset = 0;
-      if (that.labelElement() && that.labelElement().node()) {
-        const labelNode = that.labelElement().node();
-        const labelContainer = labelNode.parentNode;
-        // do this only if animation is not running
-        if (that.animationProcess() === false) {
-          labelContainer.appendChild(labelNode);
-        }
+      // do this only if animation is not running
+      if (that.animationProcess() === false) {
+        labelNode.parentNode.appendChild(labelNode);
       }
+      haloGroupElement?.remove();
       haloGroupElement = drawTools.drawRectHalo(
         that,
         that.width(),
@@ -777,21 +767,15 @@ const BaseProperty = (function () {
         const haloContainer = haloNode.parentNode;
         haloContainer.appendChild(haloNode);
       }
-      let selectedNode;
-      let nodeContainer;
-      if (that.pinned()) {
-        selectedNode = pinGroupElement.node();
-        nodeContainer = selectedNode.parentNode;
-        nodeContainer.appendChild(selectedNode);
-      }
-      if (that.inverse() && that.inverse().pinned()) {
-        if (that.inverse().getPin()) {
-          selectedNode = that.inverse().getPin().node();
-          nodeContainer = selectedNode.parentNode;
-          nodeContainer.appendChild(selectedNode);
+      if (that.pinned() || that.inverse()?.pinned()) {
+        for (const pin of [pinGroupElement, that.inverse()?.getPin()]) {
+          const pinNode = pin?.node();
+          if (pinNode?.parentNode) {
+            pinNode.parentNode.appendChild(pinNode);
+          }
         }
       }
-      if (pulseAnimation === false) {
+      if (pulseAnimation === false && haloGroupElement) {
         const pulseItem = haloGroupElement.selectAll(".searchResultA");
         pulseItem.classed("searchResultA", false);
         pulseItem.classed("searchResultB", true);

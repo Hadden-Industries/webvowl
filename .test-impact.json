@@ -28,7 +28,7 @@
     "vite.config.mjs",
     "eslint.config.js",
     ".markdown-quality-execution.json",
-    ".markdown-quality-policy.json",
+    ".markdown-quality.json",
     "requirements.txt",
     "requirements.lock.txt",
     "pyproject.toml"

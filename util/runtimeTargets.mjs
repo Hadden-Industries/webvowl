@@ -7,7 +7,6 @@ const repositoryRoot = fileURLToPath(new URL("../", import.meta.url));
 const versionFiles = Object.freeze({
   node: ".node-version",
   python: ".python-version",
-  uv: ".uv-version",
 });
 const stableVersion = /^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)$/u;
 
@@ -44,10 +43,7 @@ export function runtimeTarget(name, root = repositoryRoot) {
 
 export function runtimeTargets(root = repositoryRoot) {
   return Object.fromEntries(
-    ["node", "npm", "python", "uv"].map((name) => [
-      name,
-      runtimeTarget(name, root),
-    ]),
+    ["node", "npm", "python"].map((name) => [name, runtimeTarget(name, root)]),
   );
 }
 

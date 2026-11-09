@@ -13,6 +13,7 @@ import {
 import { WebVowlOperationError } from "./webVowlControllerContracts.js";
 import { createWebMcpToolDispatch } from "../webmcp/webMcpToolContracts.js";
 import { createVisualizationArtifactService } from "./visualizationArtifactService.js";
+import { createCanonicalRenderedGraphRuntimeDouble } from "../../test/canonicalRenderedGraphRuntimeDouble.js";
 
 function deferred() {
   let resolve, reject;
@@ -35,6 +36,10 @@ test("bounded import preparation completes before the model job starts", async (
       await Promise.resolve();
     }
     expect(h.controller.getState().status).toBe("loading");
+    expect(h.controller.getState().loadProgress).toMatchObject({
+      stage: "reading",
+      receivedDocumentCount: 1,
+    });
     expect(h.session.load).not.toHaveBeenCalled();
     gate.resolve();
     await loading;
@@ -129,6 +134,7 @@ function setup({ artifactService, ...dependencies } = {}) {
     }),
     snapshot: () => accepted,
     identity: () => accepted,
+    nodeCountStatus: () => accepted.nodeCountStatus,
     dispose() {},
     exportCanonicalArtifact: jest.fn(async () => ({ format: "vowl-json" })),
     exportTurtleArtifact: jest.fn(async () => ({ format: "turtle" })),
@@ -160,6 +166,181 @@ function setup({ artifactService, ...dependencies } = {}) {
     emit: (event) => listener(event),
   };
 }
+
+test.each(["ready", "failed"])(
+  "ordering that finishes before IRI-load publication does not leave the node controls preparing (%s)",
+  async (orderingStatus) => {
+    const { runtime } = createCanonicalRenderedGraphRuntimeDouble();
+    const session = createCanonicalVowlDocumentSession({
+      workerClient: {
+        async run(request, context) {
+          // Exercise the real package operation across its plain DTO boundary;
+          // control only when the worker's second, ordering result arrives.
+          const received = JSON.parse(
+            JSON.stringify({ ...request, bytes: undefined }),
+          );
+          received.bytes = new Uint8Array(request.bytes);
+          const result = await runCanonicalVowlOperation(
+            received,
+            undefined,
+            context,
+          );
+          const ordering = deferred();
+          return {
+            ...result,
+            loadGeneration: context.loadGeneration,
+            baseRevision: context.baseRevision,
+            displayOrderKeys: undefined,
+            nodeOrdering: {
+              ready: ordering.promise,
+              start() {
+                if (orderingStatus === "failed") {
+                  ordering.reject(new Error("Ordering failed."));
+                } else {
+                  ordering.resolve({
+                    displayOrderKeys: result.displayOrderKeys,
+                  });
+                }
+              },
+            },
+          };
+        },
+        dispose() {},
+      },
+    });
+    const controller = createCanonicalWebVowlController({
+      renderedGraphRuntime: runtime,
+      documentSession: session,
+      visualizationArtifactService: { dispose() {} },
+      sourceAcquisition: {
+        async remote(documentIri) {
+          return {
+            operation: "open-owl-model",
+            documentIri,
+            mediaType: "text/owl-functional",
+            bytes: new TextEncoder().encode(
+              `Ontology(<${documentIri}> Declaration(Class(<urn:A>)) Declaration(Class(<urn:B>)) SubClassOf(<urn:A> <urn:B>))`,
+            ),
+          };
+        },
+      },
+    });
+    const published = [];
+    controller.subscribeToState((state) => {
+      if (state.status === "ready") {
+        published.push(state.nodeCountStatus);
+      }
+    });
+    try {
+      await controller.loadOntology({
+        source: {
+          kind: "ontology-document-iri",
+          documentIri: "https://example.test/ontology",
+        },
+      });
+      // The session has finished before the controller accepts the first load.
+      expect(session.nodeCountStatus().orderingStatus).toBe(orderingStatus);
+      expect(published).toEqual([session.nodeCountStatus()]);
+      expect(controller.getState().nodeCountStatus.orderingStatus).toBe(
+        orderingStatus,
+      );
+    } finally {
+      controller.dispose();
+    }
+  },
+);
+
+test("loading reports received documents and drawing milestones, then retires its progress callbacks", async () => {
+  const h = setup();
+  const updates = [];
+  h.controller.subscribeToState((state) => updates.push(state.loadProgress));
+  h.acquisition.remote.mockResolvedValueOnce({
+    documentIri: "urn:root",
+    bytes: new Uint8Array([1, 2]),
+  });
+  h.acquisition.resolveImport = async () => ({
+    documentIri: "urn:import",
+    bytes: new Uint8Array([3, 4, 5]),
+  });
+  const accept = h.session.load.getMockImplementation();
+  h.session.load.mockImplementationOnce(async (request, options) => {
+    expect(h.controller.getState().loadProgress.stage).toBe("reading");
+    await options.resolveImport("urn:import", {});
+    await options.resolveImport("urn:import", {});
+    options.onDrawingPrepared({
+      drawingNodeCount: 50,
+      drawingRelationshipCount: 63,
+    });
+    return accept(request, options);
+  });
+  try {
+    await h.load("urn:root");
+    expect(updates.filter(Boolean).map((value) => value.stage)).toEqual(
+      expect.arrayContaining(["source", "reading", "drawing"]),
+    );
+    expect(updates.filter(Boolean).at(-1)).toMatchObject({
+      receivedDocumentCount: 2,
+      receivedByteCount: 5,
+      drawingNodeCount: 50,
+      drawingRelationshipCount: 63,
+    });
+    expect(h.controller.getState().loadProgress).toBeNull();
+    const oldDrawing = h.session.load.mock.calls[0][1].onDrawingPrepared;
+    const gate = deferred();
+    h.acquisition.remote.mockImplementationOnce(() => gate.promise);
+    const newer = h.load("urn:new");
+    const current = h.controller.getState().loadProgress;
+    oldDrawing({ drawingNodeCount: 999, drawingRelationshipCount: 999 });
+    expect(h.controller.getState().loadProgress).toBe(current);
+    expect(current).toMatchObject({
+      requestId: 2,
+      sourceLabel: "urn:new",
+      stage: "source",
+    });
+    gate.resolve({ documentIri: "urn:new", bytes: new Uint8Array([6]) });
+    await newer;
+  } finally {
+    h.controller.dispose();
+  }
+});
+
+test("cancelling a replacement aborts acquisition and restores the accepted graph and controls", async () => {
+  const h = setup();
+  try {
+    await h.load("urn:accepted");
+    const before = h.controller.getState();
+    h.acquisition.remote.mockImplementationOnce(
+      (_iri, { signal }) =>
+        new Promise((_resolve, reject) => {
+          signal.addEventListener("abort", () => reject(signal.reason), {
+            once: true,
+          });
+        }),
+    );
+    const replacement = h.load("urn:cancel");
+    expect(h.controller.getState().loadProgress.sourceLabel).toBe("urn:cancel");
+    const dispatch = createWebMcpToolDispatch({
+      webVowlController: h.controller,
+    });
+    await expect(
+      dispatch.callWebMcpTool("cancel_ontology_load", { source: "other" }),
+    ).resolves.toMatchObject({ isSuccess: false });
+    await expect(
+      dispatch.callWebMcpTool("cancel_ontology_load", {}),
+    ).resolves.toMatchObject({
+      isSuccess: true,
+      toolResult: { isCancellationRequested: true },
+    });
+    await expect(replacement).rejects.toMatchObject({ name: "AbortError" });
+    expect(h.controller.getState()).toEqual(before);
+    expect(h.controller.cancelOntologyLoad()).toEqual({
+      isCancellationRequested: false,
+    });
+    expect(h.controller.getState()).toEqual(before);
+  } finally {
+    h.controller.dispose();
+  }
+});
 
 test("background ordering updates only its current document and count commands share the readiness guard", async () => {
   const { controller, session, load } = setup();

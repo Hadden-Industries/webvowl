@@ -1,13 +1,15 @@
 # Ontology cache consumer
 
-The WebVOWL consumer defaults to **disabled**.
-Ordinary root/import acquisition, local inputs and original-source export continue to use the existing worker and document session.
-A disabled consumer creates no cache requests, refresh timers or update controls.
-The provider may be absent.
+The ontology cache is **disabled by default**.
+WebVOWL loads root ontologies, imports and local files through the ordinary document session.
+It can export the original source without a cache provider.
 
-This delivery implements the consumer checkpoint of cache SLICE-005 and its offline SLICE-001/004/006 contracts.
-It does not implement or qualify the AWS provider, deploy infrastructure, publish seeds, activate production caching or establish source republication rights.
-Those acceptance gates remain in the [implementation plan](../plans/validated-ontology-materialization-cache-implementation-plan.md).
+- **Inspecting an open graph?**
+  See [source checks and updates](#source-checks-and-updates) for the meaning of a check date or update offer.
+  These controls appear only when caching is enabled.
+- **Integrating a provider?**
+  Start with [explicit composition](#explicit-composition), then check [acquisition and admission](#acquisition-and-admission).
+  A disabled deployment makes no cache requests and starts no refresh timers.
 
 ## Provider contract
 
@@ -37,6 +39,7 @@ Endpoint discovery never enables it.
 There is no URL-query or user-input endpoint override.
 
 An enabled test/approved deployment supplies `enabled: true`, one HTTPS `serviceOrigin`, and exact `approvedPolicyFingerprints`. An optional `catalogIri` selects the curated OASIS catalog; no dynamic archive is enumerated. An empty policy list admits no cached evidence. Approval of a policy fingerprint requires the exact provider/package/runtime and loader-policy qualification in the plan.
+
 Fixture fingerprints are synthetic and must never be enabled in production.
 `deadlineMs` may shorten the finite 60-second acquisition allowance.
 
@@ -46,13 +49,24 @@ Returning to the default disabled composition restores direct-only acquisition a
 
 ## Acquisition and admission
 
-Enabled precedence is per-load acquired/explicitly selected binding, optional curated catalog, exact source pointer, direct acquisition, then one eligible materialization submission. Per-load catalogs, bytes and policy evidence are reused. A fresh open gets a new context. Canonical/legacy JSON downloads never enter materialization; their ontology imports may use the same controlled acquisition owner.
+With the cache enabled, WebVOWL tries these sources in order for a load:
+
+1. The binding already acquired or explicitly selected for this load.
+2. The curated catalog, if configured.
+3. The exact source pointer.
+4. Direct acquisition.
+5. One materialization submission, if the direct failure qualifies as described below.
+
+A fresh open gets a new context.
+Within a load, WebVOWL reuses its catalog, bytes and policy evidence.
+Canonical and legacy JSON downloads stay outside materialization, though their ontology imports can use this process.
 
 Only a browser network/CORS failure reported by the direct resolver's native `MissingImportError` with a `TypeError` cause permits materialization. Readable HTTP failures, cancellation, parser/profile failures and resource/host limits do not.
 Pending work follows only its bounded, source-specific status location and Retry-After; status observation never resubmits work.
 
 Each cached read checks closed provider schemas, exact logical source identity, resolution/version/validation/policy identities, approved policy, origin parser context and artifact length/SHA-256.
 Metadata links are constructed against the configured service origin.
+
 Logical IRI spelling and fragments remain distinct identities; CDN artifact paths never become parser bases.
 Service parser hints do not force an automatic browser syntax choice.
 The real `vowl/owl` worker still owns parsing, managed imports, source evidence, model admission and resource checks.
@@ -68,9 +82,12 @@ A due pointer may initiate one background `if-due` observation after admission; 
 There is no origin scheduler.
 Closing/replacing a document cancels its observation, not a shared backend attempt.
 
-A committed different source version offers an update without replacing the graph.
-A 304 or evidence-only requalification updates check information without an update offer.
-Failed checks preserve the graph and previous successful-check date.
+| Source-check result                                 | What happens to the open graph                                         |
+| --------------------------------------------------- | ---------------------------------------------------------------------- |
+| A different source version is committed             | An update is offered. The current graph stays open until you apply it. |
+| HTTP 304 or only the qualification evidence changes | Check information is refreshed. The graph stays open.                  |
+| The check fails                                     | The graph and the previous successful-check date are preserved.        |
+
 Applying an offer first confirms the exact candidate through the uncached source-status endpoint, then seeds ordinary root/import readmission with those verified bytes and bindings.
 Stale discovery cannot replace that explicit selection.
 Superseded, withdrawn or unconfirmed candidates preserve the current graph.
@@ -80,6 +97,10 @@ Editing invalidates replacement; reopen the source to apply updates after editin
 Original-source exports remain tied to the bytes actually admitted; semantic exports remain tied to the edited model.
 
 ## Verification
+
+This delivery implements the consumer checkpoint of cache SLICE-005 and its offline SLICE-001/004/006 contracts.
+It does not implement or qualify the AWS provider, deploy infrastructure, publish seeds, activate production caching or establish source republication rights.
+Those acceptance gates remain in the [implementation plan](../plans/validated-ontology-materialization-cache-implementation-plan.md).
 
 `npm run check` includes the consumer's protocol/identity/schema, catalog, acquisition, refresh, controller, worker and diagnostic regressions.
 The exact-source metadata fixtures are synthetic provider examples, not server parser or AWS evidence.
@@ -95,4 +116,9 @@ Repeat for `firefox` and `webkit`.
 It checks the default-disabled production composition, cold root/relative import materialization through native preflight/303, real-worker admission, warm reads, refresh notice and explicit application despite stale static discovery.
 It is consumer qualification against controlled external protocol boundaries, not real-provider, CloudFront, source-rights, capacity or live activation acceptance.
 
-The separate `util/qualify-production-ontology-worker.mjs` check serves the current `deploy/` output, rejects production startup errors or disabled cache traffic, and exercises the built worker with exact root/import bytes and parser contexts in all three engines. Run it after building, supplying the installed Playwright module, development-server URL and an external evidence directory; an optional fourth argument selects an installed Firefox executable. This retains the production chunk-ordering regression check alongside the consumer protocol harness. The self-signed protocol fixture records observed HTTP 304 responses separately; actual deployed CDN/browser cache and 304 qualification remains an activation gate.
+The separate `util/qualify-production-ontology-worker.mjs` check serves the current `deploy/` output, rejects production startup errors or disabled cache traffic, and exercises the built worker with exact root/import bytes and parser contexts in all three engines.
+
+Run it after building, supplying the installed Playwright module, development-server URL and an external evidence directory; an optional fourth argument selects an installed Firefox executable.
+This retains the production chunk-ordering regression check alongside the consumer protocol harness.
+
+The self-signed protocol fixture records observed HTTP 304 responses separately; actual deployed CDN/browser cache and 304 qualification remains an activation gate.

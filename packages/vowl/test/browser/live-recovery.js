@@ -1,5 +1,5 @@
 import { canonicalize, decode, encode, profiles } from "vowl";
-import isEqual from "lodash/isEqual.js";
+import { equalDataTree } from "../../../../src/shared/js/util/equalDataTree.js";
 import { createCanonicalVowlWorkerClient } from "../../../../src/app/js/controller/canonicalVowlWorkerClient.js";
 import { createCanonicalVowlDocumentSession } from "../../../../src/app/js/controller/canonicalVowlDocumentSession.js";
 import {
@@ -534,7 +534,7 @@ export async function qualifyLiveRecovery() {
         owlSession.synchronizeDrawing(state);
         const capturedDrawing = await decode(await owlSession.capture());
         check(
-          isEqual(capturedDrawing.visualization.camera, state.camera) &&
+          equalDataTree(capturedDrawing.visualization.camera, state.camera) &&
             state.placements.every(({ position, pinned }) =>
               capturedDrawing.visualization.placements.some(
                 (saved) =>
@@ -577,8 +577,8 @@ export async function qualifyLiveRecovery() {
         }
         check(
           rejectedDrawing &&
-            isEqual(owlSession.snapshot(), priorDocument) &&
-            isEqual(runtime.readCanonicalDrawingState(), priorDrawing),
+            equalDataTree(owlSession.snapshot(), priorDocument) &&
+            equalDataTree(runtime.readCanonicalDrawingState(), priorDrawing),
           "native-revision-failure-restores-document-and-drawing",
         );
         const selectedProperty = owlSession
@@ -699,7 +699,7 @@ export async function qualifyLiveRecovery() {
         }
         check(
           invalidPrefix &&
-            isEqual(owlSession.snapshot(), beforePrefixFailure) &&
+            equalDataTree(owlSession.snapshot(), beforePrefixFailure) &&
             owlSession.resolveEditorIri("qualified:renamedProperty") ===
               "urn:renamedProperty",
           "native-prefix-edit-keeps-semantic-identity-and-rejects-invalid-iri",
@@ -785,7 +785,7 @@ export async function qualifyLiveRecovery() {
         }
         check(
           rejectedLoad &&
-            isEqual(owlSession.snapshot(), beforeReload) &&
+            equalDataTree(owlSession.snapshot(), beforeReload) &&
             runtime.readCanonicalDrawingState().loadGeneration ===
               beforeReload.loadGeneration &&
             graph.paused(),
@@ -1210,7 +1210,7 @@ export async function qualifyLiveRecovery() {
             } else {
               check(
                 mergeFailure?.code === "DOCUMENT_EDIT_CANCELLED" &&
-                  isEqual(owlSession.snapshot(), retainedMergeBase),
+                  equalDataTree(owlSession.snapshot(), retainedMergeBase),
                 "merge-cancel-preserves-document-and-scene",
               );
             }

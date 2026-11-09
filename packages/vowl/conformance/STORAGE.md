@@ -22,9 +22,11 @@ The 32 stable buckets per family limit individual file size and avoid reorganizi
 [The storage inventory](storage-inventory.json) maps every relocated member to its bundle and records the original checkpoint inventory identity.
 Inventory format `canonical-vowl-corpus-storage-inventory/2` adds a `json` locator to each JSON member: its exact `/artifacts/INDEX/text` pointer and `utf8` or `base64` encoding.
 These locators identify existing bytes; they do not generate expected content or diagnostics.
+
 The storage verifier checks each locator against actual bundle membership.
 Neither inventory nor bundle arrays need sorting.
 Original per-member hashes remain authoritative in the independent manifests.
+
 Producer and provenance metadata hashes were updated only where storage-reader changes required it.
 The original commit preserves the preceding metadata; the old source-cleanup proof additionally retains its exact pre-storage field-accounting artifact.
 Independent mapping, normalization, expected errors, canonical bytes and coverage obligations remain unchanged.
@@ -41,11 +43,14 @@ npm run test:vowl
 
 The first command verifies every container and member, complete inventory membership and the absence of loose duplicates.
 It also runs focused storage fault probes and validates every JSON locator.
+
 CI runs the storage gate as a separate required job, including documentation-only and application-evidence reuse runs.
+
 The JSON gate checks physical JSON/JSONL, all 5,851 embedded JSON fixtures, exact expected findings and required generated JSON.
 Its adapter streams finite locator records from the captured inventory; the shared checker verifies selected payload identities and JSON rules.
 It does not decode N-Quads or repeat the full storage audit.
 The application conformance suite owns VOWL, OWL and RDF meaning; a storage or JSON verdict does not establish those semantics.
+
 The Git comparison additionally reads every original artifact directly from the checkpoint's Git objects.
 It checks unchanged bytes and allows only the declared metadata checksum updates, provenance additions, historical artifact relocation and reviewed reader/documentation changes.
 The Git comparison requires that checkpoint to be available locally; ordinary corpus tests require no Git history.

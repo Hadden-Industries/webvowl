@@ -4,6 +4,16 @@ import {
   canonicalLoadingMessage,
 } from "./canonicalVowlFailure.js";
 
+test("native acquisition timeouts have an actionable explanation", () => {
+  expect(
+    canonicalLoadingMessage(
+      new DOMException("signal timed out", "TimeoutError"),
+    ),
+  ).toBe(
+    "Retrieving the ontology source took too long. Check the source URL and try again.",
+  );
+});
+
 test.each(["expandedXmlBytes", "callStack", "allocation"])(
   "owned package diagnostic %s survives sanitization",
   (resource) => {

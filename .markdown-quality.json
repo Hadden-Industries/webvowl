@@ -1,24 +1,12 @@
 {
-  "schemaVersion": 2,
-  "preset": "authored-gfm@1",
-  "include": [
-    "*.md",
-    "docs/**/*.md",
-    "packages/vowl/**/*.md"
-  ],
+  "schemaVersion": 3,
   "exclude": [
     "docs/owlapi-js/**",
     "docs/sdlc/**",
     "docs/reviews/**",
-    "docs/evaluations/**"
-  ],
-  "lint": {},
-  "links": {
-    "localFiles": true,
-    "rootRelative": "reject"
-  },
-  "layout": {
-    "endOfLine": "lf",
-    "tabWidth": 2
-  }
+    "docs/evaluations/**",
+    "docs/plans/**",
+    "docs/specs/**",
+    "docs/designs/CommonJS-to-ESM/**"
+  ]
 }

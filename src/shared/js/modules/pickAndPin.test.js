@@ -1,4 +1,5 @@
 import { beforeAll, jest } from "@jest/globals";
+import { BaseProperty } from "../../../webvowl/js/elements/properties/BaseProperty.js";
 
 let pickAndPinFactory;
 
@@ -30,24 +31,12 @@ describe("Pick and Pin Module Unit Tests", () => {
       }),
     };
 
-    let propPinned = false;
-    mockProperty = {
-      pinned: (v) => {
-        if (v !== undefined) {
-          propPinned = v;
-        }
-        return propPinned;
-      },
-      inverse: () => null,
-      domain: () => ({ links: () => [1, 2] }),
-      range: () => ({ links: () => [1, 2] }),
-      drawPin: jest.fn(() => {
-        propPinned = true;
-      }),
-      removePin: jest.fn(() => {
-        propPinned = false;
-      }),
-    };
+    const parallelLinks = [{ id: "first" }, { id: "second" }];
+    mockProperty = new BaseProperty()
+      .domain({ links: () => parallelLinks })
+      .range({ links: () => parallelLinks });
+    mockProperty.drawPin = jest.fn(() => mockProperty.pinned(true));
+    mockProperty.removePin = jest.fn(() => mockProperty.pinned(false));
   });
 
   test("does not pin when pickAndPin module is disabled", () => {
@@ -74,6 +63,20 @@ describe("Pick and Pin Module Unit Tests", () => {
     pap.handle({}, mockProperty, true);
     expect(mockProperty.drawPin).toHaveBeenCalledTimes(1);
     expect(mockProperty.pinned()).toBe(true);
+  });
+
+  test("repeated links and lookalikes do not count as parallel links", () => {
+    const sharedLink = { id: "shared" };
+    const lookalike = { id: "other" };
+    mockProperty
+      .domain({ links: () => [sharedLink, sharedLink, lookalike] })
+      .range({ links: () => [sharedLink, sharedLink, { ...lookalike }] });
+
+    pap.enabled(true);
+    pap.handle({}, mockProperty, true);
+
+    expect(mockProperty.pinned()).toBe(false);
+    expect(mockProperty.drawPin).not.toHaveBeenCalled();
   });
 
   test("resets all pinned elements on pap.reset()", () => {

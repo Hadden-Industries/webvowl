@@ -107,13 +107,27 @@ export function captureRenderedDrawing({
         : 2 * node.actualRadius(),
       individualCount: node.individuals?.()?.length ?? 0,
     })),
-    propertyLabels: propertyLabels.map((label) => ({
-      ...point(label),
-      ...propertyAppearance(label.property()),
-      inverse: label.property().inverse()
-        ? propertyAppearance(label.property().inverse())
-        : null,
-    })),
+    propertyLabels: propertyLabels.flatMap((label) => {
+      const primary = label.property();
+      const inverse = primary.inverse();
+      const visible = primary.labelVisible()
+        ? primary
+        : inverse?.labelVisible()
+          ? inverse
+          : undefined;
+      return visible
+        ? [
+            {
+              ...point(label),
+              ...propertyAppearance(visible),
+              inverse:
+                primary.labelVisible() && inverse?.labelVisible()
+                  ? propertyAppearance(inverse)
+                  : null,
+            },
+          ]
+        : [];
+    }),
     links: links.map((link) => {
       const property = link.property();
       const isSingle = link.layers().length === 1 && !link.loops();

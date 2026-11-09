@@ -1,8 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import { spawn } from "node:child_process";
 import { isDeepStrictEqual } from "node:util";
-import { existsSync, readFileSync, writeFileSync, statSync } from "node:fs";
-import { join, resolve, relative } from "node:path";
+import {
+  existsSync,
+  readFileSync,
+  realpathSync,
+  writeFileSync,
+  statSync,
+} from "node:fs";
+import { isAbsolute, join, resolve, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   limits,
@@ -41,7 +47,10 @@ export async function runJest(
     new Set(paths).size !== paths.length
   )
     throw new Error("Invalid whole-file execution inventory");
-  const files = paths.map((path) => resolve(root, safePath(path)));
+  // Jest matches requested files against its canonical long-path inventory, so
+  // a Windows 8.3 short root such as RUNNER~1 must use its native spelling.
+  const canonicalRoot = realpathSync.native(root);
+  const files = paths.map((path) => resolve(canonicalRoot, safePath(path)));
   const argv = [
     process.execPath,
     ...admission.flags,
@@ -173,8 +182,15 @@ export function normalizeOutcomes(root, expected, result) {
   )
     throw new Error("Missing or extra native suite results");
   const suites = {};
+  const local = (name) => {
+    const direct = relative(root, name);
+    if (!direct.startsWith("..") && !isAbsolute(direct)) return direct;
+    // Jest reports canonical long paths; a Windows 8.3 short root such as
+    // RUNNER~1 relates to them only through its native spelling.
+    return relative(realpathSync.native(root), name);
+  };
   for (const suite of result.testResults) {
-    const path = safePath(relative(root, suite.name).replaceAll("\\", "/"));
+    const path = safePath(local(suite.name).replaceAll("\\", "/"));
     if (
       !expected.includes(path) ||
       Object.hasOwn(suites, path) ||

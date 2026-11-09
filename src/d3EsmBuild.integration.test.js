@@ -35,8 +35,9 @@ test("bundles D3 through the application ESM graph without a classic asset", () 
     const outputs = [buildResult].flat().flatMap((result) => result.output);
     const chunks = outputs.filter((output) => output.type === "chunk");
     const html = outputs.find((output) => output.fileName === "index.html");
+    // Tree shaking can omit the D3 entry point and keep its component packages.
     const d3ModuleCount = chunks.flatMap((chunk) => Object.keys(chunk.modules))
-      .filter((moduleId) => /node_modules[\\\\/]d3(?:[\\\\/]|$)/u.test(moduleId)).length;
+      .filter((moduleId) => /node_modules[\\\\/]d3(?:-[a-z-]+)?[\\\\/]/u.test(moduleId)).length;
     console.log(JSON.stringify({
       d3ModuleCount,
       hasClassicD3Asset: outputs.some((output) => output.fileName.endsWith("d3.min.js")),

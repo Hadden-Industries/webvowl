@@ -133,13 +133,17 @@ test.each(["tooling", "application"])(
 
 test("documentation selects npm before invoking the root devEngines policy", () => {
   const steps = workflow.jobs.documentation.steps;
-  const bootstrapIndex = steps.findIndex(
-    (step) => step.run === "node util/installSelectedNpm.mjs",
+  const bootstrapIndex = steps.findIndex((step) =>
+    step.run?.includes("node util/installSelectedNpm.mjs"),
   );
   const rootCommandIndex = steps.findIndex((step) =>
     step.run?.includes("npm run check:docs"),
   );
   expect(bootstrapIndex).toBeGreaterThanOrEqual(0);
+  expect(steps[bootstrapIndex].run.trim().split("\n")).toEqual([
+    "node util/installSelectedNpm.mjs",
+    "npm ci --include=dev --ignore-scripts",
+  ]);
   expect(rootCommandIndex).toBeGreaterThan(bootstrapIndex);
   const setup = steps.find((step) =>
     step.uses?.startsWith("actions/setup-node@"),

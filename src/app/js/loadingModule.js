@@ -1,3 +1,4 @@
+import { createLoadingProgressPresenter } from "./ui/loadingProgressPresenter.js";
 import { readVisualizationShareLink } from "./controller/visualizationShareLink.js";
 import {
   ONTOLOGY_LIFECYCLE_STATES,
@@ -10,6 +11,7 @@ class LocalOntologyFileUnavailableError extends Error {
     super(
       `Select ${JSON.stringify(fileName)} again in the Ontology menu, or drop it onto the page. Local files are not retained after a page reload.`,
     );
+    this.sourceLabel = fileName;
   }
 }
 
@@ -23,56 +25,22 @@ export function createLoadingModule({
   createOntologySource,
   resolvePresetSource,
 } = {}) {
-  /** some constants **/
-  const PROGRESS_BAR_ERROR = 0;
-  const PROGRESS_BAR_BUSY = 1;
-  const PROGRESS_BAR_PERCENT = 2;
-  let progressBarMode = 1;
-
   let applicationState = ONTOLOGY_LIFECYCLE_STATES.IDLE;
   let missingImportsWarning = false;
-  let showLoadingDetails = false;
-  let visibilityStatus = true;
-
-  /** variable defs **/
   const loadingModule = {};
-  const menuContainer =
-    typeof document !== "undefined"
-      ? document.querySelector("#loading-info")
-      : null;
-  const loadingInfoContainer =
-    typeof document !== "undefined"
-      ? document.querySelector("#loadingInfo-container")
-      : null;
-  const detailsButton =
-    typeof document !== "undefined"
-      ? document.querySelector("#show-loadingInfo-button")
-      : null;
-  const closeButton =
-    typeof document !== "undefined"
-      ? document.querySelector("#loadingIndicator_closeButton")
-      : null;
   let newOntologyCounter = 1;
   const lifecycleAbortController = new AbortController();
   let isSetup = false;
   let fileReadSequence = 0;
   let pendingInput;
-  const cacheSource =
-    typeof document === "undefined"
-      ? null
-      : document.querySelector("#ontologyCacheSource");
-  const cacheStatus =
-    typeof document === "undefined"
-      ? null
-      : document.querySelector("#ontologyCacheSourceStatus");
-  const checkSource =
-    typeof document === "undefined"
-      ? null
-      : document.querySelector("#checkOntologySourceUpdate");
-  const applySource =
-    typeof document === "undefined"
-      ? null
-      : document.querySelector("#applyOntologySourceUpdate");
+  let lastErrorDetails = null;
+  let observedLoading = false;
+  let observedRequestId;
+  const presentation = createLoadingProgressPresenter({
+    documentObject: document,
+    onCancel: () => webVowlController.cancelOntologyLoad(),
+    onChooseSource: () => document.querySelector("#ontology-menu-open").click(),
+  });
 
   function supersedeInput() {
     fileReadSequence += 1;
@@ -80,7 +48,6 @@ export function createLoadingModule({
     pendingInput = undefined;
     return fileReadSequence;
   }
-
   function beginInput() {
     const sequence = supersedeInput();
     pendingInput = new AbortController();
@@ -89,279 +56,62 @@ export function createLoadingModule({
     }
     return { sequence, signal: pendingInput.signal };
   }
-
-  /** functon defs **/
-  loadingModule.checkForScreenSize = function ({ width: w, height: h }) {
-    if (w < 270) {
-      document.querySelector("#loading-info").classList.add("hidden");
-    } else {
-      // check if it should be visible
-      if (visibilityStatus === true) {
-        document.querySelector("#loading-info").classList.remove("hidden");
-      } else {
-        document.querySelector("#loading-info").classList.add("hidden");
-      }
-    }
-    if (h < 150) {
-      document.querySelector("#loadingInfo_msgBox").classList.add("hidden");
-    } else {
-      document.querySelector("#loadingInfo_msgBox").classList.remove("hidden");
-    }
-    if (h < 80) {
-      document.querySelector("#progressBarContext").classList.add("hidden");
-      document
-        .querySelector("#layoutLoadingProgressBarContainer")
-        .classList.add("compact");
-    } else {
-      document.querySelector("#progressBarContext").classList.remove("hidden");
-      document
-        .querySelector("#layoutLoadingProgressBarContainer")
-        .classList.remove("compact");
-    }
-  };
-
-  loadingModule.getMessageVisibilityStatus = function () {
-    return visibilityStatus;
-  };
-
-  loadingModule.getProgressBarMode = function () {
-    return progressBarMode;
-  };
-
-  loadingModule.successfullyLoadedOntology = function () {
-    return isOntologyModelAvailable(applicationState);
-  };
-
-  loadingModule.state = function () {
-    return applicationState;
-  };
-
   function setDisabled(selector, disabled) {
-    document.querySelectorAll(selector).forEach(function (el) {
-      el.disabled = disabled;
+    document.querySelectorAll(selector).forEach((element) => {
+      element.disabled = disabled;
     });
   }
-
   function applyControlAvailability() {
     const capabilities = ontologyLifecycleCapabilitiesFor(applicationState);
-    const graphControlsDisabled = !capabilities.graphControls;
-
     setDisabled(
       "#c_export > button, #c_filter > button, #c_config > button, #c_debug > button",
-      graphControlsDisabled,
+      !capabilities.graphControls,
     );
     setDisabled("#c_select > button", !capabilities.ontologySource);
     setDisabled("#c_modes > button", !capabilities.editorMode);
-
     onGraphControlAvailabilityChanged?.(capabilities.graphControls);
-
     setDisabled("#m_modes input, #m_modes button", !capabilities.dataModes);
     setDisabled("#editorModeModuleCheckbox", !capabilities.editorMode);
   }
-
-  loadingModule.setState = function (state) {
+  loadingModule.setState = (state) => {
     ontologyLifecycleCapabilitiesFor(state);
     applicationState = state;
     applyControlAvailability();
   };
-
+  loadingModule.state = () => applicationState;
+  loadingModule.successfullyLoadedOntology = () =>
+    isOntologyModelAvailable(applicationState);
+  loadingModule.missingImportsWarning = () => missingImportsWarning;
   loadingModule.refreshControlAvailability = applyControlAvailability;
-  loadingModule.markLoading = function () {
-    loadingModule.setState(ONTOLOGY_LIFECYCLE_STATES.LOADING);
-  };
-  loadingModule.markModelReady = function () {
-    loadingModule.setState(ONTOLOGY_LIFECYCLE_STATES.MODEL_READY);
-  };
-  loadingModule.markRendering = function () {
-    loadingModule.setState(ONTOLOGY_LIFECYCLE_STATES.RENDERING);
-  };
-  loadingModule.markReady = function () {
-    loadingModule.setState(ONTOLOGY_LIFECYCLE_STATES.READY);
-  };
-  loadingModule.markError = function () {
-    loadingModule.setState(ONTOLOGY_LIFECYCLE_STATES.ERROR);
-  };
-
-  loadingModule.missingImportsWarning = function () {
-    return missingImportsWarning;
-  };
-
-  loadingModule.showErrorDetailsMessage = function () {
-    loadingModule.showLoadingIndicator();
-    loadingModule.expandDetails();
-    document
-      .querySelector("#loadingIndicator_closeButton")
-      .classList.add("hidden");
-    loadingModule.scrollDownDetails();
-  };
-
-  loadingModule.showWarningDetailsMessage = function () {
-    document.querySelector("#currentLoadingStep").className = "step-warning";
-    loadingModule.showLoadingIndicator();
-    loadingModule.expandDetails();
-    document
-      .querySelector("#loadingIndicator_closeButton")
-      .classList.remove("hidden");
-    loadingModule.scrollDownDetails();
-  };
-
-  loadingModule.scrollDownDetails = function () {
-    const scrollingElement = document.querySelector("#loadingInfo-container");
-    scrollingElement.scrollTop = scrollingElement.scrollHeight;
-  };
-
-  loadingModule.hideLoadingIndicator = function () {
-    document.querySelector("#loading-info").classList.add("hidden");
-    visibilityStatus = false;
-  };
-
-  loadingModule.showLoadingIndicator = function () {
-    document.querySelector("#loading-info").classList.remove("hidden");
-    visibilityStatus = true;
-  };
-
-  /** -- SETUP -- **/
-  loadingModule.setup = function () {
+  loadingModule.getMessageVisibilityStatus = presentation.isVisible;
+  loadingModule.getDetailsState = presentation.isDetailsExpanded;
+  loadingModule.scrollDownDetails = presentation.scrollDetails;
+  loadingModule.setup = () => {
     if (isSetup || lifecycleAbortController.signal.aborted) {
       return;
     }
     isSetup = true;
-    for (const [button, action] of [
-      [checkSource, "refreshOntologySource"],
-      [applySource, "applyOntologySourceUpdate"],
-    ]) {
-      button?.addEventListener(
-        "click",
-        async () => {
-          button.disabled = true;
-          try {
-            await webVowlController[action]();
-          } catch (_error) {
-            if (!lifecycleAbortController.signal.aborted) {
-              loadingModule.renderControllerState(webVowlController.getState());
-            }
-          }
-        },
-        { signal: lifecycleAbortController.signal },
-      );
-    }
-    // create connections for close and details button;
-    loadingInfoContainer.classList.toggle("hidden", !showLoadingDetails);
-    detailsButton.addEventListener(
-      "click",
-      function () {
-        showLoadingDetails = !showLoadingDetails;
-        loadingInfoContainer.classList.toggle("hidden", !showLoadingDetails);
-        detailsButton.classList.toggle(
-          "accordion-trigger-active",
-          showLoadingDetails,
-        );
-      },
-      { signal: lifecycleAbortController.signal },
-    );
-
-    closeButton.addEventListener(
-      "click",
-      function () {
-        menuContainer.classList.add("hidden");
-      },
-      { signal: lifecycleAbortController.signal },
-    );
-    loadingModule.setBusyMode();
-    loadingModule.setState(ONTOLOGY_LIFECYCLE_STATES.IDLE);
+    presentation.setup();
+    applyControlAvailability();
   };
-
-  loadingModule.dispose = function () {
+  loadingModule.dispose = () => {
     lifecycleAbortController.abort();
     supersedeInput();
+    presentation.dispose();
   };
 
-  loadingModule.updateSize = function () {
-    showLoadingDetails = !loadingInfoContainer.classList.contains("hidden");
-    loadingInfoContainer.classList.toggle("hidden", !showLoadingDetails);
-    detailsButton.classList.toggle(
-      "accordion-trigger-active",
-      showLoadingDetails,
+  function renderInputError(message, sourceLabel) {
+    presentation.begin();
+    loadingModule.renderControllerState(
+      {
+        ...webVowlController.getState(),
+        status: "error",
+        loadProgress: null,
+        error: { message },
+      },
+      { sourceLabel: String(sourceLabel).slice(0, 2048) },
     );
-  };
-
-  loadingModule.getDetailsState = function () {
-    return showLoadingDetails;
-  };
-
-  loadingModule.expandDetails = function () {
-    document.querySelector("#loadingInfo_msgBox").hidden = false;
-    showLoadingDetails = true;
-    loadingInfoContainer.classList.toggle("hidden", !showLoadingDetails);
-    detailsButton.classList.toggle(
-      "accordion-trigger-active",
-      showLoadingDetails,
-    );
-  };
-
-  loadingModule.collapseDetails = function () {
-    showLoadingDetails = false;
-    loadingInfoContainer.classList.toggle("hidden", !showLoadingDetails);
-    detailsButton.classList.toggle(
-      "accordion-trigger-active",
-      showLoadingDetails,
-    );
-  };
-
-  let lastErrorDetails = null;
-  function presentLoadingError(message = "") {
-    if (!message) {
-      lastErrorDetails = null;
-    }
-    const errorMessage = document.querySelector("#loadingErrorMessage");
-    errorMessage.textContent = message;
-    errorMessage.hidden = message.length === 0;
   }
-
-  loadingModule.setBusyMode = function () {
-    presentLoadingError();
-    document.querySelector("#loadingInfo_msgBox").hidden = false;
-    document.querySelector("#currentLoadingStep").className = "step-busy";
-    document.querySelector("#currentLoadingStep").textContent =
-      "Loading ontology";
-    document.querySelector("#progressBarValue").removeAttribute("value");
-    document.querySelector("#progressBarLabel").textContent = "";
-    progressBarMode = PROGRESS_BAR_BUSY;
-  };
-
-  loadingModule.setSuccessful = function () {
-    presentLoadingError();
-    document.querySelector("#currentLoadingStep").className = "step-success";
-  };
-
-  loadingModule.setErrorMode = function () {
-    document.querySelector("#currentLoadingStep").className = "step-error";
-    document.querySelector("#currentLoadingStep").textContent =
-      "Loading failed";
-    document.querySelector("#progressBarValue").setAttribute("value", 0);
-    document.querySelector("#progressBarLabel").textContent = "";
-    progressBarMode = PROGRESS_BAR_ERROR;
-  };
-
-  loadingModule.setPercentMode = function () {
-    document.querySelector("#loadingInfo_msgBox").hidden = false;
-    document.querySelector("#currentLoadingStep").className = "step-busy";
-    document.querySelector("#currentLoadingStep").textContent =
-      "Layout optimization";
-    document.querySelector("#progressBarValue").setAttribute("value", 0);
-    document.querySelector("#progressBarLabel").textContent = "0%";
-    progressBarMode = PROGRESS_BAR_PERCENT;
-  };
-
-  loadingModule.setPercentValue = function (val) {
-    const numericValue = Number.parseFloat(val);
-    const percent = Number.isFinite(numericValue)
-      ? Math.max(0, Math.min(100, numericValue))
-      : 0;
-    document.querySelector("#progressBarValue").setAttribute("value", percent);
-    document.querySelector("#progressBarLabel").textContent =
-      Math.round(percent) + "%";
-  };
 
   // Ontology document extensions the browser can name confidently. Anything
   // else reaches the controller with a display name and no asserted format.
@@ -460,32 +210,23 @@ export function createLoadingModule({
     try {
       request = loadingModule.ontologyLoadRequestFromLocation();
     } catch (error) {
-      loadingModule.renderControllerState({
-        ...webVowlController.getState(),
-        status: "error",
-        error: {
-          message:
-            error instanceof LocalOntologyFileUnavailableError
-              ? error.message
-              : error.message + " Correct the link options and load it again.",
-        },
-      });
+      renderInputError(
+        error instanceof LocalOntologyFileUnavailableError
+          ? error.message
+          : error.message + " Correct the link options and load it again.",
+        error.sourceLabel ?? String(location),
+      );
       return undefined;
     }
     return loadingModule.loadRemoteSource({ ...request, reuseCachedOntology });
   };
 
   function prepareLoadingPresentation() {
-    loadingModule.markLoading();
+    loadingModule.setState(ONTOLOGY_LIFECYCLE_STATES.LOADING);
     hideNavigationMenus?.();
-    ontologyMenu?.clearDetailInformation();
-    loadingModule.setBusyMode();
-    loadingModule.showLoadingIndicator();
-    loadingModule.collapseDetails();
+    presentation.begin();
+    presentation.render({ status: "loading" });
     missingImportsWarning = false;
-    document
-      .querySelector("#loadingIndicator_closeButton")
-      .classList.add("hidden");
   }
 
   async function loadOntologyThroughController(
@@ -530,7 +271,6 @@ export function createLoadingModule({
   }) {
     supersedeInput();
     prepareLoadingPresentation();
-    document.querySelector("#progressBarLabel").textContent = "";
     const state = await loadOntologyThroughController(
       source,
       initialVisualization,
@@ -590,11 +330,7 @@ export function createLoadingModule({
         return loadOntologyThroughController(source);
       } catch (error) {
         if (isCurrentFileRead()) {
-          loadingModule.renderControllerState({
-            ...webVowlController.getState(),
-            status: "error",
-            error: { message: error.message },
-          });
+          renderInputError(error.message, file.name);
         }
         return undefined;
       }
@@ -607,11 +343,7 @@ export function createLoadingModule({
       if (!isCurrentFileRead()) {
         return undefined;
       }
-      loadingModule.renderControllerState({
-        ...webVowlController.getState(),
-        status: "error",
-        error: { message: "The selected file could not be read." },
-      });
+      renderInputError("The selected file could not be read.", file.name);
       return undefined;
     }
     if (!isCurrentFileRead()) {
@@ -646,124 +378,77 @@ export function createLoadingModule({
     });
   };
 
-  // The controller owns the load lifecycle; this module renders its state.
-  loadingModule.renderControllerState = function (controllerState) {
-    if (controllerState === null || typeof controllerState !== "object") {
-      return;
-    }
-    const cache = controllerState.source?.cache;
-    if (cacheSource) {
-      cacheSource.hidden =
-        !cache || !["ready", "relaxing"].includes(controllerState.status);
-      if (cache) {
-        const expired =
-          cache.documentRevision !== controllerState.documentRevision ||
-          cache.loadGeneration !== controllerState.loadGeneration;
-        const messages = {
-          archived: "Archived source",
-          checking: "Checking the source for updates…",
-          checked: "Source check completed",
-          "update-available": "Updated source available",
-          "check-failed":
-            "Source check failed; the archived graph remains open",
-        };
-        const dates = cache.sources[0];
-        cacheStatus.textContent = expired
-          ? "This graph has been edited. Reopen its source before applying source updates."
-          : cache.code === "CACHE_OFFER_SUPERSEDED"
-            ? "The offered source has changed. Check the source again."
-            : `${messages[cache.status] ?? "Archived source"}. Saved ${dates.acquiredAt}; last successful check ${dates.checkedAt}.`;
-        checkSource.disabled = expired || cache.status === "checking";
-        applySource.hidden = !cache.hasUpdate;
-        applySource.disabled = expired || cache.status === "checking";
-      }
-    }
-    if (controllerState.status === "loading") {
-      // Every controller load, including an agent input, supersedes a file
-      // that is still being read by this input adapter.
-      supersedeInput();
-    }
+  // The controller owns every load, including loads initiated through WebMCP.
+  loadingModule.renderControllerState = (state, context) => {
     if (
-      controllerState.status === "ready" ||
-      controllerState.status === "relaxing"
+      state === null ||
+      typeof state !== "object" ||
+      lifecycleAbortController.signal.aborted
     ) {
-      loadingModule.markReady();
-      loadingModule.setSuccessful();
-      loadingModule.hideLoadingIndicator();
       return;
     }
-    if (controllerState.status === "error") {
-      if (
-        controllerState.source &&
-        controllerState.loadGeneration > 0 &&
-        controllerState.layout?.status !== "unavailable"
-      ) {
-        loadingModule.markReady();
-      } else {
-        loadingModule.markError();
+    const loading = ["loading", "parsing", "rendering"].includes(state.status);
+    if (
+      loading &&
+      (!observedLoading || state.loadProgress?.requestId !== observedRequestId)
+    ) {
+      supersedeInput();
+      lastErrorDetails = null;
+    }
+    observedLoading = loading;
+    observedRequestId = state.loadProgress?.requestId;
+    if (loading) {
+      loadingModule.setState(
+        state.loadProgress?.stage === "drawing"
+          ? ONTOLOGY_LIFECYCLE_STATES.RENDERING
+          : ONTOLOGY_LIFECYCLE_STATES.LOADING,
+      );
+    } else if (["ready", "relaxing"].includes(state.status)) {
+      loadingModule.setState(ONTOLOGY_LIFECYCLE_STATES.READY);
+    } else if (state.status === "error") {
+      loadingModule.setState(
+        state.source &&
+          state.loadGeneration > 0 &&
+          state.layout?.status !== "unavailable"
+          ? ONTOLOGY_LIFECYCLE_STATES.READY
+          : ONTOLOGY_LIFECYCLE_STATES.ERROR,
+      );
+    } else if (state.status === "idle") {
+      loadingModule.setState(ONTOLOGY_LIFECYCLE_STATES.IDLE);
+    } else {
+      return;
+    }
+    presentation.render(state, context);
+    if (state.status === "error" && state.error) {
+      const error = state.error;
+      const detailMessages = [
+        ...new Set([
+          error.code === "LOAD_FAILED" ? undefined : error.code,
+          error.details?.reason,
+        ]),
+      ].filter(
+        (message) =>
+          typeof message === "string" &&
+          message.trim().length > 0 &&
+          message !== error.message,
+      );
+      document.querySelector("#loadingInfo_msgBox").hidden =
+        detailMessages.length === 0 && !state.loadProgress;
+      // json-identity-contract: ordered-tuple; owner: Load-error presentation; reason: Load generation, message text and the ordered detail-message strings identify one rendered error presentation.
+      const identity = JSON.stringify([
+        state.loadGeneration,
+        error.message,
+        detailMessages,
+      ]);
+      for (const message of lastErrorDetails === identity
+        ? []
+        : detailMessages) {
+        ontologyMenu?.append_message(message, { tone: "error", block: true });
       }
-      loadingModule.setErrorMode();
-      loadingModule.showLoadingIndicator();
-      if (controllerState.error) {
-        presentLoadingError(controllerState.error.message);
-        const error = controllerState.error;
-        const detailMessages = [
-          ...new Set([
-            error.code === "LOAD_FAILED" ? undefined : error.code,
-            error.details?.reason,
-          ]),
-        ].filter(
-          (message) =>
-            typeof message === "string" &&
-            message.trim().length > 0 &&
-            message !== error.message,
-        );
-        document.querySelector("#loadingInfo_msgBox").hidden =
-          detailMessages.length === 0;
-        // json-identity-contract: ordered-tuple; owner: Load-error presentation; reason: Load generation, message text and the ordered detail-message strings identify one rendered error presentation.
-        const identity = JSON.stringify([
-          controllerState.loadGeneration,
-          error.message,
-          detailMessages,
-        ]);
-        for (const message of lastErrorDetails === identity
-          ? []
-          : detailMessages) {
-          ontologyMenu?.append_message(message, {
-            tone: "error",
-            block: true,
-          });
-        }
-        lastErrorDetails = identity;
-      }
-      return;
+      lastErrorDetails = identity;
+    } else {
+      document.querySelector("#loadingInfo_msgBox").hidden = false;
     }
-    // Background layout begins after the graph is drawn and can be controlled.
-    const IN_FLIGHT_CONTROLLER_STATUSES = new Set([
-      "loading",
-      "parsing",
-      "rendering",
-    ]);
-    if (!IN_FLIGHT_CONTROLLER_STATUSES.has(controllerState.status)) {
-      return;
-    }
-
-    loadingModule.showLoadingIndicator();
-    const renderProgress = controllerState.renderProgress;
-    if (!renderProgress) {
-      loadingModule.markLoading();
-      loadingModule.setBusyMode();
-      return;
-    }
-    loadingModule.markRendering();
-    if (progressBarMode !== PROGRESS_BAR_PERCENT) {
-      loadingModule.setPercentMode();
-    }
-    const completedCount = renderProgress.completedRenderedElementCount;
-    const totalCount = renderProgress.totalRenderedElementCount;
-    loadingModule.setPercentValue(
-      totalCount > 0 ? (100 * completedCount) / totalCount : 0,
-    );
   };
 
   /** ------------------ URL Interpreter -------------- **/
@@ -811,11 +496,7 @@ export function createLoadingModule({
             sequence === fileReadSequence &&
             !lifecycleAbortController.signal.aborted
           ) {
-            loadingModule.renderControllerState({
-              ...webVowlController.getState(),
-              status: "error",
-              error: { message: error.message },
-            });
+            renderInputError(error.message, "New ontology");
           }
           return undefined;
         }

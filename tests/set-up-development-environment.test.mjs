@@ -1,4 +1,4 @@
-import { jest } from "@jest/globals";
+import { afterEach, beforeEach, expect, jest, test } from "@jest/globals";
 import {
   existsSync,
   mkdirSync,
@@ -185,7 +185,6 @@ test.each([
         process.execPath,
         [npmCliPath, "ci", "--include=dev", "--ignore-scripts"],
       ],
-      [process.execPath, [npmCliPath, "run", "install:markdown"]],
       [
         systemPythonExecutableName,
         ["-m", "venv", join(repositoryRoot, ".venv")],
