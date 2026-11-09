@@ -1,4 +1,4 @@
-import isEqual from "lodash/isEqual.js";
+import { equalDataTree } from "../../../shared/js/util/equalDataTree.js";
 import { selectOwlMappingStrategy } from "./owlMappingStrategy.js";
 import { createNodeCountAdjustment } from "./nodeCountAdjustment.js";
 import { createControllerOperationLifecycle } from "./controllerOperationLifecycle.js";
@@ -335,7 +335,9 @@ export function createCanonicalWebVowlController({
       retainedState = state;
     }
     const fields = Object.freeze(
-      Object.keys(changes).filter((key) => !isEqual(previous[key], state[key])),
+      Object.keys(changes).filter(
+        (key) => !equalDataTree(previous[key], state[key]),
+      ),
     );
     const published = state;
     if (fields.includes("selection") && state.selection.length === 0) {

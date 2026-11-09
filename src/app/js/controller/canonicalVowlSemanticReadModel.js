@@ -1,4 +1,4 @@
-import isEqual from "lodash/isEqual.js";
+import { equalDataTree } from "../../../shared/js/util/equalDataTree.js";
 import { prepareOntologyQueries } from "./ontologyInspector.js";
 import { createCanonicalSearchProjection } from "./canonicalSearchProjection.js";
 import { createCanonicalSemanticReferences } from "./canonicalVowlInspectionProjector.js";
@@ -51,7 +51,7 @@ export function createCanonicalVowlSemanticReadModel({
       // The caller combines these ranks with its current shown count. Geometry
       // and presentation do not alter occurrence-to-record connectivity.
       const signature = structuredClone([filters, upstreamHidden]);
-      if (!isEqual(reveal?.signature, signature)) {
+      if (!equalDataTree(reveal?.signature, signature)) {
         const visibility = selectNodes(filters, nodesShown, upstreamHidden, {
           measure: false,
         });

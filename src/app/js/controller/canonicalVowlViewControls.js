@@ -1,4 +1,4 @@
-import isEqual from "lodash/isEqual.js";
+import { equalDataTree } from "../../../shared/js/util/equalDataTree.js";
 import { closeVowlVisibility } from "./canonicalVowlScene.js";
 import {
   rankCanonicalNodeOccurrences,
@@ -140,7 +140,7 @@ export function createCanonicalNodeSelector(
       filters,
       [...retainedHidden].sort(),
     ]);
-    const rankingCacheReused = isEqual(signature, nextSignature);
+    const rankingCacheReused = equalDataTree(signature, nextSignature);
     if (!rankingCacheReused) {
       upstreamHidden = prepareCanonicalVisibility(
         inspection,

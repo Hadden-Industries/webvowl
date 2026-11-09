@@ -1,4 +1,3 @@
-import _ from "lodash/core";
 import * as d3 from "d3";
 import { DEFAULT_VISUALIZATION_MODES } from "../../../shared/js/visualizationDefaults.js";
 
@@ -49,11 +48,12 @@ export function createColorExternalsSwitch() {
     const entries = Array.from(iriMap.entries()).map(function (e) {
       return { key: e[0], value: e[1] };
     });
+    const colorMode = COLOR_MODES.find((mode) => mode.type === colorModeType);
 
     const colorScale = d3
       .scaleLinear()
       .domain([0, entries.length - 1])
-      .range(_.find(COLOR_MODES, { type: colorModeType }).range)
+      .range(colorMode.range)
       .interpolate(d3.interpolateHsl);
 
     for (let i = 0; i < entries.length; i++) {

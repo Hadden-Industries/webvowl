@@ -1,4 +1,3 @@
-import _ from "lodash/array.js";
 import { createElementTools as elementToolsFactory } from "../util/elementTools.js";
 import { DEFAULT_VISUALIZATION_MODES } from "../visualizationDefaults.js";
 const elementTools = elementToolsFactory();
@@ -45,10 +44,19 @@ export function createPickAndPin() {
   }
 
   function hasNoParallelProperties(property) {
-    return (
-      _.intersection(property.domain().links(), property.range().links())
-        .length === 1
-    );
+    const domainLinks = property.domain().links();
+    const rangeLinks = new Set(property.range().links());
+    let foundSharedLink = false;
+    for (const link of domainLinks) {
+      // Remove each match so a repeated reference counts once.
+      if (rangeLinks.delete(link)) {
+        if (foundSharedLink) {
+          return false;
+        }
+        foundSharedLink = true;
+      }
+    }
+    return foundSharedLink;
   }
 
   pap.enabled = function (p) {
