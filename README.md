@@ -63,10 +63,10 @@ npm run dev
 ### Local development requirements
 
 Clone this repository, then use its selected **Node.js** ([version](.node-version)), **npm** ([native minimum](package.json)), and **stable Python** ([minimum and CI reference](.python-version)).
-Each runtime has one maintained declaration: those files and the **uv** [CI selector](.uv-version).
 
 Native npm `devEngines` enforces its minimum; CI installs that same minimum as its exact reproducible reference, while local setup accepts eligible newer npm versions.
-The shared [runtime reader](util/runtimeTargets.mjs) validates these declarations for setup and CI; run `node util/runtimeTargets.mjs` to display all four selections.
+The shared [runtime reader](util/runtimeTargets.mjs) validates these declarations for setup and CI.
+Run `node util/runtimeTargets.mjs` to display the selected versions.
 
 ### Select and verify the OwlAPI dependency
 
@@ -160,19 +160,21 @@ Verified immutable PR evidence permits their reuse on a matching merge; otherwis
 
 ### JSON quality and producer ownership
 
-Root `package.json` declares `@hadden-industries/json-quality` as an ordinary `>=1.0.0-rc.2` devDependency.
+Root `package.json` declares `@hadden-industries/json-quality` as a `>=1.0.0` devDependency.
 Root `npm ci --ignore-scripts` installs it and its matching optional platform package using the root npm lockfile.
 Consumers import its public API and ESLint plugin directly; npm owns dependency resolution and package integrity alongside the other development dependencies.
 
-`npm run inspect:json -- --json` runs complete checks and streams their inventory and outcomes.
+`npm run inspect:json` runs complete checks and streams their inventory and outcomes.
 `npm run check:json` checks bytes, strict syntax, duplicate and meaningful keys, numeric and Unicode interoperability, all-string NFC and presentation.
-`-- --json` requests cohort-3 newline-delimited events; only the final `execution-terminal` closes repository obligations.
+`-- --ndjson` requests version-5 newline-delimited events from `check:json`.
+The final `execution-terminal` closes repository obligations.
 
-Capacity flags such as `-- --max-files 100000` and `-- --no-capacity-limits` override admission controls without weakening semantic checks.
+Capacity flags such as `-- --max-source-bytes 67108864` and `-- --no-capacity-limits` override admission controls without weakening semantic checks.
 Policy and object API admission overrides use `capacityLimits`; explicit `false` removes those admission ceilings, while finite `runtimeControls` still govern managed memory, scratch, depth, elapsed time and concurrency.
 
 `npm run format:json:check` delegates to complete `check`; protected inputs receive their presentation checks in the same run.
-The repository adapter exposes `openRepositoryJsonSession()`; consume its `events()` and close it in `finally`.
+The repository adapter exposes `openRepositoryJsonSession()`.
+Consume its `check()` stream and close the session in `finally`.
 Literal writer selection follows `--`.
 Checking always covers the complete owned repository scope.
 Normalization requires a nonempty writable file selection.
@@ -191,6 +193,7 @@ The JSON adapter does not decode N-Quads, repeat that audit or require sorted ar
 Both JSON quality and corpus storage are required CI jobs, including application-evidence reuse and documentation-only runs.
 
 `npm run check:json -- --require-generated` additionally requires current Vite JSON outputs.
+The post-build check in CI and `npm run check` also verifies that the same scan observes every bundled JSON path declared in the storage inventory exactly once.
 The [policy](.json-quality.json) lists only explicit exceptions, each with an owner and reason.
 External installations and named local state are scope boundaries; `.mcp.json` remains checked.
 Tracked JSON always overrides an external boundary.
@@ -204,6 +207,7 @@ Changed or missing values fail, and every key and other string remains checked.
 Three separately byte-pinned W3C fixtures retain their original literal spelling.
 
 `npm run format:json` repairs eligible authored presentation only.
+The format and normalize scripts explicitly select `--write`.
 `npm run normalize:json -- -- path/to/source.json` requires explicit writable source paths and performs collision preflight.
 Protected output repairs belong to their owning source or producer.
 `.prettierignore` guards direct JSON writes; it does not define JSON checking scope.
@@ -213,7 +217,8 @@ The shared ESLint guard rejects raw `JSON.stringify` used as semantic identity.
 Intentional ordered scalar tuples, byte contracts and digest preimages require one immediately attached `json-identity-contract` declaration with an owner and reason; stale declarations and unused ESLint suppressions fail.
 Structured comparisons use existing library/native equality, preserving ordered arrays.
 
-Python CI uses pinned uv tooling to read `.python-version` and activate an isolated runner environment before creating the repository's `.venv` and installing its hash-locked requirements.
+Python CI uses SHA-pinned `actions/setup-python` to select the interpreter from `.python-version`.
+The job creates the repository's `.venv` and installs its hash-locked requirements.
 Both feed the existing required `WebVOWL application` job.
 
 The application build continues to require only its existing Node.js tooling.

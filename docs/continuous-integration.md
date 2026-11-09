@@ -41,7 +41,8 @@ Analysis waits for uploaded results to finish processing before the gate reads t
 Missing results, blocking alerts, failed analyses and API errors prevent the gate from passing.
 
 Local `npm run check:docs` checks the same full authored scope using the root-installed Markdown Quality package.
-The root manifest declares `@hadden-industries/markdown-quality` with the `>=3.0.0` minimum; `package-lock.json` freezes the core and matching optional platform packages.
+The root manifest declares `@hadden-industries/markdown-quality` with the `>=3.0.1` minimum.
+`package-lock.json` freezes the core and matching optional platform packages.
 There is one npm dependency graph for application and tooling dependencies.
 
 Markdown Quality uses `authored-gfm@2` defaults.
@@ -55,7 +56,7 @@ The write script already supplies `--write`; a preview must use the direct comma
 Both preview and selected-path checks describe their selected inputs; complete authored-scope cleanliness requires the complete `npm run check:docs` verdict.
 
 Commands use the installed public CLI, with finite package execution defaults and the repository execution-profile override.
-Three root npm consumer checks cover maintained selection, independently expected preserved records, literal bytes, read-only checks and native exit propagation.
+The Markdown scope test verifies that maintained documents are selected and tracked preserved records are explicitly excluded.
 `format:check` delegates Markdown quality to the canonical `check:docs` command.
 The documentation gate checks repository content; it does not produce an archive-based trusted qualification receipt.
 The retired manual archive qualification caller has no role in CI evidence reuse, which remains owned by the ordinary application workflow and its immutable PR receipt verifier.

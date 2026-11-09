@@ -10,7 +10,6 @@ function fixture(run) {
   try {
     writeFileSync(join(root, ".node-version"), "25.7.2\n");
     writeFileSync(join(root, ".python-version"), "3.16.2\n");
-    writeFileSync(join(root, ".uv-version"), "0.20.1\n");
     writeFileSync(
       join(root, "package.json"),
       JSON.stringify({
@@ -29,7 +28,6 @@ test("each maintained declaration drives the selected runtime and Python project
       node: "25.7.2",
       npm: "99.2.3",
       python: "3.16.2",
-      uv: "0.20.1",
     });
     writeFileSync(join(root, ".python-version"), "3.17.4\n");
     expect(runtimeTargets(root).python).toBe("3.17.4");
@@ -73,7 +71,7 @@ test("CI output contains only the validated current declarations", () => {
     );
     expect(result.status).toBe(0);
     const rows = readFileSync(output, "utf8").trim().split("\n");
-    expect(rows).toHaveLength(4);
+    expect(rows).toHaveLength(3);
     expect(Object.fromEntries(rows.map((row) => row.split("=")))).toEqual(
       runtimeTargets(),
     );

@@ -15,25 +15,14 @@ const gate = workflow.jobs.required.steps.find((step) =>
 test("Python provisioning preserves the repository selector and isolated locked environment", () => {
   const steps = workflow.jobs.tooling.steps;
   const provisioning = steps.find((step) =>
-    step.uses?.startsWith("astral-sh/setup-uv@"),
+    step.uses?.startsWith("actions/setup-python@"),
   );
   expect(provisioning.uses).toBe(
-    "astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e",
+    "actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0",
   );
   expect(provisioning.with).toEqual({
-    version: "${{ steps.runtimes.outputs.uv }}",
-    "activate-environment": true,
-    "venv-path": "${{ runner.temp }}/python",
-    "no-project": true,
-    "enable-cache": false,
+    "python-version-file": ".python-version",
   });
-  const runtimeIndex = steps.findIndex((step) => step.id === "runtimes");
-  expect(runtimeIndex).toBeGreaterThanOrEqual(0);
-  expect(runtimeIndex).toBeLessThan(steps.indexOf(provisioning));
-  expect(steps[runtimeIndex].run).toBe(
-    "node util/runtimeTargets.mjs --github-output",
-  );
-  // With no Python override, uv discovers the repository's sole version file.
   expect(
     readFileSync(new URL("../.python-version", import.meta.url), "utf8").trim(),
   ).toMatch(/^\d+\.\d+\.\d+$/);
@@ -160,13 +149,12 @@ test("JSON checking runs on both platforms unless scope verifies PR reuse", () =
   expect(json.if).toBe("needs.scope.outputs.reuse != 'true'");
   expect(json.strategy.matrix.os).toEqual(["ubuntu-24.04", "windows-2025"]);
   expect(workflow.jobs.required.needs).toContain("json");
-  const commands = json.steps
-    .map((step) => step.run)
-    .filter(Boolean)
-    .join("\n");
-  expect(commands).toContain("npm ci --ignore-scripts");
-  expect(commands).toContain("npm run build:bundle");
-  expect(commands).toContain("npm run check:json -- --require-generated");
+  const commands = json.steps.map((step) => step.run).filter(Boolean);
+  expect(commands.join("\n")).toContain("npm ci --ignore-scripts");
+  expect(commands.slice(-2)).toEqual([
+    "npm run build:bundle",
+    "node util/verifyGeneratedRepositoryJson.mjs",
+  ]);
 });
 
 test.each(["failure", "cancelled", "skipped", ""])(
