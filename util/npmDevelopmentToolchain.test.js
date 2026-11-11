@@ -90,7 +90,6 @@ test("setup accepts npm admitted by devEngines without a second exact selector",
       ]) {
         writeFileSync(join(directory, filename), "");
       }
-      writeFileSync(join(directory, ".node-version"), process.versions.node);
       // Stop at Python validation, before installation; npm eligibility is already proved.
       writeFileSync(join(directory, ".python-version"), "999.0.0");
       writeFileSync(

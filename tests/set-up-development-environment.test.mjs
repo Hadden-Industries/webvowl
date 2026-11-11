@@ -19,10 +19,6 @@ jest.unstable_mockModule("node:child_process", () => ({
 const { setUpDevelopmentEnvironment } =
   await import("../util/setUpDevelopmentEnvironment.mjs");
 const platformDescriptor = Object.getOwnPropertyDescriptor(process, "platform");
-const nodeVersionDescriptor = Object.getOwnPropertyDescriptor(
-  process.versions,
-  "node",
-);
 
 test("development setup does not activate repository workflow configuration", () => {
   setUpDevelopmentEnvironment({ repositoryRoot });
@@ -90,7 +86,6 @@ beforeEach(() => {
     JSON.stringify({ packageManager: "npm@12.0.2" }),
   );
   writeFileSync(join(repositoryRoot, "package-lock.json"), "{}");
-  writeFileSync(join(repositoryRoot, ".node-version"), "24.20.0\n");
   writeFileSync(join(repositoryRoot, ".python-version"), "3.15.0\n");
   writeFileSync(
     join(repositoryRoot, "requirements-dev.txt"),
@@ -100,7 +95,6 @@ beforeEach(() => {
     join(repositoryRoot, "requirements.lock.txt"),
     "fixture lock\n",
   );
-  Object.defineProperty(process.versions, "node", { value: "24.20.0" });
   writeFileSync(
     join(repositoryRoot, "requirements.txt"),
     "defusedxml>=0.7.1\n",
@@ -141,7 +135,6 @@ beforeEach(() => {
 afterEach(() => {
   jest.restoreAllMocks();
   Object.defineProperty(process, "platform", platformDescriptor);
-  Object.defineProperty(process.versions, "node", nodeVersionDescriptor);
   const cleanupPath = resolve(temporaryDirectoryPath);
   if (
     dirname(cleanupPath) !== resolve(tmpdir()) ||
@@ -255,7 +248,6 @@ test.each([
   "package-lock.json",
   "requirements-dev.txt",
   "requirements.lock.txt",
-  ".node-version",
   ".python-version",
 ])("rejects a missing %s before starting subprocesses", (filename) => {
   rmSync(join(repositoryRoot, filename));
@@ -273,13 +265,8 @@ test("requires invocation through npm before changing the environment", () => {
   expect(spawnSyncMock).not.toHaveBeenCalled();
 });
 
-test("rejects a Node version below the documented prerequisite", () => {
-  Object.defineProperty(process.versions, "node", { value: "22.0.0" });
-  expect(() => setUpDevelopmentEnvironment({ repositoryRoot })).toThrow(/Node/);
-  expect(spawnSyncMock).not.toHaveBeenCalled();
-});
-
-test("preserves the exact npm reference after native admission", () => {
+test("installs the locked graph when the CI Node reference differs", () => {
+  writeFileSync(join(repositoryRoot, ".node-version"), "999.0.0\n");
   setUpDevelopmentEnvironment({ repositoryRoot });
   expect(
     JSON.parse(readFileSync(join(repositoryRoot, "package.json"), "utf8")),

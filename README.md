@@ -56,12 +56,16 @@ Use the runtime selections for this checkout before running setup.
 
 | Runtime | Local requirement                                                              |
 | ------- | ------------------------------------------------------------------------------ |
-| Node.js | Use the exact version in [.node-version](.node-version).                       |
+| Node.js | Use a version supported by npm and the locked dependencies.                    |
 | npm     | Meet the minimum in [package.json](package.json).                              |
 | Python  | Use a stable version at least as recent as [.python-version](.python-version). |
 
 Run `node util/runtimeTargets.mjs` to display the current selections.
+Use [`.node-version`](.node-version) to reproduce the exact Node version used by CI.
 CI uses the npm and Python minimums as its exact reference versions.
+The npm minimum is declared once in `devEngines.packageManager`; [runtime selection](util/runtimeTargets.mjs) derives the CI pin from it.
+Local Node eligibility follows the installed npm and locked dependencies, independently of the exact CI Node reference.
+See [CI runtime selection](docs/continuous-integration.md#select-the-runtimes) to reproduce the checks.
 
 From the repository root, install the development dependencies and start the server.
 

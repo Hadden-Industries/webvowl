@@ -1,5 +1,15 @@
 # Continuous integration
 
+## Select the runtimes
+
+Routine CI and qualification use the exact Node reference in [`.node-version`](../.node-version).
+The npm minimum in [`devEngines.packageManager`](../package.json) also supplies the exact npm reference through [the runtime selector](../util/runtimeTargets.mjs).
+CI installs and verifies that npm selection before project commands; update the owning declaration once rather than copying a pin into workflows.
+
+For local work, choose a stable Node release supported by the installed npm and locked dependencies, and an npm meeting the manifest's minimum.
+Setup checks those requirements without requiring Node to equal the CI reference.
+Python keeps its separate minimum/reference in [`.python-version`](../.python-version).
+
 ## Determine which checks apply
 
 For pull requests and pushes to `main`, the [scope selector](../util/selectCiChecks.mjs) compares the event's base commit with the checked-out revision.

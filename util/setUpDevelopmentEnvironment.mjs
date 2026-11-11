@@ -27,7 +27,6 @@ export function setUpDevelopmentEnvironment({
     "package-lock.json",
     "requirements-dev.txt",
     "requirements.lock.txt",
-    ".node-version",
     ".python-version",
   ]) {
     const filePath = join(repositoryRoot, filename);
@@ -38,12 +37,6 @@ export function setUpDevelopmentEnvironment({
     }
   }
 
-  const selectedNodeVersion = runtimeTarget("node", repositoryRoot);
-  if (process.versions.node !== selectedNodeVersion) {
-    throw new Error(
-      `Development setup requires Node.js ${selectedNodeVersion}; found ${process.versions.node}.`,
-    );
-  }
   const selectedPythonVersion = runtimeTarget("python", repositoryRoot);
 
   function runRequiredCommand(
