@@ -9,6 +9,7 @@ import {
   readDownloadedReceipt,
   runCommand,
 } from "./ciEvidenceCommand.mjs";
+import { ubuntuImage, ubuntuRunner } from "./runnerPolicy.mjs";
 import {
   mkdtempSync,
   mkdirSync,
@@ -22,6 +23,7 @@ import { spawnSync, execFileSync } from "node:child_process";
 
 const hash = (character) => character.repeat(40);
 const repository = { id: 19, full_name: "Hadden-Industries/webvowl" };
+const wrongUbuntuImage = ubuntuImage === "ubuntu24" ? "ubuntu26" : "ubuntu24";
 function context() {
   return {
     eventName: "pull_request",
@@ -33,7 +35,7 @@ function context() {
     host: {
       os: "Linux",
       architecture: "X64",
-      image: "ubuntu24",
+      image: ubuntuImage,
       imageVersion: "20261009.1",
       node: "v24.21.0",
     },
@@ -158,6 +160,9 @@ test.each(["failure", "cancelled", "skipped", "pending"])(
 
 test.each([
   (value) => {
+    value.host.image = wrongUbuntuImage;
+  },
+  (value) => {
     value.event.pull_request.head.repo = { id: 99, full_name: "fork/webvowl" };
   },
   (value) => {
@@ -236,18 +241,19 @@ function proofFixture(full = true, now = Date.parse("2026-10-09T12:10:00Z")) {
     ["application", full ? "success" : "skipped"],
     ...(full
       ? [
-          ["Python tooling (ubuntu-24.04)", "success"],
-          ["Python tooling (windows-latest)", "success"],
+          ["Python tooling (" + ubuntuRunner + ")", "success"],
+          ["Python tooling (windows-latest)", "success", "windows-latest"],
         ]
       : [["Python tooling (${{ matrix.os }})", "skipped"]]),
     ["Markdown checks", "success"],
-    ["JSON quality (ubuntu-24.04)", "success"],
-    ["JSON quality (windows-2025)", "success"],
+    ["JSON quality (" + ubuntuRunner + ")", "success"],
+    ["JSON quality (windows-2025)", "success", "windows-2025"],
     ["Corpus storage", "success"],
     ["WebVOWL application", "success"],
-  ].map(([name, conclusion]) => ({
+  ].map(([name, conclusion, runner = ubuntuRunner]) => ({
     name,
     conclusion,
+    labels: conclusion === "success" ? [runner] : [],
     run_id: 41,
     run_attempt: 1,
     head_sha: hash("b"),
@@ -424,6 +430,12 @@ test.each([
     },
   ],
   [
+    "different Ubuntu image family",
+    (f) => {
+      f.receipt.host.image = wrongUbuntuImage;
+    },
+  ],
+  [
     "different Node",
     (f) => {
       f.receipt.host.node = "v26.0.0";
@@ -445,6 +457,14 @@ test.each([
     "wrong tested Git object",
     (f) => {
       f.responses[`/git/commits/${hash("c")}`].tree.sha = hash("9");
+    },
+  ],
+  [
+    "wrong hosted runner on a static-name job",
+    (f) => {
+      f.jobs.find((job) => job.name === "Markdown checks").labels = [
+        ubuntuRunner === "ubuntu-24.04" ? "ubuntu-26.04" : "ubuntu-24.04",
+      ];
     },
   ],
   [
@@ -543,12 +563,14 @@ test.each(["application", "tooling", "documentation", "json"])(
 );
 
 test.each(
-  ["JSON quality (ubuntu-24.04)", "JSON quality (windows-2025)"].flatMap(
-    (name) =>
-      ["failure", "cancelled", "skipped", "missing"].map((result) => [
-        name,
-        result,
-      ]),
+  [
+    "JSON quality (" + ubuntuRunner + ")",
+    "JSON quality (windows-2025)",
+  ].flatMap((name) =>
+    ["failure", "cancelled", "skipped", "missing"].map((result) => [
+      name,
+      result,
+    ]),
   ),
 )("reuse requires successful PR evidence for %s: %s", async (name, result) => {
   const fixture = proofFixture();

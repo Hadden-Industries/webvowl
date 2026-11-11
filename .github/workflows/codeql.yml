@@ -18,7 +18,7 @@ concurrency:
 jobs:
   scope:
     name: Select CodeQL checks
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 5
     permissions:
       contents: read
@@ -40,7 +40,7 @@ jobs:
     needs: scope
     if: needs.scope.outputs.full == 'true'
     name: Analyze (${{ matrix.language }})
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     permissions:
       contents: read
@@ -70,7 +70,7 @@ jobs:
     name: CodeQL gate
     if: always()
     needs: [scope, analyze]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 5
     permissions:
       contents: read

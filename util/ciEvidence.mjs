@@ -1,21 +1,36 @@
 /** Prior PR evidence is an optimization: unproved equivalence requires execution. */
 import { isDeepStrictEqual } from "node:util";
+import { ubuntuImage, ubuntuRunner } from "./runnerPolicy.mjs";
 
 export const CI_WORKFLOW = ".github/workflows/webvowl-ci.yml";
 export const CI_REPOSITORY = "Hadden-Industries/webvowl";
 export const RECEIPT_LIMIT = 64 * 1024;
-const checkNames = (full) => ({
-  scope: ["Select relevant checks"],
-  application: ["application"],
+const matrixJob = (name, runner) => [name + " (" + runner + ")", runner];
+const checkJobs = (full) => ({
+  scope: [["Select relevant checks", ubuntuRunner]],
+  application: [["application", ubuntuRunner]],
   // GitHub skips a false job-level condition before expanding the matrix.
   tooling: full
-    ? ["Python tooling (ubuntu-24.04)", "Python tooling (windows-latest)"]
-    : ["Python tooling (${{ matrix.os }})"],
-  documentation: ["Markdown checks"],
-  json: ["JSON quality (ubuntu-24.04)", "JSON quality (windows-2025)"],
-  corpus: ["Corpus storage"],
-  required: ["WebVOWL application"],
+    ? [
+        matrixJob("Python tooling", ubuntuRunner),
+        matrixJob("Python tooling", "windows-latest"),
+      ]
+    : [["Python tooling (${{ matrix.os }})"]],
+  documentation: [["Markdown checks", ubuntuRunner]],
+  json: [
+    matrixJob("JSON quality", ubuntuRunner),
+    matrixJob("JSON quality", "windows-2025"),
+  ],
+  corpus: [["Corpus storage", ubuntuRunner]],
+  required: [["WebVOWL application", ubuntuRunner]],
 });
+const checkNames = (full) =>
+  Object.fromEntries(
+    Object.entries(checkJobs(full)).map(([key, jobs]) => [
+      key,
+      jobs.map(([name]) => name),
+    ]),
+  );
 const sha = (value) =>
   typeof value === "string" && /^[a-f0-9]{40}$/u.test(value);
 const id = (value) => Number.isSafeInteger(value) && value > 0;
@@ -41,7 +56,7 @@ function validateContext(context) {
       context.snapshot.parents.every(sha) &&
       context.host?.os === "Linux" &&
       context.host.architecture === "X64" &&
-      context.host.image === "ubuntu24" &&
+      context.host.image === ubuntuImage &&
       /^\d{8}\.\d+(?:\.\d+)?$/u.test(context.host.imageVersion ?? "") &&
       /^v\d+\.\d+\.\d+$/u.test(context.host.node ?? ""),
     "Invalid source checkout or hosted identity",
@@ -284,8 +299,10 @@ export async function verifyProof({
     await read(`/actions/runs/${run.id}/jobs?filter=latest&per_page=100`),
     "jobs",
   );
+  const jobsByCheck = checkJobs(full);
   const expected = Object.entries(expectedResults(full)).flatMap(
-    ([key, result]) => checkNames(full)[key].map((name) => ({ name, result })),
+    ([key, result]) =>
+      jobsByCheck[key].map(([name, runner]) => ({ name, result, runner })),
   );
   requireFact(
     jobs.length === expected.length &&
@@ -297,10 +314,14 @@ export async function verifyProof({
           job.head_sha === run.head_sha &&
           job.status === "completed" &&
           expected.some(
-            (item) => item.name === job.name && item.result === job.conclusion,
+            (item) =>
+              item.name === job.name &&
+              item.result === job.conclusion &&
+              (item.result === "skipped" ||
+                isDeepStrictEqual(job.labels, [item.runner])),
           ),
       ),
-    "PR job inventory is incomplete, failed, unexpectedly skipped or from mixed attempts",
+    "PR job inventory has a missing, failed, skipped, wrong-runner or mismatched-attempt job",
   );
   // A rerun or a new PR run during admission invalidates the earlier selection.
   const finalRun = await latestRun(read, pull);

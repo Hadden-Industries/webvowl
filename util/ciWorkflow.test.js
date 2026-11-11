@@ -1,6 +1,8 @@
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { parse } from "yaml";
+import { ubuntuRunner } from "./runnerPolicy.mjs";
+import { projectUbuntuRunners } from "./syncUbuntuRunners.mjs";
 
 const workflow = parse(
   readFileSync(
@@ -11,6 +13,36 @@ const workflow = parse(
 const gate = workflow.jobs.required.steps.find((step) =>
   step.run?.endsWith(" gate"),
 );
+
+test("each workflow projects its Ubuntu selectors from the same release", () => {
+  const alternate =
+    ubuntuRunner === "ubuntu-24.04" ? "ubuntu-26.04" : "ubuntu-24.04";
+  const selectors = { codeql: 3, "dependency-review": 1, "webvowl-ci": 7 };
+  for (const [name, count] of Object.entries(selectors)) {
+    const source = readFileSync(
+      new URL("../.github/workflows/" + name + ".yml", import.meta.url),
+      "utf8",
+    );
+    const stale = source.replaceAll(ubuntuRunner, alternate);
+    expect(source.split(ubuntuRunner)).toHaveLength(count + 1);
+    expect(projectUbuntuRunners(name, source)).toBe(source);
+    expect(projectUbuntuRunners(name, source, alternate)).toBe(stale);
+    expect(projectUbuntuRunners(name, stale)).toBe(source);
+  }
+});
+
+test("the Ubuntu projector rejects unregistered jobs before generation", () => {
+  const source = readFileSync(
+    new URL("../.github/workflows/codeql.yml", import.meta.url),
+    "utf8",
+  );
+  const changed =
+    source.trimEnd() +
+    "\n  extra: {runs-on: ubuntu-24.04, steps: [{run: echo extra}]}\n";
+  expect(() => projectUbuntuRunners("codeql", changed)).toThrow(
+    /job inventory differs/,
+  );
+});
 
 test("Python provisioning preserves the repository selector and isolated locked environment", () => {
   const steps = workflow.jobs.tooling.steps;
@@ -68,7 +100,7 @@ test("reuse wiring authenticates a bounded immutable receipt and preserves requi
   expect(workflow.jobs.required.name).toBe("WebVOWL application");
   expect(workflow.jobs.tooling.name).toBe("Python tooling (${{ matrix.os }})");
   expect(workflow.jobs.tooling.strategy.matrix.os).toEqual([
-    "ubuntu-24.04",
+    ubuntuRunner,
     "windows-latest",
   ]);
   for (const job of ["application", "tooling", "documentation", "json"]) {
@@ -147,7 +179,7 @@ test("JSON checking runs on both platforms unless scope verifies PR reuse", () =
   expect(json).toBeDefined();
   expect(json.needs).toBe("scope");
   expect(json.if).toBe("needs.scope.outputs.reuse != 'true'");
-  expect(json.strategy.matrix.os).toEqual(["ubuntu-24.04", "windows-2025"]);
+  expect(json.strategy.matrix.os).toEqual([ubuntuRunner, "windows-2025"]);
   expect(workflow.jobs.required.needs).toContain("json");
   const commands = json.steps.map((step) => step.run).filter(Boolean);
   expect(commands.join("\n")).toContain("npm ci --ignore-scripts");

@@ -10,6 +10,11 @@ For local work, choose a stable Node release supported by the installed npm and 
 Setup checks those requirements without requiring Node to equal the CI reference.
 Python keeps its separate minimum/reference in [`.python-version`](../.python-version).
 
+The GitHub Actions workflows and CI evidence checks share the Ubuntu release in [the runner policy](../.github/runner-policy.json).
+After a policy edit, run `node util/syncUbuntuRunners.mjs --write` to update the workflow selectors.
+The workflow tests check for drift.
+Reuse checks the observed image family and requires the expected GitHub labels for jobs that ran.
+
 ## Determine which checks apply
 
 For pull requests and pushes to `main`, the [scope selector](../util/selectCiChecks.mjs) compares the event's base commit with the checked-out revision.
@@ -62,7 +67,7 @@ From outside the checkout, run `npm --prefix <absolute-repository-root> run chec
 | Run the focused WebVOWL policy probes | `npm run test:json`             |
 | Verify corpus bytes and locators      | `npm run check:corpus-storage`  |
 
-The JSON job runs on Ubuntu 24.04 and Windows 2025.
+The JSON job runs on the policy-selected Ubuntu runner and Windows 2025.
 It runs the focused probes, builds with `npm run build:bundle`, then invokes [the post-build verifier](../util/verifyGeneratedRepositoryJson.mjs).
 Run those steps from the repository root to reproduce the JSON job locally.
 
