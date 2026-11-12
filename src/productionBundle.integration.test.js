@@ -142,7 +142,13 @@ test("the production bundle links without a browser package resolver", () => {
   `;
   const output = execFileSync(
     process.execPath,
-    ["--input-type=module", "--eval", verificationSource],
+    [
+      "--experimental-vm-modules",
+      "--disable-warning=ExperimentalWarning",
+      "--input-type=module",
+      "--eval",
+      verificationSource,
+    ],
     {
       cwd: fileURLToPath(new URL("../", import.meta.url)),
       encoding: "utf8",

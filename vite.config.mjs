@@ -8,7 +8,6 @@ import {
   statSync,
   utimesSync,
 } from "node:fs";
-import replace from "@rollup/plugin-replace";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import eslintPlugin from "vite-plugin-eslint2";
 import stylelint from "vite-plugin-stylelint";
@@ -148,6 +147,10 @@ export default defineConfig(({ mode }) => {
     root: "src",
     publicDir: false,
 
+    define: {
+      "import.meta.env.WEBVOWL_VERSION": JSON.stringify(pkg.version),
+    },
+
     // The linked core and lazy OWL entry share module-owned model identities.
     // Prebundle both before the first worker load, including a fresh dev cache.
     optimizeDeps: {
@@ -268,12 +271,6 @@ export default defineConfig(({ mode }) => {
           ]
         : []),
       mtimePreservePlugin(),
-      // Replace @@WEBVOWL_VERSION placeholder in JS source files with the package version
-      replace({
-        "@@WEBVOWL_VERSION": pkg.version,
-        preventAssignment: true,
-        include: [resolve(configDir, "src/**/*.js")],
-      }),
       // Copy static assets to deploy/
       viteStaticCopy({
         targets: [
