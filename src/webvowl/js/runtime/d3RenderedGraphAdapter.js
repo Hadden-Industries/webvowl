@@ -78,9 +78,10 @@ function assertExactDependencyFieldNames(dependencies) {
   const actualFieldNames = Object.keys(dependencies).sort();
   const expectedFieldNames = [
     ...D3_RENDERED_GRAPH_ADAPTER_DEPENDENCY_FIELD_NAMES,
-    ...(Object.hasOwn(dependencies, "createRenderer")
-      ? ["createRenderer"]
-      : []),
+    // A host that offers no in-place expansion omits its element.
+    ...["createRenderer", "selectedOccurrenceExpansionElement"].filter(
+      (optionalFieldName) => Object.hasOwn(dependencies, optionalFieldName),
+    ),
   ].sort();
   if (
     actualFieldNames.length !== expectedFieldNames.length ||
@@ -119,10 +120,12 @@ export function createD3RenderedGraphAdapter(dependencies) {
     graphContainerElement,
     observeNextPaint,
     renderedGraphConfiguration = createRenderedGraphConfiguration(),
+    selectedOccurrenceExpansionElement,
   } = dependencies;
   const renderedGraphInternals = createRenderer(
     graphContainerElement,
     renderedGraphConfiguration,
+    { selectedOccurrenceExpansionElement },
   );
 
   if (typeof observeNextPaint !== "function") {

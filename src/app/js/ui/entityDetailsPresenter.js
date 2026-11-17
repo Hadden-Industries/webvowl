@@ -8,34 +8,53 @@ import { ontologyElementReferenceKey } from "../controller/webVowlControllerCont
 import { navigableOntologyIri } from "../sidebar.js";
 import { runVisualizationControlAction } from "./visualizationControlAction.js";
 
-/** One current presentation, shared by the preview and complete Details. */
+// A press inside one of these never dismisses the selection: the graph settles
+// its own presses, its zoom control only moves the view, and the Details
+// surfaces are showing the very selection a dismissal would clear.
+const SELECTION_KEEPING_SURFACES = "#graph, #zoomSlider, #detailsArea, dialog";
+
+/**
+ * One current presentation of the selection, written into the slots the page
+ * nests inside the graph's expansion element: a summary, and the complete view
+ * the renderer reveals when the reader asks for more. The renderer sizes and
+ * animates those slots and never reads them. The older Details surface shows
+ * the same complete view when something opens it.
+ *
+ * The name is the exception among the slots. It is one element the page keeps:
+ * the renderer names it as the node is drawn the moment the node expands, and
+ * carries it from the node's label to its place and back. So it is only ever
+ * given new text here, never replaced, and never cleared.
+ */
 export function createEntityDetailsPresenter({
   controller,
   surface,
   documentObject = document,
   openFacts,
-  onPresentationChanged,
   scheduleRefresh,
 }) {
   const doc = documentObject;
   const lifecycle = new AbortController();
   const preview = doc.getElementById("entity-preview");
+  const previewName = doc.getElementById("entity-preview-name");
   const previewBody = doc.getElementById("entity-preview-body");
+  const previewComplete = doc.getElementById("entity-preview-complete");
   const details = doc.getElementById("entity-full-details");
-  const detailsButton = doc.getElementById("entity-preview-details");
-  const closeButton = doc.getElementById("entity-preview-close");
   const message = doc.getElementById("entity-details-status");
   let model = [];
   let selectedRole;
   let relatedModel;
   let relatedReference;
-  let focusRelatedHeading = false;
+  // The container whose relation was followed, so its new heading takes focus.
+  let relatedNavigationContainer;
   let identity;
   let editor = false;
   let disposed = false;
 
-  const on = (element, type, listener) =>
-    element.addEventListener(type, listener, { signal: lifecycle.signal });
+  const on = (element, type, listener, options) =>
+    element.addEventListener(type, listener, {
+      ...options,
+      signal: lifecycle.signal,
+    });
   function append(parent, tag, text, className) {
     const element = doc.createElement(tag);
     if (text !== undefined) {
@@ -63,13 +82,57 @@ export function createEntityDetailsPresenter({
       !["loading", "idle", "disposed"].includes(state.status)
     );
   }
+  function readDrawnOccurrenceCount() {
+    try {
+      return controller.getSelectedVisualizationOccurrence?.()?.occurrenceCount;
+    } catch (error) {
+      if (!["LOAD_PENDING", "NO_ONTOLOGY"].includes(error.code)) {
+        throw error;
+      }
+      return undefined;
+    }
+  }
+  function renderSummary(role) {
+    const summary = append(
+      previewBody,
+      "div",
+      undefined,
+      "entity-preview-summary",
+    );
+    if (role.summary) {
+      append(summary, "p", role.summary);
+    }
+    for (const annotation of role.highlightedAnnotations) {
+      for (const value of annotation.values) {
+        const line = append(
+          summary,
+          "p",
+          undefined,
+          "entity-preview-annotation",
+        );
+        append(line, "span", annotation.label, "entity-preview-term");
+        const text = append(line, "span", value.text);
+        if (value.languageTag) {
+          text.lang = value.languageTag;
+        }
+      }
+    }
+    for (const line of role.summaries) {
+      append(summary, "p", line);
+    }
+    const drawnOccurrenceCount = readDrawnOccurrenceCount();
+    if (drawnOccurrenceCount > 1) {
+      append(summary, "p", `Drawn ${drawnOccurrenceCount} times`);
+    }
+  }
   function renderPreview() {
     preview.hidden = !model.length || editor;
     if (preview.hidden && preview.contains(doc.activeElement)) {
       doc.getElementById("ontology-menu-open").focus();
     }
     if (preview.hidden) {
-      onPresentationChanged();
+      previewBody.replaceChildren();
+      previewComplete.replaceChildren();
       return;
     }
     const role = model.find((entry) => entry.key === selectedRole) ?? model[0];
@@ -77,10 +140,8 @@ export function createEntityDetailsPresenter({
       ? doc.activeElement.dataset.roleKey
       : undefined;
     selectedRole = role.key;
-    preview.dataset.shape = role.kind === "class" ? "round" : "rectangle";
     previewBody.replaceChildren();
-    const heading = append(previewBody, "h2", role.label);
-    heading.id = "entity-preview-heading";
+    previewName.textContent = role.label;
     if (model.length > 1) {
       const group = append(
         previewBody,
@@ -106,32 +167,30 @@ export function createEntityDetailsPresenter({
         control.dataset.roleKey = entry.key;
       }
     }
-    append(previewBody, "p", role.type, "entity-preview-type");
+    const type = append(previewBody, "p", undefined, "entity-preview-type");
+    append(type, "span", role.typeSymbol, "entity-type-symbol").setAttribute(
+      "aria-hidden",
+      "true",
+    );
+    append(type, "span", role.type);
     append(previewBody, "p", role.compactIri, "entity-preview-iri");
-    if (role.summary) {
-      append(previewBody, "p", role.summary);
-    }
-    for (const line of role.summaries) {
-      append(previewBody, "p", line);
-    }
-    detailsButton.setAttribute("aria-label", "Details for " + role.label);
+    renderSummary(role);
+    renderCompleteDetails(previewComplete);
     if (focusedRole) {
-      const replacement = [...previewBody.querySelectorAll("button")].find(
-        (control) => control.dataset.roleKey === focusedRole,
-      );
-      (replacement ?? detailsButton).focus();
+      [...previewBody.querySelectorAll("button")]
+        .find((control) => control.dataset.roleKey === focusedRole)
+        ?.focus();
     }
-    onPresentationChanged();
   }
-  function navigate(reference) {
+  function navigate(reference, container) {
     if (!current()) {
       return;
     }
     relatedReference = reference;
-    focusRelatedHeading = true;
+    relatedNavigationContainer = container;
     scheduleRefresh();
   }
-  function renderValue(parent, value) {
+  function renderValue(parent, value, container) {
     if (value === null || value === undefined || value === "") {
       append(parent, "span", "Not provided");
     } else if (Array.isArray(value)) {
@@ -140,7 +199,7 @@ export function createEntityDetailsPresenter({
       } else {
         const list = append(parent, "ul");
         for (const entry of value) {
-          renderValue(append(list, "li"), entry);
+          renderValue(append(list, "li"), entry, container);
         }
       }
     } else if (typeof value === "object") {
@@ -148,7 +207,7 @@ export function createEntityDetailsPresenter({
         button(
           parent,
           value.displayLabel || value.iri || "Anonymous entity",
-          () => navigate(value.ontologyElementReference),
+          () => navigate(value.ontologyElementReference, container),
         );
         if (value.iri) {
           append(parent, "span", value.iri, "entity-relation-iri");
@@ -158,7 +217,7 @@ export function createEntityDetailsPresenter({
         for (const [key, entry] of Object.entries(value)) {
           append(list, "dt", readableFieldName(key));
           const definition = append(list, "dd");
-          renderValue(definition, entry);
+          renderValue(definition, entry, container);
           if (
             key === "text" &&
             typeof value.languageTag === "string" &&
@@ -172,25 +231,26 @@ export function createEntityDetailsPresenter({
       append(parent, "span", String(value));
     }
   }
-  function renderDetails() {
-    details.replaceChildren();
+  /** Every field of every selected role, into the expansion or the surface. */
+  function renderCompleteDetails(container) {
+    container.replaceChildren();
     const roles = relatedModel ?? model;
     if (relatedModel) {
-      append(details, "p", "Related entity details");
+      append(container, "p", "Related entity details");
       button(
-        details,
+        container,
         "Back to selected " + (model[0]?.label ?? "entity"),
         () => {
           relatedReference = undefined;
           relatedModel = undefined;
-          renderDetails();
-          details.querySelector("h3")?.focus();
+          renderCompleteDetails(container);
+          container.querySelector("h3")?.focus();
         },
       );
     }
     if (!roles.length) {
       append(
-        details,
+        container,
         "p",
         relatedModel
           ? "This entity is no longer available."
@@ -198,7 +258,7 @@ export function createEntityDetailsPresenter({
       );
     }
     for (const role of roles) {
-      const section = append(details, "section");
+      const section = append(container, "section");
       const heading = append(
         section,
         "h3",
@@ -246,28 +306,47 @@ export function createEntityDetailsPresenter({
           }
           for (const key of [...groups.keys()].sort()) {
             append(definition, "h4", key);
-            renderValue(definition, groups.get(key));
+            renderValue(definition, groups.get(key), container);
           }
         } else {
-          renderValue(definition, field.value);
+          renderValue(definition, field.value, container);
         }
       }
     }
     if (model.length) {
-      const facts = button(details, "Ontology facts", () => openFacts(facts));
+      const facts = button(container, "Ontology facts", () => openFacts(facts));
     }
   }
-  on(detailsButton, "click", () => {
-    relatedReference = undefined;
-    relatedModel = undefined;
-    surface.openDetails(detailsButton);
-  });
-  on(closeButton, "click", () => {
-    if (current()) {
+  // There is no Close control: pressing anywhere that is not the selection's
+  // own surface, or Escape, clears the selection, and the renderer shrinks the
+  // expanded occurrence back. A fact is reported; nothing is told to collapse.
+  function dismissSelection() {
+    if (model.length && !editor && current()) {
       void runVisualizationControlAction(
         () => controller.selectVisualizationElement({ reference: null }),
         doc,
       );
+    }
+  }
+  on(
+    doc,
+    "pointerdown",
+    (event) => {
+      if (!event.target?.closest?.(SELECTION_KEEPING_SURFACES)) {
+        dismissSelection();
+      }
+    },
+    // Capture: a control that selects something else on this press must find
+    // the earlier selection already cleared, not clear its own afterwards.
+    { capture: true },
+  );
+  on(doc, "keydown", (event) => {
+    if (
+      event.key === "Escape" &&
+      !event.defaultPrevented &&
+      !event.target?.closest?.("dialog")
+    ) {
+      dismissSelection();
     }
   });
   surface.onClose(() => {
@@ -275,8 +354,8 @@ export function createEntityDetailsPresenter({
     relatedModel = undefined;
     renderPreview();
   });
-  surface.onOpen(renderDetails);
-  renderDetails();
+  surface.onOpen(() => renderCompleteDetails(details));
+  renderCompleteDetails(details);
   return Object.freeze({
     describe(request) {
       if (!current()) {
@@ -313,7 +392,9 @@ export function createEntityDetailsPresenter({
       const selectedKeys = new Set(
         state.selection.map(ontologyElementReferenceKey),
       );
-      const all = createEntityPresentation(descriptions);
+      const all = createEntityPresentation(descriptions, {
+        preferredLanguageTag: state.view?.language,
+      });
       model = all.filter((entry) => selectedKeys.has(entry.key));
       if (changedIdentity) {
         relatedModel = undefined;
@@ -331,12 +412,16 @@ export function createEntityDetailsPresenter({
           ? doc.activeElement.textContent
           : null;
       const scroll = detailsOpen ? details.parentElement?.scrollTop : undefined;
+      const navigatedContainer = relatedNavigationContainer;
+      relatedNavigationContainer = undefined;
       renderPreview();
+      if (navigatedContainer === previewComplete) {
+        previewComplete.querySelector("h3")?.focus();
+      }
       if (surface.isOpen()) {
-        renderDetails();
-        if (focusRelatedHeading) {
+        renderCompleteDetails(details);
+        if (navigatedContainer === details) {
           details.querySelector("h3")?.focus();
-          focusRelatedHeading = false;
         } else if (focused) {
           const replacement = [
             ...details.querySelectorAll("button, a, h3"),
@@ -351,8 +436,8 @@ export function createEntityDetailsPresenter({
         surface.closeDetails();
       }
     },
-    renderEditorMode(value) {
-      editor = value;
+    renderEditorMode(isEditorMode) {
+      editor = isEditorMode;
       renderPreview();
     },
     dispose() {
@@ -362,6 +447,8 @@ export function createEntityDetailsPresenter({
       relatedModel = undefined;
       relatedReference = undefined;
       preview.hidden = true;
+      previewBody.replaceChildren();
+      previewComplete.replaceChildren();
       details.replaceChildren();
     },
   });

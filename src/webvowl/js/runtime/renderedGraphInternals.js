@@ -1,6 +1,7 @@
 import { namespaces } from "vowl";
 import { createBackgroundSelectionGesture } from "./backgroundSelectionGesture.js";
 import { createRenderedGraphPanCache } from "./renderedGraphPanCache.js";
+import { createSelectedOccurrenceExpansion } from "./selectedOccurrenceExpansion.js";
 import * as d3 from "d3";
 import { createLegacyForceSimulation } from "./legacyForceSimulation.js";
 import { projectLegacyLabelPosition } from "./legacyForceProjection.js";
@@ -252,6 +253,9 @@ function measureViewportElement(element, fallbackWidth, fallbackHeight) {
 function createGraph(
   graphContainerElement,
   configuration = RENDERED_GRAPH_CONFIGURATION_DEFAULTS,
+  // The application's slot for the selected occurrence's in-place expansion.
+  // Without one, selection behaves as before and nothing is expanded.
+  { selectedOccurrenceExpansionElement } = {},
 ) {
   const graph = new EventTarget();
   const reportInvalidGeometry = createInvalidGeometryReporter(
@@ -300,6 +304,7 @@ function createGraph(
   // Container for visual elements
   let graphContainer;
   let panCache;
+  let selectedOccurrenceExpansion;
   let nodeContainer;
   let labelContainer;
   let cardinalityContainer;
@@ -743,8 +748,9 @@ function createGraph(
     }));
   };
 
-  // Model geometry only: no SVG measurement, traversal or whole-scene DTO.
-  graph.readOccurrenceGeometry = function (rendererId) {
+  // One drawn node or label in graph units, from the model alone: no SVG
+  // measurement, traversal or whole-scene DTO.
+  function readLiveOccurrenceFootprint(rendererId) {
     const id = String(rendererId);
     const node = liveNodesById.get(id);
     const label = liveLabelsById.get(id);
@@ -758,17 +764,139 @@ function createGraph(
       element.renderType?.() === "rect" ||
       element.getRectangularRepresentation?.();
     const diameter = 2 * (element.actualRadius?.() ?? 0);
-    const width = rectangular ? (element.width?.() ?? diameter) : diameter;
-    const height = rectangular ? (element.height?.() ?? diameter) : diameter;
-    const offsetY = label?.offsetY ?? 0;
+    return {
+      element,
+      position,
+      offsetY: label?.offsetY ?? 0,
+      width: rectangular ? (element.width?.() ?? diameter) : diameter,
+      height: rectangular ? (element.height?.() ?? diameter) : diameter,
+      shape: rectangular ? "rectangle" : "ellipse",
+      drawnGroup: node ? element.nodeElement() : element.labelElement(),
+    };
+  }
+
+  graph.readOccurrenceGeometry = function (rendererId) {
+    const footprint = readLiveOccurrenceFootprint(rendererId);
+    if (!footprint) {
+      return null;
+    }
+    const { position, offsetY, width, height, shape } = footprint;
     return {
       xPx: position.x * zoomFactor + graphTranslation[0],
       yPx: (position.y + offsetY) * zoomFactor + graphTranslation[1],
       widthPx: width * zoomFactor,
       heightPx: height * zoomFactor,
-      shape: rectangular ? "rectangle" : "ellipse",
+      shape,
     };
   };
+
+  // Selection is the expansion's only trigger, so a tap, a search result and a
+  // controller command all grow the same occurrence. The editor keeps its own
+  // tools around a selected element and never expands one.
+  function expandSelectedOccurrence(selectedElementIds) {
+    if (!selectedOccurrenceExpansion) {
+      return;
+    }
+    const footprint =
+      selectedElementIds.length === 1 && !editMode
+        ? readLiveOccurrenceFootprint(selectedElementIds[0])
+        : null;
+    if (!footprint?.drawnGroup?.node()) {
+      selectedOccurrenceExpansion.collapse();
+      return;
+    }
+    const { element, position, offsetY, drawnGroup } = footprint;
+    const rendererId = selectedElementIds[0];
+    const nameText = element.labelForCurrentLanguage?.() || "";
+    selectedOccurrenceExpansion.expand({
+      shape: footprint.shape,
+      widthPx: footprint.width,
+      heightPx: footprint.height,
+      // Read at every move; an occurrence a redraw retired has no position.
+      readCenter: () =>
+        liveCanonicalPrimitives.has(element)
+          ? { x: position.x, y: position.y + offsetY }
+          : null,
+      name: {
+        text: nameText,
+        // Read when an animation starts or ends on the label; a redraw may
+        // have replaced the group since, so it is looked up again each time.
+        readDrawn: () =>
+          nameText
+            ? readDrawnNameLine(
+                readLiveOccurrenceFootprint(rendererId)?.drawnGroup,
+              )
+            : null,
+      },
+      restingAppearance: readRestingAppearance(
+        drawnGroup
+          .select(footprint.shape === "ellipse" ? "circle" : "rect")
+          .node(),
+        drawnGroup.select("text").node(),
+      ),
+    });
+  }
+
+  // A named occurrence draws its name as the first line of its text block.
+  // Only the browser's layout knows where that line ended up, so its centre is
+  // reported in client pixels; the font size stays in graph units.
+  function readDrawnNameLine(drawnGroup) {
+    const nameLine = drawnGroup?.select("text").node()?.querySelector("tspan");
+    const view = nameLine?.ownerDocument?.defaultView;
+    if (!view || typeof nameLine.getBoundingClientRect !== "function") {
+      return null;
+    }
+    const box = nameLine.getBoundingClientRect();
+    const fontSize = Number.parseFloat(
+      view.getComputedStyle(nameLine).fontSize,
+    );
+    return box.width > 0 && box.height > 0 && fontSize > 0
+      ? {
+          clientXPx: box.left + box.width / 2,
+          clientYPx: box.top + box.height / 2,
+          fontSize,
+        }
+      : null;
+  }
+
+  // Hover and selection repaint a shape. The expansion grows out of the node
+  // as it is drawn at rest, so those states are lifted for one style read and
+  // put back before anything is painted.
+  const TRANSIENT_SHAPE_STATE_CLASSES = Object.freeze([
+    "hovered",
+    "focused",
+    "hoveredForEditing",
+  ]);
+  function readRestingAppearance(shapeElement, textElement) {
+    const view = shapeElement?.ownerDocument?.defaultView;
+    if (!view) {
+      return { isDashed: false };
+    }
+    const liftedStateClasses = TRANSIENT_SHAPE_STATE_CLASSES.filter(
+      (stateClass) => shapeElement.classList.contains(stateClass),
+    );
+    shapeElement.classList.remove(...liftedStateClasses);
+    try {
+      const shapeStyle = view.getComputedStyle(shapeElement);
+      const dash = shapeStyle.strokeDasharray;
+      const textStyle = textElement
+        ? view.getComputedStyle(textElement)
+        : undefined;
+      return {
+        fill: shapeStyle.fill,
+        stroke: shapeStyle.stroke,
+        strokeWidth: shapeStyle.strokeWidth,
+        isDashed: Boolean(dash) && dash !== "none",
+        // The node's own label already carries the ink chosen for this fill,
+        // and the face the grown name has to keep to stay the same name.
+        ink: textStyle?.fill,
+        fontFamily: textStyle?.fontFamily,
+        fontWeight: textStyle?.fontWeight,
+      };
+    } finally {
+      shapeElement.classList.add(...liftedStateClasses);
+    }
+  }
 
   graph.applyArrangement = function (changes) {
     const elements = arrangedElements();
@@ -854,6 +982,7 @@ function createGraph(
   graph.retireRenderGeneration = function () {
     panCache?.dispose();
     panCache = undefined;
+    selectedOccurrenceExpansion?.collapse();
     hasActiveRenderInteractions = false;
     renderInteractionEpoch++;
     activeDragIdentifiers.clear();
@@ -923,9 +1052,11 @@ function createGraph(
   // selected using the renderer's own ids; the runtime turns those into
   // ontology element references for the controller.
   graph.reportRenderedElementSelection = function (selectedElementIds) {
-    renderedGraphEventPort.publishRenderedElementSelection(
-      Array.isArray(selectedElementIds) ? selectedElementIds : [],
-    );
+    const selectedIds = Array.isArray(selectedElementIds)
+      ? selectedElementIds
+      : [];
+    renderedGraphEventPort.publishRenderedElementSelection(selectedIds);
+    expandSelectedOccurrence(selectedIds);
   };
   graph.currentRenderInteractionEpoch = function () {
     return renderInteractionEpoch;
@@ -1654,6 +1785,9 @@ function createGraph(
 
       reportInvalidGeometry(skippedUpdates);
       updateHaloRadius();
+      // Positions were just written, so the expansion moves in this same
+      // frame. The editor branch below never shows one.
+      selectedOccurrenceExpansion?.follow();
       return;
     }
 
@@ -2085,6 +2219,16 @@ function createGraph(
         k: zoomFactor,
       }),
     });
+    selectedOccurrenceExpansion = selectedOccurrenceExpansionElement
+      ? createSelectedOccurrenceExpansion({
+          expansionElement: selectedOccurrenceExpansionElement,
+          sceneElement: scene,
+          readViewportSize: () => ({
+            widthPx: renderedGraphSettings.width(),
+            heightPx: renderedGraphSettings.height(),
+          }),
+        })
+      : undefined;
   }
 
   function bindViewportInteractions() {
@@ -2514,6 +2658,8 @@ function createGraph(
   function remove() {
     panCache?.dispose();
     panCache = undefined;
+    selectedOccurrenceExpansion?.dispose();
+    selectedOccurrenceExpansion = undefined;
     if (graphContainer) {
       // Select the parent element because the graph container is a group (e.g. for zooming)
       d3.select(graphContainer.node().parentNode).remove();
@@ -2545,6 +2691,7 @@ function createGraph(
       if (sizeChanged) {
         panCache?.invalidate();
         panCache?.refresh();
+        selectedOccurrenceExpansion?.viewportResized();
       }
     }
 
@@ -4131,6 +4278,9 @@ function createGraph(
 
     editMode = Boolean(val);
     panCache?.invalidate();
+    if (editMode) {
+      selectedOccurrenceExpansion?.collapse();
+    }
     renderedGraphEventPort.publishEditorModeChange(editMode);
     ontologyEditingState.setEditorModeForDefaultObject(editMode);
     if (editMode === false) {

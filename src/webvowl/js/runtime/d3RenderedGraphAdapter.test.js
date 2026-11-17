@@ -718,6 +718,44 @@ function createAdapterHarness() {
 }
 
 describe("D3 rendered graph adapter", () => {
+  test("hands the application's expansion element to the renderer it constructs, and nothing unnamed", () => {
+    const graphContainerElement = {};
+    const selectedOccurrenceExpansionElement = {};
+    const renderedGraphConfiguration = createRenderedGraphConfiguration();
+    const createRenderer = jest.fn(() => ({
+      load() {},
+      setRenderedGraphEventPort() {},
+    }));
+    const dependencies = {
+      createRenderer,
+      graphContainerElement,
+      observeNextPaint: () => Promise.resolve(),
+      renderedGraphConfiguration,
+    };
+    createD3RenderedGraphAdapter({
+      ...dependencies,
+      selectedOccurrenceExpansionElement,
+    });
+    expect(createRenderer).toHaveBeenLastCalledWith(
+      graphContainerElement,
+      renderedGraphConfiguration,
+      { selectedOccurrenceExpansionElement },
+    );
+    // A host without the slot still gets a renderer; it simply never expands.
+    createD3RenderedGraphAdapter(dependencies);
+    expect(createRenderer).toHaveBeenLastCalledWith(
+      graphContainerElement,
+      renderedGraphConfiguration,
+      { selectedOccurrenceExpansionElement: undefined },
+    );
+    expect(() =>
+      createD3RenderedGraphAdapter({
+        ...dependencies,
+        occurrenceExpansionElement: {},
+      }),
+    ).toThrow("invalid dependency field set");
+  });
+
   test("applies initial view values before first paint without UI callbacks or redraws of retired data", async () => {
     const harness = createAdapterHarness();
     const { renderedGraphRuntime, renderedGraphInternalsFixture: renderer } =

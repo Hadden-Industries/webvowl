@@ -59,27 +59,6 @@
         >
           Editor
         </button>
-        <section
-          id="entity-preview"
-          class="entity-preview"
-          aria-labelledby="entity-preview-heading"
-          hidden
-        >
-          <div id="entity-preview-body">
-            <h2 id="entity-preview-heading">Selection preview</h2>
-          </div>
-          <p id="entity-preview-visibility"></p>
-          <div class="entity-preview-actions">
-            <button id="entity-preview-details" type="button">Details</button>
-            <button
-              id="entity-preview-close"
-              type="button"
-              aria-label="Close selection preview"
-            >
-              Close
-            </button>
-          </div>
-        </section>
         <div id="unsupported-browser" hidden>
           <p class="unsupported-browser-title">Browser Not Supported</p>
           <p>
@@ -251,7 +230,52 @@
           >
         </div>
 
-        <div id="graph"></div>
+        <div id="graph">
+          <!-- The selected occurrence grows in place here. The renderer places,
+               sizes and animates this element and its shell; the application
+               only fills the two content slots, which the renderer never reads.
+               The name is the one part both write: the renderer names it as the
+               node is drawn and carries it from the node's label to here, so it
+               stays this one element; the application only changes its text. -->
+          <div id="occurrence-expansion" class="occurrence-expansion" hidden>
+            <div
+              class="occurrence-expansion-shell"
+              data-occurrence-expansion-part="shell"
+            >
+              <h2 id="entity-preview-heading" class="occurrence-expansion-name">
+                <span
+                  id="entity-preview-name"
+                  data-occurrence-expansion-part="name"
+                  >Selection</span
+                >
+              </h2>
+              <section
+                id="entity-preview"
+                class="entity-preview"
+                aria-labelledby="entity-preview-heading"
+                hidden
+              >
+                <div id="entity-preview-body"></div>
+                <div
+                  id="entity-preview-complete"
+                  class="entity-preview-complete"
+                ></div>
+              </section>
+              <button
+                id="entity-preview-level-toggle"
+                class="occurrence-expansion-level-toggle"
+                type="button"
+                data-occurrence-expansion-part="level-toggle"
+                aria-controls="entity-preview-complete"
+                aria-expanded="false"
+                aria-label="All details"
+                title="All details"
+              >
+                <span aria-hidden="true">&hellip;</span>
+              </button>
+            </div>
+          </div>
+        </div>
 
         <div id="dragDropContainer" class="hidden">
           <div id="drag_dropOverlay"></div>

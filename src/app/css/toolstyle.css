@@ -978,6 +978,10 @@ main {
 }
 
 #canvasArea #graph {
+  /* The containing block of the selected occurrence's expansion, which this
+     element's clipping must also bound. */
+  position: relative;
+
   overflow: hidden;
 
   box-sizing: border-box;
@@ -3062,62 +3066,170 @@ button.accordion-trigger {
   display: none;
 }
 
-.entity-preview {
-  position: absolute;
-  z-index: 3;
-  inset: 0 auto auto 0;
-  transform: var(--entity-preview-transform, translate(12px, 64px));
+/* The selected occurrence grows in place. The renderer owns this element's
+   position, its size and colour properties and its data attributes; these
+   rules only draw what it reports. The element itself is a point: its shell is
+   centred on it, so one translation keeps the shell on the node. */
+.occurrence-expansion {
+  pointer-events: none;
 
-  overflow: auto;
+  position: absolute;
+  z-index: 2;
+  inset: 0 auto auto 0;
+  transform-origin: 0 0;
+  translate: var(--occurrence-expansion-x, 0) var(--occurrence-expansion-y, 0);
+  scale: var(--occurrence-expansion-zoom, 1);
+
+  inline-size: 0;
+  block-size: 0;
+}
+
+.occurrence-expansion[hidden] {
+  display: none;
+}
+
+.occurrence-expansion-shell {
+  /* The square inscribed in a circle starts this far in from its box. */
+  --occurrence-expansion-inset: calc(
+    var(--occurrence-expansion-width, 280px) * 0.1465
+  );
+
+  pointer-events: auto;
+  user-select: text;
+
+  position: absolute;
+  inset: 0 auto auto 0;
+  translate: -50% -50%;
+
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 
   box-sizing: border-box;
-  inline-size: min(340px, calc(100% - 24px));
-  max-block-size: min(450px, 40dvh);
-  padding: 16px;
-  border: 2px solid #93c5fd;
-  border-radius: 12px;
+  inline-size: var(--occurrence-expansion-width, 280px);
+  block-size: var(--occurrence-expansion-height, 280px);
+  padding: 12px 12px 0;
+  border: var(--occurrence-expansion-stroke-width, 2px) solid
+    var(--occurrence-expansion-stroke, #000);
+  border-radius: 8px;
 
-  color: #e2e8f0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--occurrence-expansion-ink, #000);
   overflow-wrap: anywhere;
 
-  background: #18202a;
-  box-shadow: 0 8px 24px rgb(0 0 0 / 30%);
+  background: var(--occurrence-expansion-fill, #acf);
+  box-shadow: 0 10px 28px rgb(0 0 0 / 28%);
+}
+
+.occurrence-expansion[data-dashed="true"] .occurrence-expansion-shell {
+  border-style: dashed;
+}
+
+.occurrence-expansion[data-shape="ellipse"] .occurrence-expansion-shell {
+  padding: var(--occurrence-expansion-inset) var(--occurrence-expansion-inset) 0;
+  border-radius: 50%;
+  text-align: center;
+}
+
+.occurrence-expansion[data-fills-viewport="true"] .occurrence-expansion-shell {
+  padding: 16px 16px 0;
+  border-width: 0;
+  border-radius: 0;
+
+  text-align: start;
+
+  box-shadow: none;
+}
+
+.entity-preview {
+  overflow: hidden;
+  flex: 0 1 auto;
+  inline-size: 100%;
+  min-block-size: 0;
 }
 
 .entity-preview[hidden] {
   display: none;
 }
 
-.entity-preview[data-shape="round"] {
-  border-radius: 24px;
+/* A circle's content stops where the inscribed square does. */
+.occurrence-expansion[data-shape="ellipse"]:not([data-fills-viewport="true"])
+  .entity-preview {
+  max-block-size: calc(
+    var(--occurrence-expansion-height, 280px) - 2 *
+      var(--occurrence-expansion-inset)
+  );
 }
 
-.entity-preview h2 {
-  margin-block: 0 8px;
+.occurrence-expansion[data-detail="complete"] .entity-preview {
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+}
+
+/* The summary speaks for one role; choosing between several belongs with the
+   complete view, which lists them all. Classes, not identifiers, select inside
+   the shell: the copy that plays the shrink carries no identifiers. */
+.occurrence-expansion[data-detail="summary"]
+  :is(.entity-preview-complete, .entity-role-switcher),
+.occurrence-expansion[data-detail="complete"] .entity-preview-summary {
+  display: none;
+}
+
+/* The name is the node's own label grown larger, so it is drawn in the label's
+   face, which the renderer reports. The renderer also carries it from the
+   label to this place and back; everything else in the shell only fades. */
+.occurrence-expansion-name {
+  flex: none;
+
+  inline-size: 100%;
+  margin-block: 0 4px;
+
+  font-family: var(--occurrence-expansion-font-family, inherit);
   font-size: 16px;
+  font-weight: var(--occurrence-expansion-font-weight, 600);
+  line-height: 1.25;
+}
+
+/* A box that hugs the text: a transform applies to it, and its centre is the
+   text's centre however the line is aligned. */
+[data-occurrence-expansion-part="name"] {
+  display: inline-block;
 }
 
 .entity-preview p {
-  margin-block: 6px;
-  font-size: 13px;
-  line-height: 1.5;
+  margin-block: 4px;
 }
 
-.entity-preview-actions,
+.entity-preview-type,
+.entity-preview-iri {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.entity-type-symbol {
+  margin-inline-end: 6px;
+  font-size: 14px;
+}
+
+.entity-preview-term {
+  display: block;
+
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+
+  opacity: 0.75;
+}
+
 .entity-role-switcher {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-}
+  justify-content: center;
 
-.entity-preview-actions {
-  position: sticky;
-  bottom: 0;
-  padding-block-start: 8px;
-  background: #18202a;
-}
-
-.entity-role-switcher {
   margin: 8px 0;
   padding: 0;
   border: 0;
@@ -3128,7 +3240,67 @@ button.accordion-trigger {
   font-size: 12px;
 }
 
+/* The shell takes the node's own fill, so controls inside it are drawn from
+   the node's ink rather than from a fixed palette. */
 .entity-preview button,
+.occurrence-expansion-level-toggle {
+  cursor: pointer;
+
+  min-block-size: 32px;
+  padding: 4px 10px;
+  border: 1px solid color-mix(in srgb, currentcolor 45%, transparent);
+  border-radius: 6px;
+
+  font: inherit;
+  color: inherit;
+
+  background: color-mix(in srgb, currentcolor 10%, transparent);
+}
+
+.entity-preview :is(button, a):focus-visible,
+.occurrence-expansion-level-toggle:focus-visible {
+  outline: 2px solid currentcolor;
+  outline-offset: 2px;
+}
+
+.entity-role-switcher button[aria-pressed="true"] {
+  border-color: currentcolor;
+  background: color-mix(in srgb, currentcolor 22%, transparent);
+}
+
+/* The one control on the shell: it sits at the base and asks for more. */
+.occurrence-expansion-level-toggle {
+  position: relative;
+
+  flex: none;
+
+  min-inline-size: 48px;
+  min-block-size: 28px;
+  margin-block: auto 8px;
+  padding: 0 12px;
+  border-radius: 14px;
+
+  font-size: 20px;
+  line-height: 1;
+  letter-spacing: 2px;
+}
+
+.occurrence-expansion-level-toggle[hidden] {
+  display: none;
+}
+
+/* A finger-sized target around a deliberately small mark. */
+.occurrence-expansion-level-toggle::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+}
+
+.occurrence-expansion[data-shape="ellipse"]:not([data-fills-viewport="true"])
+  .occurrence-expansion-level-toggle {
+  margin-block-end: calc(var(--occurrence-expansion-width, 280px) * 0.04);
+}
+
 #entity-full-details button {
   min-block-size: 44px;
   padding: 8px 12px;
@@ -3141,46 +3313,46 @@ button.accordion-trigger {
   background: #263d56;
 }
 
-.entity-preview button:focus-visible,
 #entity-full-details :is(button, a):focus-visible {
   outline: 2px solid #93c5fd;
   outline-offset: 2px;
 }
 
-.entity-role-switcher button[aria-pressed="true"] {
-  border-color: #93c5fd;
-  background: #355b82;
+:is(#entity-full-details, .entity-preview-complete) {
+  overflow-wrap: anywhere;
 }
 
-#entity-full-details {
-  overflow-wrap: anywhere;
+.entity-preview-complete {
+  text-align: start;
 }
 
 #detailsArea #generalDetails {
   padding: 12px;
 }
 
-#entity-full-details :is(dt, h3) {
+:is(#entity-full-details, .entity-preview-complete) :is(dt, h3) {
   margin-block: 16px 8px;
   font-weight: 600;
 }
 
-#entity-full-details dd {
+:is(#entity-full-details, .entity-preview-complete) dd {
   margin-inline-start: 12px;
   line-height: 1.5;
 }
 
-#entity-full-details :is(a, .entity-relation-iri) {
+:is(#entity-full-details, .entity-preview-complete)
+  :is(a, .entity-relation-iri) {
   display: block;
   margin-block: 8px;
+}
+
+#entity-full-details :is(a, .entity-relation-iri) {
   color: #93c5fd;
 }
 
-@media (width <= 1024px) {
-  .entity-preview {
-    inline-size: calc(100% - 24px);
-    max-block-size: calc(var(--visual-viewport-height, 100dvh) * 0.4);
-  }
+.entity-preview-complete a {
+  color: inherit;
+  text-decoration: underline;
 }
 
 #ontology-title-chip {
@@ -3455,19 +3627,20 @@ button.accordion-trigger {
 
 @media (forced-colors: active) {
   .ontology-dialog,
-  .entity-preview {
+  .occurrence-expansion-shell {
+    border-color: CanvasText;
     color: CanvasText;
     background: Canvas;
   }
 
   .ontology-dialog *,
-  .entity-preview * {
+  .occurrence-expansion-shell * {
     border-color: CanvasText !important;
     color: CanvasText !important;
   }
 
   .ontology-dialog a,
-  .entity-preview a {
+  .occurrence-expansion-shell a {
     color: LinkText !important;
   }
 

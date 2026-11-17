@@ -34,7 +34,7 @@ beforeAll(async () => {
 
 // Real D3, canonical constructors and SVG elements; only browser layout metrics and event
 // installation are supplied here. The tests replay the installed drag callbacks.
-function mountGraph(canonicalDrawing) {
+function mountGraph(canonicalDrawing, rendererOptions) {
   const metrics = { created: 0, widths: 0, boxes: 0 };
   const document = new DOMImplementation().createDocument(
     "http://www.w3.org/1999/xhtml",
@@ -186,10 +186,11 @@ function mountGraph(canonicalDrawing) {
     }
   };
   try {
-    graph = createRenderedGraphInternals(document.documentElement, {
-      widthPx: 800,
-      heightPx: 600,
-    });
+    graph = createRenderedGraphInternals(
+      document.documentElement,
+      { widthPx: 800, heightPx: 600 },
+      rendererOptions,
+    );
     if (canonicalDrawing !== undefined) {
       graph.load(1, {
         canonicalDrawing: structuredClone(canonicalDrawing),
@@ -275,9 +276,324 @@ const CANONICAL_DRAWING = {
   },
   camera: { center: { x: 400, y: 300 }, zoom: 1 },
 };
-function mountCanonicalGraph(drawing = CANONICAL_DRAWING) {
-  return mountGraph(drawing);
+function mountCanonicalGraph(drawing = CANONICAL_DRAWING, rendererOptions) {
+  return mountGraph(drawing, rendererOptions);
 }
+
+// The application-owned slot of the selected-occurrence expansion contract.
+// The module under it is real; only the HTML surface it writes is modelled.
+function createExpansionSlot({ animates = false } = {}) {
+  function slotElement() {
+    const properties = new Map();
+    return Object.assign(new EventTarget(), {
+      hidden: true,
+      dataset: {},
+      children: [],
+      attributes: new Map(),
+      textContent: "",
+      style: {
+        properties,
+        setProperty: (name, value) => properties.set(name, value),
+      },
+      setAttribute(name, value) {
+        this.attributes.set(name, value);
+      },
+      animate: jest.fn(() => ({ cancel() {} })),
+    });
+  }
+  const element = slotElement();
+  const levelToggle = slotElement();
+  const shell = slotElement();
+  const heading = slotElement();
+  const name = slotElement();
+  heading.parentElement = shell;
+  heading.children = [name];
+  name.parentElement = heading;
+  shell.children = [heading, levelToggle];
+  const parts = { shell, "level-toggle": levelToggle, name };
+  const findPart = (selector) => parts[/part="([a-z-]+)"/u.exec(selector)[1]];
+  element.querySelector = findPart;
+  shell.querySelector = findPart;
+  // The stylesheet's layout, as far as the module measures it: a 280px shell
+  // with a 96x20px name laid out at 16px, centred 50px below its top edge.
+  const lengthOf = (propertyName) =>
+    Number.parseFloat(
+      element.style.properties.get("--occurrence-expansion-" + propertyName),
+    );
+  Object.assign(shell, { offsetWidth: 280, offsetHeight: 280 });
+  Object.assign(shell, { clientLeft: 0, clientTop: 0 });
+  Object.assign(name, { offsetWidth: 96, offsetHeight: 20 });
+  Object.assign(name, { offsetParent: shell, offsetLeft: 92, offsetTop: 40 });
+  // The graph container's corner is the window's, so client is container.
+  element.getBoundingClientRect = () => ({
+    left: lengthOf("x"),
+    top: lengthOf("y"),
+  });
+  const sceneObservers = [];
+  element.ownerDocument = {
+    defaultView: {
+      MutationObserver: class {
+        constructor(callback) {
+          this.callback = callback;
+          sceneObservers.push(this);
+        }
+        observe(target) {
+          this.target = target;
+        }
+        disconnect() {
+          this.target = undefined;
+        }
+      },
+      // A live query: the preference can change while the page is open.
+      matchMedia: () => ({
+        get matches() {
+          return !animates;
+        },
+      }),
+      getComputedStyle: () => ({ fontSize: "16px" }),
+    },
+  };
+  return {
+    element,
+    levelToggle,
+    shell,
+    name,
+    /** From here on nothing animates, so no shrinking copy is cloned. */
+    reduceMotion() {
+      animates = false;
+    },
+    /** Where the stylesheet will draw the shell's centre: `"<x>px <y>px"`. */
+    translate: () =>
+      ["x", "y"]
+        .map((axis) =>
+          element.style.properties.get("--occurrence-expansion-" + axis),
+        )
+        .join(" "),
+    // xmldom delivers no mutation records; replay the scene write by hand.
+    deliverSceneTransformWrite() {
+      for (const observer of sceneObservers) {
+        if (observer.target) {
+          observer.callback([]);
+        }
+      }
+    },
+  };
+}
+
+test("a selected node grows in the supplied expansion element and stays on it", () => {
+  const slot = createExpansionSlot();
+  const h = mountCanonicalGraph(CANONICAL_DRAWING, {
+    selectedOccurrenceExpansionElement: slot.element,
+  });
+  const translateOf = ({ xPx, yPx }) =>
+    `${Math.round(xPx)}px ${Math.round(yPx)}px`;
+  try {
+    h.graph.editorMode(false);
+    h.graph.applyArrangement([{ rendererKey: "node:a", xPx: 400, yPx: 300 }]);
+    expect(slot.element.hidden).toBe(true);
+
+    // Selection and hover repaint the node red. The expansion must grow from
+    // the node as it is drawn at rest, and leave those states as they were.
+    const classesOf = (element) =>
+      (element.getAttribute("class") ?? "").split(/\s+/u);
+    h.document.defaultView.getComputedStyle = (element) => {
+      const highlighted = classesOf(element).some((name) =>
+        ["hovered", "focused"].includes(name),
+      );
+      return {
+        getPropertyValue: () => "",
+        fill: highlighted ? "rgb(255, 0, 0)" : "rgb(170, 204, 255)",
+        stroke: highlighted ? "rgb(255, 0, 0)" : "rgb(0, 0, 0)",
+        strokeWidth: highlighted ? "4px" : "2px",
+        strokeDasharray: "none",
+      };
+    };
+    const circle = h.document.querySelector("circle");
+    circle.classList.add("hovered");
+
+    h.graph.selectOccurrence("node:a");
+    expect(classesOf(circle)).toEqual(
+      expect.arrayContaining(["hovered", "focused"]),
+    );
+    expect(
+      Object.fromEntries(
+        ["fill", "stroke", "stroke-width"].map((name) => [
+          name,
+          slot.element.style.properties.get("--occurrence-expansion-" + name),
+        ]),
+      ),
+    ).toEqual({
+      fill: "rgb(170, 204, 255)",
+      stroke: "rgb(0, 0, 0)",
+      "stroke-width": "2px",
+    });
+    expect(slot.element.dataset.dashed).toBe("false");
+    expect(slot.element.hidden).toBe(false);
+    expect(slot.element.dataset).toMatchObject({
+      shape: "ellipse",
+      detail: "summary",
+    });
+    // The expansion is named as the node is, before the application answers.
+    expect(slot.name.textContent).toBe("A");
+    // xmldom draws no text, so there is no label for the name to start from.
+    expect(slot.name.animate).not.toHaveBeenCalled();
+    expect(slot.levelToggle.hidden).toBe(false);
+    expect(slot.translate()).toBe(
+      translateOf(h.graph.readOccurrenceGeometry("a")),
+    );
+
+    // The layout moves the node: the expansion is carried by the same write.
+    h.graph.applyArrangement([{ rendererKey: "node:a", xPx: 430, yPx: 280 }]);
+    expect(slot.translate()).toBe("430px 280px");
+
+    // The viewport moves the scene: the expansion reads the written transform.
+    h.graph.setViewportTransform(1, [-20, 40]);
+    slot.deliverSceneTransformWrite();
+    expect(slot.translate()).toBe("410px 320px");
+    expect(slot.translate()).toBe(
+      translateOf(h.graph.readOccurrenceGeometry("a")),
+    );
+
+    // A smaller viewport lays the complete view out again.
+    slot.levelToggle.dispatchEvent(new Event("click"));
+    expect(slot.translate()).toBe("400px 300px");
+    h.graph.resizeViewport({
+      widthPx: 500,
+      heightPx: 400,
+      occludedLeftWidthPx: 0,
+      isTouchDevice: false,
+    });
+    expect(slot.element.dataset.fillsViewport).toBe("true");
+    expect(slot.translate()).toBe("250px 200px");
+
+    h.graph.selectOccurrence(null);
+    expect(slot.element.hidden).toBe(true);
+  } finally {
+    h.dispose();
+  }
+});
+
+test("the expansion's name starts on the node's drawn label, in the label's face", () => {
+  const slot = createExpansionSlot({ animates: true });
+  const h = mountCanonicalGraph(CANONICAL_DRAWING, {
+    selectedOccurrenceExpansionElement: slot.element,
+  });
+  try {
+    h.graph.editorMode(false);
+    h.graph.applyArrangement([{ rendererKey: "node:a", xPx: 400, yPx: 300 }]);
+    h.graph.setViewportTransform(2, [-400, -300]);
+    h.document.defaultView.getComputedStyle = () => ({
+      getPropertyValue: () => "",
+      fill: "rgb(0, 0, 0)",
+      strokeDasharray: "none",
+      fontSize: "12px",
+      fontFamily: "Helvetica, Arial, sans-serif",
+      fontWeight: "400",
+    });
+    // xmldom lays nothing out. The browser would report the name line where
+    // it drew it: here 40x28px, centred 6px below the node's centre.
+    const [nameLine] = h.document.querySelectorAll("tspan");
+    expect(nameLine.textContent).toBe("A");
+    const node = h.graph.readOccurrenceGeometry("a");
+    nameLine.getBoundingClientRect = () => ({
+      left: node.xPx - 20,
+      top: node.yPx + 6 - 14,
+      width: 40,
+      height: 28,
+    });
+
+    h.graph.selectOccurrence("node:a");
+    expect(slot.name.textContent).toBe("A");
+    for (const [property, value] of [
+      ["font-family", "Helvetica, Arial, sans-serif"],
+      ["font-weight", "400"],
+    ]) {
+      expect(
+        slot.element.style.properties.get("--occurrence-expansion-" + property),
+      ).toBe(value);
+    }
+
+    const read = (element) => {
+      const [keyframes] = element.animate.mock.calls.at(-1);
+      const [xPx, yPx, scaleX, scaleY] =
+        /^translate\((\S+)px, (\S+)px\) scale\((\S+), (\S+)\)$/u
+          .exec(keyframes[0].transform)
+          .slice(1)
+          .map(Number);
+      return { xPx, yPx, scaleX, scaleY };
+    };
+    const shellStart = read(slot.shell);
+    const nameStart = read(slot.name);
+    // The slot lays the name out centred 80px above the shell's centre.
+    const nameAtRest = { xPx: 0, yPx: 40 + 20 / 2 - 280 / 2 };
+    // First frame: the name sits on the drawn label, 6px below the node's
+    // centre, at the label's 12 units x zoom 2 against its own 16px.
+    expect(
+      shellStart.xPx + shellStart.scaleX * (nameAtRest.xPx + nameStart.xPx),
+    ).toBeCloseTo(0);
+    expect(
+      shellStart.yPx + shellStart.scaleY * (nameAtRest.yPx + nameStart.yPx),
+    ).toBeCloseTo(6);
+    expect(shellStart.scaleX * nameStart.scaleX).toBeCloseTo(24 / 16);
+    expect(shellStart.scaleY * nameStart.scaleY).toBeCloseTo(24 / 16);
+  } finally {
+    slot.reduceMotion();
+    h.dispose();
+  }
+});
+
+test("a selected property label expands as a rectangle with a single level", () => {
+  const slot = createExpansionSlot();
+  const h = mountCanonicalGraph(inversePropertyDrawing(), {
+    selectedOccurrenceExpansionElement: slot.element,
+  });
+  try {
+    h.graph.editorMode(false);
+    // Bring the labels clear of the viewport edge, where an expansion would
+    // otherwise slide inward and hide which row it is anchored on.
+    h.graph.setViewportTransform(1, [300, 250]);
+    const label = h.graph.graphLabelElements()[0];
+    // Stacked inverse labels are two occurrences: each expansion is anchored
+    // on its own row of the pair, which the vertical translation shows.
+    const anchoredRows = [label.property(), label.inverse()].map((property) => {
+      const group = property.labelElement();
+      group
+        .on("click")
+        .call(group.node(), { defaultPrevented: false }, property);
+      expect(slot.element.hidden).toBe(false);
+      expect(slot.element.dataset).toMatchObject({
+        shape: "rectangle",
+        detail: "complete",
+      });
+      expect(slot.levelToggle.hidden).toBe(true);
+      const drawn = h.graph.readOccurrenceGeometry(property.id());
+      expect(slot.translate().split(" ")[1]).toBe(`${Math.round(drawn.yPx)}px`);
+      return drawn.yPx;
+    });
+    expect(anchoredRows[1]).toBeGreaterThan(anchoredRows[0]);
+  } finally {
+    h.dispose();
+  }
+});
+
+test("the editor keeps its own selection tools and never expands an occurrence", () => {
+  const slot = createExpansionSlot();
+  const h = mountCanonicalGraph(CANONICAL_DRAWING, {
+    selectedOccurrenceExpansionElement: slot.element,
+  });
+  try {
+    h.graph.selectOccurrence("node:a");
+    expect(slot.element.hidden).toBe(true);
+    h.graph.editorMode(false);
+    h.graph.selectOccurrence(null);
+    h.graph.selectOccurrence("node:a");
+    expect(slot.element.hidden).toBe(false);
+    h.graph.editorMode(true);
+    expect(slot.element.hidden).toBe(true);
+  } finally {
+    h.dispose();
+  }
+});
 
 test.each(["paused", "running", "settled"])(
   "viewport notifications preserve the %s simulation and arrangement",

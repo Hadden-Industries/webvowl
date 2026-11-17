@@ -4,7 +4,6 @@ import { createVisualViewportMetrics } from "./ui/visualViewportMetrics.js";
 import { createOntologyOverview } from "./ui/ontologyOverview.js";
 import { createAdaptiveDetailsSurface } from "./ui/adaptiveDetailsSurface.js";
 import { createEntityDetailsPresenter } from "./ui/entityDetailsPresenter.js";
-import { createSelectedOccurrencePreview } from "./ui/selectedOccurrencePreview.js";
 import { createD3RenderedGraphAdapter } from "../../webvowl/js/runtime/d3RenderedGraphAdapter.js";
 import { createRenderedGraphConfiguration } from "../../webvowl/js/runtime/renderedGraphConfiguration.js";
 import { createGraphLayoutSettler } from "./controller/graphLayoutSettler.js";
@@ -67,7 +66,6 @@ export function createWebVowlApplication({
   let ontologyOverview;
   let detailsSurface;
   let entityDetails;
-  let occurrencePreview;
   let controllerStatePresenter;
   let warningModule;
 
@@ -89,6 +87,11 @@ export function createWebVowlApplication({
     observeNextPaint: (_loadGeneration, options) =>
       waitForBrowserPaint(options),
     renderedGraphConfiguration,
+    // The renderer grows the selected occurrence into this element; the
+    // selection's content inside it is written by entityDetails below.
+    selectedOccurrenceExpansionElement: document.getElementById(
+      "occurrence-expansion",
+    ),
   });
 
   let unsubscribeFromControllerState;
@@ -226,7 +229,6 @@ export function createWebVowlApplication({
     ontologyOverview?.dispose();
     detailsSurface?.dispose();
     entityDetails?.dispose();
-    occurrencePreview?.dispose();
     controllerStatePresenter?.dispose();
     sidebar.dispose();
     leftSidebar.dispose();
@@ -483,13 +485,8 @@ export function createWebVowlApplication({
       controller: webVowlController,
       surface: detailsSurface,
       openFacts: (invoker) => factsPresentation?.open(invoker),
-      onPresentationChanged: () =>
-        occurrencePreview?.refresh({ immediate: true }),
       scheduleRefresh: () =>
         controllerStatePresenter.refreshSelection(webVowlController.getState()),
-    });
-    occurrencePreview = createSelectedOccurrencePreview({
-      controller: webVowlController,
     });
     // Presentation modules render controller state rather than being called
     // from inside the renderer, and each runs only when its own slice changed.
