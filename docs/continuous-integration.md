@@ -45,7 +45,9 @@ Failures, cancellations, and unexpected skips fail the gate.
 | Preview formatting for one path     | `npm exec -- markdown-quality format --dry-run --root . -- README.md` |
 | Write formatting for one path       | `npm run format:docs -- -- README.md`                                 |
 
-The root npm lock installs Markdown Quality 3.0.1 and its matching native package alongside the other development dependencies.
+The root manifest requires Markdown Quality `>=3.0.4`.
+The lockfile resolves 3.0.4 and its matching optional native packages.
+ESLint, ESLint Markdown, and their transitive dependencies resolve through the same lockfile.
 The Linux job installs the root lock with `npm ci --include=dev --ignore-scripts`, runs `check:docs`, then runs `test:markdown`.
 The scope probe checks that maintained paths are selected and tracked preserved records are explicitly excluded.
 

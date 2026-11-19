@@ -16,8 +16,8 @@
   },
   "devDependencies": {
     "@eslint/js": ">=10.0.1",
-    "@hadden-industries/json-quality": ">=1.0.0",
-    "@hadden-industries/markdown-quality": ">=3.0.1",
+    "@hadden-industries/json-quality": ">=1.0.2",
+    "@hadden-industries/markdown-quality": ">=3.0.4",
     "@oddbird/popover-polyfill": ">=0.7.3",
     "archiver": ">=8.0.0",
     "deepmerge": "file:tooling/vendor/deepmerge",
@@ -85,6 +85,9 @@
   },
   "license": "AGPL-3.0-only",
   "overrides": {
+    "micromark-extension-math@3.1.0": {
+      "katex": "0.19.1"
+    },
     "owlapi": "$owlapi",
     "deepmerge": "$deepmerge",
     "glob@^10 || ^13": "14.0.4",
