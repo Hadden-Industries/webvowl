@@ -19,6 +19,7 @@ webvowl*.zip
 .claude/skills/
 
 # Local development environment
+.claude/launch.json
 *.pyc
 .env
 .venv/
