@@ -1,4 +1,4 @@
-import { isIri, isIriReference } from "@hyperjump/uri";
+import { isIri, isIriReference, parseIriReference } from "@hyperjump/uri";
 import { fail } from "../errors.js";
 
 const relativeReference = (value) =>
@@ -46,13 +46,25 @@ const probeBase = "https://webvowl.invalid/local-base-check/";
 
 function graphNamesCanCoincide(names) {
   const fragments = new Set();
+  const lastSegments = new Set();
   let fixed = 0;
   for (const iri of names) {
-    const fragment = iri.indexOf("#");
-    fragments.add(fragment < 0 ? "" : iri.slice(fragment));
-    fixed += Number(isIri(iri));
+    if (!isIriReference(iri)) {
+      return false;
+    }
+    const { scheme, path, fragment } = parseIriReference(iri);
+    fragments.add(fragment);
+    fixed += Number(scheme !== undefined);
+    // The base can change inherited path segments. An authored terminal
+    // segment other than a dot segment keeps its spelling after resolution.
+    if (path) {
+      const segment = path.slice(path.lastIndexOf("/") + 1);
+      if (segment !== "." && segment !== "..") {
+        lastSegments.add(segment);
+      }
+    }
   }
-  return fixed < 2 && fragments.size < 2;
+  return fixed < 2 && fragments.size < 2 && lastSegments.size < 2;
 }
 
 async function rdfXmlNeedsBase(probe, budget) {
@@ -189,6 +201,7 @@ const jsonLdDiscardedTerms = new Set([
 ]);
 const jsonLdVocabularyErrors = new Set([
   "invalid IRI mapping",
+  "invalid type mapping",
   "invalid typed value",
 ]);
 

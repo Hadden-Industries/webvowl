@@ -298,6 +298,11 @@ test("a relative JSON-LD vocabulary resolves independently on each attempt", asy
 test.each([
   [{ "@vocab": "./", p: "measure" }, { p: "sample" }, "measure"],
   [
+    { "@vocab": "./", p: { "@id": "urn:p", "@type": "CustomDatatype" } },
+    { p: "sample" },
+    "CustomDatatype",
+  ],
+  [
     { "@vocab": "./" },
     { "urn:measure": { "@value": "sample", "@type": "CustomDatatype" } },
     "CustomDatatype",
@@ -438,6 +443,16 @@ test("an independent TriG graph ambiguity remains ambiguous despite a relative t
       localSource: true,
       mediaType: "application/trig",
     }),
+  ).rejects.toMatchObject({ code: "MAPPING_AMBIGUOUS" });
+});
+
+test("relative TriG graph names with distinct path endings remain ambiguous", async () => {
+  const bytes = encode(
+    `<first> { <urn:first> a <${owlNamespace}Class> . }` +
+      `<second> { <urn:second> a <${owlNamespace}Class> . }`,
+  );
+  await expect(
+    openOwl(bytes, { localSource: true, mediaType: "application/trig" }),
   ).rejects.toMatchObject({ code: "MAPPING_AMBIGUOUS" });
 });
 
