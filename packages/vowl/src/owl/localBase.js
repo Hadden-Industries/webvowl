@@ -65,7 +65,7 @@ async function rdfXmlNeedsBase(probe, budget) {
   );
 }
 
-async function n3NeedsBase(text, formatKey, budget) {
+async function n3NeedsBase(text, formatKey, budget, graphAmbiguous) {
   const { StreamParser } = await import("n3");
   budget.check();
   const parser = new StreamParser({
@@ -75,9 +75,17 @@ async function n3NeedsBase(text, formatKey, budget) {
   let invalid = false;
   let count = 0;
   const blankNodes = new Set();
+  const fixedGraphs = new Set();
+  let relativeGraph = false;
   return new Promise((resolve, reject) => {
     parser.on("error", () => resolve(false));
-    parser.on("end", () => resolve(relative && !invalid));
+    parser.on("end", () =>
+      resolve(
+        relative &&
+          !invalid &&
+          (!graphAmbiguous || (relativeGraph && fixedGraphs.size < 2)),
+      ),
+    );
     parser.on("data", (quad) => {
       try {
         budget.check();
@@ -93,6 +101,14 @@ async function n3NeedsBase(text, formatKey, budget) {
           }
         }
         budget.bound("primaryRecords", blankNodes.size);
+        if (graphAmbiguous) {
+          const { termType, value } = quad.graph;
+          if (termType === "NamedNode" && relativeReference(value)) {
+            relativeGraph = true;
+          } else {
+            fixedGraphs.add(`${termType}:${value}`);
+          }
+        }
         for (const iri of iriValues(quad, budget)) {
           if (!isIri(iri)) {
             if (relativeReference(iri)) {
@@ -139,7 +155,12 @@ export async function missingLocalBase(error, text, formatKey, budget, probe) {
       error instanceof TypeError ||
       (n3Format !== undefined && error.code === "OWL_SYNTAX_ERROR"))
   ) {
-    return n3NeedsBase(text, n3Format, budget);
+    return n3NeedsBase(
+      text,
+      n3Format,
+      budget,
+      error.code === "AMBIGUOUS_RDF_DATASET",
+    );
   }
   return false;
 }
@@ -151,15 +172,39 @@ const jsonLdDiscardedTerms = new Set([
   "relative subject reference",
 ]);
 
-/** JSON-LD can discard relative RDF terms before OWLAPI's public output. */
-async function requireJsonLdBase(text, fallbackBaseIri, budget) {
+/** Process local JSON-LD contexts once per base before OWL admission. */
+export async function prepareLocalJsonLd(
+  text,
+  formatKey,
+  fallbackBaseIri,
+  budget,
+) {
+  if (
+    formatKey !== "jsonld" &&
+    (formatKey !== undefined || !["{", "["].includes(text.trimStart()[0]))
+  ) {
+    return undefined;
+  }
+  let input;
+  try {
+    input = JSON.parse(text);
+  } catch {
+    // The owning reader reports JSON grammar errors and non-JSON inputs.
+    return undefined;
+  }
+  if (input === null || typeof input !== "object") {
+    return undefined;
+  }
   const { default: jsonld } = await import("jsonld");
-  const input = JSON.parse(text);
   async function relativeEvidence(base) {
     budget.check();
+    // A resolved context cache can otherwise carry the unbased vocabulary
+    // forward into a retry or reuse it with a different supplied base.
+    const processor = jsonld();
     let vocab = false;
     let discarded = false;
-    const quads = await jsonld.toRDF(input, {
+    let relativeProperty = false;
+    const options = {
       base,
       produceGeneralizedRdf: false,
       documentLoader() {
@@ -170,12 +215,25 @@ async function requireJsonLdBase(text, fallbackBaseIri, budget) {
         budget.check();
         vocab ||= event.code === "relative @vocab reference";
         discarded ||= jsonLdDiscardedTerms.has(event.code);
+        relativeProperty ||=
+          event.code === "invalid property" &&
+          relativeReference(event.details?.expandedProperty);
         next();
       },
+    };
+    const expanded = await processor.expand(input, options);
+    const quads = await processor.toRDF(expanded, {
+      ...options,
+      skipExpansion: true,
     });
     budget.check();
     budget.bound("rdfQuads", quads.length);
-    return { vocab, discarded, count: quads.length };
+    return {
+      expanded,
+      vocab,
+      discarded: discarded || (vocab && relativeProperty),
+      count: quads.length,
+    };
   }
   const actual = await relativeEvidence(fallbackBaseIri ?? undefined);
   if (fallbackBaseIri === null && (actual.discarded || actual.vocab)) {
@@ -188,13 +246,16 @@ async function requireJsonLdBase(text, fallbackBaseIri, budget) {
   if (actual.discarded) {
     fail("MAPPING_SYNTAX_INVALID");
   }
+  // The owning OWL reader still admits the graph. Passing expanded JSON-LD
+  // keeps author-supplied contexts out of its shared processor cache. Source
+  // evidence continues to retain the exact bytes supplied by the caller.
+  return JSON.stringify(actual.expanded);
 }
 
 /** Reject unresolved terms from the selected file before model projection. */
-export async function requireResolvedLocalSource(
+export function requireResolvedLocalSource(
   loaded,
   format,
-  text,
   fallbackBaseIri,
   budget,
 ) {
@@ -209,9 +270,6 @@ export async function requireResolvedLocalSource(
           : "MAPPING_SYNTAX_INVALID",
       );
     }
-  }
-  if (format?.key === "jsonld") {
-    await requireJsonLdBase(text, fallbackBaseIri, budget);
   }
 }
 

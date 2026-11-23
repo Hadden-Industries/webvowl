@@ -8,6 +8,7 @@ import { limitCode, optionRecord } from "../resourceBudget.js";
 import { checkString, snapshotBytes } from "../snapshot.js";
 import {
   missingLocalBase,
+  prepareLocalJsonLd,
   requireResolvedLocalSource,
   requireUnambiguousLocalBase,
 } from "./localBase.js";
@@ -439,8 +440,29 @@ export async function loadClosure(bytes, context, options, budget, policy) {
   }
   try {
     const startedAt = performance.now();
+    const jsonLd = context.localSource
+      ? await waitForResult(
+          prepareLocalJsonLd(
+            source.getText(),
+            context.format?.key,
+            context.localSource.fallbackBaseIri,
+            budget,
+          ),
+          budget,
+        )
+      : undefined;
+    const parserSource =
+      jsonLd === undefined
+        ? source
+        : new StringDocumentSource(jsonLd, {
+            ...context,
+            format: OWLDocumentFormats.JSON_LD,
+          });
     const loaded = await waitForResult(
-      manager.loadOntologyGraphFromOntologyDocument(source, configuration),
+      manager.loadOntologyGraphFromOntologyDocument(
+        parserSource,
+        configuration,
+      ),
       budget,
     );
     performance.measure("webvowl.owl-loading", {
@@ -451,14 +473,10 @@ export async function loadClosure(bytes, context, options, budget, policy) {
       throw boundaryFailure;
     }
     if (context.localSource) {
-      await waitForResult(
-        requireResolvedLocalSource(
-          loaded,
-          manager.getOntologyFormat(loaded.ontology),
-          source.getText(),
-          context.localSource.fallbackBaseIri,
-          budget,
-        ),
+      requireResolvedLocalSource(
+        loaded,
+        manager.getOntologyFormat(loaded.ontology),
+        context.localSource.fallbackBaseIri,
         budget,
       );
     }

@@ -271,6 +271,30 @@ test("the JSON-LD diagnostic still applies the RDF statement budget", async () =
   ).rejects.toMatchObject({ code: "RDF_RESOURCE_LIMIT" });
 });
 
+test("a relative JSON-LD vocabulary resolves independently on each attempt", async () => {
+  const bytes = encode(
+    JSON.stringify({
+      "@context": { "@vocab": "./", type: "@type" },
+      "@id": "urn:name",
+      type: `${owlNamespace}Class`,
+      some: "value",
+    }),
+  );
+  const options = { localSource: true, mediaType: "application/ld+json" };
+  await expect(openOwl(bytes, options)).rejects.toMatchObject({
+    code: "MAPPING_BASE_REQUIRED",
+  });
+  for (const fallbackBaseIri of [
+    "https://example.org/one/",
+    "https://example.org/two/",
+  ]) {
+    const { model } = await openOwl(bytes, { ...options, fallbackBaseIri });
+    expect(inspectModel(model).records.subjects).toContainEqual(
+      expect.objectContaining({ iri: `${fallbackBaseIri}some` }),
+    );
+  }
+});
+
 test("a relative TriG graph label requires a base even when its triples are absolute", async () => {
   const bytes = encode(`<#graph> { <urn:term> a <${owlNamespace}Class> . }`);
   const options = { mediaType: "application/trig", localSource: true };
@@ -302,6 +326,19 @@ test("a relative TriG graph label can resolve to an existing graph", async () =>
       .records.subjects.map(({ iri }) => iri)
       .sort(),
   ).toEqual(["urn:first", "urn:second"]);
+});
+
+test("an independent TriG graph ambiguity remains ambiguous despite a relative term", async () => {
+  const bytes = encode(
+    `<urn:graph1> { <#first> a <${owlNamespace}Class> . }` +
+      `<urn:graph2> { <urn:second> a <${owlNamespace}Class> . }`,
+  );
+  await expect(
+    openOwl(bytes, {
+      localSource: true,
+      mediaType: "application/trig",
+    }),
+  ).rejects.toMatchObject({ code: "MAPPING_AMBIGUOUS" });
 });
 
 test("invalid local import targets never reach the acquisition callback", async () => {
