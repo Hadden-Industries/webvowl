@@ -15,6 +15,8 @@ export function requestCanonicalInputSelection({
   owlFormats,
   knownDocumentIri,
   requireReader = false,
+  localFile = false,
+  baseOnly = false,
 } = {}) {
   signal?.throwIfAborted();
   const doc = documentObject;
@@ -32,14 +34,16 @@ export function requestCanonicalInputSelection({
     parent.append(element);
     return element;
   }
-  append("h2", "Open ontology").id = `${id}-title`;
+  append("h2", baseOnly ? "Open with a base IRI" : "Open ontology").id =
+    `${id}-title`;
   append("p", displayName);
   const form = append("form");
   const syntaxLabel = append("label", "Document format", form);
   syntaxLabel.htmlFor = `${id}-syntax`;
   const syntax = append("select", undefined, form);
   syntax.id = syntaxLabel.htmlFor;
-  syntax.required = true;
+  syntax.required = !baseOnly;
+  syntax.hidden = syntaxLabel.hidden = syntax.disabled = baseOnly;
   const placeholder = append("option", "Choose a format", syntax);
   placeholder.value = "";
   placeholder.disabled = true;
@@ -73,7 +77,11 @@ export function requestCanonicalInputSelection({
   }
   const context = append("div", undefined, form);
   context.hidden = true;
-  const baseLabel = append("label", "Original document IRI", context);
+  const baseLabel = append(
+    "label",
+    baseOnly ? "Base IRI" : "Original document IRI",
+    context,
+  );
   baseLabel.htmlFor = `${id}-base`;
   const base = append("input", undefined, context);
   base.id = baseLabel.htmlFor;
@@ -86,9 +94,11 @@ export function requestCanonicalInputSelection({
   }
   const help = append(
     "p",
-    knownDocumentIri === undefined
-      ? "Enter the document's original absolute IRI. Relative names and imports resolve against this address unless the document declares its own base. The address is not fetched to open this local input."
-      : "The server did not identify a unique OWL syntax. Choose the format of this document. Its retrieved address is retained for relative names and imports.",
+    baseOnly
+      ? "Enter the absolute base IRI for the relative names and imports in this file."
+      : knownDocumentIri === undefined
+        ? "Enter the document's original absolute IRI. Relative names and imports resolve against this address unless the document declares its own base. The address is not fetched to open this local input."
+        : "The server did not identify a unique OWL syntax. Choose the format of this document. Its retrieved address is retained for relative names and imports.",
     context,
   );
   help.id = `${id}-help`;
@@ -107,9 +117,10 @@ export function requestCanonicalInputSelection({
   submit.type = "submit";
   function updateContext() {
     const owl = syntax.value.startsWith("owl:");
-    context.hidden = !owl;
-    base.disabled = !owl;
-    base.required = owl;
+    const showBase = baseOnly || (owl && !localFile);
+    context.hidden = !showBase;
+    base.disabled = !showBase;
+    base.required = showBase;
     legacyNotice.hidden = syntax.value !== "legacy";
   }
   syntax.addEventListener("change", updateContext);
@@ -143,12 +154,18 @@ export function requestCanonicalInputSelection({
     dialog.addEventListener("close", () => finish(null));
     form.addEventListener("submit", (event) => {
       event.preventDefault();
-      if (syntax.value.startsWith("owl:")) {
-        if (!isIri(base.value)) {
+      if (baseOnly || syntax.value.startsWith("owl:")) {
+        if (!base.disabled && !isIri(base.value)) {
           base.setCustomValidity(
-            "Enter an absolute document IRI, such as https://example.org/ontology.",
+            baseOnly
+              ? "Enter an absolute base IRI, such as https://example.org/ontology."
+              : "Enter an absolute document IRI, such as https://example.org/ontology.",
           );
           base.reportValidity();
+          return;
+        }
+        if (baseOnly) {
+          finish(base.value);
           return;
         }
         finish({
@@ -156,7 +173,7 @@ export function requestCanonicalInputSelection({
           ...(syntax.value === "owl:auto"
             ? {}
             : { format: syntax.value.slice(4) }),
-          documentIri: base.value,
+          ...(localFile ? {} : { documentIri: base.value }),
         });
       } else if (syntax.value === "canonical") {
         finish({ kind: "canonical" });
@@ -171,8 +188,13 @@ export function requestCanonicalInputSelection({
     signal?.addEventListener("abort", abort, { once: true });
     doc.body.append(dialog);
     dialog.showModal();
-    syntax.focus();
+    (baseOnly ? base : syntax).focus();
   });
+}
+
+/** The loader invokes this form only for a current missing-base diagnosis. */
+export function requestCanonicalBaseIri(options = {}) {
+  return requestCanonicalInputSelection({ ...options, baseOnly: true });
 }
 
 export async function requestCanonicalRemoteFormat(
@@ -250,7 +272,20 @@ export async function selectCanonicalLocalSource({
     : { text };
   signal?.throwIfAborted();
   const requireReader = requiresJsonReader(content);
-  const selection = await select({ displayName, signal, requireReader });
+  if (file && !requireReader) {
+    return {
+      kind: "ontology-bytes",
+      ...content,
+      displayName,
+      localSource: true,
+    };
+  }
+  const selection = await select({
+    displayName,
+    signal,
+    requireReader,
+    ...(file ? { localFile: true } : {}),
+  });
   signal?.throwIfAborted();
   if (!selection) {
     return null;
@@ -260,6 +295,7 @@ export async function selectCanonicalLocalSource({
     kind: `${kind === "owl" ? "ontology" : "vowl-json"}-${file ? "bytes" : "text"}`,
     ...content,
     ...context,
+    ...(file && kind === "owl" ? { localSource: true } : {}),
     displayName,
   };
 }

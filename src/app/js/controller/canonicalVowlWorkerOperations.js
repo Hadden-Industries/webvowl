@@ -98,6 +98,8 @@ export async function runCanonicalVowlOperation(
       const { openOwl } = await import("vowl/owl");
       const opened = await openOwl(bytes, {
         documentIri: request.documentIri,
+        localSource: request.localSource,
+        fallbackBaseIri: request.fallbackBaseIri,
         mediaType: request.mediaType,
         owlMappingStrategy: request.owlMappingStrategy,
         limits,

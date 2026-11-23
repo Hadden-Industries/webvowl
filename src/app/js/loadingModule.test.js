@@ -391,6 +391,78 @@ describe("loading presentation listener ownership", () => {
   let controls;
   let loadingModule;
 
+  test("offers a base retry after diagnosis and records the file route only after admission", async () => {
+    const bytes = new Uint8Array([60, 82, 68, 70, 62]);
+    const source = {
+      kind: "ontology-bytes",
+      localSource: true,
+      displayName: "reference-data.owl",
+      bytes,
+    };
+    const selectLocalSource = jest.fn(async () => source);
+    const requestBaseIri = jest.fn(async () => "https://example.org/original");
+    const route = jest.fn();
+    const previousWindow = loadingModuleContext.window;
+    loadingModuleContext.window = { history: { pushState: route } };
+    const previous = {
+      status: "ready",
+      source: { displayName: "already-open.owl" },
+      loadGeneration: 1,
+      layout: { status: "settled" },
+    };
+    let state = previous;
+    const loadOntology = jest.fn(async ({ source: attempt }) => {
+      const loadProgress = { requestId: loadOntology.mock.calls.length };
+      state = { ...previous, status: "loading", loadProgress };
+      loadingModule.renderControllerState(state);
+      if (!attempt.fallbackBaseIri) {
+        state = {
+          ...previous,
+          status: "error",
+          loadProgress,
+          error: {
+            code: "LOAD_FAILED",
+            message: "A relative reference in this file needs a base IRI.",
+            details: { reason: "MAPPING_BASE_REQUIRED" },
+          },
+        };
+        loadingModule.renderControllerState(state);
+        throw Object.assign(new Error(state.error.message), {
+          code: "MAPPING_BASE_REQUIRED",
+        });
+      }
+      state = { ...previous, source: attempt, loadGeneration: 2 };
+      loadingModule.renderControllerState(state);
+      return state;
+    });
+    loadingModule.dispose();
+    loadingModule = createLoadingModule({
+      selectLocalSource,
+      requestBaseIri,
+      webVowlController: { loadOntology, getState: () => state },
+    });
+    loadingModule.setup();
+    try {
+      await loadingModule.loadLocalFile({ name: source.displayName });
+      expect(route).not.toHaveBeenCalled();
+      expect(requestBaseIri).not.toHaveBeenCalled();
+      expect(loadingModule.successfullyLoadedOntology()).toBe(true);
+      const action = controls.get("#loading-primary-action");
+      expect(action.textContent).toBe("Open with a base IRI");
+      action.dispatchEvent(new Event("click"));
+      await new Promise(setImmediate);
+      expect(selectLocalSource).toHaveBeenCalledTimes(1);
+      expect(loadOntology.mock.calls[1][0].source).toEqual({
+        ...source,
+        fallbackBaseIri: "https://example.org/original",
+      });
+      expect(loadOntology.mock.calls[1][0].source.bytes).toBe(bytes);
+      expect(route).toHaveBeenCalledWith(null, "", "#file=reference-data.owl");
+    } finally {
+      loadingModuleContext.window = previousWindow;
+    }
+  });
+
   test("keeps distinct parser diagnostics available after a summary-only error", () => {
     const append_message = jest.fn();
     loadingModule.dispose();

@@ -55,28 +55,22 @@ test("local input retains exact bytes, including a BOM, without text decoding", 
       throw new Error("Must not decode original bytes");
     }),
   };
-  const source = await selectCanonicalLocalSource({
-    file,
-    select: async () => ({
-      kind: "owl",
-      format: "rdfxml",
-      documentIri: "https://example.org/original.owl",
-    }),
-  });
+  const select = jest.fn();
+  const source = await selectCanonicalLocalSource({ file, select });
   expect(source).toEqual({
     kind: "ontology-bytes",
     bytes,
     displayName: file.name,
-    format: "rdfxml",
-    documentIri: "https://example.org/original.owl",
+    localSource: true,
   });
+  expect(select).not.toHaveBeenCalled();
   expect(file.text).not.toHaveBeenCalled();
 });
 
 test("cancelling document context publishes no source after its bytes have been acquired", async () => {
   const file = {
     name: "cancel.owl",
-    arrayBuffer: jest.fn(async () => new ArrayBuffer(0)),
+    arrayBuffer: jest.fn(async () => new TextEncoder().encode("{}").buffer),
   };
   expect(
     await selectCanonicalLocalSource({ file, select: async () => null }),
@@ -84,7 +78,7 @@ test("cancelling document context publishes no source after its bytes have been 
   expect(file.arrayBuffer).toHaveBeenCalledTimes(1);
 });
 
-test("extensionless input asks only for independent context and leaves syntax to the native loader", async () => {
+test("extensionless input opens directly and leaves syntax to the native loader", async () => {
   const bytes = new TextEncoder().encode(
     "Ontology(<urn:A> Declaration(Class(<urn:B>)))",
   );
@@ -92,16 +86,29 @@ test("extensionless input asks only for independent context and leaves syntax to
     name: "extensionless",
     arrayBuffer: jest.fn(async () => bytes.buffer),
   };
-  const source = await selectCanonicalLocalSource({
-    file,
-    select: async (context) => {
-      expect(file.arrayBuffer).toHaveBeenCalledTimes(1);
-      expect(context.requireReader).toBe(false);
-      return { kind: "owl", documentIri: "urn:source" };
-    },
-  });
+  const select = jest.fn();
+  const source = await selectCanonicalLocalSource({ file, select });
+  expect(file.arrayBuffer).toHaveBeenCalledTimes(1);
+  expect(select).not.toHaveBeenCalled();
   expect(source.format).toBeUndefined();
+  expect(source.localSource).toBe(true);
   expect(source.bytes).toEqual(bytes);
+});
+
+test("local JSON-LD keeps reader selection without a document IRI", async () => {
+  const bytes = new TextEncoder().encode('{"@id":"#Thing"}');
+  const select = jest.fn(async () => ({ kind: "owl", format: "jsonld" }));
+  const file = { name: "local.jsonld", arrayBuffer: async () => bytes.buffer };
+  await expect(selectCanonicalLocalSource({ file, select })).resolves.toEqual({
+    kind: "ontology-bytes",
+    localSource: true,
+    format: "jsonld",
+    displayName: file.name,
+    bytes,
+  });
+  expect(select).toHaveBeenCalledWith(
+    expect.objectContaining({ requireReader: true, localFile: true }),
+  );
 });
 
 test("JSON input retains explicit reader selection instead of being reinterpreted as OWL", async () => {

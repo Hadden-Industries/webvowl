@@ -501,9 +501,12 @@ export function createCanonicalVowlSourceAcquisition({
       loadContexts.set(acquired.bytes, context);
       return { operation: "open-owl-model", ...acquired };
     },
-    local(bytes, { documentIri, format } = {}) {
+    local(bytes, { documentIri, format, localSource, fallbackBaseIri } = {}) {
       const snapshot = ownedBytes(bytes);
-      if (typeof documentIri !== "string" || !documentIri) {
+      if (
+        localSource !== true &&
+        (typeof documentIri !== "string" || !documentIri)
+      ) {
         throw new TypeError(
           "A local document requires its explicit parsing base IRI.",
         );
@@ -515,7 +518,9 @@ export function createCanonicalVowlSourceAcquisition({
       return {
         operation: "open-owl-model",
         bytes: snapshot,
-        documentIri,
+        ...(localSource === true
+          ? { localSource, fallbackBaseIri }
+          : { documentIri }),
         mediaType,
       };
     },

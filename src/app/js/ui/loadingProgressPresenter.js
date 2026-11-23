@@ -45,6 +45,7 @@ export function createLoadingProgressPresenter({
   let lastStage;
   let failureIdentity;
   let dismissedFailure;
+  let baseRecovery;
 
   function stopTimer() {
     if (timer !== undefined) {
@@ -91,6 +92,8 @@ export function createLoadingProgressPresenter({
       listen(hide, () => {
         if (!busy) {
           dismissedFailure = failureIdentity;
+          baseRecovery?.dismiss();
+          baseRecovery = undefined;
           return dismiss();
         }
         collapsed = true;
@@ -104,7 +107,7 @@ export function createLoadingProgressPresenter({
       });
       listen(action, () => {
         if (!busy) {
-          return onChooseSource();
+          return baseRecovery ? baseRecovery.retry() : onChooseSource();
         }
         cancelling = true;
         action.disabled = true;
@@ -148,6 +151,8 @@ export function createLoadingProgressPresenter({
         requestId = progress?.requestId;
       }
       busy = nextBusy;
+      baseRecovery =
+        state.status === "error" ? context.baseRecovery : undefined;
       error.textContent = state.error?.message ?? "";
       error.hidden = !error.textContent;
       if (!busy && (state.status !== "error" || cancelling)) {
@@ -178,7 +183,11 @@ export function createLoadingProgressPresenter({
       }
       showPanel();
       action.disabled = cancelling;
-      action.textContent = busy ? "Cancel loading" : "Choose ontology";
+      action.textContent = busy
+        ? "Cancel loading"
+        : baseRecovery
+          ? "Open with a base IRI"
+          : "Choose ontology";
       hide.textContent = busy ? "Hide progress" : "Close";
       title.className = busy ? "step-busy" : "step-error";
       title.textContent = busy ? "Opening ontology" : "Loading failed";

@@ -22,6 +22,11 @@ export function createLoadingModule({
   onGraphControlAvailabilityChanged,
   onShareLinkPresentation,
   selectLocalSource,
+  requestBaseIri = async (options) => {
+    const { requestCanonicalBaseIri } =
+      await import("./ui/canonicalInputSelection.js");
+    return requestCanonicalBaseIri(options);
+  },
   createOntologySource,
   resolvePresetSource,
 } = {}) {
@@ -33,6 +38,8 @@ export function createLoadingModule({
   let isSetup = false;
   let fileReadSequence = 0;
   let pendingInput;
+  let baseRecovery;
+  let dispatchingLocalFile = false;
   let lastErrorDetails = null;
   let observedLoading = false;
   let observedRequestId;
@@ -46,6 +53,7 @@ export function createLoadingModule({
     fileReadSequence += 1;
     pendingInput?.abort();
     pendingInput = undefined;
+    baseRecovery = undefined;
     return fileReadSequence;
   }
   function beginInput() {
@@ -311,8 +319,69 @@ export function createLoadingModule({
     const { sequence: currentFileRead, signal } = beginInput();
     const isCurrentFileRead = () =>
       currentFileRead === fileReadSequence &&
+      !signal.aborted &&
       !lifecycleAbortController.signal.aborted;
     if (selectLocalSource) {
+      async function openSelectedSource(source) {
+        baseRecovery = undefined;
+        prepareLoadingPresentation();
+        try {
+          let pending;
+          dispatchingLocalFile = true;
+          try {
+            pending = webVowlController.loadOntology({ source }, { signal });
+          } finally {
+            dispatchingLocalFile = false;
+          }
+          const state = await pending;
+          if (
+            isCurrentFileRead() &&
+            ["ready", "relaxing"].includes(state?.status)
+          ) {
+            window.history.pushState(
+              null,
+              "",
+              "#file=" + encodeURIComponent(file.name),
+            );
+            return state;
+          }
+        } catch (error) {
+          if (!isCurrentFileRead()) {
+            return undefined;
+          }
+          const state = webVowlController.getState();
+          if (source.localSource && error.code === "MAPPING_BASE_REQUIRED") {
+            let requesting = false;
+            baseRecovery = {
+              requestId: state.loadProgress?.requestId,
+              dismiss: supersedeInput,
+              async retry() {
+                if (requesting || !isCurrentFileRead()) {
+                  return;
+                }
+                requesting = true;
+                try {
+                  const fallbackBaseIri = await requestBaseIri({
+                    displayName: file.name,
+                    signal,
+                  });
+                  if (fallbackBaseIri !== null && isCurrentFileRead()) {
+                    await openSelectedSource({ ...source, fallbackBaseIri });
+                  }
+                } catch (reason) {
+                  if (isCurrentFileRead()) {
+                    renderInputError(reason.message, file.name);
+                  }
+                } finally {
+                  requesting = false;
+                }
+              },
+            };
+          }
+          loadingModule.renderControllerState(state);
+        }
+        return undefined;
+      }
       try {
         const source = await selectLocalSource({
           file,
@@ -321,13 +390,7 @@ export function createLoadingModule({
         if (source === null || !isCurrentFileRead()) {
           return undefined;
         }
-        prepareLoadingPresentation();
-        window.history.pushState(
-          null,
-          "",
-          "#file=" + encodeURIComponent(file.name),
-        );
-        return loadOntologyThroughController(source);
+        return await openSelectedSource(source);
       } catch (error) {
         if (isCurrentFileRead()) {
           renderInputError(error.message, file.name);
@@ -392,7 +455,11 @@ export function createLoadingModule({
       loading &&
       (!observedLoading || state.loadProgress?.requestId !== observedRequestId)
     ) {
-      supersedeInput();
+      // The controller publishes the initial loading state synchronously.
+      // An externally initiated load supersedes our file and its retry.
+      if (!dispatchingLocalFile) {
+        supersedeInput();
+      }
       lastErrorDetails = null;
     }
     observedLoading = loading;
@@ -418,7 +485,15 @@ export function createLoadingModule({
     } else {
       return;
     }
-    presentation.render(state, context);
+    presentation.render(state, {
+      ...context,
+      baseRecovery:
+        state.status === "error" &&
+        state.error?.details?.reason === "MAPPING_BASE_REQUIRED" &&
+        baseRecovery?.requestId === state.loadProgress?.requestId
+          ? baseRecovery
+          : undefined,
+    });
     if (state.status === "error" && state.error) {
       const error = state.error;
       const detailMessages = [

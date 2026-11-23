@@ -157,6 +157,10 @@ export function canonicalLoadingMessage(error) {
       "The ontology and its imports exceed the RDF canonicalization-work limit. Try a smaller ontology or import closure.",
     MAPPING_SYNTAX_INVALID:
       "The document could not be parsed as OWL. Check its syntax.",
+    MAPPING_BASE_REQUIRED:
+      "A relative reference in this file needs a base IRI.",
+    MAPPING_LOCAL_BASE_COLLISION:
+      "The base IRI is also an import address. WebVOWL cannot distinguish that import from the selected file.",
     MAPPING_IMPORT_UNRESOLVED: "An ontology import could not be loaded.",
     MAPPING_AMBIGUOUS:
       "The ontology has an ambiguous interpretation that could not be resolved.",

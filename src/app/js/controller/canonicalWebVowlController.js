@@ -987,6 +987,9 @@ export function createCanonicalWebVowlController({
               : new TextEncoder().encode(retained.text);
           request = acquisition.local(bytes, {
             documentIri: retained.documentIri,
+            ...(retained.localSource === true
+              ? { localSource: true, fallbackBaseIri: retained.fallbackBaseIri }
+              : {}),
             format: retained.format,
             fileName: retained.displayName,
           });
