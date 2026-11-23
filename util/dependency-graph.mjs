@@ -28,6 +28,13 @@ import {
   sep,
 } from "node:path";
 import { fileURLToPath } from "node:url";
+import { HtmlValidate, Parser, StaticConfigLoader } from "html-validate";
+import {
+  observeFileDependencies,
+  observeWorkflowFiles,
+} from "./dependency-file-observations.mjs";
+import { dependencyView, focusDependencyView } from "./dependency-view.mjs";
+import { graphPackages } from "./graph-toolchain-versions.mjs";
 
 const self = fileURLToPath(import.meta.url);
 export const repositoryRoot = resolve(dirname(self), "..");
@@ -278,6 +285,69 @@ export function assertUnchanged(root, before) {
     throw new Error("Candidate input drift");
 }
 
+/** Admit reviewed impact policy as data for both graph consumers. */
+export function readImpactPolicy(
+  root,
+  bytes = readOwned(root, ".test-impact.json"),
+) {
+  const policy = JSON.parse(bytes);
+  const fields = [
+    "schemaVersion",
+    "fullDomains",
+    "fullFiles",
+    "boundaryFiles",
+    "relations",
+  ];
+  if (
+    policy.schemaVersion !== 1 ||
+    Object.keys(policy).length !== fields.length ||
+    fields.some((key) => !Object.hasOwn(policy, key))
+  )
+    throw new Error("Invalid impact policy fields");
+  for (const key of ["fullDomains", "fullFiles", "boundaryFiles"]) {
+    if (
+      !Array.isArray(policy[key]) ||
+      policy[key].length > 128 ||
+      new Set(policy[key]).size !== policy[key].length
+    )
+      throw new Error("Invalid policy:" + key);
+    for (const path of policy[key])
+      safePath(key === "fullDomains" ? path.replace(/\/$/u, "") : path);
+  }
+  for (const path of policy.boundaryFiles) readOwned(root, path);
+  if (
+    !Array.isArray(policy.relations) ||
+    policy.relations.length > 128 ||
+    new Set(policy.relations.map((rule) => rule.id)).size !==
+      policy.relations.length
+  )
+    throw new Error("Invalid relation inventory");
+  const relationKeys = [
+    "id",
+    "dependency",
+    "consumer",
+    "kind",
+    "evidence",
+    "fixture",
+  ];
+  for (const rule of policy.relations) {
+    if (
+      Object.keys(rule).length !== relationKeys.length ||
+      relationKeys.some(
+        (key) =>
+          typeof rule[key] !== "string" ||
+          !rule[key].trim() ||
+          rule[key].length > 1024,
+      )
+    )
+      throw new Error("Invalid declared relation");
+    safePath(rule.dependency.replace(/\/$/u, ""));
+    safePath(rule.consumer);
+    readOwned(root, rule.consumer);
+  }
+  return policy;
+}
+
 function admittedGraphConfig(root) {
   const config = JSON.parse(readOwned(root, ".dependency-cruiser.json"));
   if (
@@ -320,6 +390,7 @@ export function captureGraph(
   if (unknown.length)
     throw new Error(`Unclassified authored root:${unknown[0]}`);
   const workspace = JSON.parse(readOwned(root, "packages/vowl/package.json"));
+  const repository = JSON.parse(readOwned(root, "package.json"));
   if (
     workspace.name !== "vowl" ||
     Object.keys(workspace.exports ?? {})
@@ -340,6 +411,20 @@ export function captureGraph(
     )
   )
     throw new Error("Unproved workspace exports");
+  const deepmerge = repository.devDependencies?.deepmerge;
+  const alias = {};
+  if (deepmerge !== undefined) {
+    const vendor = "tooling/vendor/deepmerge";
+    if (
+      deepmerge !== "file:" + vendor ||
+      JSON.parse(readOwned(root, vendor + "/package.json")).name !==
+        "@hadden-industries/webvowl-deepmerge"
+    )
+      throw new Error("Unproved vendored deepmerge dependency");
+    // An installed file: link points into the current checkout. Resolve the
+    // declared package from the exact snapshot being analyzed instead.
+    alias.deepmerge$ = join(root, vendor);
+  }
   const child = spawnSync(
     process.execPath,
     ["--max-old-space-size=256", self, "--capture-worker"],
@@ -350,6 +435,7 @@ export function captureGraph(
         roots,
         config: admittedGraphConfig(controls),
         vendors,
+        alias,
       }),
       encoding: "utf8",
       windowsHide: true,
@@ -387,6 +473,13 @@ export function captureGraph(
       )
         throw new Error("Current workspace contaminated snapshot");
       if (
+        deepmerge !== undefined &&
+        dependency.module === "deepmerge" &&
+        !dependency.couldNotResolve &&
+        !dependency.resolved.startsWith("tooling/vendor/deepmerge/")
+      )
+        throw new Error("Current vendored package contaminated snapshot");
+      if (
         !dependency.coreModule &&
         !dependency.couldNotResolve &&
         (isAbsolute(dependency.resolved) ||
@@ -408,6 +501,65 @@ export async function nativeReach(graph, seeds) {
     reaches: `^(?:${seeds.map((path) => escapePattern(safePath(path))).join("|")})$`,
   });
   return JSON.parse(result.output);
+}
+
+const isWorkflow = (path) => /^\.github\/workflows\/[^/]+\.ya?ml$/u.test(path);
+export const isGraphMetadata = (path) =>
+  path === "src/index.html" || isWorkflow(path);
+export const dependencyViewBytes = (graph) =>
+  JSON.stringify(graph, null, 2) + "\n";
+
+/** Report the libraries used by this analyzer, including during disposable-checkout analysis. */
+export function installedGraphVersions() {
+  return Object.fromEntries(
+    graphPackages.map((name) => [
+      name,
+      JSON.parse(
+        readFileSync(
+          join(repositoryRoot, "node_modules", name, "package.json"),
+        ),
+      ).version,
+    ]),
+  );
+}
+
+/** Observe candidate bytes supplied by the same admitted source snapshot as the native import graph. */
+export function captureDependencyView(root, { native, paths, policy }) {
+  const owned = new Set(
+    paths.filter((path) => authoredRole(path) !== "excluded"),
+  );
+  const sources = native.modules
+    .map((module) => module.source)
+    .filter((source) => owned.has(source) && isJavaScript(source));
+  const decoder = new TextDecoder("utf-8", { fatal: true });
+  const readSource = (source) => decoder.decode(readOwned(root, source));
+  const indexHtml = (source) => {
+    // The static loader does not resolve any executable or candidate configuration.
+    const config = new StaticConfigLoader({ elements: ["html5"], rules: {} });
+    const validator = new HtmlValidate(config);
+    const parser = new Parser(validator.getConfigForSync("inline"));
+    const document = parser.parseHtml(readSource(source));
+    return document
+      .querySelectorAll("link[href], script[src]")
+      .map((element) => ({
+        path:
+          element.getAttributeValue("href") ?? element.getAttributeValue("src"),
+        line: element.location.line,
+      }));
+  };
+  const observations = observeFileDependencies(sources, readSource, owned, {
+    validatePath: safePath,
+    indexHtml,
+  });
+  for (const source of [...owned].filter(isWorkflow).sort()) {
+    const workflow = observeWorkflowFiles(source, readSource(source), safePath);
+    observations.edges.push(...workflow.edges);
+    observations.diagnostics.push(...workflow.diagnostics);
+  }
+  const view = dependencyView(native, owned, policy.relations, observations);
+  if (Buffer.byteLength(dependencyViewBytes(view)) > limits.graphBytes)
+    throw new Error("Typed dependency view exceeds the graph output budget");
+  return view;
 }
 
 /** Reserve the exact destination exclusively, including against competing callers. */
@@ -435,20 +587,38 @@ export function reserveOutput(root, output) {
   return output;
 }
 
-export async function writeBundle(root, output) {
+export async function writeBundle(root, output, { focus } = {}) {
   const before = snapshot(root);
+  const toolVersions = installedGraphVersions();
   const graph = captureGraph(root);
+  const policyBytes = readOwned(root, ".test-impact.json");
+  const view = captureDependencyView(root, {
+    native: graph,
+    paths: before.files.filter((file) => file.sha256).map((file) => file.path),
+    policy: readImpactPolicy(root, policyBytes),
+  });
   const { format } = await import("dependency-cruiser");
   const graphBytes = JSON.stringify(graph, null, 2) + "\n";
   const graphDigest = sha256(graphBytes);
+  const typedBytes = dependencyViewBytes(view);
+  const typedGraphDigest = sha256(typedBytes);
   const files = {
     "graph.json": graphBytes,
+    "dependencies.json": typedBytes,
     "policy-findings.json":
       JSON.stringify(graph.summary.violations, null, 2) + "\n",
-    "declared-relations.json": readOwned(root, ".test-impact.json").toString(
-      "utf8",
-    ),
+    "declared-relations.json": policyBytes.toString("utf8"),
   };
+  if (focus !== undefined) {
+    if (!focus.startsWith("artifact:") && !focus.startsWith("check:"))
+      safePath(focus);
+    const report = focusDependencyView(view, focus);
+    files["focus.json"] =
+      JSON.stringify({ ...report, graphDigest: typedGraphDigest }, null, 2) +
+      "\n";
+    if (Buffer.byteLength(files["focus.json"]) > limits.graphBytes)
+      throw new Error("Focus paths exceed the graph output budget");
+  }
   for (const [name, filter] of Object.entries({
     overview: {},
     runtime: { includeOnly: "^(src/|packages/vowl/src/)" },
@@ -461,6 +631,11 @@ export async function writeBundle(root, output) {
   const staging = mkdtempSync(join(output, ".incomplete-"));
   for (const [path, content] of Object.entries(files))
     writeFileSync(join(staging, path), content, { flag: "wx" });
+  for (const [path, content] of Object.entries(files))
+    if (sha256(readFileSync(join(staging, path))) !== sha256(content))
+      throw new Error(
+        "Graph bundle member changed before publication: " + path,
+      );
   assertUnchanged(root, before);
   writeFileSync(
     join(staging, "provenance.json"),
@@ -469,19 +644,14 @@ export async function writeBundle(root, output) {
         schemaVersion: 1,
         complete: true,
         context:
-          "node/import; browser transformations and declared relations are separate",
+          "Native Node imports and typed file, browser and output observations",
         candidate: before,
         runtime: process.version,
         platform: process.platform,
-        analyzer: JSON.parse(
-          readFileSync(
-            join(
-              repositoryRoot,
-              "node_modules/dependency-cruiser/package.json",
-            ),
-          ),
-        ).version,
+        analyzer: toolVersions["dependency-cruiser"],
+        toolVersions,
         graphDigest,
+        typedGraphDigest,
         files: Object.fromEntries(
           Object.entries(files).map(([path, content]) => [
             path,
@@ -499,8 +669,10 @@ export async function writeBundle(root, output) {
   // The exclusively owned parent keeps publication separate from destination reservation.
   // Readers see either no bundle or the whole validated directory, on the same filesystem.
   assertUnchanged(root, before);
+  if (!isDeepStrictEqual(toolVersions, installedGraphVersions()))
+    throw new Error("Installed graph toolchain drift");
   renameSync(staging, join(output, "bundle"));
-  return graph;
+  return { graph, view };
 }
 
 async function captureWorker() {
@@ -519,6 +691,7 @@ async function captureWorker() {
     },
     {
       modules: [join(request.root, "packages"), ...request.vendors],
+      alias: request.alias,
       restrictions: [new RegExp(`^(?:${allowedRoots.join("|")})(?:[\\\\/]|$)`)],
       exportsFields: ["exports"],
       conditionNames: ["node", "import", "default"],
@@ -537,20 +710,23 @@ if (process.argv[1] && resolve(process.argv[1]) === self) {
     if (process.argv[2] === "--capture-worker" && process.argv.length === 3)
       await captureWorker();
     else {
-      if (process.argv.length !== 4 || process.argv[2] !== "--output")
-        throw new Error(
-          "Usage: graph:dependencies -- --output <new external directory>",
-        );
-      const graph = await writeBundle(repositoryRoot, process.argv[3]);
-      process.stdout.write(
-        `Captured ${graph.modules.length} modules; ${graph.summary.violations.length} native findings\n`,
-      );
       if (
-        graph.summary.violations.some(
-          (finding) => finding.rule.severity === "error",
-        )
+        (process.argv.length !== 4 &&
+          !(process.argv.length === 6 && process.argv[4] === "--focus")) ||
+        process.argv[2] !== "--output"
       )
-        process.exitCode = 1;
+        throw new Error(
+          "Usage: graph:dependencies -- --output <new external directory> [--focus <literal node>]",
+        );
+      const { graph, view } = await writeBundle(
+        repositoryRoot,
+        process.argv[3],
+        { focus: process.argv[5] },
+      );
+      process.stdout.write(
+        `Captured ${graph.modules.length} modules and ${view.edges.length} typed relationships; ${view.blockingFindings.length} blocking findings\n`,
+      );
+      if (view.blockingFindings.length) process.exitCode = 1;
     }
   } catch (error) {
     console.error(error.message);

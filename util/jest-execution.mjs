@@ -152,6 +152,7 @@ export async function runJest(
       !invalid &&
       processFacts.exitCode === 0 &&
       native?.success === true &&
+      native.numPassedTests > 0 &&
       native.numFailedTests === 0 &&
       native.numFailedTestSuites === 0,
     exitCode: processFacts.exitCode ?? null,

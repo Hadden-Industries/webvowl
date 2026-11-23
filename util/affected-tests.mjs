@@ -13,12 +13,17 @@ import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve, isAbsolute } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Linter } from "eslint";
+import { isDeepStrictEqual } from "node:util";
 import {
   captureGraph,
+  captureDependencyView,
+  dependencyViewBytes,
   git,
+  installedGraphVersions,
+  isGraphMetadata,
   limits,
-  nativeReach,
   nulRecords,
+  readImpactPolicy,
   readOwned,
   repositoryRoot,
   safePath,
@@ -30,6 +35,7 @@ import {
   sourcePaths,
   reserveOutput,
 } from "./dependency-graph.mjs";
+import { selectDependencyTests, viewContains } from "./dependency-view.mjs";
 import { runJest, compareOutcomes } from "./jest-execution.mjs";
 
 const self = fileURLToPath(import.meta.url);
@@ -148,65 +154,6 @@ export function discoverTests(root, admission = admitJest(root)) {
   };
 }
 
-export function readPolicy(root) {
-  const policy = JSON.parse(readOwned(root, ".test-impact.json"));
-  const fields = [
-    "schemaVersion",
-    "fullDomains",
-    "fullFiles",
-    "boundaryFiles",
-    "relations",
-  ];
-  if (
-    policy.schemaVersion !== 1 ||
-    Object.keys(policy).length !== fields.length ||
-    fields.some((key) => !Object.hasOwn(policy, key))
-  )
-    throw new Error("Invalid impact policy fields");
-  for (const key of ["fullDomains", "fullFiles", "boundaryFiles"]) {
-    if (
-      !Array.isArray(policy[key]) ||
-      policy[key].length > 128 ||
-      new Set(policy[key]).size !== policy[key].length
-    )
-      throw new Error(`Invalid policy:${key}`);
-    for (const path of policy[key])
-      safePath(key === "fullDomains" ? path.replace(/\/$/u, "") : path);
-  }
-  for (const path of policy.boundaryFiles) readOwned(root, path);
-  if (
-    !Array.isArray(policy.relations) ||
-    policy.relations.length > 128 ||
-    new Set(policy.relations.map((rule) => rule.id)).size !==
-      policy.relations.length
-  )
-    throw new Error("Invalid relation inventory");
-  const relationKeys = [
-    "id",
-    "dependency",
-    "consumer",
-    "kind",
-    "evidence",
-    "fixture",
-  ];
-  for (const rule of policy.relations) {
-    if (
-      Object.keys(rule).length !== relationKeys.length ||
-      relationKeys.some(
-        (key) =>
-          typeof rule[key] !== "string" ||
-          !rule[key].trim() ||
-          rule[key].length > 1024,
-      )
-    )
-      throw new Error("Invalid declared relation");
-    safePath(rule.dependency.replace(/\/$/u, ""));
-    safePath(rule.consumer);
-    readOwned(root, rule.consumer);
-  }
-  return policy;
-}
-
 /** ESLint supplies parsing and scope. This guard resolves no imports and computes no graph. */
 export function hasUnmodelledBoundary(bytes, path = "source.js") {
   let unsafe = false;
@@ -267,64 +214,6 @@ export function hasUnmodelledBoundary(bytes, path = "source.js") {
     { filename: path },
   );
   return unsafe || messages.some((message) => message.fatal);
-}
-
-export async function selectFromGraphs(graphs, changed, tests, relations) {
-  const seeds = new Set(changed),
-    reached = new Set(changed),
-    applied = new Set();
-  for (let round = 0; round <= relations.length; round++) {
-    const subgraphs = await Promise.all(
-      graphs.map((graph) => nativeReach(graph, [...seeds].sort())),
-    );
-    for (const graph of subgraphs)
-      for (const module of graph.modules) reached.add(module.source);
-    let grew = false;
-    for (const rule of relations)
-      if (
-        !applied.has(rule.id) &&
-        (rule.dependency.endsWith("/")
-          ? [...reached].some((path) => path.startsWith(rule.dependency))
-          : reached.has(rule.dependency))
-      ) {
-        applied.add(rule.id);
-        seeds.add(rule.consumer);
-        grew = true;
-      }
-    if (!grew) {
-      const selected = tests.filter((path) => reached.has(path)).sort();
-      return {
-        selected,
-        appliedRules: [...applied].sort(),
-        subgraphs,
-        reasons: Object.fromEntries(
-          selected.map((path) => [
-            path,
-            {
-              kind: changed.includes(path)
-                ? "direct-change"
-                : relations.some(
-                      (rule) => applied.has(rule.id) && rule.consumer === path,
-                    )
-                  ? "declared-relation"
-                  : "native-reach",
-              directRelations: relations
-                .filter(
-                  (rule) => applied.has(rule.id) && rule.consumer === path,
-                )
-                .map((rule) => rule.id)
-                .sort(),
-              scope:
-                "selection-wide context; consult native subgraphs for file reachability",
-              seeds: [...seeds].sort(),
-              relations: [...applied].sort(),
-            },
-          ]),
-        ),
-      };
-    }
-  }
-  throw new Error("Relation closure exceeded finite inventory");
 }
 
 export function changeEnvelope(root, base) {
@@ -437,7 +326,8 @@ function historicalSources(root, base, policy) {
     if (
       (["authored", "control"].includes(authoredRole(entry.path)) &&
         isJavaScript(entry.path)) ||
-      /(?:^|\/)package\.json$/u.test(entry.path)
+      /(?:^|\/)package\.json$/u.test(entry.path) ||
+      isGraphMetadata(entry.path)
     ) {
       bytes += entry.size;
       if (
@@ -488,6 +378,12 @@ function historicalSources(root, base, policy) {
   };
 }
 
+// Admit only witnessed test-fixture formats. Controls and broad asset/corpus
+// domains still fall back before analysis according to the existing policy.
+const isFixtureResource = (path) =>
+  path.includes("/test/fixtures/") &&
+  /\.(?:jsonl?|rdf|ttl|owl|xml|nt|nq|trig)$/u.test(path);
+
 export async function planAffected({
   root = repositoryRoot,
   base,
@@ -504,7 +400,7 @@ export async function planAffected({
   const inventory = discoverTests(root, admission);
   assertUnchanged(root, before);
   const report = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     root,
     candidate: before,
     base: null,
@@ -536,7 +432,7 @@ export async function planAffected({
   let temporary;
   try {
     if (!base) return full("missing-explicit-base");
-    const policy = readPolicy(root);
+    const policy = readImpactPolicy(root);
     const baseline = historicalSources(root, base, policy);
     report.base = baseline.identity;
     report.changes = changeEnvelope(root, base);
@@ -550,6 +446,17 @@ export async function planAffected({
       ...new Set([...report.changes.map((entry) => entry.path), ...paths]),
     ].sort();
     if (!report.changes.length) return full("no-changes");
+    const staged = new Set(
+      report.changes
+        .filter((entry) => entry.state === "staged")
+        .map((entry) => entry.path),
+    );
+    if (
+      report.changes.some(
+        (entry) => entry.state === "unstaged" && staged.has(entry.path),
+      )
+    )
+      return full("unobserved-intermediate-index-state");
     report.policyDigest = sha256(readOwned(root, ".test-impact.json"));
     report.graphConfigDigest = sha256(
       readOwned(root, ".dependency-cruiser.json"),
@@ -564,49 +471,80 @@ export async function planAffected({
       )
         return full(`test-tombstone:${path}`);
       if (
-        !isJavaScript(path) ||
+        (!isJavaScript(path) && !isFixtureResource(path)) ||
         policy.fullFiles.includes(path) ||
         policy.boundaryFiles.includes(path) ||
         policy.fullDomains.some((prefix) => path.startsWith(prefix))
       )
         return full(`control-or-resource:${path}`);
       if (
+        isJavaScript(path) &&
         existsSync(join(root, path)) &&
         hasUnmodelledBoundary(readOwned(root, path), path)
       )
         return full(`unmodelled-boundary:${path}`);
+    }
+    report.toolVersions = installedGraphVersions();
+    const lock = JSON.parse(readOwned(root, "package-lock.json"));
+    for (const [name, installed] of Object.entries(report.toolVersions)) {
+      const pinned = lock.packages?.["node_modules/" + name]?.version;
+      if (pinned && pinned !== installed)
+        return full("toolchain-lock-drift:" + name);
     }
     temporary = mkdtempSync(join(tmpdir(), "webvowl-source-snapshot-"));
     for (const { path, content } of baseline.blobs) {
       mkdirSync(dirname(join(temporary, path)), { recursive: true });
       writeFileSync(join(temporary, path), content, { flag: "wx" });
     }
-    const graphs = [captureGraph(temporary, root), captureGraph(root)];
-    report.graphDigests = graphs.map((graph) => sha256(JSON.stringify(graph)));
+    const native = [captureGraph(temporary, root), captureGraph(root)];
+    const graphs = [
+      [
+        "base",
+        captureDependencyView(temporary, {
+          native: native[0],
+          paths: [...baseline.paths],
+          policy,
+        }),
+      ],
+      [
+        "candidate",
+        captureDependencyView(root, {
+          native: native[1],
+          paths: before.files
+            .filter((file) => file.sha256)
+            .map((file) => file.path),
+          policy,
+        }),
+      ],
+    ];
+    report.graphDigests = Object.fromEntries(
+      graphs.map(([name, graph]) => [name, sha256(dependencyViewBytes(graph))]),
+    );
+    report.resourceDiagnostics = Object.fromEntries(
+      graphs.map(([name, graph]) => [name, graph.resourceDiagnostics]),
+    );
+    report.blockingFindings = Object.fromEntries(
+      graphs.map(([name, graph]) => [name, graph.blockingFindings]),
+    );
+    if (graphs.some(([, graph]) => graph.blockingFindings.length))
+      return full("native-policy-error");
     if (
-      graphs.some((graph) =>
-        graph.summary.violations.some(
-          (finding) => finding.rule.severity === "error",
-        ),
+      changed.some(
+        (path) => !graphs.some(([, graph]) => viewContains(graph, path)),
       )
     )
-      return full("native-policy-error");
-    const known = new Set(
-      graphs.flatMap((graph) => graph.modules.map((module) => module.source)),
-    );
-    if (changed.some((path) => !known.has(path)))
       return full("unknown-graph-seed");
-    for (const rule of policy.relations)
-      if (
-        !known.has(rule.consumer) ||
-        !(rule.dependency.endsWith("/")
-          ? [...known].some((path) => path.startsWith(rule.dependency))
-          : known.has(rule.dependency))
-      )
-        return full(`stale-relation:${rule.id}`);
+    for (const [, graph] of graphs) {
+      const stale = graph.resourceDiagnostics.find(
+        (item) => item.kind === "stale-relation",
+      );
+      if (stale) return full("stale-relation:" + stale.relationId);
+      if (graph.resourceDiagnostics.some((item) => item.kind === "parse"))
+        return full("unmodelled-source");
+    }
     // Known API imports still demand full even when a changed binding is aliased.
     if (
-      graphs.some((graph) =>
+      native.some((graph) =>
         graph.modules.some(
           (module) =>
             changed.includes(module.source) &&
@@ -619,12 +557,14 @@ export async function planAffected({
       )
     )
       return full("changed-resource-or-process-module");
-    const selection = await selectFromGraphs(
+    const selection = selectDependencyTests(
       graphs,
       changed,
       inventory.tests,
-      policy.relations,
+      changed.filter((path) => !isJavaScript(path)),
     );
+    if (selection.unseenResources.length)
+      return full("unproved-file-input:" + selection.unseenResources[0]);
     if (!selection.selected.length) return full("empty-selection");
     Object.assign(report, selection, {
       mode:
@@ -660,6 +600,8 @@ export async function executePlan(report, { shadow = false, output } = {}) {
   const timings = {
     ...report.timings,
     rediscoveryMs: 0,
+    selectedDiscoveryMs: 0,
+    fullDiscoveryMs: 0,
     selectedExecutionMs: 0,
     fullExecutionMs: 0,
   };
@@ -667,11 +609,20 @@ export async function executePlan(report, { shadow = false, output } = {}) {
     full = null,
     agreement = null,
     incomplete = null;
-  try {
+  const assertInputs = () => {
     assertUnchanged(root, report.candidate);
+    if (
+      report.mode === "selected" &&
+      !isDeepStrictEqual(report.toolVersions, installedGraphVersions())
+    )
+      throw new Error("Installed graph toolchain drift");
+  };
+  try {
+    assertInputs();
     const admission = admitJest(root);
     const fresh = discoverTests(root, admission);
     timings.rediscoveryMs += fresh.elapsedMs;
+    timings.selectedDiscoveryMs = fresh.elapsedMs;
     if (fresh.digest !== report.inventoryDigest)
       throw new Error("Jest inventory drift");
     let executionStarted = performance.now();
@@ -682,10 +633,11 @@ export async function executePlan(report, { shadow = false, output } = {}) {
       join(destination, "selected"),
     );
     timings.selectedExecutionMs = performance.now() - executionStarted;
-    assertUnchanged(root, report.candidate);
+    assertInputs();
     if (shadow && report.mode === "selected") {
       const independent = discoverTests(root, admission);
       timings.rediscoveryMs += independent.elapsedMs;
+      timings.fullDiscoveryMs = independent.elapsedMs;
       if (independent.digest !== report.inventoryDigest)
         throw new Error("Shadow inventory drift");
       executionStarted = performance.now();
@@ -696,7 +648,7 @@ export async function executePlan(report, { shadow = false, output } = {}) {
         join(destination, "full"),
       );
       timings.fullExecutionMs = performance.now() - executionStarted;
-      assertUnchanged(root, report.candidate);
+      assertInputs();
       agreement = compareOutcomes(selected, full);
     }
   } catch (error) {
@@ -737,28 +689,35 @@ if (process.argv[1] && resolve(process.argv[1]) === self) {
     const options = { paths: [] };
     let list = false,
       shadow = false;
+    let output;
     const args = process.argv.slice(2);
     for (let index = 0; index < args.length; index++) {
       const arg = args[index];
       if (arg === "--list" && !list) list = true;
       else if (arg === "--shadow" && !shadow) shadow = true;
       else if (
-        ["--base", "--path"].includes(arg) &&
+        ["--base", "--path", "--output"].includes(arg) &&
         args[index + 1] &&
         !args[index + 1].startsWith("--")
       ) {
         const value = args[++index];
         if (arg === "--path") options.paths.push(value);
-        else if (!options.base) options.base = value;
-        else throw new Error("Duplicate baseline");
+        else if (arg === "--output" && !output) {
+          if (!isAbsolute(value))
+            throw new Error("Result directory must be absolute");
+          output = value;
+        } else if (arg === "--base" && !options.base) options.base = value;
+        else throw new Error("Duplicate argument: " + arg);
       } else
         throw new Error(
-          "Usage: check:affected -- [--base <full commit>] [--path <literal>] [--list | --shadow]",
+          "Usage: check:affected -- [--base <full commit>] [--path <literal>] [--list | --shadow] [--output <new external directory>]",
         );
     }
     if (list && shadow) throw new Error("List and shadow modes are exclusive");
+    if (list && output)
+      throw new Error("List mode does not write execution results");
     const plan = await planAffected(options);
-    const result = list ? plan : await executePlan(plan, { shadow });
+    const result = list ? plan : await executePlan(plan, { shadow, output });
     process.stdout.write(JSON.stringify(result, null, 2) + "\n");
     if (!list && !result.success) process.exitCode = 1;
   } catch (error) {

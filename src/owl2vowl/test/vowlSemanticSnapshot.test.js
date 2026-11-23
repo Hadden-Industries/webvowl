@@ -1,8 +1,40 @@
+import { readFileSync } from "node:fs";
+import { fromOwl } from "vowl/owl";
 import {
   canonicalVowlSnapshot,
   governedDifferenceCount,
   JAVA_OWL2VOWL_DIALECT,
 } from "./vowlSemanticSnapshot.js";
+
+it("retains the subclass annotation in the structural RDF/XML fixture", async () => {
+  const bytes = readFileSync(
+    new URL(
+      "./fixtures/ontology-syntax/phase5-structural.rdf",
+      import.meta.url,
+    ),
+  );
+  const { document } = await fromOwl(bytes, {
+    documentIri: "https://example.com/phase5",
+    mediaType: "application/rdf+xml",
+  });
+  expect(document.structural.constructs).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        kind: "assertion-anchor",
+        assertion: expect.objectContaining({ kind: "subclass" }),
+        annotations: expect.arrayContaining([
+          expect.objectContaining({
+            predicate: "https://example.com/phase5#source",
+            value: expect.objectContaining({
+              kind: "typed",
+              lexical: "fixture",
+            }),
+          }),
+        ]),
+      }),
+    ]),
+  );
+});
 
 const restrictionEdgeVowl = () => ({
   class: [

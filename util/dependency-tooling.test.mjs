@@ -15,6 +15,7 @@ import { dirname, join, relative, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import {
   captureGraph,
+  captureDependencyView,
   nativeReach,
   repositoryRoot,
   safePath,
@@ -30,8 +31,9 @@ import {
   hasUnmodelledBoundary,
   planAffected,
   executePlan,
-  selectFromGraphs,
 } from "./affected-tests.mjs";
+import { dependencyView, selectDependencyTests } from "./dependency-view.mjs";
+import { observeFileDependencies } from "./dependency-file-observations.mjs";
 import {
   compareOutcomes,
   normalizeOutcomes,
@@ -297,6 +299,108 @@ describe("native graph and source boundary", () => {
     );
   });
 
+  test("exports the same typed file relationship in the graph and a literal focus", async () => {
+    const { root, write, commit } = fixture();
+    const fixturePath = "src/fixtures/identity (ș)+.json";
+    const reader = "src/identity.test.js";
+    write(fixturePath, '{"identity":1}\n');
+    write(
+      reader,
+      "import {readFileSync as read} from 'node:fs';\nconst directory = new URL('./fixtures/', import.meta.url);\ntest('reads identity',()=>expect(JSON.parse(read(new URL('identity (ș)+.json', directory))).identity).toBe(1));\n",
+    );
+    write(
+      "util/producer.mjs",
+      "import {writeFileSync} from 'node:fs'; writeFileSync('deploy/data/x.json','{}');",
+    );
+    write(
+      "util/output-reader.mjs",
+      "import {readFileSync} from 'node:fs'; readFileSync('deploy/data/x.json');",
+    );
+    commit();
+    const container = mkdtempSync(
+      join(tmpdir(), "webvowl-impact-fixture-output-"),
+    );
+    ownedDirectories.push(container);
+    const output = join(container, "bundle");
+    await writeBundle(root, output, { focus: fixturePath });
+    const bundle = join(output, "bundle");
+    const bytes = readFileSync(join(bundle, "dependencies.json"));
+    const graph = JSON.parse(bytes);
+    const focus = JSON.parse(readFileSync(join(bundle, "focus.json")));
+    const manifest = JSON.parse(readFileSync(join(bundle, "provenance.json")));
+    const expected = { from: reader, to: fixturePath, kind: "reads-file" };
+    expect(graph.edges).toEqual(
+      expect.arrayContaining([expect.objectContaining(expected)]),
+    );
+    const artifact = "artifact:repository:deploy/data/x.json";
+    expect(graph.edges).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          from: artifact,
+          to: "util/producer.mjs",
+          kind: "generated-by",
+        }),
+        expect.objectContaining({
+          from: "util/output-reader.mjs",
+          to: artifact,
+          kind: "reads-file",
+        }),
+      ]),
+    );
+    expect(focus.directConsumers).toContain(reader);
+    expect(focus.paths[reader]).toEqual([expect.objectContaining(expected)]);
+    expect(focus.graphDigest).toBe(sha256(bytes));
+    expect(manifest.files["dependencies.json"]).toBe(focus.graphDigest);
+  }, 30000);
+
+  test("a Node reference to the same browser specifier preserves the native refusal", () => {
+    const browser = "util/uiPresentationFixtures.mjs";
+    const specifier = "/app/client.js";
+    const sources = new Map([
+      [
+        "vite.config.mjs",
+        "import {defineConfig} from 'vite'; export default defineConfig(() => { return {root:'src'}; });",
+      ],
+      [
+        browser,
+        "const nodeLoad = () => import('/app/client.js'); export function qualifyPresentationFixtures(page) { return page.evaluate(() => import('/app/client.js')); }",
+      ],
+    ]);
+    const sourcePaths = [...sources.keys()];
+    const owned = [...sourcePaths, "src/app/client.js"];
+    const observation = () =>
+      observeFileDependencies(sourcePaths, (name) => sources.get(name), owned, {
+        validatePath: safePath,
+      });
+    const finding = {
+      from: browser,
+      to: specifier,
+      rule: { name: "unresolved", severity: "error" },
+    };
+    const imports = { modules: [], summary: { violations: [finding] } };
+    const mixed = dependencyView(imports, owned, [], observation());
+    expect(mixed.blockingFindings).toEqual([finding]);
+    expect(mixed.edges).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "browser-import" }),
+      ]),
+    );
+    sources.set(
+      browser,
+      "export function qualifyPresentationFixtures(page) { return page.evaluate(() => import('/app/client.js')); }",
+    );
+    expect(
+      dependencyView(imports, owned, [], observation()).blockingFindings,
+    ).toEqual([]);
+    sources.set(
+      browser,
+      "const page = {evaluate: (body) => body()}; page.evaluate(() => import('/app/client.js'));",
+    );
+    expect(
+      dependencyView(imports, owned, [], observation()).blockingFindings,
+    ).toEqual([finding]);
+  });
+
   test.each([
     "../escape.js",
     "-argument.js",
@@ -455,19 +559,81 @@ describe("independently expected selection and discovery", () => {
     expect(report.appliedRules).toEqual(["source-reader"]);
   }, 30000);
 
+  test("selects a literal test fixture and includes an unchanged computed reader", async () => {
+    const { root, write, commit } = fixture();
+    const resource = "src/test/fixtures/identity.json";
+    write(resource, '{"identity":1}\n');
+    write(
+      "src/identity.test.js",
+      "import {readFileSync} from 'node:fs';\ntest('reads identity',()=>expect(JSON.parse(readFileSync(new URL('./test/fixtures/identity.json',import.meta.url))).identity).toBe(2));\n",
+    );
+    write(
+      "src/computed.test.js",
+      "import {readFileSync} from 'node:fs';\nfunction read(name){return readFileSync(name,'utf8');}\ntest('checks fixtures',()=>expect(read('src/test/fixtures/identity.json')).toContain('identity'));\n",
+    );
+    const base = commit();
+    write(resource, '{"identity":2}\n');
+    const report = await planAffected({ root, base });
+    expect(report.mode).toBe("selected");
+    expect(report.selected).toEqual([
+      "src/computed.test.js",
+      "src/identity.test.js",
+    ]);
+    expect(report.reasons["src/identity.test.js"].path).toEqual([
+      expect.objectContaining({
+        from: "src/identity.test.js",
+        to: resource,
+        kind: "reads-file",
+      }),
+    ]);
+    expect(report.reasons["src/computed.test.js"].kind).toBe(
+      "unresolved-consumer",
+    );
+  }, 30000);
+
   test("relation activation terminates in a cycle without losing independently specified consumers", async () => {
     const { root, write } = fixture();
     write("src/a.js", "import './b.js';\n");
     write("src/b.js", "import './a.js';\n");
     write("src/cycle.test.js", "import './a.js';\n");
-    const graph = captureGraph(root);
-    const report = await selectFromGraphs(
-      [graph, graph],
+    const native = captureGraph(root);
+    const graph = captureDependencyView(root, {
+      native,
+      paths: native.modules.map((item) => item.source),
+      policy: { relations: [] },
+    });
+    const report = selectDependencyTests(
+      [["candidate", graph]],
       ["src/b.js"],
       ["src/cycle.test.js", "src/unrelated.test.js"],
       [],
     );
     expect(report.selected).toEqual(["src/cycle.test.js"]);
+  });
+
+  test("a witness cannot join an old relationship to a new test import", () => {
+    const paths = ["src/data.js", "src/reader.js", "src/related.test.js"];
+    const observing = (edges) =>
+      dependencyView({ modules: [], summary: { violations: [] } }, paths, [], {
+        edges: edges.map(([from, to]) => ({
+          from,
+          to,
+          kind: "reads-file",
+          evidence: [{ source: from, origin: "source" }],
+        })),
+        diagnostics: [],
+        browserResolutions: new Set(),
+      });
+    const selection = selectDependencyTests(
+      [
+        ["base", observing([["src/reader.js", "src/data.js"]])],
+        ["candidate", observing([["src/related.test.js", "src/reader.js"]])],
+      ],
+      ["src/data.js"],
+      ["src/related.test.js"],
+      [],
+    );
+    expect(selection.selected).toEqual([]);
   });
 
   test.each([
@@ -756,6 +922,27 @@ describe("native Jest result integrity", () => {
       expect(result.timings.fullExecutionMs).toBe(0);
       expect(result.timings.totalMs).toBe(
         result.timings.planningMs + result.timings.executionMs,
+      );
+    },
+    30000,
+  );
+  nativeTest(
+    "a selected run with only skipped assertions leaves verification outstanding",
+    async () => {
+      const { root, write, commit } = fixture();
+      const base = commit();
+      write(
+        "src/old.test.js",
+        "test.skip('not exercised',()=>expect(1).toBe(1));\n",
+      );
+      const plan = await planAffected({ root, base });
+      expect(plan.selected).toEqual(["src/old.test.js"]);
+      const result = await executePlan(plan);
+      ownedDirectories.push(result.evidenceDirectory);
+      expect(result.success).toBe(false);
+      expect(result.selectedRun.exitCode).toBe(0);
+      expect(result.selectedRun.outcomes["src/old.test.js"].status).toBe(
+        "skipped",
       );
     },
     30000,
