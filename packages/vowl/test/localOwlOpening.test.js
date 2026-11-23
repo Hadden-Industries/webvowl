@@ -295,6 +295,81 @@ test("a relative JSON-LD vocabulary resolves independently on each attempt", asy
   }
 });
 
+test.each([
+  [{ "@vocab": "./", p: "measure" }, { p: "sample" }, "measure"],
+  [
+    { "@vocab": "./" },
+    { "urn:measure": { "@value": "sample", "@type": "CustomDatatype" } },
+    "CustomDatatype",
+  ],
+])(
+  "base-sensitive JSON-LD expansion errors can be recovered",
+  async (context, property, term) => {
+    const bytes = encode(
+      JSON.stringify({
+        "@context": context,
+        "@id": "urn:root",
+        "@type": `${owlNamespace}Class`,
+        ...property,
+      }),
+    );
+    const options = { localSource: true, mediaType: "application/ld+json" };
+    await expect(openOwl(bytes, options)).rejects.toMatchObject({
+      code: "MAPPING_BASE_REQUIRED",
+    });
+    const fallbackBaseIri = "https://example.org/onto/";
+    const { model } = await openOwl(bytes, { ...options, fallbackBaseIri });
+    expect(JSON.stringify(inspectModel(model).records)).toContain(
+      `${fallbackBaseIri}${term}`,
+    );
+  },
+);
+
+test("a disabled JSON-LD vocabulary does not require a base for unknown keys", async () => {
+  const bytes = encode(
+    JSON.stringify({
+      "@context": [{ "@vocab": "./" }, { "@vocab": null }],
+      "@id": "urn:root",
+      "@type": `${owlNamespace}Class`,
+      ignored: "sample",
+    }),
+  );
+  const { model } = await openOwl(bytes, {
+    localSource: true,
+    mediaType: "application/ld+json",
+  });
+  expect(inspectModel(model).records.subjects).toEqual([
+    expect.objectContaining({ iri: "urn:root" }),
+  ]);
+});
+
+test.each(['{"plain":"value"}', "[1,2,3]"])(
+  "plain JSON never auto-selects the JSON-LD reader",
+  async (input) => {
+    await expect(
+      openOwl(encode(input), { localSource: true }),
+    ).rejects.toMatchObject({
+      code: "MAPPING_SYNTAX_INVALID",
+    });
+  },
+);
+
+test("a relative JSON-LD named graph cannot absorb a non-empty default graph", async () => {
+  const bytes = encode(
+    JSON.stringify({
+      "@id": "urn:root",
+      "@type": `${owlNamespace}Class`,
+      "urn:edge": {
+        "@id": "#graph",
+        "@graph": [{ "@id": "urn:other", "@type": `${owlNamespace}Class` }],
+      },
+    }),
+  );
+  await expect(
+    openOwl(bytes, { localSource: true, mediaType: "application/ld+json" }),
+  ).rejects.toMatchObject({ code: "MAPPING_AMBIGUOUS" });
+});
+
 test("the input byte limit applies to acquired JSON-LD bytes", async () => {
   const bytes = encode(
     JSON.stringify({
@@ -366,7 +441,7 @@ test("an independent TriG graph ambiguity remains ambiguous despite a relative t
   ).rejects.toMatchObject({ code: "MAPPING_AMBIGUOUS" });
 });
 
-test.each(["", "_:graph"])(
+test.each(["", "_:graph", "<#other>"])(
   "a TriG graph of a different term kind stays ambiguous with a relative graph IRI",
   async (graph) => {
     const bytes = encode(

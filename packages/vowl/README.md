@@ -102,6 +102,7 @@ An explicit media type still selects exactly one owning parser.
 For an unlocated local file, pass `localSource: true` in place of `documentIri`.
 An unresolved reference that needs an external base returns `MAPPING_BASE_REQUIRED`.
 The caller can retry the same bytes with `fallbackBaseIri` set to the supplied absolute base.
+For a local JSON-LD file, select `application/ld+json` explicitly so the JSON reader is unambiguous.
 Source inspection reports this fallback as the local root's `baseIri`. A fallback that would select a different ontology header or alias an imported document is refused.
 The source archive keeps that fallback separately from the document's unknown retrieval location.
 `readModelSource` returns `documentIri: null` for that root, together with the original bytes.

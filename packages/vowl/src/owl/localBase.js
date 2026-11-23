@@ -44,6 +44,17 @@ function rootIriValues(loaded, format, budget) {
 
 const probeBase = "https://webvowl.invalid/local-base-check/";
 
+function graphNamesCanCoincide(names) {
+  const fragments = new Set();
+  let fixed = 0;
+  for (const iri of names) {
+    const fragment = iri.indexOf("#");
+    fragments.add(fragment < 0 ? "" : iri.slice(fragment));
+    fixed += Number(isIri(iri));
+  }
+  return fixed < 2 && fragments.size < 2;
+}
+
 async function rdfXmlNeedsBase(probe, budget) {
   const first = await probe("rdfxml", probeBase);
   if (!first) {
@@ -75,7 +86,7 @@ async function n3NeedsBase(text, formatKey, budget, graphAmbiguous) {
   let invalid = false;
   let count = 0;
   const blankNodes = new Set();
-  const fixedGraphs = new Set();
+  const graphNames = new Set();
   let nonIriGraph = false;
   let relativeGraph = false;
   return new Promise((resolve, reject) => {
@@ -85,7 +96,9 @@ async function n3NeedsBase(text, formatKey, budget, graphAmbiguous) {
         relative &&
           !invalid &&
           (!graphAmbiguous ||
-            (relativeGraph && !nonIriGraph && fixedGraphs.size < 2)),
+            (relativeGraph &&
+              !nonIriGraph &&
+              graphNamesCanCoincide(graphNames))),
       ),
     );
     parser.on("data", (quad) => {
@@ -107,10 +120,9 @@ async function n3NeedsBase(text, formatKey, budget, graphAmbiguous) {
           const { termType, value } = quad.graph;
           if (termType !== "NamedNode") {
             nonIriGraph = true;
-          } else if (relativeReference(value)) {
-            relativeGraph = true;
           } else {
-            fixedGraphs.add(value);
+            graphNames.add(value);
+            relativeGraph ||= relativeReference(value);
           }
         }
         for (const iri of iriValues(quad, budget)) {
@@ -175,6 +187,10 @@ const jsonLdDiscardedTerms = new Set([
   "relative predicate reference",
   "relative subject reference",
 ]);
+const jsonLdVocabularyErrors = new Set([
+  "invalid IRI mapping",
+  "invalid typed value",
+]);
 
 /** Process local JSON-LD contexts once per base before OWL admission. */
 export async function prepareLocalJsonLd(
@@ -199,6 +215,11 @@ export async function prepareLocalJsonLd(
   if (input === null || typeof input !== "object") {
     return undefined;
   }
+  if (formatKey === undefined) {
+    // JSON sources use an explicit reader so plain JSON and other WebVOWL
+    // document kinds cannot be interpreted as an empty JSON-LD ontology.
+    fail("MAPPING_SYNTAX_INVALID");
+  }
   const { default: jsonld } = await import("jsonld");
   async function relativeEvidence(base) {
     budget.check();
@@ -208,6 +229,7 @@ export async function prepareLocalJsonLd(
     let vocab = false;
     let discarded = false;
     let relativeProperty = false;
+    const relativeGraphs = new Set();
     const options = {
       base,
       produceGeneralizedRdf: false,
@@ -221,31 +243,66 @@ export async function prepareLocalJsonLd(
         discarded ||= jsonLdDiscardedTerms.has(event.code);
         relativeProperty ||=
           event.code === "invalid property" &&
+          event.details?.expandedProperty !== event.details?.property &&
           relativeReference(event.details?.expandedProperty);
+        if (event.code === "relative graph reference") {
+          relativeGraphs.add(event.details.graph);
+        }
         next();
       },
     };
-    const expanded = await processor.expand(input, options);
+    let expanded;
+    try {
+      expanded = await processor.expand(input, options);
+    } catch (error) {
+      if (vocab && jsonLdVocabularyErrors.has(error.details?.code)) {
+        return { vocab, error };
+      }
+      throw error;
+    }
     const quads = await processor.toRDF(expanded, {
       ...options,
       skipExpansion: true,
     });
     budget.check();
     budget.bound("rdfQuads", quads.length);
+    let ambiguous = false;
+    if (relativeGraphs.size) {
+      for (const { graph } of quads) {
+        budget.check();
+        if (graph.termType === "NamedNode") {
+          relativeGraphs.add(graph.value);
+        } else {
+          ambiguous = true;
+        }
+      }
+      ambiguous ||= !graphNamesCanCoincide(relativeGraphs);
+    }
     return {
       expanded,
       vocab,
       discarded: discarded || (vocab && relativeProperty),
       count: quads.length,
+      ambiguous,
     };
   }
   const actual = await relativeEvidence(fallbackBaseIri ?? undefined);
   if (fallbackBaseIri === null && (actual.discarded || actual.vocab)) {
     // Compare RDF output, since an unused relative @id or @vocab need not emit RDF.
     const tested = await relativeEvidence(probeBase);
-    if (!tested.discarded && tested.count > actual.count) {
+    if (
+      !tested.error &&
+      !tested.discarded &&
+      (actual.error || tested.count > actual.count)
+    ) {
+      if (actual.ambiguous) {
+        fail("MAPPING_AMBIGUOUS");
+      }
       fail("MAPPING_BASE_REQUIRED");
     }
+  }
+  if (actual.error) {
+    throw actual.error;
   }
   if (actual.discarded) {
     fail("MAPPING_SYNTAX_INVALID");

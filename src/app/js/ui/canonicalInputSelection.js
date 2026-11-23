@@ -51,10 +51,12 @@ export function requestCanonicalInputSelection({
   placeholder.disabled = true;
   placeholder.selected = true;
   if (!owlFormats) {
-    const automatic = append("option", "Auto-detect OWL format", syntax);
-    automatic.value = "owl:auto";
-    automatic.selected = !requireReader;
-    placeholder.selected = requireReader;
+    if (!localFile || !requireReader) {
+      const automatic = append("option", "Auto-detect OWL format", syntax);
+      automatic.value = "owl:auto";
+      automatic.selected = !requireReader;
+      placeholder.selected = requireReader;
+    }
     const canonical = append("option", "Canonical VOWL", syntax);
     canonical.value = "canonical";
     const legacy = append(
