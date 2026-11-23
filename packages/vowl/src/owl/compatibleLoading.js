@@ -15,6 +15,10 @@ import {
   selectOwlMappingStrategy,
 } from "../owlMappingStrategy.js";
 
+function evidenceDocumentIri(context) {
+  return context.localSource ? null : context.documentIRI.value;
+}
+
 /** Prepare typed retained content without treating a profile assessment as view admission. */
 export async function prepareCompatibleView(bytes, context, options, budget) {
   const prepared = await loadCompatibleClosure(bytes, context, options, budget);
@@ -79,7 +83,7 @@ export async function loadCompatibleClosure(bytes, context, options, budget) {
     observeSource(sourceBytes, sourceContext, acquisition = null) {
       budget.check();
       sourceDocuments.push({
-        documentIri: sourceContext.documentIRI.value,
+        documentIri: evidenceDocumentIri(sourceContext),
         mediaType: sourceContext.contentType,
         acquisition,
         // Already copied and charged by the common acquisition boundary.
@@ -89,7 +93,7 @@ export async function loadCompatibleClosure(bytes, context, options, budget) {
     observeDiagnostic(diagnostic, sourceContext) {
       budget.check();
       diagnostics.push({
-        documentIri: sourceContext.documentIRI.value,
+        documentIri: evidenceDocumentIri(sourceContext),
         diagnostic,
       });
     },
@@ -130,7 +134,10 @@ export async function loadCompatibleClosure(bytes, context, options, budget) {
       const format = loaded.manager.getOntologyFormat(ontology);
       return {
         ontology,
-        documentIri: documentContext.documentIRI.value,
+        documentIri:
+          context.localSource && ontology === loaded.ontology
+            ? null
+            : evidenceDocumentIri(documentContext),
         formatKey: format?.key ?? null,
         mediaType: Object.values(OWLDocumentFormats).find(
           ({ key }) => key === format?.key,
@@ -143,6 +150,7 @@ export async function loadCompatibleClosure(bytes, context, options, budget) {
   budget.check();
   return {
     owlMappingParserMode,
+    localSource: context.localSource,
     loaded,
     sourceDocuments,
     documents,

@@ -1,3 +1,4 @@
+import { isIri } from "@hyperjump/uri";
 import { fail } from "./errors.js";
 import { optionRecord } from "./resourceBudget.js";
 import {
@@ -44,15 +45,27 @@ async function hash(bytes, budget) {
 }
 
 /** Validate archive references and declared bytes; these historical reports are not admission authority. */
-function validateEvidence(evidence, budget) {
+function validateEvidence(evidence, budget, version) {
+  const local = version === 2;
   const hasParsingMode =
     evidence !== null &&
     evidence !== undefined &&
     Object.hasOwn(evidence, "parsingMode");
-  exact(
-    evidence,
-    hasParsingMode ? [...evidenceFields, "parsingMode"] : evidenceFields,
-  );
+  exact(evidence, [
+    ...evidenceFields,
+    ...(hasParsingMode ? ["parsingMode"] : []),
+    ...(local ? ["localSource"] : []),
+  ]);
+  if (local) {
+    exact(evidence.localSource, ["fallbackBaseIri"]);
+    const { fallbackBaseIri } = evidence.localSource;
+    if (
+      fallbackBaseIri !== null &&
+      (typeof fallbackBaseIri !== "string" || !isIri(fallbackBaseIri))
+    ) {
+      fail("CHECKPOINT_INVALID");
+    }
+  }
   if (hasParsingMode && !isOwlMappingParserMode(evidence.parsingMode)) {
     fail("CHECKPOINT_INVALID");
   }
@@ -81,9 +94,11 @@ function validateEvidence(evidence, budget) {
       "parserMetadata",
     ]);
     if (
-      ["id", "documentIri", "mediaType"].some(
+      ["id", "mediaType"].some(
         (key) => typeof document[key] !== "string" || !document[key],
       ) ||
+      (!(local && document.documentIri === null) &&
+        (typeof document.documentIri !== "string" || !document.documentIri)) ||
       typeof document.digest !== "string" ||
       !/^[a-f0-9]{64}$/.test(document.digest) ||
       (document.formatKey !== null && typeof document.formatKey !== "string") ||
@@ -141,7 +156,7 @@ function validateEvidence(evidence, budget) {
       }
     }
   }
-  if (!ids.size) {
+  if (!ids.size || iris.has(null) !== local) {
     fail("CHECKPOINT_INVALID");
   }
   for (const edge of evidence.imports) {
@@ -261,7 +276,7 @@ function term(value, kinds) {
   }
 }
 
-function ownedArchive(evidence, sources) {
+function ownedArchive(evidence, sources, version) {
   freezeOwnedSource(evidence);
   return Object.freeze({
     evidence,
@@ -287,7 +302,7 @@ function ownedArchive(evidence, sources) {
       // remain defensive copies, not frozen buffers or ownership tokens.
       validateOwnedSource(evidence, budget);
       return Object.freeze({
-        version: 1,
+        version,
         evidence,
         sources: Object.freeze(entries),
       });
@@ -297,19 +312,20 @@ function ownedArchive(evidence, sources) {
 
 /** Adapter-only ownership handoff after the original acquisition and digest checks. */
 export function ownSourceArchive(evidence, sources, budget) {
-  validateEvidence(evidence, budget);
-  return ownedArchive(evidence, sources);
+  const version = Object.hasOwn(evidence, "localSource") ? 2 : 1;
+  validateEvidence(evidence, budget, version);
+  return ownedArchive(evidence, sources, version);
 }
 
 /** Admit a source archive without parsing, network acquisition or canonicalization. */
 export async function readmitSourceArchive(input, budget) {
   const raw = optionRecord(input, ["version", "evidence", "sources"]);
   exact(raw, ["version", "evidence", "sources"]);
-  if (raw.version !== 1) {
+  if (raw.version !== 1 && raw.version !== 2) {
     fail("CHECKPOINT_VERSION_UNSUPPORTED");
   }
   const evidence = snapshotSource(raw.evidence, budget);
-  validateEvidence(evidence, budget);
+  validateEvidence(evidence, budget, raw.version);
   if (
     !Array.isArray(raw.sources) ||
     raw.sources.length !== evidence.documents.length
@@ -340,5 +356,5 @@ export async function readmitSourceArchive(input, budget) {
       fail("CHECKPOINT_INVALID");
     }
   }
-  return ownedArchive(evidence, sources);
+  return ownedArchive(evidence, sources, raw.version);
 }

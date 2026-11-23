@@ -8,6 +8,7 @@ import { canonicalizeWithBudget } from "../operationBudget.js";
 import { snapshotBytes, deepFreeze } from "../snapshot.js";
 import {
   documentContext,
+  localDocumentContext,
   loadClosure,
   validateDocumentIri,
   resolveDocumentFormat,
@@ -45,10 +46,12 @@ const optionChecks = {
   },
 };
 
-/** Open a qualified live OWL model; omitted mediaType uses native syntax detection. */
+/** Open qualified OWL, with optional external base context for a local root file. */
 export async function openOwl(input, options) {
   const opts = optionRecord(options, [
     "documentIri",
+    "localSource",
+    "fallbackBaseIri",
     "mediaType",
     "owlMappingStrategy",
     "resolveImport",
@@ -57,7 +60,6 @@ export async function openOwl(input, options) {
   ]);
   const checks = {
     owlMappingStrategy: selectOwlMappingStrategy,
-    documentIri: optionChecks.documentIri,
     mediaType(value) {
       if (value !== undefined) {
         optionChecks.mediaType(value);
@@ -67,13 +69,15 @@ export async function openOwl(input, options) {
   };
   const budget = new ResourceBudget(opts, performance.now(), checks);
   try {
-    const context = documentContext(
-      opts.documentIri,
-      opts.mediaType,
-      budget,
-      "",
-      true,
-    );
+    if (opts.localSource !== undefined && opts.localSource !== true) {
+      fail("OPTION_INVALID", "/localSource");
+    }
+    const context = opts.localSource
+      ? localDocumentContext(opts, budget)
+      : documentContext(opts.documentIri, opts.mediaType, budget, "", true);
+    if (!opts.localSource && opts.fallbackBaseIri !== undefined) {
+      fail("OPTION_INVALID", "/fallbackBaseIri");
+    }
     const bytes = snapshotBytes(input, budget);
     const prepared = await prepareCompatibleView(bytes, context, opts, budget);
     const admissionStartedAt = performance.now();
@@ -81,7 +85,7 @@ export async function openOwl(input, options) {
       inspectModel,
       prepared.source,
       prepared.retained,
-      opts.documentIri,
+      opts.localSource ? null : opts.documentIri,
       budget,
     );
     performance.measure("webvowl.owl-model-admission", {

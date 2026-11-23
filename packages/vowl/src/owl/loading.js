@@ -6,6 +6,11 @@ import { OWLDocumentFormats } from "owlapi/formats";
 import { fail, VowlError } from "../errors.js";
 import { limitCode, optionRecord } from "../resourceBudget.js";
 import { checkString, snapshotBytes } from "../snapshot.js";
+import {
+  missingLocalBase,
+  requireResolvedLocalSource,
+  requireUnambiguousLocalBase,
+} from "./localBase.js";
 
 const domExceptionName = Object.getOwnPropertyDescriptor(
   DOMException.prototype,
@@ -65,12 +70,39 @@ export function documentContext(
   checkString(documentIri, `${pointer}/documentIri`, budget);
   return {
     documentIRI: IRI.create(documentIri),
-    ...(automatic && mediaType === undefined
+    ...formatContext(mediaType, pointer, automatic),
+  };
+}
+
+function formatContext(mediaType, pointer, automatic) {
+  return automatic && mediaType === undefined
+    ? {}
+    : {
+        contentType: mediaType,
+        format: resolveDocumentFormat(mediaType, pointer),
+      };
+}
+
+/** The user's fallback is parser context. A locally selected root has no retrieval IRI. */
+export function localDocumentContext(
+  { documentIri, fallbackBaseIri, mediaType },
+  budget,
+) {
+  if (documentIri !== undefined) {
+    fail("OPTION_INVALID", "/documentIri");
+  }
+  if (fallbackBaseIri !== undefined) {
+    if (typeof fallbackBaseIri !== "string" || !isIri(fallbackBaseIri)) {
+      fail("OPTION_INVALID", "/fallbackBaseIri");
+    }
+    checkString(fallbackBaseIri, "/fallbackBaseIri", budget);
+  }
+  return {
+    localSource: { fallbackBaseIri: fallbackBaseIri ?? null },
+    ...(fallbackBaseIri === undefined
       ? {}
-      : {
-          contentType: mediaType,
-          format: resolveDocumentFormat(mediaType, pointer),
-        }),
+      : { documentIRI: IRI.create(fallbackBaseIri) }),
+    ...formatContext(mediaType, "", true),
   };
 }
 
@@ -253,12 +285,27 @@ function loadingFailure(error, budget) {
 /** A fresh manager owns one closure; the caller callback is the only acquisition capability. */
 export async function loadClosure(bytes, context, options, budget, policy) {
   let boundaryFailure;
+  const source = sourceFor(bytes, context);
+  const unbasedLocal =
+    context.localSource && context.localSource.fallbackBaseIri === null;
   policy.observeSource?.(bytes, context);
   const manager = OWLManager.createOWLOntologyManager({
     documentLoader: {
       async load(_retrievalIri, request) {
         try {
           budget.check();
+          const parentIri = request.importingDocumentIRI?.value;
+          const importingDocumentIri =
+            context.localSource && parentIri === context.documentIRI?.value
+              ? null
+              : parentIri;
+          if (
+            unbasedLocal &&
+            importingDocumentIri === null &&
+            !isIri(request.importIRI.value)
+          ) {
+            fail("MAPPING_BASE_REQUIRED");
+          }
           if (!options.resolveImport) {
             return undefined;
           }
@@ -270,7 +317,7 @@ export async function loadClosure(bytes, context, options, budget, policy) {
                 options.resolveImport(
                   request.importIRI.value,
                   Object.freeze({
-                    importingDocumentIri: request.importingDocumentIRI.value,
+                    importingDocumentIri,
                     signal: budget.signal,
                   }),
                 ),
@@ -328,7 +375,7 @@ export async function loadClosure(bytes, context, options, budget, policy) {
           );
           policy.observeSource?.(snapshot, importedContext, {
             requestedIri: request.importIRI.value,
-            parentDocumentIri: request.importingDocumentIRI.value,
+            parentDocumentIri: importingDocumentIri,
           });
           return sourceFor(snapshot, importedContext);
         } catch (error) {
@@ -355,10 +402,7 @@ export async function loadClosure(bytes, context, options, budget, policy) {
   try {
     const startedAt = performance.now();
     const loaded = await waitForResult(
-      manager.loadOntologyGraphFromOntologyDocument(
-        sourceFor(bytes, context),
-        configuration,
-      ),
+      manager.loadOntologyGraphFromOntologyDocument(source, configuration),
       budget,
     );
     performance.measure("webvowl.owl-loading", {
@@ -368,11 +412,34 @@ export async function loadClosure(bytes, context, options, budget, policy) {
     if (boundaryFailure) {
       throw boundaryFailure;
     }
-    for (const { context: loadedContext } of loaded.documents) {
+    if (unbasedLocal) {
+      await waitForResult(
+        requireResolvedLocalSource(
+          loaded.ontology,
+          manager.getOntologyFormat(loaded.ontology),
+          source.getText(),
+          budget,
+        ),
+        budget,
+      );
+    }
+    if (context.localSource?.fallbackBaseIri) {
+      requireUnambiguousLocalBase(
+        loaded,
+        context.localSource.fallbackBaseIri,
+        budget,
+      );
+    }
+    for (const { ontology, context: loadedContext } of loaded.documents) {
       budget.check();
       for (const diagnostic of loadedContext.diagnostics) {
         if (policy.observeDiagnostic) {
-          policy.observeDiagnostic(diagnostic, loadedContext);
+          policy.observeDiagnostic(
+            diagnostic,
+            context.localSource && ontology === loaded.ontology
+              ? context
+              : loadedContext,
+          );
         } else if (diagnostic.code === "MISSING_IMPORT") {
           policy.recover(
             "MAPPING_IMPORT_UNRESOLVED",
@@ -392,6 +459,22 @@ export async function loadClosure(bytes, context, options, budget, policy) {
   } catch (error) {
     if (boundaryFailure) {
       throw boundaryFailure;
+    }
+    if (unbasedLocal && !(error instanceof VowlError)) {
+      budget.check();
+      if (
+        await waitForResult(
+          missingLocalBase(
+            error,
+            source.getText(),
+            context.format?.key,
+            budget,
+          ),
+          budget,
+        )
+      ) {
+        fail("MAPPING_BASE_REQUIRED");
+      }
     }
     loadingFailure(error, budget);
   }

@@ -98,7 +98,13 @@ Neither mode guarantees OWL 2 DL validity or exhaustive projection of the source
 Historical checkpoint evidence records the actual native mode; older checkpoints without that field retain their implicit `compatible` interpretation.
 
 For live opening, `mediaType` is optional: omission delegates format recognition to the public OwlAPI loader, once, using the acquired bytes.
-An explicit media type still selects exactly one owning parser; document/base identity remains required independently of format.
+An explicit media type still selects exactly one owning parser.
+For an unlocated local file, pass `localSource: true` in place of `documentIri`.
+An unresolved reference that needs an external base returns `MAPPING_BASE_REQUIRED`.
+The caller can retry the same bytes with `fallbackBaseIri` set to the supplied absolute base.
+The source archive keeps that fallback separately from the document's unknown retrieval location.
+`readModelSource` returns `documentIri: null` for that root, together with the original bytes.
+The nested source archive uses version 2 for local roots and continues to accept version 1 evidence.
 Live import responses likewise allow `{bytes, documentIri}` without a media type.
 Retained evidence records the owning loader's actual format and its public primary media type when selection was automatic.
 

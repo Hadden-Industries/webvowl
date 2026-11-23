@@ -134,6 +134,7 @@ export async function retainCompatibleEvidence(prepared, budget) {
   const evidence = freezeOwnedSource(
     snapshotSource(
       {
+        ...(prepared.localSource ? { localSource: prepared.localSource } : {}),
         parsingMode: prepared.owlMappingParserMode,
         documents,
         imports: importEvidence(prepared, documents, budget),

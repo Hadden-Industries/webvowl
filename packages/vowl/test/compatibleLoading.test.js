@@ -577,7 +577,7 @@ test("source recovery rejects inconsistent manifests, byte digests and dangling 
     });
   }
   const incompatible = transportArchive(saved);
-  incompatible.version = 2;
+  incompatible.version = 3;
   await expect(recoverArchive(incompatible)).rejects.toMatchObject({
     code: "CHECKPOINT_VERSION_UNSUPPORTED",
   });
