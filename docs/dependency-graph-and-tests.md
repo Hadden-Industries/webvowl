@@ -22,6 +22,8 @@ Existing destinations and linked parents are refused.
 The command reserves the requested directory exclusively, prepares its contents privately, then atomically publishes the complete `bundle/` subdirectory.
 That bundle contains `dependencies.json`, the typed graph used for test selection, and `graph.json`, the original dependency-cruiser result.
 Native policy findings, the reviewed policy bytes and the Node-context Mermaid views remain available in the bundle.
+Both native and typed graph capture run with bounded time, heap and output.
+Focus and selected-test witness paths count toward the output budget as they are built.
 
 Use the typed digest in `provenance.json` to compare the typed export, a focus report and the matching candidate in a list report.
 The Mermaid views bind the native graph digest.

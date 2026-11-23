@@ -32,13 +32,44 @@ import {
   planAffected,
   executePlan,
 } from "./affected-tests.mjs";
-import { dependencyView, selectDependencyTests } from "./dependency-view.mjs";
+import {
+  dependencyView,
+  focusDependencyView,
+  selectDependencyTests,
+} from "./dependency-view.mjs";
 import { observeFileDependencies } from "./dependency-file-observations.mjs";
 import {
   compareOutcomes,
   normalizeOutcomes,
   runJest,
 } from "./jest-execution.mjs";
+
+test("a focus report budgets all emitted witnesses", () => {
+  const fixture = "src/fixture.rdf";
+  const reader = "src/read-fixture.js";
+  const testFile = "src/read-fixture.test.js";
+  const graph = dependencyView(
+    { modules: [], summary: { violations: [] } },
+    [fixture, reader, testFile],
+    [],
+    {
+      edges: [
+        { from: reader, to: fixture, kind: "reads-file", evidence: [] },
+        { from: testFile, to: reader, kind: "imports", evidence: [] },
+      ],
+      diagnostics: [],
+      browserResolutions: new Set(),
+    },
+  );
+  const serializedEdgeBytes = graph.edges.reduce(
+    (bytes, edge) => bytes + Buffer.byteLength(JSON.stringify(edge)),
+    0,
+  );
+  expect(focusDependencyView(graph, fixture).paths[testFile]).toHaveLength(2);
+  expect(() =>
+    focusDependencyView(graph, fixture, serializedEdgeBytes),
+  ).toThrow("Dependency witnesses exceed the graph output budget");
+});
 
 test("affected/full result comparison ignores member order while retaining ordered result arrays", () => {
   const selected = {

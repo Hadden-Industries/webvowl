@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+export const graphOutputBytes = 16 * 1024 * 1024;
 
 const compare = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 const compareRecord = (a, b) => compare(JSON.stringify(a), JSON.stringify(b));
@@ -132,6 +133,21 @@ export function dependencyView(native, inventory, declarations, observations) {
 
 const graphIndexes = new WeakMap();
 
+function createWitnessBudget(maximumBytes = graphOutputBytes) {
+  const sizes = new WeakMap();
+  let remaining = maximumBytes;
+  return (record) => {
+    let bytes = sizes.get(record);
+    if (bytes === undefined) {
+      bytes = Buffer.byteLength(JSON.stringify(record));
+      sizes.set(record, bytes);
+    }
+    remaining -= bytes;
+    if (remaining < 0)
+      throw new Error("Dependency witnesses exceed the graph output budget");
+  };
+}
+
 function indexGraph(graph) {
   const existing = graphIndexes.get(graph);
   if (existing) return existing;
@@ -169,19 +185,22 @@ function walk(graph, seeds) {
   return {
     previous,
     roots,
-    pathTo(id) {
+    pathTo(id, reserve) {
       const path = [];
-      for (let edge = previous.get(id); edge; edge = previous.get(edge.to))
+      for (let edge = previous.get(id); edge; edge = previous.get(edge.to)) {
+        reserve(edge);
         path.push(edge);
+      }
       return path.reverse();
     },
   };
 }
 
-export function focusDependencyView(graph, target) {
+export function focusDependencyView(graph, target, maximumWitnessBytes) {
   const { nodes, consumers } = indexGraph(graph);
   if (!nodes.has(target)) throw new Error("Unknown graph focus: " + target);
   const reached = walk(graph, [target]);
+  const reserve = createWitnessBudget(maximumWitnessBytes);
   const dependents = [...reached.previous.keys()]
     .filter((id) => id !== target)
     .sort();
@@ -192,7 +211,9 @@ export function focusDependencyView(graph, target) {
       ...new Set((consumers.get(target) ?? []).map((edge) => edge.from)),
     ].sort(),
     transitiveConsumers: dependents,
-    paths: Object.fromEntries(dependents.map((id) => [id, reached.pathTo(id)])),
+    paths: Object.fromEntries(
+      dependents.map((id) => [id, reached.pathTo(id, reserve)]),
+    ),
     diagnostics: graph.resourceDiagnostics.filter(
       (item) => item.source === target || item.target === target,
     ),
@@ -219,6 +240,7 @@ function inputsOfTests(graph, tests) {
 
 /** Union independently witnessed base and current impacts, keeping a reason for each selected file. */
 export function selectDependencyTests(graphs, changed, tests, resourcePaths) {
+  const reserve = createWitnessBudget();
   const reasons = new Map(),
     appliedRules = new Set(),
     checks = new Set();
@@ -271,7 +293,8 @@ export function selectDependencyTests(graphs, changed, tests, resourcePaths) {
       if (!known && !uncertain.previous.has(test)) continue;
       const trace = known ? direct : uncertain;
       const seed = trace.roots.get(test);
-      const path = trace.pathTo(test);
+      const path = trace.pathTo(test, reserve);
+      if (!known) reserve(bySource.get(seed));
       const directRelations = [
         ...new Set(
           path

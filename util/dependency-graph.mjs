@@ -33,7 +33,11 @@ import {
   observeFileDependencies,
   observeWorkflowFiles,
 } from "./dependency-file-observations.mjs";
-import { dependencyView, focusDependencyView } from "./dependency-view.mjs";
+import {
+  dependencyView,
+  focusDependencyView,
+  graphOutputBytes,
+} from "./dependency-view.mjs";
 import { graphPackages } from "./graph-toolchain-versions.mjs";
 
 const self = fileURLToPath(import.meta.url);
@@ -43,7 +47,7 @@ export const limits = Object.freeze({
   sources: 4096,
   fileBytes: 8 * 1024 * 1024,
   sourceBytes: 64 * 1024 * 1024,
-  graphBytes: 16 * 1024 * 1024,
+  graphBytes: graphOutputBytes,
   analysisMs: 30000,
   discoveryMs: 120000,
   testMs: 600000,
@@ -364,6 +368,27 @@ function admittedGraphConfig(root) {
   return config;
 }
 
+function runGraphWorker(root, command, request, failure) {
+  const child = spawnSync(
+    process.execPath,
+    ["--max-old-space-size=256", self, command],
+    {
+      cwd: root,
+      input: JSON.stringify(request),
+      encoding: "utf8",
+      windowsHide: true,
+      timeout: limits.analysisMs,
+      maxBuffer: limits.graphBytes,
+      env: { ...process.env, NODE_OPTIONS: "", NODE_PATH: "" },
+    },
+  );
+  if (child.error || child.status !== 0)
+    throw new Error(
+      failure + ":" + (child.error?.code ?? child.stderr.slice(0, 1500)),
+    );
+  return JSON.parse(child.stdout);
+}
+
 /** The worker imports only the installed analyzer, never the captured candidate. */
 export function captureGraph(
   root,
@@ -425,30 +450,12 @@ export function captureGraph(
     // declared package from the exact snapshot being analyzed instead.
     alias.deepmerge$ = join(root, vendor);
   }
-  const child = spawnSync(
-    process.execPath,
-    ["--max-old-space-size=256", self, "--capture-worker"],
-    {
-      cwd: root,
-      input: JSON.stringify({
-        root,
-        roots,
-        config: admittedGraphConfig(controls),
-        vendors,
-        alias,
-      }),
-      encoding: "utf8",
-      windowsHide: true,
-      timeout: limits.analysisMs,
-      maxBuffer: limits.graphBytes,
-      env: { ...process.env, NODE_OPTIONS: "", NODE_PATH: "" },
-    },
+  const graph = runGraphWorker(
+    root,
+    "--capture-worker",
+    { root, roots, config: admittedGraphConfig(controls), vendors, alias },
+    "Graph capture failed",
   );
-  if (child.error || child.status !== 0)
-    throw new Error(
-      `Graph capture failed:${child.error?.code ?? child.stderr.slice(0, 1500)}`,
-    );
-  const graph = JSON.parse(child.stdout);
   const records = new Set(graph.modules.map((module) => module.source));
   if (
     records.size !== graph.modules.length ||
@@ -523,8 +530,26 @@ export function installedGraphVersions() {
   );
 }
 
-/** Observe candidate bytes supplied by the same admitted source snapshot as the native import graph. */
+function freezeWorkerView(value) {
+  if (value && typeof value === "object") {
+    for (const item of Object.values(value)) freezeWorkerView(item);
+    Object.freeze(value);
+  }
+  return value;
+}
+
+/** Bound the typed observation of the same source snapshot as the native graph. */
 export function captureDependencyView(root, { native, paths, policy }) {
+  const view = runGraphWorker(
+    root,
+    "--typed-view-worker",
+    { root, native, paths, policy },
+    "Typed graph capture failed",
+  );
+  return freezeWorkerView(view);
+}
+
+function observeDependencyView({ root, native, paths, policy }) {
   const owned = new Set(
     paths.filter((path) => authoredRole(path) !== "excluded"),
   );
@@ -557,9 +582,10 @@ export function captureDependencyView(root, { native, paths, policy }) {
     observations.diagnostics.push(...workflow.diagnostics);
   }
   const view = dependencyView(native, owned, policy.relations, observations);
-  if (Buffer.byteLength(dependencyViewBytes(view)) > limits.graphBytes)
+  const bytes = dependencyViewBytes(view);
+  if (Buffer.byteLength(bytes) > limits.graphBytes)
     throw new Error("Typed dependency view exceeds the graph output budget");
-  return view;
+  return bytes;
 }
 
 /** Reserve the exact destination exclusively, including against competing callers. */
@@ -709,6 +735,13 @@ if (process.argv[1] && resolve(process.argv[1]) === self) {
   try {
     if (process.argv[2] === "--capture-worker" && process.argv.length === 3)
       await captureWorker();
+    else if (
+      process.argv[2] === "--typed-view-worker" &&
+      process.argv.length === 3
+    )
+      process.stdout.write(
+        observeDependencyView(JSON.parse(readFileSync(0, "utf8"))),
+      );
     else {
       if (
         (process.argv.length !== 4 &&
