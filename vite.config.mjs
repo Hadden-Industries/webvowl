@@ -154,6 +154,7 @@ export default defineConfig(({ mode }) => {
     // The linked core and lazy OWL entry share module-owned model identities.
     // Prebundle both before the first worker load, including a fresh dev cache.
     optimizeDeps: {
+      force: true,
       include: ["vowl", "vowl/owl"],
     },
 
