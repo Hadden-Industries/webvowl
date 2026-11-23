@@ -295,6 +295,31 @@ test("a relative JSON-LD vocabulary resolves independently on each attempt", asy
   }
 });
 
+test("the input byte limit applies to acquired JSON-LD bytes", async () => {
+  const bytes = encode(
+    JSON.stringify({
+      "@context": { type: "@type", C: `${owlNamespace}Class` },
+      "@graph": ["urn:compact", "urn:another", "urn:last"].map((iri) => ({
+        "@id": iri,
+        type: "C",
+      })),
+    }),
+  );
+  const options = { localSource: true, mediaType: "application/ld+json" };
+  await expect(
+    openOwl(bytes, { ...options, limits: { inputBytes: bytes.length - 1 } }),
+  ).rejects.toMatchObject({
+    code: "INPUT_RESOURCE_LIMIT",
+  });
+  const { model } = await openOwl(bytes, {
+    ...options,
+    limits: { inputBytes: bytes.length },
+  });
+  expect(inspectModel(model).records.subjects).toContainEqual(
+    expect.objectContaining({ iri: "urn:compact" }),
+  );
+});
+
 test("a relative TriG graph label requires a base even when its triples are absolute", async () => {
   const bytes = encode(`<#graph> { <urn:term> a <${owlNamespace}Class> . }`);
   const options = { mediaType: "application/trig", localSource: true };
@@ -340,6 +365,22 @@ test("an independent TriG graph ambiguity remains ambiguous despite a relative t
     }),
   ).rejects.toMatchObject({ code: "MAPPING_AMBIGUOUS" });
 });
+
+test.each(["", "_:graph"])(
+  "a TriG graph of a different term kind stays ambiguous with a relative graph IRI",
+  async (graph) => {
+    const bytes = encode(
+      `${graph} { <urn:first> a <${owlNamespace}Class> . }` +
+        `<#graph> { <urn:second> a <${owlNamespace}Class> . }`,
+    );
+    await expect(
+      openOwl(bytes, {
+        localSource: true,
+        mediaType: "application/trig",
+      }),
+    ).rejects.toMatchObject({ code: "MAPPING_AMBIGUOUS" });
+  },
+);
 
 test("invalid local import targets never reach the acquisition callback", async () => {
   const bytes = encode(

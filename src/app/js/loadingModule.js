@@ -22,16 +22,8 @@ export function createLoadingModule({
   onGraphControlAvailabilityChanged,
   onShareLinkPresentation,
   selectLocalSource,
-  requestBaseIri = async (options) => {
-    const { requestCanonicalBaseIri } =
-      await import("./ui/canonicalInputSelection.js");
-    return requestCanonicalBaseIri(options);
-  },
-  requestLocalFormat = async (options) => {
-    const { requestCanonicalLocalFormat } =
-      await import("./ui/canonicalInputSelection.js");
-    return requestCanonicalLocalFormat(options);
-  },
+  requestBaseIri,
+  requestLocalFormat,
   createOntologySource,
   resolvePresetSource,
 } = {}) {
@@ -371,8 +363,10 @@ export function createLoadingModule({
             return undefined;
           }
           const state = webVowlController.getState();
-          const needsBase = error.code === "MAPPING_BASE_REQUIRED";
+          const needsBase =
+            requestBaseIri && error.code === "MAPPING_BASE_REQUIRED";
           const needsFormat =
+            requestLocalFormat &&
             error.code === "MAPPING_SYNTAX_INVALID" &&
             source.format === undefined &&
             source.fallbackBaseIri === undefined;

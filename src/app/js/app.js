@@ -38,6 +38,8 @@ import { createWarningModule } from "./warningModule.js";
 export function createWebVowlApplication({
   createController,
   selectLocalSource,
+  requestBaseIri,
+  requestLocalFormat,
   createOntologySource,
   createFactsPresentation,
   resolvePresetSource,
@@ -419,6 +421,8 @@ export function createWebVowlApplication({
     loadingModule = createLoadingModule({
       webVowlController,
       selectLocalSource,
+      requestBaseIri,
+      requestLocalFormat,
       createOntologySource,
       resolvePresetSource,
       ontologyMenu,

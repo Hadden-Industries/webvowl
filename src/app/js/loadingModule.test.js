@@ -491,6 +491,7 @@ describe("loading presentation listener ownership", () => {
     loadingModule.dispose();
     loadingModule = createLoadingModule({
       selectLocalSource,
+      requestBaseIri: async () => null,
       webVowlController: { loadOntology, getState: () => state },
     });
     loadingModule.setup();

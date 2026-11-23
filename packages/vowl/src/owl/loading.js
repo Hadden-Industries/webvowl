@@ -458,10 +458,22 @@ export async function loadClosure(bytes, context, options, budget, policy) {
             ...context,
             format: OWLDocumentFormats.JSON_LD,
           });
+    let parserConfiguration = configuration;
+    if (jsonLd !== undefined) {
+      // Acquired bytes, including imports, still count against inputBytes at
+      // snapshotBytes. A larger internal representation is temporary data.
+      const normalizedBytes = new TextEncoder().encode(jsonLd).byteLength;
+      budget.charge("totalStringBytes", normalizedBytes);
+      if (normalizedBytes > configuration.maxInputBytes) {
+        parserConfiguration = configuration.with({
+          maxInputBytes: normalizedBytes,
+        });
+      }
+    }
     const loaded = await waitForResult(
       manager.loadOntologyGraphFromOntologyDocument(
         parserSource,
-        configuration,
+        parserConfiguration,
       ),
       budget,
     );

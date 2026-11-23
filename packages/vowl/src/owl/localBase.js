@@ -76,6 +76,7 @@ async function n3NeedsBase(text, formatKey, budget, graphAmbiguous) {
   let count = 0;
   const blankNodes = new Set();
   const fixedGraphs = new Set();
+  let nonIriGraph = false;
   let relativeGraph = false;
   return new Promise((resolve, reject) => {
     parser.on("error", () => resolve(false));
@@ -83,7 +84,8 @@ async function n3NeedsBase(text, formatKey, budget, graphAmbiguous) {
       resolve(
         relative &&
           !invalid &&
-          (!graphAmbiguous || (relativeGraph && fixedGraphs.size < 2)),
+          (!graphAmbiguous ||
+            (relativeGraph && !nonIriGraph && fixedGraphs.size < 2)),
       ),
     );
     parser.on("data", (quad) => {
@@ -103,10 +105,12 @@ async function n3NeedsBase(text, formatKey, budget, graphAmbiguous) {
         budget.bound("primaryRecords", blankNodes.size);
         if (graphAmbiguous) {
           const { termType, value } = quad.graph;
-          if (termType === "NamedNode" && relativeReference(value)) {
+          if (termType !== "NamedNode") {
+            nonIriGraph = true;
+          } else if (relativeReference(value)) {
             relativeGraph = true;
           } else {
-            fixedGraphs.add(`${termType}:${value}`);
+            fixedGraphs.add(value);
           }
         }
         for (const iri of iriValues(quad, budget)) {

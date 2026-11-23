@@ -7,6 +7,8 @@ import {
 import {
   selectCanonicalLocalSource,
   createCanonicalOntologySource,
+  requestCanonicalBaseIri,
+  requestCanonicalLocalFormat,
   requestCanonicalRemoteFormat,
 } from "./ui/canonicalInputSelection.js";
 import { requestCanonicalCreation } from "./ui/canonicalCreationDialog.js";
@@ -22,6 +24,8 @@ export function createCanonicalWebVowlApplication({
 } = {}) {
   return createWebVowlApplication({
     selectLocalSource: selectCanonicalLocalSource,
+    requestBaseIri: requestCanonicalBaseIri,
+    requestLocalFormat: requestCanonicalLocalFormat,
     createOntologySource: createCanonicalOntologySource,
     createFactsPresentation: createCanonicalFactsDialog,
     resolvePresetSource: canonicalExampleSource,
