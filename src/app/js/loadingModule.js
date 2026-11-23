@@ -27,6 +27,11 @@ export function createLoadingModule({
       await import("./ui/canonicalInputSelection.js");
     return requestCanonicalBaseIri(options);
   },
+  requestLocalFormat = async (options) => {
+    const { requestCanonicalLocalFormat } =
+      await import("./ui/canonicalInputSelection.js");
+    return requestCanonicalLocalFormat(options);
+  },
   createOntologySource,
   resolvePresetSource,
 } = {}) {
@@ -38,8 +43,9 @@ export function createLoadingModule({
   let isSetup = false;
   let fileReadSequence = 0;
   let pendingInput;
-  let baseRecovery;
+  let inputRecovery;
   let dispatchingLocalFile = false;
+  let localAdmission;
   let lastErrorDetails = null;
   let observedLoading = false;
   let observedRequestId;
@@ -51,9 +57,11 @@ export function createLoadingModule({
 
   function supersedeInput() {
     fileReadSequence += 1;
+    inputRecovery = undefined;
+    localAdmission = undefined;
+    presentation.clearInputRecovery();
     pendingInput?.abort();
     pendingInput = undefined;
-    baseRecovery = undefined;
     return fileReadSequence;
   }
   function beginInput() {
@@ -323,8 +331,25 @@ export function createLoadingModule({
       !lifecycleAbortController.signal.aborted;
     if (selectLocalSource) {
       async function openSelectedSource(source) {
-        baseRecovery = undefined;
+        inputRecovery = undefined;
         prepareLoadingPresentation();
+        const previousGeneration =
+          webVowlController.getState()?.loadGeneration ?? 0;
+        function recordAdmission(state) {
+          if (
+            localAdmission === recordAdmission &&
+            isCurrentFileRead() &&
+            state.loadGeneration > previousGeneration
+          ) {
+            localAdmission = undefined;
+            window.history.pushState(
+              null,
+              "",
+              "#file=" + encodeURIComponent(file.name),
+            );
+          }
+        }
+        localAdmission = recordAdmission;
         try {
           let pending;
           dispatchingLocalFile = true;
@@ -338,11 +363,7 @@ export function createLoadingModule({
             isCurrentFileRead() &&
             ["ready", "relaxing"].includes(state?.status)
           ) {
-            window.history.pushState(
-              null,
-              "",
-              "#file=" + encodeURIComponent(file.name),
-            );
+            recordAdmission(state);
             return state;
           }
         } catch (error) {
@@ -350,23 +371,44 @@ export function createLoadingModule({
             return undefined;
           }
           const state = webVowlController.getState();
-          if (source.localSource && error.code === "MAPPING_BASE_REQUIRED") {
+          const needsBase = error.code === "MAPPING_BASE_REQUIRED";
+          const needsFormat =
+            error.code === "MAPPING_SYNTAX_INVALID" &&
+            source.format === undefined &&
+            source.fallbackBaseIri === undefined;
+          if (source.localSource && (needsBase || needsFormat)) {
             let requesting = false;
-            baseRecovery = {
+            inputRecovery = {
               requestId: state.loadProgress?.requestId,
-              dismiss: supersedeInput,
+              reason: error.code,
+              label: needsBase
+                ? "Open with a base IRI"
+                : "Choose document format",
+              dismiss() {
+                if (isCurrentFileRead()) {
+                  supersedeInput();
+                }
+              },
               async retry() {
                 if (requesting || !isCurrentFileRead()) {
                   return;
                 }
                 requesting = true;
                 try {
-                  const fallbackBaseIri = await requestBaseIri({
+                  const choose = needsBase
+                    ? requestBaseIri
+                    : requestLocalFormat;
+                  const value = await choose({
                     displayName: file.name,
                     signal,
                   });
-                  if (fallbackBaseIri !== null && isCurrentFileRead()) {
-                    await openSelectedSource({ ...source, fallbackBaseIri });
+                  if (value !== null && isCurrentFileRead()) {
+                    await openSelectedSource({
+                      ...source,
+                      ...(needsBase
+                        ? { fallbackBaseIri: value }
+                        : { format: value }),
+                    });
                   }
                 } catch (reason) {
                   if (isCurrentFileRead()) {
@@ -379,6 +421,10 @@ export function createLoadingModule({
             };
           }
           loadingModule.renderControllerState(state);
+        } finally {
+          if (localAdmission === recordAdmission) {
+            localAdmission = undefined;
+          }
         }
         return undefined;
       }
@@ -471,6 +517,7 @@ export function createLoadingModule({
           : ONTOLOGY_LIFECYCLE_STATES.LOADING,
       );
     } else if (["ready", "relaxing"].includes(state.status)) {
+      localAdmission?.(state);
       loadingModule.setState(ONTOLOGY_LIFECYCLE_STATES.READY);
     } else if (state.status === "error") {
       loadingModule.setState(
@@ -487,11 +534,12 @@ export function createLoadingModule({
     }
     presentation.render(state, {
       ...context,
-      baseRecovery:
+      inputRecovery:
         state.status === "error" &&
-        state.error?.details?.reason === "MAPPING_BASE_REQUIRED" &&
-        baseRecovery?.requestId === state.loadProgress?.requestId
-          ? baseRecovery
+        inputRecovery &&
+        state.error?.details?.reason === inputRecovery.reason &&
+        inputRecovery.requestId === state.loadProgress?.requestId
+          ? inputRecovery
           : undefined,
     });
     if (state.status === "error" && state.error) {

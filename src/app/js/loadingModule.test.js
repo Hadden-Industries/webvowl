@@ -463,6 +463,134 @@ describe("loading presentation listener ownership", () => {
     }
   });
 
+  test("closing a superseded recovery cannot cancel a newer file read", async () => {
+    let state;
+    let releaseFile;
+    let nextSignal;
+    const selectLocalSource = ({ file, signal }) => {
+      if (file.name === "next.owl") {
+        nextSignal = signal;
+        return new Promise((resolve) => (releaseFile = resolve));
+      }
+      return { kind: "ontology-bytes", localSource: true };
+    };
+    const loadOntology = async () => {
+      state = {
+        status: "error",
+        loadProgress: { requestId: 1 },
+        error: {
+          code: "LOAD_FAILED",
+          message: "A relative reference in this file needs a base IRI.",
+          details: { reason: "MAPPING_BASE_REQUIRED" },
+        },
+      };
+      throw Object.assign(new Error(state.error.message), {
+        code: "MAPPING_BASE_REQUIRED",
+      });
+    };
+    loadingModule.dispose();
+    loadingModule = createLoadingModule({
+      selectLocalSource,
+      webVowlController: { loadOntology, getState: () => state },
+    });
+    loadingModule.setup();
+    await loadingModule.loadLocalFile({ name: "old.owl" });
+    const action = controls.get("#loading-primary-action");
+    expect(action.textContent).toBe("Open with a base IRI");
+
+    const next = loadingModule.loadLocalFile({ name: "next.owl" });
+    controls
+      .get("#loadingIndicator_closeButton")
+      .dispatchEvent(new Event("click"));
+    expect(nextSignal.aborted).toBe(false);
+    expect(action.textContent).toBe("Choose ontology");
+    releaseFile(null);
+    await next;
+  });
+
+  test("file history follows admission while cache observation is still pending", async () => {
+    const pushState = jest.fn();
+    const previousWindow = loadingModuleContext.window;
+    loadingModuleContext.window = { history: { pushState } };
+    let state = { status: "idle", loadGeneration: 0 };
+    let finishObservation;
+    const observation = new Promise((resolve) => (finishObservation = resolve));
+    const loadOntology = () => {
+      state = { ...state, status: "loading", loadProgress: { requestId: 1 } };
+      loadingModule.renderControllerState(state);
+      state = { status: "ready", loadGeneration: 1 };
+      loadingModule.renderControllerState(state);
+      return observation.then(() => state);
+    };
+    loadingModule.dispose();
+    loadingModule = createLoadingModule({
+      selectLocalSource: async ({ file }) =>
+        file.name === "accepted.owl"
+          ? { kind: "ontology-bytes", localSource: true }
+          : null,
+      webVowlController: { loadOntology, getState: () => state },
+    });
+    loadingModule.setup();
+    try {
+      const opening = loadingModule.loadLocalFile({ name: "accepted.owl" });
+      await new Promise(setImmediate);
+      expect(pushState).toHaveBeenCalledWith(null, "", "#file=accepted.owl");
+      await loadingModule.loadLocalFile({ name: "cancelled.json" });
+      finishObservation();
+      await opening;
+      expect(pushState).toHaveBeenCalledTimes(1);
+    } finally {
+      loadingModuleContext.window = previousWindow;
+    }
+  });
+
+  test("auto-detection failure offers an OWL format retry with the same bytes", async () => {
+    const source = {
+      kind: "ontology-bytes",
+      localSource: true,
+      bytes: new Uint8Array([60, 117, 114, 110, 58]),
+    };
+    const requestLocalFormat = jest.fn(async () => "turtle");
+    const requestBaseIri = jest.fn();
+    const loadOntology = jest.fn(async ({ source: attempt }) => {
+      if (attempt.format === undefined) {
+        throw Object.assign(new Error("Unknown syntax"), {
+          code: "MAPPING_SYNTAX_INVALID",
+        });
+      }
+    });
+    loadingModule.dispose();
+    loadingModule = createLoadingModule({
+      selectLocalSource: async () => source,
+      requestLocalFormat,
+      requestBaseIri,
+      webVowlController: {
+        loadOntology,
+        getState: () => ({
+          status: "error",
+          loadProgress: { requestId: 1 },
+          error: {
+            code: "LOAD_FAILED",
+            message: "Unknown syntax",
+            details: { reason: "MAPPING_SYNTAX_INVALID" },
+          },
+        }),
+      },
+    });
+    loadingModule.setup();
+    await loadingModule.loadLocalFile({ name: "extensionless" });
+    const action = controls.get("#loading-primary-action");
+    expect(action.textContent).toBe("Choose document format");
+    action.dispatchEvent(new Event("click"));
+    await new Promise(setImmediate);
+    expect(requestBaseIri).not.toHaveBeenCalled();
+    expect(loadOntology.mock.calls[1][0].source).toEqual({
+      ...source,
+      format: "turtle",
+    });
+    expect(loadOntology.mock.calls[1][0].source.bytes).toBe(source.bytes);
+  });
+
   test("keeps distinct parser diagnostics available after a summary-only error", () => {
     const append_message = jest.fn();
     loadingModule.dispose();

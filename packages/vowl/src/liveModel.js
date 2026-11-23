@@ -621,7 +621,9 @@ export async function readmitLiveModel(input, budget) {
   if (
     archive &&
     !archive.evidence.documents.some(
-      (document) => document.digest === origin.inputDigest,
+      (document) =>
+        document.digest === origin.inputDigest &&
+        (!archive.evidence.localSource || document.documentIri === null),
     )
   ) {
     fail("CHECKPOINT_INVALID");

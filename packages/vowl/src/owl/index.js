@@ -60,6 +60,11 @@ export async function openOwl(input, options) {
   ]);
   const checks = {
     owlMappingStrategy: selectOwlMappingStrategy,
+    documentIri(value) {
+      if (opts.localSource === undefined) {
+        optionChecks.documentIri(value);
+      }
+    },
     mediaType(value) {
       if (value !== undefined) {
         optionChecks.mediaType(value);

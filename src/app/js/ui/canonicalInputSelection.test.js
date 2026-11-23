@@ -111,6 +111,25 @@ test("local JSON-LD keeps reader selection without a document IRI", async () => 
   );
 });
 
+test.each([
+  "{ <urn:term> a <http://www.w3.org/2002/07/owl#Class> . }",
+  "[] a <http://www.w3.org/2002/07/owl#Class> .",
+])("a local RDF input starting with a bracket opens directly", async (text) => {
+  const bytes = new TextEncoder().encode(text);
+  const select = jest.fn();
+  await expect(
+    selectCanonicalLocalSource({
+      file: { name: "extensionless", arrayBuffer: async () => bytes.buffer },
+      select,
+    }),
+  ).resolves.toMatchObject({
+    kind: "ontology-bytes",
+    bytes,
+    localSource: true,
+  });
+  expect(select).not.toHaveBeenCalled();
+});
+
 test("JSON input retains explicit reader selection instead of being reinterpreted as OWL", async () => {
   const select = jest.fn(async () => ({ kind: "canonical" }));
   await selectCanonicalLocalSource({

@@ -38,12 +38,14 @@ export function requestCanonicalInputSelection({
     `${id}-title`;
   append("p", displayName);
   const form = append("form");
-  const syntaxLabel = append("label", "Document format", form);
+  const syntaxGroup = append("div", undefined, form);
+  syntaxGroup.hidden = baseOnly;
+  const syntaxLabel = append("label", "Document format", syntaxGroup);
   syntaxLabel.htmlFor = `${id}-syntax`;
-  const syntax = append("select", undefined, form);
+  const syntax = append("select", undefined, syntaxGroup);
   syntax.id = syntaxLabel.htmlFor;
   syntax.required = !baseOnly;
-  syntax.hidden = syntaxLabel.hidden = syntax.disabled = baseOnly;
+  syntax.disabled = baseOnly;
   const placeholder = append("option", "Choose a format", syntax);
   placeholder.value = "";
   placeholder.disabled = true;
@@ -197,6 +199,15 @@ export function requestCanonicalBaseIri(options = {}) {
   return requestCanonicalInputSelection({ ...options, baseOnly: true });
 }
 
+export async function requestCanonicalLocalFormat(options = {}) {
+  const selection = await requestCanonicalInputSelection({
+    ...options,
+    localFile: true,
+    owlFormats: Object.values(OWLDocumentFormats).map(({ key }) => key),
+  });
+  return selection?.format ?? null;
+}
+
 export async function requestCanonicalRemoteFormat(
   { documentIri, formats },
   { signal } = {},
@@ -216,40 +227,53 @@ function requiresJsonReader(content) {
   const codeAt = bytes
     ? (index) => bytes[index]
     : (index) => content.text?.charCodeAt(index);
+  const whitespace = (code) => [9, 10, 13, 32].includes(code);
+  function skipWhitespace(index) {
+    while (index < length && whitespace(codeAt(index))) {
+      index++;
+    }
+    return index;
+  }
   let index =
     bytes?.[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf
       ? 3
       : codeAt(0) === 0xfeff
         ? 1
         : 0;
-  for (; index < length; index++) {
-    const code = codeAt(index);
-    if ([9, 10, 13, 32].includes(code)) {
-      continue;
-    }
-    // A prefix suggests a reader choice; it does not validate JSON or assign
-    // canonical/legacy/JSON-LD meaning. Their owning readers do that later.
-    if (
-      [0x7b, 0x5b, 0x22, 0x2d].includes(code) ||
-      (code >= 0x30 && code <= 0x39)
-    ) {
-      return true;
-    }
-    for (const token of ["true", "false", "null"]) {
-      if (
-        [...token].every(
-          (character, offset) =>
-            codeAt(index + offset) === character.charCodeAt(0),
-        ) &&
-        (index + token.length === length ||
-          [9, 10, 13, 32].includes(codeAt(index + token.length)))
-      ) {
-        return true;
-      }
-    }
-    return false;
+  index = skipWhitespace(index);
+  let code = codeAt(index);
+  // Local Turtle or TriG can start with an anonymous node or a graph block.
+  // The next token distinguishes those from JSON candidates without parsing.
+  if (bytes && code === 0x7b) {
+    const next = skipWhitespace(index + 1);
+    return next === length || [0x22, 0x7d].includes(codeAt(next));
   }
-  return false;
+  if (bytes && code === 0x5b) {
+    index = skipWhitespace(index + 1);
+    code = codeAt(index);
+    if (index === length || code === 0x5d) {
+      return skipWhitespace(index + 1) >= length;
+    }
+  }
+  // A prefix suggests a reader choice; the owning reader validates it later.
+  if (
+    [0x7b, 0x5b, 0x22, 0x2d].includes(code) ||
+    (code >= 0x30 && code <= 0x39)
+  ) {
+    return true;
+  }
+  return ["true", "false", "null"].some((token) => {
+    const next = index + token.length;
+    return (
+      [...token].every(
+        (character, offset) =>
+          codeAt(index + offset) === character.charCodeAt(0),
+      ) &&
+      (next === length ||
+        whitespace(codeAt(next)) ||
+        (bytes && [0x2c, 0x5d].includes(codeAt(next))))
+    );
+  });
 }
 
 /** Acquire bytes first; JSON reader admission stays explicit, OWL detection is native. */

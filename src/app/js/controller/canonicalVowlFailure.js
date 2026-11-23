@@ -75,6 +75,12 @@ export function canonicalFailureDetails(value) {
           }
         }
       }
+      for (const name of ["line", "column"]) {
+        const entry = Object.getOwnPropertyDescriptor(record, name)?.value;
+        if (Number.isSafeInteger(entry) && entry > 0) {
+          details[name] = entry;
+        }
+      }
     }
   }
   return details;
@@ -84,6 +90,16 @@ export function canonicalFailureDetails(value) {
 export function canonicalLoadingMessage(error) {
   if (error?.name === "TimeoutError") {
     return "Retrieving the ontology source took too long. Check the source URL and try again.";
+  }
+  if (error?.code === "MAPPING_BASE_REQUIRED") {
+    const { line, column } = canonicalFailureDetails(error);
+    if (line !== undefined) {
+      const position =
+        column === undefined
+          ? `line ${line}`
+          : `line ${line}, column ${column}`;
+      return `A relative reference at ${position} needs a base IRI.`;
+    }
   }
   if (
     [

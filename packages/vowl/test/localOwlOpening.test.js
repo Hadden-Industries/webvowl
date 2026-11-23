@@ -61,6 +61,20 @@ test("a local root opens directly, imports its absolute child and retains its or
     bytes,
     documentIri: null,
   });
+  const { source: archive, ...savedState } = checkpoint;
+  const corrupt = {
+    ...JSON.parse(JSON.stringify(savedState)),
+    source: {
+      ...archive,
+      evidence: JSON.parse(JSON.stringify(archive.evidence)),
+    },
+  };
+  const [root, imported] = corrupt.source.evidence.documents;
+  root.documentIri = imported.documentIri;
+  imported.documentIri = null;
+  await expect(readmitModel(corrupt)).rejects.toMatchObject({
+    code: "CHECKPOINT_INVALID",
+  });
 });
 
 test.each([
@@ -85,7 +99,10 @@ test.each([
       fallbackBaseIri: "https://example.org/ontology",
     });
     const { documents, records } = inspectModel(model);
-    expect(documents[0].documentIri).toBeNull();
+    expect(documents[0]).toMatchObject({
+      documentIri: null,
+      baseIri: "https://example.org/ontology",
+    });
     expect(records.subjects).toEqual([
       expect.objectContaining({ iri: "https://example.org/ontology#Name" }),
     ]);
@@ -98,16 +115,243 @@ test.each([
   },
 );
 
+test.each([
+  ['<owl:Class rdf:about="child/Name"/>', "https://example.org/child/Name"],
+  ['<owl:Class rdf:about=""/>', "https://example.org/ontology"],
+  [
+    '<owl:Class xml:base="sub/" rdf:ID="Name"/>',
+    "https://example.org/sub/#Name",
+  ],
+  [
+    '<owl:Class xml:base="//terms.example/" rdf:about="Name"/>',
+    "https://terms.example/Name",
+  ],
+])(
+  "RDF/XML resolves %s against an entered base after diagnosis",
+  async (body, iri) => {
+    const bytes = encode(xml(body));
+    await expect(openOwl(bytes, { localSource: true })).rejects.toMatchObject({
+      code: "MAPPING_BASE_REQUIRED",
+    });
+    const { model } = await openOwl(bytes, {
+      localSource: true,
+      fallbackBaseIri: "https://example.org/ontology",
+    });
+    expect(inspectModel(model).records.subjects).toContainEqual(
+      expect.objectContaining({ iri }),
+    );
+  },
+);
+
+test("RDF/XML without a wrapper uses the owning reader's base rules", async () => {
+  const bytes = encode(
+    `<owl:Class xmlns:owl="${owlNamespace}" xmlns:rdf="${rdfNamespace}" rdf:about="Name"/>`,
+  );
+  await expect(openOwl(bytes, { localSource: true })).rejects.toMatchObject({
+    code: "MAPPING_BASE_REQUIRED",
+  });
+});
+
+test("RDF/XML base diagnosis never acquires imports, and retry resolves them normally", async () => {
+  const bytes = encode(
+    xml(
+      '<owl:Ontology rdf:about="urn:source"><owl:imports rdf:resource="child.rdf"/></owl:Ontology>',
+    ),
+  );
+  const requested = [];
+  const resolveImport = async (iri) => {
+    requested.push(iri);
+    return {
+      bytes: encode(xml('<owl:Class rdf:about="urn:imported"/>')),
+      documentIri: iri,
+    };
+  };
+  await expect(
+    openOwl(bytes, { localSource: true, resolveImport }),
+  ).rejects.toMatchObject({
+    code: "MAPPING_BASE_REQUIRED",
+  });
+  expect(requested).toEqual([]);
+  const { model } = await openOwl(bytes, {
+    localSource: true,
+    fallbackBaseIri: "https://example.org/parent/",
+    resolveImport,
+  });
+  expect(requested).toEqual(["https://example.org/parent/child.rdf"]);
+  expect(inspectModel(model).records.subjects).toContainEqual(
+    expect.objectContaining({ iri: "urn:imported" }),
+  );
+});
+
+test("a bounded RDF/XML diagnostic preserves the owning blank-node limit", async () => {
+  const bytes = encode(
+    xml(
+      '<owl:Class rdf:about="#Name"/>' +
+        '<rdf:Description rdf:nodeID="a" rdf:type="urn:kind"/>' +
+        '<rdf:Description rdf:nodeID="b" rdf:type="urn:kind"/>',
+    ),
+  );
+  await expect(
+    openOwl(bytes, {
+      localSource: true,
+      limits: { primaryRecords: 1 },
+    }),
+  ).rejects.toMatchObject({ code: "MODEL_RESOURCE_LIMIT" });
+});
+
+test.each(["text/turtle", "application/trig"])(
+  "%s reports an empty IRI reference as a missing base",
+  async (mediaType) => {
+    const bytes = encode(`<> a <${owlNamespace}Class> .`);
+    await expect(
+      openOwl(bytes, { localSource: true, mediaType }),
+    ).rejects.toMatchObject({
+      code: "MAPPING_BASE_REQUIRED",
+    });
+  },
+);
+
+test("malformed OWL/XML keeps its syntax failure after a relative IRI", async () => {
+  const bytes = encode(
+    `<Ontology xmlns="${owlNamespace}"><Declaration><Class IRI="#Name"/></Declaration><Invalid/></Ontology>`,
+  );
+  await expect(openOwl(bytes, { localSource: true })).rejects.toMatchObject({
+    code: "MAPPING_SYNTAX_INVALID",
+  });
+});
+
+test("a JSON-LD context that discards the base cannot silently discard a relative class", async () => {
+  const bytes = encode(
+    JSON.stringify({
+      "@context": { "@base": null },
+      "@graph": [
+        { "@id": "#Name", "@type": owlNamespace + "Class" },
+        { "@id": "urn:absolute", "@type": owlNamespace + "Class" },
+      ],
+    }),
+  );
+  for (const fallbackBaseIri of [undefined, "https://example.org/ontology"]) {
+    await expect(
+      openOwl(bytes, { localSource: true, fallbackBaseIri }),
+    ).rejects.toMatchObject({
+      code: "MAPPING_SYNTAX_INVALID",
+    });
+  }
+});
+
+test("an unused JSON-LD node reference does not require a base", async () => {
+  const bytes = encode(
+    JSON.stringify([
+      { "@id": "#Orphan" },
+      { "@id": "urn:class", "@type": owlNamespace + "Class" },
+    ]),
+  );
+  const { model } = await openOwl(bytes, {
+    localSource: true,
+    mediaType: "application/ld+json",
+  });
+  expect(inspectModel(model).records.subjects).toEqual([
+    expect.objectContaining({ iri: "urn:class" }),
+  ]);
+});
+
+test("the JSON-LD diagnostic still applies the RDF statement budget", async () => {
+  const bytes = encode(
+    JSON.stringify([
+      { "@id": "#First", "@type": owlNamespace + "Class" },
+      { "@id": "#Second", "@type": owlNamespace + "Class" },
+    ]),
+  );
+  await expect(
+    openOwl(bytes, {
+      localSource: true,
+      limits: { rdfQuads: 1 },
+      mediaType: "application/ld+json",
+    }),
+  ).rejects.toMatchObject({ code: "RDF_RESOURCE_LIMIT" });
+});
+
+test("a relative TriG graph label requires a base even when its triples are absolute", async () => {
+  const bytes = encode(`<#graph> { <urn:term> a <${owlNamespace}Class> . }`);
+  const options = { mediaType: "application/trig", localSource: true };
+  await expect(openOwl(bytes, options)).rejects.toMatchObject({
+    code: "MAPPING_BASE_REQUIRED",
+  });
+  const { model } = await openOwl(bytes, {
+    ...options,
+    fallbackBaseIri: "https://example.org/ontology",
+  });
+  expect(inspectModel(model).records.subjects).toContainEqual(
+    expect.objectContaining({ iri: "urn:term" }),
+  );
+});
+
+test("a relative TriG graph label can resolve to an existing graph", async () => {
+  const fallbackBaseIri = "https://example.org/ontology";
+  const bytes = encode(
+    `<#graph> { <urn:first> a <${owlNamespace}Class> . }` +
+      `<${fallbackBaseIri}#graph> { <urn:second> a <${owlNamespace}Class> . }`,
+  );
+  const options = { mediaType: "application/trig", localSource: true };
+  await expect(openOwl(bytes, options)).rejects.toMatchObject({
+    code: "MAPPING_BASE_REQUIRED",
+  });
+  const { model } = await openOwl(bytes, { ...options, fallbackBaseIri });
+  expect(
+    inspectModel(model)
+      .records.subjects.map(({ iri }) => iri)
+      .sort(),
+  ).toEqual(["urn:first", "urn:second"]);
+});
+
+test("invalid local import targets never reach the acquisition callback", async () => {
+  const bytes = encode(
+    `<urn:root> a <${owlNamespace}Ontology>; <${owlNamespace}imports> <https://example.org/%x> .`,
+  );
+  const requested = [];
+  for (const fallbackBaseIri of [undefined, "https://example.org/ontology"]) {
+    await expect(
+      openOwl(bytes, {
+        localSource: true,
+        fallbackBaseIri,
+        mediaType: "text/turtle",
+        resolveImport(iri) {
+          requested.push(iri);
+        },
+      }),
+    ).rejects.toMatchObject({ code: "MAPPING_SYNTAX_INVALID" });
+  }
+  expect(requested).toEqual([]);
+});
+
+test("the fallback cannot select a longer absolute ontology header", async () => {
+  const fallbackBaseIri = "https://example.org/long-header";
+  const bytes = encode(
+    xml(
+      `<owl:Ontology rdf:about="urn:main"/><owl:Ontology rdf:about="${fallbackBaseIri}"/>` +
+        '<owl:Class rdf:about="#Name"/>',
+    ),
+  );
+  await expect(
+    openOwl(bytes, { localSource: true, fallbackBaseIri }),
+  ).rejects.toMatchObject({
+    code: "MAPPING_AMBIGUOUS",
+  });
+});
+
 test.each(["application/n-triples", "application/n-quads"])(
   "a relative IRI in %s stays a syntax failure",
   async (mediaType) => {
     const input = `<#Name> <${rdfNamespace}type> <${owlNamespace}Class> .`;
-    await expect(
-      openOwl(encode(input), {
-        localSource: true,
-        mediaType,
-      }),
-    ).rejects.toMatchObject({ code: "MAPPING_SYNTAX_INVALID" });
+    for (const fallbackBaseIri of [undefined, "https://example.org/ontology"]) {
+      await expect(
+        openOwl(encode(input), {
+          localSource: true,
+          mediaType,
+          fallbackBaseIri,
+        }),
+      ).rejects.toMatchObject({ code: "MAPPING_SYNTAX_INVALID" });
+    }
   },
 );
 
@@ -153,5 +397,25 @@ test("an entered base cannot stand in for an import of the same address", async 
   );
   await expect(
     openOwl(bytes, { localSource: true, fallbackBaseIri: childIri }),
+  ).rejects.toMatchObject({ code: "MAPPING_LOCAL_BASE_COLLISION" });
+});
+
+test("a retrieved import cannot reuse the selected file's parser base as its document identity", async () => {
+  const bytes = encode(
+    xml(
+      `<owl:Ontology rdf:about="urn:source"><owl:imports rdf:resource="${childIri}"/></owl:Ontology>` +
+        '<owl:Class rdf:about="#Name"/>',
+    ),
+  );
+  const fallbackBaseIri = "https://example.org/base";
+  await expect(
+    openOwl(bytes, {
+      localSource: true,
+      fallbackBaseIri,
+      resolveImport: async () => ({
+        documentIri: fallbackBaseIri,
+        bytes: encode(xml('<owl:Class rdf:about="urn:imported"/>')),
+      }),
+    }),
   ).rejects.toMatchObject({ code: "MAPPING_LOCAL_BASE_COLLISION" });
 });

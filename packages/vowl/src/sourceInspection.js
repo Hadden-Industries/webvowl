@@ -31,7 +31,8 @@ export function inspectSource(state, archive, budget) {
   const documents = evidence.documents.map((document) => ({
     id: document.id,
     documentIri: document.documentIri,
-    baseIri: document.documentIri,
+    baseIri:
+      document.documentIri ?? evidence.localSource?.fallbackBaseIri ?? null,
     mediaType: document.mediaType,
     digest: document.digest,
     headers: [],

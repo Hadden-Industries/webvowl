@@ -1,4 +1,4 @@
-import { isIri } from "@hyperjump/uri";
+import { isIri, isIriReference } from "@hyperjump/uri";
 import { OWLManager } from "owlapi/apibinding";
 import { IRI, OWLOntologyLoaderConfiguration } from "owlapi/model";
 import { StringDocumentSource, UnloadableImportError } from "owlapi/io";
@@ -300,11 +300,15 @@ export async function loadClosure(bytes, context, options, budget, policy) {
               ? null
               : parentIri;
           if (
-            unbasedLocal &&
+            context.localSource &&
             importingDocumentIri === null &&
             !isIri(request.importIRI.value)
           ) {
-            fail("MAPPING_BASE_REQUIRED");
+            fail(
+              unbasedLocal && isIriReference(request.importIRI.value)
+                ? "MAPPING_BASE_REQUIRED"
+                : "MAPPING_SYNTAX_INVALID",
+            );
           }
           if (!options.resolveImport) {
             return undefined;
@@ -373,6 +377,12 @@ export async function loadClosure(bytes, context, options, budget, policy) {
             "/resolveImport",
             policy.automaticFormats === true,
           );
+          if (
+            context.localSource?.fallbackBaseIri ===
+            importedContext.documentIRI.value
+          ) {
+            fail("MAPPING_LOCAL_BASE_COLLISION");
+          }
           policy.observeSource?.(snapshot, importedContext, {
             requestedIri: request.importIRI.value,
             parentDocumentIri: importingDocumentIri,
@@ -399,6 +409,34 @@ export async function loadClosure(bytes, context, options, budget, policy) {
     signal: budget.signal,
     ...loaderLimits(budget),
   });
+  async function probeLocalDocument(formatKey, baseIri) {
+    const format = Object.values(OWLDocumentFormats).find(
+      ({ key }) => key === formatKey,
+    );
+    const diagnosticManager = OWLManager.createOWLOntologyManager();
+    const diagnosticSource = new StringDocumentSource(source.getText(), {
+      documentIRI: IRI.create(baseIri),
+      format,
+    });
+    try {
+      const loaded =
+        await diagnosticManager.loadOntologyGraphFromOntologyDocument(
+          diagnosticSource,
+          configuration.with({ remoteImports: false }),
+        );
+      return {
+        loaded,
+        format: diagnosticManager.getOntologyFormat(loaded.ontology),
+      };
+    } catch (error) {
+      budget.check();
+      budget.reportHostLimit(error);
+      if (error.code === "RESOURCE_LIMIT_EXCEEDED") {
+        dependencyLimitFailure(error.resource, "owl-loading");
+      }
+      return undefined;
+    }
+  }
   try {
     const startedAt = performance.now();
     const loaded = await waitForResult(
@@ -412,12 +450,13 @@ export async function loadClosure(bytes, context, options, budget, policy) {
     if (boundaryFailure) {
       throw boundaryFailure;
     }
-    if (unbasedLocal) {
+    if (context.localSource) {
       await waitForResult(
         requireResolvedLocalSource(
-          loaded.ontology,
+          loaded,
           manager.getOntologyFormat(loaded.ontology),
           source.getText(),
+          context.localSource.fallbackBaseIri,
           budget,
         ),
         budget,
@@ -469,11 +508,21 @@ export async function loadClosure(bytes, context, options, budget, policy) {
             source.getText(),
             context.format?.key,
             budget,
+            probeLocalDocument,
           ),
           budget,
         )
       ) {
-        fail("MAPPING_BASE_REQUIRED");
+        const location = {};
+        for (const name of ["line", "column"]) {
+          if (Number.isSafeInteger(error[name]) && error[name] > 0) {
+            location[name] = error[name];
+          }
+        }
+        fail("MAPPING_BASE_REQUIRED", undefined, {
+          stage: "owl-loading",
+          ...location,
+        });
       }
     }
     loadingFailure(error, budget);

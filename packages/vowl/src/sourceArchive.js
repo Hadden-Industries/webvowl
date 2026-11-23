@@ -156,7 +156,7 @@ function validateEvidence(evidence, budget, version) {
       }
     }
   }
-  if (!ids.size || iris.has(null) !== local) {
+  if (!ids.size || (local && evidence.documents[0].documentIri !== null)) {
     fail("CHECKPOINT_INVALID");
   }
   for (const edge of evidence.imports) {

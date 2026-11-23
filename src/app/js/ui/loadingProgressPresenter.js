@@ -45,7 +45,7 @@ export function createLoadingProgressPresenter({
   let lastStage;
   let failureIdentity;
   let dismissedFailure;
-  let baseRecovery;
+  let inputRecovery;
 
   function stopTimer() {
     if (timer !== undefined) {
@@ -92,8 +92,7 @@ export function createLoadingProgressPresenter({
       listen(hide, () => {
         if (!busy) {
           dismissedFailure = failureIdentity;
-          baseRecovery?.dismiss();
-          baseRecovery = undefined;
+          inputRecovery?.dismiss();
           return dismiss();
         }
         collapsed = true;
@@ -107,7 +106,7 @@ export function createLoadingProgressPresenter({
       });
       listen(action, () => {
         if (!busy) {
-          return baseRecovery ? baseRecovery.retry() : onChooseSource();
+          return inputRecovery ? inputRecovery.retry() : onChooseSource();
         }
         cancelling = true;
         action.disabled = true;
@@ -117,6 +116,12 @@ export function createLoadingProgressPresenter({
       setDetails(false);
     },
     isVisible: () => visible,
+    clearInputRecovery() {
+      if (inputRecovery) {
+        inputRecovery = undefined;
+        action.textContent = "Choose ontology";
+      }
+    },
     isDetailsExpanded: () => !details.hidden,
     scrollDetails() {
       details.scrollTop = details.scrollHeight;
@@ -151,8 +156,8 @@ export function createLoadingProgressPresenter({
         requestId = progress?.requestId;
       }
       busy = nextBusy;
-      baseRecovery =
-        state.status === "error" ? context.baseRecovery : undefined;
+      inputRecovery =
+        state.status === "error" ? context.inputRecovery : undefined;
       error.textContent = state.error?.message ?? "";
       error.hidden = !error.textContent;
       if (!busy && (state.status !== "error" || cancelling)) {
@@ -185,9 +190,7 @@ export function createLoadingProgressPresenter({
       action.disabled = cancelling;
       action.textContent = busy
         ? "Cancel loading"
-        : baseRecovery
-          ? "Open with a base IRI"
-          : "Choose ontology";
+        : (inputRecovery?.label ?? "Choose ontology");
       hide.textContent = busy ? "Hide progress" : "Close";
       title.className = busy ? "step-busy" : "step-error";
       title.textContent = busy ? "Opening ontology" : "Loading failed";
