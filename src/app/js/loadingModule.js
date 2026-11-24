@@ -8,10 +8,9 @@ import {
 
 class LocalOntologyFileUnavailableError extends Error {
   constructor(fileName) {
-    super(
-      `Select ${JSON.stringify(fileName)} again in the Ontology menu, or drop it onto the page. Local files are not retained after a page reload.`,
-    );
+    super("Browsers don't keep local files after a page reload.");
     this.sourceLabel = fileName;
+    this.localFileName = fileName;
   }
 }
 
@@ -45,6 +44,13 @@ export function createLoadingModule({
     documentObject: document,
     onCancel: () => webVowlController.cancelOntologyLoad(),
     onChooseSource: () => document.querySelector("#ontology-menu-open").click(),
+    // Clicking the presenter's button is the user activation the picker needs.
+    // Clearing the value lets choosing the same file again fire "change".
+    onChooseFile: () => {
+      const input = document.querySelector("#file-converter-input");
+      input.value = "";
+      input.click();
+    },
   });
 
   function supersedeInput() {
@@ -108,7 +114,7 @@ export function createLoadingModule({
     presentation.dispose();
   };
 
-  function renderInputError(message, sourceLabel) {
+  function renderInputError(message, sourceLabel, { localFileName } = {}) {
     presentation.begin();
     loadingModule.renderControllerState(
       {
@@ -117,7 +123,12 @@ export function createLoadingModule({
         loadProgress: null,
         error: { message },
       },
-      { sourceLabel: String(sourceLabel).slice(0, 2048) },
+      {
+        sourceLabel: String(sourceLabel).slice(0, 2048),
+        ...(localFileName === undefined
+          ? {}
+          : { localFileName: String(localFileName).slice(0, 2048) }),
+      },
     );
   }
 
@@ -223,6 +234,7 @@ export function createLoadingModule({
           ? error.message
           : error.message + " Correct the link options and load it again.",
         error.sourceLabel ?? String(location),
+        { localFileName: error.localFileName },
       );
       return undefined;
     }

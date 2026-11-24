@@ -2225,6 +2225,27 @@ button.accordion-trigger {
   color: #f5b4af;
 }
 
+/* Reopening a local file after a reload: nothing ran, so show only the
+   request, its one-sentence reason, and the actions. */
+#loading-progress[data-mode="reopen"] .loading-header h2 {
+  overflow-wrap: anywhere;
+}
+
+#loading-progress[data-mode="reopen"]
+  :is(
+    #loading-source-label,
+    .loading-stages,
+    .loading-time,
+    #loadingInfo_msgBox
+  ) {
+  display: none;
+}
+
+#loading-progress[data-mode="reopen"] #loadingErrorMessage {
+  padding-block-end: 20px;
+  color: #bbc9d8;
+}
+
 #loadingInfo_msgBox {
   padding: 0 24px 20px;
 }

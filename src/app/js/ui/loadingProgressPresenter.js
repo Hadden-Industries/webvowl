@@ -15,6 +15,7 @@ export function createLoadingProgressPresenter({
   documentObject: doc = document,
   onCancel,
   onChooseSource,
+  onChooseFile = onChooseSource,
   clock = {
     now: () => performance.now(),
     setInterval: (callback) => setInterval(callback, 1000),
@@ -46,6 +47,9 @@ export function createLoadingProgressPresenter({
   let failureIdentity;
   let dismissedFailure;
   let inputRecovery;
+  // A local file named by the URL cannot be reopened after a reload. Nothing
+  // was attempted, so this is a request to choose the file, not a failure.
+  let reopenFileName;
 
   function stopTimer() {
     if (timer !== undefined) {
@@ -106,6 +110,9 @@ export function createLoadingProgressPresenter({
       });
       listen(action, () => {
         if (!busy) {
+          if (reopenFileName !== undefined) {
+            return onChooseFile();
+          }
           return inputRecovery ? inputRecovery.retry() : onChooseSource();
         }
         cancelling = true;
@@ -158,6 +165,9 @@ export function createLoadingProgressPresenter({
       busy = nextBusy;
       inputRecovery =
         state.status === "error" ? context.inputRecovery : undefined;
+      reopenFileName =
+        state.status === "error" ? context.localFileName : undefined;
+      panel.dataset.mode = reopenFileName === undefined ? "progress" : "reopen";
       error.textContent = state.error?.message ?? "";
       error.hidden = !error.textContent;
       if (!busy && (state.status !== "error" || cancelling)) {
@@ -188,12 +198,26 @@ export function createLoadingProgressPresenter({
       }
       showPanel();
       action.disabled = cancelling;
+      const reopening = reopenFileName !== undefined;
+      const failureTitle = reopening
+        ? `Reopen “${reopenFileName}”`
+        : "Loading failed";
       action.textContent = busy
         ? "Cancel loading"
-        : (inputRecovery?.label ?? "Choose ontology");
-      hide.textContent = busy ? "Hide progress" : "Close";
-      title.className = busy ? "step-busy" : "step-error";
-      title.textContent = busy ? "Opening ontology" : "Loading failed";
+        : reopening
+          ? "Choose file…"
+          : (inputRecovery?.label ?? "Choose ontology");
+      hide.textContent = busy
+        ? "Hide progress"
+        : reopening
+          ? "Not now"
+          : "Close";
+      title.className = busy
+        ? "step-busy"
+        : reopening
+          ? "step-reopen"
+          : "step-error";
+      title.textContent = busy ? "Opening ontology" : failureTitle;
       get("loading-source-label").textContent =
         context.sourceLabel ?? progress?.sourceLabel ?? "Ontology source";
       get("loading-source-detail").textContent =
@@ -249,15 +273,15 @@ export function createLoadingProgressPresenter({
       get("loading-estimate").textContent = busy
         ? "Time remaining is not yet known"
         : "Choose another source or try loading it again";
-      get("loading-compact-title").textContent = busy
-        ? activity
-        : "Loading failed";
+      get("loading-compact-title").textContent = busy ? activity : failureTitle;
       show.textContent = busy ? "Show progress" : "View error";
-      const announcementKey = busy ? active : `error:${error.textContent}`;
+      const announcementKey = busy
+        ? active
+        : `error:${failureTitle}:${error.textContent}`;
       if (lastStage !== announcementKey) {
         announcement.textContent = busy
           ? descriptions[active]
-          : `Loading failed. ${error.textContent}`;
+          : `${failureTitle}. ${error.textContent}`;
         lastStage = announcementKey;
       }
       if (busy) {

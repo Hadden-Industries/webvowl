@@ -301,3 +301,51 @@ test("new requests reset collapsed state and elapsed time; errors keep their fai
   h.presenter.render(loading({ requestId: 3 }));
   expect(h.timers.size).toBe(0);
 });
+
+test("a local file lost on reload asks to reopen it instead of reporting a failed load", () => {
+  const h = setup();
+  const onChooseFile = jest.fn();
+  h.presenter.dispose();
+  const presenter = createLoadingProgressPresenter({
+    documentObject: h.doc,
+    onCancel: h.onCancel,
+    onChooseSource: h.onChooseSource,
+    onChooseFile,
+    clock: {
+      now: () => 0,
+      setInterval: () => 1,
+      clearInterval: () => {},
+    },
+  });
+  presenter.setup();
+  presenter.render(
+    {
+      status: "error",
+      loadProgress: null,
+      error: {
+        message: "Browsers don't keep local files after a page reload.",
+      },
+    },
+    { sourceLabel: "reference-data.owl", localFileName: "reference-data.owl" },
+  );
+  expect(h.get("loading-progress").dataset.mode).toBe("reopen");
+  expect(h.get("currentLoadingStep").textContent).toBe(
+    "Reopen “reference-data.owl”",
+  );
+  expect(h.get("loading-primary-action").textContent).toBe("Choose file…");
+  expect(h.get("loadingIndicator_closeButton").textContent).toBe("Not now");
+  expect(h.get("loading-announcement").textContent).toBe(
+    "Reopen “reference-data.owl”. Browsers don't keep local files after a page reload.",
+  );
+  h.get("loading-primary-action").click();
+  expect(onChooseFile).toHaveBeenCalledTimes(1);
+  expect(h.onChooseSource).not.toHaveBeenCalled();
+  presenter.render({
+    status: "error",
+    error: { message: "Source unavailable." },
+  });
+  expect(h.get("loading-progress").dataset.mode).toBe("progress");
+  expect(h.get("currentLoadingStep").textContent).toBe("Loading failed");
+  expect(h.get("loading-primary-action").textContent).toBe("Choose ontology");
+  presenter.dispose();
+});

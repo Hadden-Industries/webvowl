@@ -1052,9 +1052,18 @@ describe("loading module canonical controller sources", () => {
       expect(requestedLoads).toEqual([]);
       expect(messages).toEqual([]);
       expect(controls.get("#loadingErrorMessage").textContent).toBe(
-        // json-identity-contract: bytes; owner: Local source recovery message regression; reason: Assert exact rendered message text including the JSON-quoted filename.
-        `Select ${JSON.stringify(fileName)} again in the Ontology menu, or drop it onto the page. Local files are not retained after a page reload.`,
+        "Browsers don't keep local files after a page reload.",
       );
+      expect(controls.get("#currentLoadingStep").textContent).toBe(
+        `Reopen “${fileName}”`,
+      );
+      expect(controls.get("#loading-primary-action").textContent).toBe(
+        "Choose file…",
+      );
+      expect(controls.get("#loadingIndicator_closeButton").textContent).toBe(
+        "Not now",
+      );
+      expect(controls.get("#loading-progress").dataset.mode).toBe("reopen");
       expect(controls.get("#loadingErrorMessage").hidden).toBe(false);
       expect(controls.get("#loadingInfo_msgBox").hidden).toBe(true);
       expect(loadingModule.state()).toBe("error");
@@ -1292,8 +1301,8 @@ describe("loading module canonical controller sources", () => {
     await earlier;
     expect(requestedLoads).toEqual([]);
     expect(global.window.history.pushState).not.toHaveBeenCalled();
-    expect(controls.get("#loadingErrorMessage").textContent).toContain(
-      '"later.rdf"',
+    expect(controls.get("#currentLoadingStep").textContent).toBe(
+      "Reopen “later.rdf”",
     );
   });
 });
